@@ -1,0 +1,14 @@
+.footer-row{
+	z-index: 1;
+	position: relative;
+	top: 0%;
+	left: 0%;
+	color: red;
+	display: flex;
+	width: 100%
+}
+
+.footer-links{
+	font-weight: 400;
+	font-size: 1.2rem;
+}
