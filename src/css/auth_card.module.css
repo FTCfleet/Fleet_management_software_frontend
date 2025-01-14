@@ -1,0 +1,96 @@
+/* Styles.module.css */
+
+.container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.heading {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #222222;
+  margin-bottom: 1.5rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  color: #555555;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9; /* Fixed background color */
+  border-radius: 8px;
+  outline: none;
+  box-sizing: border-box; /* Ensure consistent sizing */
+  transition: border 0.3s ease, background-color 0.3s ease;
+}
+
+.input:focus {
+  border-color: #007bff;
+  background-color: #ffffff; /* Highlight on focus */
+}
+
+.passwordContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.showPasswordButton {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: #888888;
+  transition: color 0.3s ease;
+}
+
+.showPasswordButton:hover {
+  color: #007bff;
+}
+
+.showPasswordButton:focus{
+outline: none;
+}
+.forgotPassword {
+  font-size: 0.875rem;
+  color: #007bff;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.forgotPassword:hover {
+  color: #888888;
+}
+
+.loginButton {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: #222222;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.loginButton:hover {
+  background-color: #444444;
+}

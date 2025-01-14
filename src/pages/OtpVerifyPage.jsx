@@ -1,10 +1,9 @@
 import {React, useState} from 'react';
 import styles from "../css/auth_card.module.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { useNavigate } from 'react-router-dom';
-const ForgetPasswordPage = () => {
+const OtpVerifyPage = () => {
   
-  const navigate = useNavigate();
+
   const [passwordVisible, setPasswordVisible] = useState(false);
     const [passwordVal, setpasswordVal] = useState("");
     const [userVal, setuserVal] = useState("");
@@ -15,7 +14,6 @@ const ForgetPasswordPage = () => {
 
     const handleLogin = async (event) => {
       event.preventDefault();
-      navigate('/auth/reset');
     };
 
   return (
@@ -28,18 +26,39 @@ const ForgetPasswordPage = () => {
               className={styles.input}
               onChange={(event) => setuserVal(event.target.value)}
             />
+            <div className={styles.passwordContainer}>
+              <input
+                type={passwordVisible ? "text" : "password"}
+                placeholder="Enter your password"
+                className={styles.input}
+                onChange={(event) => setpasswordVal(event.target.value)}
+              />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className={styles.showPasswordButton}
+              >
+                {passwordVisible ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+            <div>
+              Forgot Password?
+              <a href="/auth/forget" className={styles.forgotPassword}>
+                {" Reset"}
+              </a>
+            </div>
             <div>
               Already have an account?
-              <a href="/auth/login" className={styles.forgotPassword}>
+              <a href="/auth/forget" className={styles.forgotPassword}>
                 {" Sign In"}
               </a>
             </div>
             <button className={styles.loginButton} onClick={handleLogin}>
-              Send Code
+              Login
             </button>
           </form>
         </div>
       );
 };
 
-export default ForgetPasswordPage;
+export default OtpVerifyPage;
