@@ -9,7 +9,21 @@ const TrackShipmentPage = () => {
     const [shipper, setShipper] = useState("NA");
     const [consignee, setConsignee] = useState("NA");
     const [service, setService] = useState("NA");
-    const [currentStep, setCurrentStep] = useState(4);
+    const [currentStep, setCurrentStep] = useState(3);
+    const steps = [
+        "Order Placed",
+        "Shipment Dispatched",
+        "Out for Delivery",
+        "Delivered"
+    ];
+
+    const getStepColor = (index) => {
+        if (currentStep >= index + 1) {
+            return index + 1 === currentStep ? "#1E3A5F" : "#82acc2"; // Dark blue for current step, light blue for past
+        }
+        return "#9da8bb"; // Grey for future steps
+    };
+
 
     const handleTrack = () => {
         if (shipmentIdInput.trim() !== "") {
@@ -118,7 +132,7 @@ const TrackShipmentPage = () => {
                     }}
                 >
                     {/* Shipment Details */}
-                    <div style={{ flex: "50%", position: "relative" }}>
+                    <div style={{ flex: "60%", position: "relative" }}>
                         <div>
                             <div style={{ display: "flex", justifyContent: "space-between" }}>
                                 <div style={{ flex: 1, textAlign: "center" }}>
@@ -187,61 +201,48 @@ const TrackShipmentPage = () => {
                     </div>
 
                     {/* Tracking Section */}
-                    <div style={{ flex: "50%", textAlign: "center", position: "relative" }}>
+                    <div style={{ flex: "40%", textAlign: "center", position: "relative" }}>
                         <div
                             style={{
                                 display: "flex",
-                                flexDirection: "column",
+                                justifyContent: "center",
                                 alignItems: "center",
-                                gap: "40px",
-                                position: "relative",
+                                height: "100%",
+                                padding: "20px",
                             }}
                         >
-                            {/* Adjusted line position */}
                             <div
                                 style={{
-                                    position: "absolute",
-                                    top: "10px",
-                                    left: "227px", // Moved to connect circles
-                                    width: "2px",
-                                    height: "90%",
-                                    backgroundColor: "#ddd",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "flex-start", // Align to the left
+                                    gap: "20px",
+                                    justifyContent: "center",
                                 }}
-                            ></div>
-
-                            {Array.from({ length: 4 }).map((_, index) => {
-                                const step = index + 1;
-                                const isActive = step === currentStep;
-                                return (
-                                    <div
-                                        key={step}
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            zIndex: 1,
-                                        }}
-                                    >
+                            >
+                                {steps.map((step, index) => (
+                                    <div key={index} style={{ display: "flex", alignItems: "center" }}>
                                         <div
                                             style={{
-                                                width: "20px",
-                                                height: "20px",
-                                                backgroundColor: isActive ? "red" : "#555",
+                                                width: "10px",
+                                                height: "10px",
                                                 borderRadius: "50%",
-                                                zIndex: 1,
+                                                backgroundColor: getStepColor(index), // Apply dynamic color based on the current step
+                                                transition: "background-color 0.3s",
                                             }}
-                                        ></div>
+                                        />
                                         <Typography
                                             sx={{
-                                                color: isActive ? "#25344e" : "#7d8695",
-                                                fontWeight: isActive ? "bold" : "normal",
                                                 marginLeft: "10px",
+                                                fontWeight: currentStep >= index + 1 ? "bold" : "normal",
+                                                color: getStepColor(index),
                                             }}
                                         >
-                                            Step {step}
+                                            {step}
                                         </Typography>
                                     </div>
-                                );
-                            })}
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
