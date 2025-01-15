@@ -1,12 +1,14 @@
 import { React, useState } from "react";
 import styles from "../css/auth_card.module.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-
+import { useNavigate } from "react-router-dom";
 
 const ResetPasswordPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [passwordVal, setpasswordVal] = useState("");
   const [confirmPasswordVal, setconfirmPasswordVal] = useState("");
+
+  const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setPasswordVisible((prevState) => !prevState);
@@ -14,13 +16,16 @@ const ResetPasswordPage = () => {
 
   const handleLogin = async (event) => {
     event.preventDefault();
+    alert("password changed");
+    setTimeout(() => {
+      navigate("/auth/login", { replace: true });
+    }, 1000);
   };
 
   return (
     <div>
       <h1 className={styles.heading}>Welcome back! Glad to see you, Again!</h1>
       <form className={styles.form}>
-        
         <div className={styles.passwordContainer}>
           <input
             type={passwordVisible ? "text" : "password"}

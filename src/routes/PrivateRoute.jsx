@@ -1,0 +1,16 @@
+// PrivateRoute.jsx
+import React from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "./AuthContext";
+
+const PrivateRoute = ({ element, requiredStep, redirectTo }) => {
+  const {isUsernameSubmitted, isOtpVerified} = useAuth();
+
+  const isAllowed =
+    (requiredStep === "otp" && isUsernameSubmitted) ||
+    (requiredStep === "reset" && isOtpVerified);
+
+  return isAllowed ? element : <Navigate to={redirectTo} replace />;
+};
+
+export default PrivateRoute;

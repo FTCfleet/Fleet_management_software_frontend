@@ -1,10 +1,10 @@
-import {React} from "react"
+import { React } from "react"
 // import { Outlet } from "react-router-dom"
 
-export default function DashboardPage(){
+export default function ParcelPage() {
     return (
         <div className="app">
-            <p>This is DashboardPage</p>
+                <p>This is Parcel</p>
         </div>
     );
 }

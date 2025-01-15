@@ -1,7 +1,8 @@
-import { React, useState } from "react";
+import { React, useEffect, useState } from "react";
 import styles from "../css/auth_card.module.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../routes/AuthContext";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -9,10 +10,16 @@ const LoginPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [passwordVal, setpasswordVal] = useState("");
   const [userVal, setuserVal] = useState("");
-
+  
+  const { resetAuth } = useAuth();
+  
   const togglePasswordVisibility = () => {
     setPasswordVisible((prevState) => !prevState);
   };
+
+  useEffect( () => {
+    resetAuth();
+  }, []);
 
   // const handleLogin = async (event) => {
   //   event.preventDefault();

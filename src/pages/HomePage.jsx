@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-// import "./App.css";
 import backImg from '../assets/back2.jpg'
 import cardImg from '../assets/card.jpg'
 import workImg from '../assets/workflow.jpg'
