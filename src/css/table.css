@@ -1,0 +1,107 @@
+/* tables.css */
+
+/* General Table Styling */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin: 20px 0;
+}
+
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 16px;
+    background-color: #ffffff;
+}
+
+.styled-table thead tr {
+    background-color: #f4f6f8;
+    color: #1E3A5F;
+    text-align: left;
+    font-weight: bold;
+}
+
+.styled-table th,
+.styled-table td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+}
+
+.styled-table tbody tr {
+    border-bottom: 1px solid #ddd;
+}
+
+.styled-table tbody tr:nth-of-type(even) {
+    background-color: #f9f9f9;
+}
+
+.styled-table tbody tr:last-of-type {
+    border-bottom: 2px solid #1E3A5F;
+}
+
+.styled-table tbody tr:hover {
+    background-color: #f1f3f5;
+}
+
+/* Status Bubbles */
+.status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #ffffff;
+    text-align: center;
+}
+
+.status.delivered {
+    background-color: #28a745;
+    /* Green */
+}
+
+.status.dispatched {
+    background-color: #007bff;
+    /* Blue */
+}
+
+.status.arrived {
+    background-color: #ffc107;
+    /* Yellow */
+}
+
+.status.pending {
+    background-color: #6c757d;
+    /* Gray */
+}
+
+/* No Orders Row */
+.no-orders {
+    color: #7D8695;
+    text-align: center;
+    font-style: italic;
+}
+
+/* tables.css */
+.table-status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    text-align: center;
+    width: fit-content;
+}
+
+.table-status.delivered {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.table-status.dispatched {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.table-status.arrived {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
