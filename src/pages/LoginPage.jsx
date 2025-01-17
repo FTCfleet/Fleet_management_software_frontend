@@ -10,58 +10,40 @@ const LoginPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [passwordVal, setpasswordVal] = useState("");
   const [userVal, setuserVal] = useState("");
-  
   const { resetAuth } = useAuth();
-  
+  const navigate = useNavigate();
+
   const togglePasswordVisibility = () => {
     setPasswordVisible((prevState) => !prevState);
   };
 
-  useEffect( () => {
+  useEffect(() => {
     resetAuth();
   }, []);
-
-  // const handleLogin = async (event) => {
-  //   event.preventDefault();
-  //   await fetch('api/auth/login', {
-  //     method: 'POST', // Add the method
-  //   headers: {
-  //     'Content-Type': 'application/json', // Set content type
-  //   },
-  //     body: JSON.stringify({
-  //       user: userVal,
-  //       password: passwordVal
-  //     })
-  //   }).then((response) => console.log(response));
-  // };
 
   const handleLogin = async (event) => {
     event.preventDefault();
     await fetch(`${BASE_URL}/api/auth/login`, {
-      method: "POST", // Add the method
+      method: "POST",
       headers: {
-        "Content-Type": "application/json", // Set content type
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         username: userVal,
         password: passwordVal,
-        // phoneNo: '7845315421',
-        // role:'admin',
-        // name: 'suraj'
       }),
     })
       .then((response) => {
-        // console.log(response.text);
-        console.log(response.ok);
-        return response.json();
+        if (!response.ok) {
+          alert("Error occurred");
+        }
+        if (response.status === 201) {
+          alert("No such user");
+        }
       })
-      // return response.json()})
-      .then((data) => {
-        console.log(data);
+      .then(() => {
+        navigate("user/login");
       });
-    // .catch(err){
-    //   console.log(err);
-    // };
   };
 
   return (

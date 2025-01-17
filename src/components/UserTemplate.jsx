@@ -1,10 +1,14 @@
-import React from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import React, { useEffect } from "react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Box, List, ListItem, ListItemIcon, ListItemText, Typography } from "@mui/material";
 import { FaRegFileAlt, FaTruckMoving, FaMoneyCheckAlt, FaBoxOpen, FaFileInvoice } from "react-icons/fa"; // Import different icons for headings
+import { useAuth } from "../routes/AuthContext";
 import "../css/dashboard.css"; // Add custom CSS for fine-tuning if needed
 
 const UserTemplate = () => {
+  const {isLoggedIn} = useAuth();
+  const navigate = useNavigate();
+
   const menuSections = [
     {
       heading: "Orders",
@@ -23,8 +27,9 @@ const UserTemplate = () => {
       headingIcon: <FaFileInvoice style={{ marginRight: "8px" }} />, // Icon for "Receipts"
       items: [
         { text: "All Trucks", path: "/user/ledgers/all", icon: <FaTruckMoving /> },
-        { text: "Outgoing", path: "/user/ledgers/outgoing", icon: <FaTruckMoving /> },
+        { text: "Out/In", path: "/user/ledgers/outgoing", icon: <FaTruckMoving /> },
         { text: "Complete", path: "/user/ledgers/complete", icon: <FaTruckMoving /> },
+        { text: "Pending", path: "/user/ledgers/pending", icon: <FaTruckMoving /> },
       ],
     },
     {
@@ -36,6 +41,10 @@ const UserTemplate = () => {
       ],
     },
   ];
+
+  useEffect(() => {
+    if (!isLoggedIn) navigate('/auth/login');
+  })
 
   return (
     <div style={{ display: "flex" }}>

@@ -10,19 +10,25 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [isUsernameSubmitted, setIsUsernameSubmitted] = useState(false);
   const [isOtpVerified, setIsOtpVerified] = useState(false);
-  const [username, setUsername] = useState("");
+  const [forgetUsername, setForgetUsername] = useState("");
+  const [user, setUser] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   const resetAuth = () => {
     setIsUsernameSubmitted(false);
     setIsOtpVerified(false);
-    setUsername("");
+    setForgetUsername("");
   }
 
   return (
     <AuthContext.Provider
       value={{
-        username,
-        setUsername,
+        user,
+        setUser,
+        isLoggedIn, 
+        setIsLoggedIn,
+        forgetUsername,
+        setForgetUsername,
         isUsernameSubmitted,
         setIsUsernameSubmitted,
         isOtpVerified,

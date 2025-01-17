@@ -1,7 +1,15 @@
-import React from "react";
-import { Outlet } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../routes/AuthContext";
 
 const AuthTemplate = () => {
+  const {isLoggedIn} = useAuth();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (isLoggedIn) navigate('/user/parcel/all');
+  });
+
+  
   return (
     <>
       <div className="app" />

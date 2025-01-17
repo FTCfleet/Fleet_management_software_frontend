@@ -59,7 +59,7 @@ function AllRoutes() {
         <Route exact path="add" element={<AddOrderPage />} />
         <Route exact path="parcel/:type" element={<ParcelPage />} />
         <Route exact path="ledgers/:type" element={<LedgerPage />} />
-        <Route exact path="gen-report/" element={<GenReportPage />} />
+        <Route exact path="gen-report" element={<GenReportPage />} />
         <Route path="*" element={<ErrorPage />} />
       </Route>
     </Routes>

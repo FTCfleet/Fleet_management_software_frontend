@@ -8,14 +8,16 @@ import {
 import { Link, NavLink } from "react-router-dom";
 import logoImg from '../assets/logo.jpg'
 import "../css/header.css"
+import { useAuth } from "../routes/AuthContext";
 
 const HeaderTabs = () => {
+    const {isLoggedIn} = useAuth();
     const tabs = [
         { url: "/", text: "Home" },
         { url: "/track", text: "Track Shipment" },
         { url: "/about", text: "About Us" },
         { url: "/faq", text: "FAQ" },
-        { url: "/auth/login", text: "Login" },
+        isLoggedIn ? { url: "/user/parcel/all", text: "Dashboard" } : { url: "/auth/login", text: "Login" },
     ]
     return (
         <ButtonGroup sx={{ textDecoration: "none", marginRight: 1 }}>
