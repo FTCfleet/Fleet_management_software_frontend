@@ -1,13 +1,16 @@
 import React, { useEffect } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { Box, List, ListItem, ListItemIcon, ListItemText, Typography } from "@mui/material";
-import { FaRegFileAlt, FaTruckMoving, FaMoneyCheckAlt, FaBoxOpen, FaFileInvoice } from "react-icons/fa"; // Import different icons for headings
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Box, List, ListItem, ListItemIcon, ListItemText, Typography, Fab } from "@mui/material";
+import { FaRegFileAlt, FaTruckMoving, FaMoneyCheckAlt, FaBoxOpen, FaFileInvoice, FaPlus } from "react-icons/fa"; // Import different icons for headings
 import { useAuth } from "../routes/AuthContext";
 import "../css/dashboard.css"; // Add custom CSS for fine-tuning if needed
 
 const UserTemplate = () => {
-  const {isLoggedIn} = useAuth();
+  const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAddOrderPage = location.pathname === "/user/add/order/";
+
 
   const menuSections = [
     {
@@ -68,7 +71,7 @@ const UserTemplate = () => {
               sx={{
                 color: "#1E3A5F", // Heading color
                 fontWeight: "bold",
-                fontSize: "16px", // Reduced font size for headings
+                fontSize: "15px", // Reduced font size for headings
                 display: "flex",
                 alignItems: "center",
                 marginBottom: "6px", // Reduced gap between heading and items
@@ -102,13 +105,13 @@ const UserTemplate = () => {
                       alignItems: "center",
                       width: "100%",
                       padding: "4px 12px", // Adjusted padding
-                      transform: isActive ? "scale(1.05)" : "none", 
+                      transform: isActive ? "scale(1.05)" : "none",
                       backgroundColor: isActive ? "#e3f2fd" : "",// Slight scaling effect for active item
                     })}
                   >
                     <ListItemIcon
                       sx={{
-                        minWidth: "30px",
+                        minWidth: "25px",
                         color: "#82acc2",
                       }}
                     >
@@ -118,7 +121,7 @@ const UserTemplate = () => {
                       primary={item.text}
                       sx={{
                         fontSize: "12px", // Reduced font size
-                        margin: "0", // Reduced margin
+                        margin: "-5px", // Reduced margin
                         color: "#25344e", // Text color
                       }}
                     />
@@ -133,6 +136,41 @@ const UserTemplate = () => {
       {/* Main Content Area */}
       <Box sx={{ flexGrow: 1, padding: "16px" }}>
         <Outlet />
+        {/* Floating Add Order Button */}
+        {!isAddOrderPage && ( 
+        <Box
+          sx={{
+            position: "fixed",
+            bottom: "16px",
+            right: "25px",
+            zIndex: 1000, // Ensure it floats above other elements
+          }}
+        >
+          <button
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "10px 20px",
+              backgroundColor: "#145a9f",
+              color: "#fff",
+              fontSize: "14px",
+              fontWeight: "bold",
+              borderRadius: "24px",
+              border: "none",
+              cursor: "pointer",
+              transition: "background-color 0.3s ease",
+              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+            }}
+            onClick={() => navigate("/user/add/order/")}
+            onMouseOver={(e) => (e.target.style.backgroundColor = "#1E3A5F")}
+            onMouseOut={(e) => (e.target.style.backgroundColor = "#145a9f")}
+          >
+            <FaPlus style={{ marginRight: "8px" }} /> Add Order
+          </button>
+        </Box>
+        )}
+
       </Box>
     </div>
   );
