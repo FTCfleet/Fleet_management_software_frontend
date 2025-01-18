@@ -16,6 +16,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FiSearch } from "react-icons/fi";
 import { AiOutlineCalendar } from "react-icons/ai";
 import "../css/table.css"; // Import CSS
+import { IoArrowForwardCircleOutline } from "react-icons/io5"; // Icon for View Ledger
+
 
 const ParcelPage = () => {
   const { type } = useParams(); // Retrieve the type (all, dispatched, etc.) from the URL
@@ -23,24 +25,25 @@ const ParcelPage = () => {
   const [filteredOrders, setFilteredOrders] = useState([]); // Orders filtered by date or type
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]); // Default to today
-  
+  const navigate = useNavigate();
+
   useEffect(() => {
-    
+
     // Mock data for orders
     const mockOrders = [
-        { id: 1, sender: "PIN:560001, Bengaluru", receiver: "PIN:110001, Delhi", status: "Delivered", package: 40, date: "2025-01-15" },
-        { id: 2, sender: "PIN:560002, Bengaluru", receiver: "PIN:400001, Mumbai", status: "Dispatched", package: 25, date: "2025-01-14" },
-        { id: 3, sender: "PIN:500001, Hyderabad", receiver: "PIN:600001, Chennai", status: "Arrived", package: 30, date: "2025-01-15" },
-        { id: 4, sender: "PIN:400001, Mumbai", receiver: "PIN:110001, Delhi", status: "Delivered", package: 45, date: "2025-01-13" },
-        { id: 5, sender: "PIN:700001, Kolkata", receiver: "PIN:110002, Delhi", status: "In Transit", package: 35, date: "2025-01-14" },
-        { id: 6, sender: "PIN:110001, Delhi", receiver: "PIN:500001, Hyderabad", status: "Dispatched", package: 50, date: "2025-01-15" },
-        { id: 7, sender: "PIN:600001, Chennai", receiver: "PIN:700001, Kolkata", status: "Delivered", package: 20, date: "2025-01-13" },
-        { id: 8, sender: "PIN:23146, Hazaribagh", receiver: "PIN:23146, Hazaribagh", status: "Dispatched", package: 40, date: "2025-01-14" },
-        { id: 9, sender: "PIN:500081, Hyderabad", receiver: "PIN:600113, Chennai", status: "Arrived", package: 60, date: "2025-01-15" },
-        { id: 10, sender: "PIN:560078, Bengaluru", receiver: "PIN:700091, Kolkata", status: "Delivered", package: 55, date: "2025-01-15" },
-        { id: 11, sender: "PIN:400089, Mumbai", receiver: "PIN:560097, Bengaluru", status: "In Transit", package: 45, date: "2025-01-16" },
-        { id: 12, sender: "PIN:110094, Delhi", receiver: "PIN:700004, Kolkata", status: "Dispatched", package: 65, date: "2025-01-17" },
-      ];
+      { id: 1, sender: "PIN:560001, Bengaluru", receiver: "PIN:110001, Delhi", status: "Delivered", package: 40, date: "2025-01-15" },
+      { id: 2, sender: "PIN:560002, Bengaluru", receiver: "PIN:400001, Mumbai", status: "Dispatched", package: 25, date: "2025-01-14" },
+      { id: 3, sender: "PIN:500001, Hyderabad", receiver: "PIN:600001, Chennai", status: "Arrived", package: 30, date: "2025-01-15" },
+      { id: 4, sender: "PIN:400001, Mumbai", receiver: "PIN:110001, Delhi", status: "Delivered", package: 45, date: "2025-01-13" },
+      { id: 5, sender: "PIN:700001, Kolkata", receiver: "PIN:110002, Delhi", status: "In Transit", package: 35, date: "2025-01-14" },
+      { id: 6, sender: "PIN:110001, Delhi", receiver: "PIN:500001, Hyderabad", status: "Dispatched", package: 50, date: "2025-01-15" },
+      { id: 7, sender: "PIN:600001, Chennai", receiver: "PIN:700001, Kolkata", status: "Delivered", package: 20, date: "2025-01-13" },
+      { id: 8, sender: "PIN:23146, Hazaribagh", receiver: "PIN:23146, Hazaribagh", status: "Dispatched", package: 40, date: "2025-01-14" },
+      { id: 9, sender: "PIN:500081, Hyderabad", receiver: "PIN:600113, Chennai", status: "Arrived", package: 60, date: "2025-01-15" },
+      { id: 10, sender: "PIN:560078, Bengaluru", receiver: "PIN:700091, Kolkata", status: "Delivered", package: 55, date: "2025-01-15" },
+      { id: 11, sender: "PIN:400089, Mumbai", receiver: "PIN:560097, Bengaluru", status: "In Transit", package: 45, date: "2025-01-16" },
+      { id: 12, sender: "PIN:110094, Delhi", receiver: "PIN:700004, Kolkata", status: "Dispatched", package: 65, date: "2025-01-17" },
+    ];
 
     setOrders(mockOrders);
     filterOrdersByTypeAndDate(type, selectedDate, mockOrders);
@@ -141,6 +144,7 @@ const ParcelPage = () => {
               <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>Receiver's Address</TableCell>
               {type === "all" && <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>Status</TableCell>}
               <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>Package</TableCell>
+              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>View Order</TableCell> {/* New column for actions */}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -158,11 +162,20 @@ const ParcelPage = () => {
                     </TableCell>
                   )}
                   <TableCell sx={{ color: "#25344E" }}>{order.package}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outlined"
+                      sx={{ textTransform: "none", color: "#1E3A5F", borderColor: "#1E3A5F" }}
+                      onClick={() => navigate(`/user/view/order/${order.id}`)}
+                    >
+                      <IoArrowForwardCircleOutline size={24} />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={type === "all" ? 5 : 4} align="center" sx={{ color: "#7D8695" }}>
+                <TableCell colSpan={type === "all" ? 6 : 5} align="center" sx={{ color: "#7D8695" }}>
                   No orders found for the selected date.
                 </TableCell>
               </TableRow>

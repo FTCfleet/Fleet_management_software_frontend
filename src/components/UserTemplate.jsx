@@ -27,7 +27,8 @@ const UserTemplate = () => {
       headingIcon: <FaFileInvoice style={{ marginRight: "8px" }} />, // Icon for "Receipts"
       items: [
         { text: "All Trucks", path: "/user/ledgers/all", icon: <FaTruckMoving /> },
-        { text: "Out/In", path: "/user/ledgers/outgoing", icon: <FaTruckMoving /> },
+        { text: "Outgoing", path: "/user/ledgers/outgoing", icon: <FaTruckMoving /> },
+        { text: "Incoming", path: "/user/ledgers/incoming", icon: <FaTruckMoving /> },
         { text: "Complete", path: "/user/ledgers/complete", icon: <FaTruckMoving /> },
         { text: "Pending", path: "/user/ledgers/pending", icon: <FaTruckMoving /> },
       ],

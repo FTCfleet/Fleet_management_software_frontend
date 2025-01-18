@@ -96,6 +96,11 @@
     color: #155724;
 }
 
+.table-status.completed {
+    background-color: #d4edda;
+    color: #155724;
+}
+
 .table-status.dispatched {
     background-color: #fff3cd;
     color: #856404;
@@ -104,4 +109,19 @@
 .table-status.arrived {
     background-color: #d1ecf1;
     color: #0c5460;
+}
+
+.table-status.pending{
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.table-status.outgoing{
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.table-status.incoming{
+    background-color: #cce5ff;
+    color: #004085;
 }
