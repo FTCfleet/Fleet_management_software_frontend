@@ -18,6 +18,8 @@ import ErrorPage from "../pages/ErrorPage";
 import AuthTemplate from "../components/AuthTemplate";
 import UserTemplate from "../components/UserTemplate";
 import PrivateRoute from "./PrivateRoute";
+import ViewOrderPage from "../pages/ViewOrderPage";
+import ViewLedgerPage from "../pages/ViewLedgerPage";
 
 
 function AllRoutes() {
@@ -56,9 +58,11 @@ function AllRoutes() {
         <Route path="*" element={<ErrorPage />} />
       </Route>
       <Route path="/user/*" element={<UserTemplate />}>
-        <Route exact path="add" element={<AddOrderPage />} />
+        <Route exact path="add/order" element={<AddOrderPage />} />
         <Route exact path="parcel/:type" element={<ParcelPage />} />
         <Route exact path="ledgers/:type" element={<LedgerPage />} />
+        <Route exact path="view/order/:id" element={<ViewOrderPage />} />
+        <Route exact path="view/ledger/:id" element={<ViewLedgerPage />} />
         <Route exact path="gen-report" element={<GenReportPage />} />
         <Route path="*" element={<ErrorPage />} />
       </Route>
