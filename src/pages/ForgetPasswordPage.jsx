@@ -1,13 +1,14 @@
 import { React, useEffect, useState } from "react";
 import styles from "../css/auth_card.module.css";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../routes/AuthContext";
 
 const ForgetPasswordPage = () => {
   const navigate = useNavigate();
 
   const {
     forgetUsername,
-    setUsername,
+    setForgetUsername,
     setIsUsernameSubmitted,
     setIsOtpVerified,
   } = useAuth();
@@ -19,7 +20,7 @@ const ForgetPasswordPage = () => {
   
   const handleLogin = async (event) => {
     event.preventDefault();
-    setUsername(forgetUsername);
+    setForgetUsername(forgetUsername);
     setIsUsernameSubmitted(true);
     navigate("/auth/otp");
   };
@@ -34,7 +35,7 @@ const ForgetPasswordPage = () => {
           placeholder="Enter username"
           className={styles.input}
           value={forgetUsername}
-          onChange={(event) => setUsername(event.target.value)}
+          onChange={(event) => setForgetUsername(event.target.value)}
         />
         <div>
           Already have an account?

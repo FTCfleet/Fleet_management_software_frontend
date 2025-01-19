@@ -1,4 +1,4 @@
-import { React, useState } from "react";
+import { React, useState, useEffect } from "react";
 import styles from "../css/auth_card.module.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -6,16 +6,28 @@ import { useNavigate } from "react-router-dom";
 const ResetPasswordPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [passwordVal, setpasswordVal] = useState("");
-  const [confirmPasswordVal, setconfirmPasswordVal] = useState("");
+  const [confirmPasswordVal, setConfirmPasswordVal] = useState("");
+  const [isMatch, setIsMatch] = useState(true);
 
   const navigate = useNavigate();
+  const style = {
+    borderColor: "red",
+  };
 
   const togglePasswordVisibility = () => {
     setPasswordVisible((prevState) => !prevState);
   };
 
+  useEffect(() => {
+      setIsMatch(passwordVal === confirmPasswordVal);
+    }, [passwordVal, confirmPasswordVal]);
+
   const handleLogin = async (event) => {
     event.preventDefault();
+    if (!isMatch) {
+      alert("Enter same password");
+      return;
+    }
     alert("password changed");
     setTimeout(() => {
       navigate("/auth/login", { replace: true });
@@ -47,8 +59,10 @@ const ResetPasswordPage = () => {
             type={passwordVisible ? "text" : "password"}
             placeholder="Confirm password"
             className={styles.input}
-            value={confirmPasswordVal}
-            onChange={(event) => setconfirmPasswordVal(event.target.value)}
+            onChange={(event) => {
+              setConfirmPasswordVal(event.target.value);
+            }}
+            style={isMatch ? {} : style}
           />
           <button
             type="button"

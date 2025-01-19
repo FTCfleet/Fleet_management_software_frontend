@@ -18,7 +18,7 @@ import { AiOutlineCalendar } from "react-icons/ai";
 import { IoArrowForwardCircleOutline } from "react-icons/io5"; // Icon for View Ledger
 import "../css/table.css"; // Import CSS
 
-const LedgerPage = () => {
+const AllLedgerPage = () => {
   const { type } = useParams(); // Retrieve the type (all, outgoing, incoming, etc.) from the URL
   const [ledgerEntries, setLedgerEntries] = useState([]); // All ledger entries
   const [filteredLedger, setFilteredLedger] = useState([]); // Filtered ledger entries
@@ -179,4 +179,4 @@ const LedgerPage = () => {
   );
 };
 
-export default LedgerPage;
+export default AllLedgerPage;

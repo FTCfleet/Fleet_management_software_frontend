@@ -6,7 +6,7 @@ const AuthTemplate = () => {
   const {isLoggedIn} = useAuth();
   const navigate = useNavigate();
   useEffect(() => {
-    if (isLoggedIn) navigate('/user/parcel/all');
+    if (isLoggedIn) navigate('/user/order/all');
   });
 
   

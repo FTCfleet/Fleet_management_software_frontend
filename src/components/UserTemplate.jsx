@@ -15,13 +15,13 @@ const UserTemplate = () => {
   const menuSections = [
     {
       heading: "Orders",
-      path: "/user/parcel",
+      path: "/user/order",
       headingIcon: <FaBoxOpen style={{ marginRight: "8px" }} />, // Icon for "Orders"
       items: [
-        { text: "All Orders", path: "/user/parcel/all", icon: <FaRegFileAlt /> },
-        { text: "Dispatched", path: "/user/parcel/dispatched", icon: <FaRegFileAlt /> },
-        { text: "Delivered", path: "/user/parcel/delivered", icon: <FaRegFileAlt /> },
-        { text: "Arrived", path: "/user/parcel/arrived", icon: <FaRegFileAlt /> },
+        { text: "All Orders", path: "/user/order/all", icon: <FaRegFileAlt /> },
+        { text: "Dispatched", path: "/user/order/dispatched", icon: <FaRegFileAlt /> },
+        { text: "Delivered", path: "/user/order/delivered", icon: <FaRegFileAlt /> },
+        { text: "Arrived", path: "/user/order/arrived", icon: <FaRegFileAlt /> },
       ],
     },
     {
@@ -134,7 +134,7 @@ const UserTemplate = () => {
       </Box>
 
       {/* Main Content Area */}
-      <Box sx={{ flexGrow: 1, padding: "16px" }}>
+      <Box sx={{ flexGrow: 1, padding: "20px", backgroundColor: "#ffffff", minHeight: "100vh" }}>
         <Outlet />
         {/* Floating Add Order Button */}
         {!isAddOrderPage && ( 

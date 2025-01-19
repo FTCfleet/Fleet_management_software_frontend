@@ -1,5 +1,16 @@
 import React, { useState } from "react";
-import { Typography, Button, TextField } from "@mui/material";
+import {
+  Typography,
+  Button,
+  TextField,
+  Table,
+  TableContainer,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Paper,
+} from "@mui/material";
 import backImg from "../assets/back2.jpg";
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -10,12 +21,10 @@ const TrackShipmentPage = () => {
   const [consignee, setConsignee] = useState("NA");
   const [service, setService] = useState("NA");
   const [currentStep, setCurrentStep] = useState(2);
-  const steps = [
-    "Order Placed",
-    "Shipment Dispatched",
-    // "Out for Delivery",
-    "Delivered",
-  ];
+  const [items, setItems] = useState([]);
+  const steps = ["Order Placed", "Shipment Dispatched", "Delivered"];
+  const cellStyle = { color: "#1E3A5F", fontWeight: "bold" };
+  const rowCellStyle = { color: "#25344E" };
 
   const getStepColor = (index) => {
     if (currentStep >= index + 1) {
@@ -46,9 +55,10 @@ const TrackShipmentPage = () => {
             setStatus(steps[0]);
             setCurrentStep(0);
           }
-          setShipper(data.sender);
-          setConsignee(data.receiver);
+          setShipper(data.sender.name);
+          setConsignee(data.receiver.name);
           setService(data.items.length);
+          setItems(data.items);
         }
       });
   };
@@ -270,6 +280,42 @@ const TrackShipmentPage = () => {
             </div>
           </div>
         </div>
+
+        <TableContainer
+          component={Paper}
+          sx={{ backgroundColor: "#ffffff", borderRadius: "8px" }}
+        >
+          <Typography variant="h6" sx={{ padding: "16px", ...cellStyle }}>
+            Items in Package
+          </Typography>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={cellStyle}>Item Name</TableCell>
+                <TableCell sx={cellStyle}>Quantity</TableCell>
+                <TableCell sx={cellStyle}>Status</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {items.map((item) => (
+                <TableRow key={item.itemId}>
+                  <TableCell sx={rowCellStyle}>{item.name}</TableCell>
+                    <TableCell sx={rowCellStyle}>{item.quantity}</TableCell>
+                  <TableCell sx={rowCellStyle}>
+                    <span
+                      className={`table-status ${item.status
+                        .replace(" ", "-")
+                        .toLowerCase()}`}
+                    >
+                      {item.status}
+                    </span>
+                  </TableCell>
+                  
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </div>
     </div>
   );

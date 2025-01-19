@@ -11,8 +11,8 @@ import ForgetPasswordPage from "../pages/ForgetPasswordPage";
 import OtpPage from "../pages/Otpage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 import AddOrderPage from "../pages/AddOrderPage";
-import LedgerPage from "../pages/LedgerPage";
-import ParcelPage from "../pages/ParcelPage";
+import AllLedgerPage from "../pages/AllLedgerPage";
+import AllOrderPage from "../pages/AllOrderPage";
 import GenReportPage from "../pages/GenReportPage";
 import ErrorPage from "../pages/ErrorPage";
 import AuthTemplate from "../components/AuthTemplate";
@@ -59,8 +59,8 @@ function AllRoutes() {
       </Route>
       <Route path="/user/*" element={<UserTemplate />}>
         <Route exact path="add/order" element={<AddOrderPage />} />
-        <Route exact path="parcel/:type" element={<ParcelPage />} />
-        <Route exact path="ledgers/:type" element={<LedgerPage />} />
+        <Route exact path="order/:type" element={<AllOrderPage />} />
+        <Route exact path="ledgers/:type" element={<AllLedgerPage />} />
         <Route exact path="view/order/:id" element={<ViewOrderPage />} />
         <Route exact path="view/ledger/:id" element={<ViewLedgerPage />} />
         <Route exact path="gen-report" element={<GenReportPage />} />

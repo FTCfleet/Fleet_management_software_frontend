@@ -17,7 +17,7 @@ const HeaderTabs = () => {
         { url: "/track", text: "Track Shipment" },
         { url: "/about", text: "About Us" },
         { url: "/faq", text: "FAQ" },
-        isLoggedIn ? { url: "/user/parcel/all", text: "Dashboard" } : { url: "/auth/login", text: "Login" },
+        isLoggedIn ? { url: "/user/order/all", text: "Dashboard" } : { url: "/auth/login", text: "Login" },
     ]
     return (
         <ButtonGroup sx={{ textDecoration: "none", marginRight: 1 }}>
