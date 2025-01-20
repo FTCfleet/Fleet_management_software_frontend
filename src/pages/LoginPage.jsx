@@ -10,7 +10,7 @@ const LoginPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [passwordVal, setpasswordVal] = useState("");
   const [userVal, setuserVal] = useState("");
-  const { resetAuth } = useAuth();
+  const { setIsLoggedIn, resetAuth } = useAuth();
   const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
@@ -25,6 +25,7 @@ const LoginPage = () => {
     event.preventDefault();
     await fetch(`${BASE_URL}/api/auth/login`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -36,13 +37,16 @@ const LoginPage = () => {
       .then((response) => {
         if (!response.ok) {
           alert("Error occurred");
+          return;
         }
+        console.log(response.status);
         if (response.status === 201) {
           alert("No such user");
+          return;
         }
-      })
-      .then(() => {
-        navigate("user/login");
+        alert('Login');
+        setIsLoggedIn(true);
+        navigate("/user/dashboard");
       });
   };
 

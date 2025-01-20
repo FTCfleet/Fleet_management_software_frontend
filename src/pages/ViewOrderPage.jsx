@@ -15,9 +15,11 @@ import {
 } from "@mui/material";
 import { Close, QrCode2 } from "@mui/icons-material";
 import { useParams } from "react-router-dom";
-import qrcode from "../assets/qr.png";
+// import qrcode from "../assets/qr.png";
 import orders from "../assets/orders.png";
 import "../css/table.css";
+import {Link} from "react-router-dom";
+
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function ViewOrderPage() {
@@ -30,13 +32,22 @@ export default function ViewOrderPage() {
   const [destWarehouse, setDestWarehouse] = useState("NA");
   const [status, setStatus] = useState(0);
   const [items, setItems] = useState([]);
+  const [qrCodes, setQrCodes] = useState([]);
+  const [qrCode, setQrCode] = useState("");
 
   const cellStyle = { color: "#1E3A5F", fontWeight: "bold" };
   const rowCellStyle = { color: "#25344E" };
 
   useEffect(() => {
     fetchData();
+    fetchQRCodes().then((data) => setQrCodes(data));
   }, []);
+
+  const fetchQRCodes = async () => {
+    const response = await fetch(`${BASE_URL}/api/parcel/generate-qr/${id}`);
+    const data = (await response.json());
+    return data.body;
+  };
 
   const fetchData = async () => {
     const response = await fetch(`${BASE_URL}/api/parcel/track/${id}`);
@@ -59,7 +70,7 @@ export default function ViewOrderPage() {
   };
 
   const handleViewQR = (itemId) => {
-    const item = items.find((i) => i.id === itemId);
+    const item = items.find((i) => i.itemId === itemId);
     setCurrentItem(item);
     setModalOpen(true);
   };
@@ -67,6 +78,7 @@ export default function ViewOrderPage() {
   const handleCloseModal = () => {
     setModalOpen(false);
     setCurrentItem(null);
+    setQrCode("");
   };
 
   const printLR = async () => {
@@ -187,7 +199,7 @@ export default function ViewOrderPage() {
                       color: "#1E3A5F",
                       borderColor: "#1E3A5F",
                     }}
-                    onClick={() => handleViewQR(item.id)}
+                    onClick={() => handleViewQR(item.itemId)}
                   >
                     View QR
                   </Button>
@@ -199,7 +211,7 @@ export default function ViewOrderPage() {
       </TableContainer>
 
       {/* Print QR Button */}
-      <Box sx={{ marginTop: "20px", textAlign: "center" }}>
+      {/* <Box sx={{ marginTop: "20px", textAlign: "center" }}>
         <Button
           variant="contained"
           sx={{
@@ -212,7 +224,7 @@ export default function ViewOrderPage() {
         >
           Print QR Codes
         </Button>
-      </Box>
+      </Box> */}
           {/* Print LR Recipt */}
       <Box sx={{ marginTop: "20px", textAlign: "center" }}>
         <Button
@@ -223,9 +235,11 @@ export default function ViewOrderPage() {
             textTransform: "none",
             "&:hover": { backgroundColor: "#16314D" },
           }}
-          onClick={printLR}
+          // onClick={Navigate(`{}`)}
         >
+          <Link to={`${BASE_URL}/api/parcel/generate-lr-receipt/${id}`}> 
           Print LR Receipt
+          </Link>
         </Button>
       </Box>
 
@@ -258,8 +272,8 @@ export default function ViewOrderPage() {
               >
                 QR Code for {currentItem.name}
               </Typography>
-              <img
-                src={qrcode}
+              <img  
+                src={qrCodes.find((item) => item.id === currentItem.itemId).qrCodeURL}
                 alt="QR Code"
                 style={{ width: "100%", height: "auto" }}
               />

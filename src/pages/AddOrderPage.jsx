@@ -104,6 +104,8 @@ export default function AddOrderPage() {
         senderDetails: senderDetails,
         receiverDetails: receiverDetails,
         items: items,
+        sourceWarehouse: 'HYO',
+        destinationWarehouse: 'MNC'
       }),
     }).then( async (response) => {
       if (!response.ok) {

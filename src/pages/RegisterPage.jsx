@@ -20,6 +20,7 @@ const RegisterPage = () => {
   const [isSection1, setIsSection1] = useState(true);
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
+  const { setIsLoggedIn } = useAuth();
 
   const navigate = useNavigate();
   const style = {
@@ -36,32 +37,24 @@ const RegisterPage = () => {
 
   useEffect(() => {
     fetchData();
-    setAllWarehouse(fetchWarehouse());
-    // console.log(allWarehouse); // Logs fetched data
+    fetchWarehouse()
+      .then(data => {
+        setAllWarehouse(data);
+      });
   }, []);
-  // useEffect(async () => {
-  //   fetchWarehouse();
-  //   // fetchData();
-  // }, []);
 
   const fetchData = async () => {
     const response = await fetch(`${BASE_URL}/api/auth/get-all-usernames`);
     const data = await response.json();
+    if(data.body.length===0) return;
     setAllUsers(data.body);
-    console.log(allUsers); // Logs fetched data
-    // setAllUsers(['hello']);
   };
 
   const fetchWarehouse = async () => {
-    const response = await fetch(`${BASE_URL}/api/warehouse/get-all`);
-    const data = await response.json();
-    
-
-    // console.log(data.body); // Logs fetched data
-    return (data.body); // Update state
-
-  // });
-};
+      const response = await fetch(`${BASE_URL}/api/warehouse/get-all`);
+      const data = await response.json();
+      return data.body;
+  };
 
   const handleSection1 = async (event) => {
     event.preventDefault();
@@ -73,7 +66,7 @@ const RegisterPage = () => {
       alert("Enter valid code");
       return;
     }
-    if (!allUsers.includes(userVal)) {
+    if (allUsers.length===0 || !allUsers.includes(userVal)) {
       setIsSection1(false);
     } else {
       alert("Username already exists");
@@ -93,8 +86,8 @@ const RegisterPage = () => {
         password: passwordVal,
         name: name,
         phoneNo: phoneNo,
-        warehouseNo: warehouseNo,
-        role: "admin",
+        warehouseCode: warehouseNo,
+        role: "supervisor",
       }),
     }).then((response) => {
       if (!response.ok) {
@@ -102,6 +95,7 @@ const RegisterPage = () => {
       } else {
         alert("Registered Successfully");
         setIsLoading(false);
+        setIsLoggedIn(true);
         navigate("/user/dashboard");
       }
     });
@@ -194,9 +188,11 @@ const RegisterPage = () => {
                 fullWidth
                 style={{textAlign: 'left', background: '#f9f9f9', borderRadius: '8px'}}
               >
-                {allWarehouse.map((element) => {
-                  <MenuItem value={element.warehouseID} key={element.warehouseID}>{element.name}</MenuItem>
-                })}
+                {allWarehouse && allWarehouse.map((element) => (
+                  <MenuItem value={element.warehouseID} key={element.warehouseID}>
+                    {element.name}
+                  </MenuItem>
+                ))}
               </Select>
             <div>
               Already have an account?

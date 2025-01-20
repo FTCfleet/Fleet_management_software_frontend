@@ -17,6 +17,7 @@ import { FiSearch } from "react-icons/fi";
 import { AiOutlineCalendar } from "react-icons/ai";
 import "../css/table.css"; // Import CSS
 import { IoArrowForwardCircleOutline } from "react-icons/io5"; // Icon for View Ledger
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 
 const AllOrderPage = () => {
@@ -42,28 +43,56 @@ const AllOrderPage = () => {
   ];
 
   useEffect(() => {
-    
-    // Mock data for orders
+    console.log(type);
+    fetchData().then((data) => {
+      setOrders(data);
+      filterOrdersByTypeAndDate(type);
+    });
+  }, []);
 
-    setOrders(mockOrders);
-    filterOrdersByTypeAndDate(type, selectedDate, mockOrders);
+
+  useEffect(() => {
+    // Mock data for orders
+    filterOrdersByTypeAndDate(type);
+    
   }, [type]);
 
-  
-
-  const filterOrdersByTypeAndDate = (type, date, allOrders = orders) => {
-    const filteredByDate = allOrders.filter((order) => order.date === date);
-    if (type === "all") {
-      setFilteredOrders(filteredByDate);
-    } else {
-      setFilteredOrders(filteredByDate.filter((order) => order.status.toLowerCase() === type));
+  const fetchData = async () => {
+    console.log(selectedDate);
+    const response = await fetch(`${BASE_URL}/api/parcel/all`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        date: selectedDate,
+      }),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      // console.log(data);
+       
+      return data;
     }
+    
+    return {};
+  };
+
+
+  const filterOrdersByTypeAndDate = (type) => {
+    // const filteredByDate = allOrders.filter((order) => order.date === date);
+    if (type === "all") {
+      setFilteredOrders(orders);
+    } else {
+      setFilteredOrders(orders.filter((order) => order.status === type));
+    }
+    // console.log(filteredOrders);
   };
 
   const handleDateChange = (event) => {
     const date = event.target.value;
     setSelectedDate(date);
-    filterOrdersByTypeAndDate(type, date);
+    filterOrdersByTypeAndDate(type);
   };
 
   const handleSearchChange = (event) => {
@@ -121,7 +150,7 @@ const AllOrderPage = () => {
             placeholder="Search orders..."
             fullWidth
             value={searchTerm}
-            onChange={handleSearchChange}
+            // onChange={handleSearchChange}
             sx={{
               backgroundColor: "#ffffff",
               borderRadius: "5px",
@@ -144,31 +173,30 @@ const AllOrderPage = () => {
               <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>Order ID</TableCell>
               <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>Sender's Address</TableCell>
               <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>Receiver's Address</TableCell>
-              {type === "all" && <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>Status</TableCell>}
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>Package</TableCell>
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>View Order</TableCell> 
+              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>Status</TableCell>
+              {/* <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>Source</TableCell> */}
+              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>Destination</TableCell>
+              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>View Order</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredOrders.length > 0 ? (
               filteredOrders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell sx={{ color: "#25344E" }}>{order.id}</TableCell>
-                  <TableCell sx={{ color: "#25344E" }}>{order.sender}</TableCell>
-                  <TableCell sx={{ color: "#25344E" }}>{order.receiver}</TableCell>
-                  {type === "all" && (
-                    <TableCell>
-                      <span className={`table-status ${order.status.toLowerCase()}`}>
-                        {order.status}
-                      </span>
-                    </TableCell>
-                  )}
-                  <TableCell sx={{ color: "#25344E" }}>{order.package}</TableCell>
+                <TableRow key={order.trackingId}>
+                  <TableCell sx={{ color: "#25344E" }}>{order.trackingId}</TableCell>
+                  <TableCell sx={{ color: "#25344E" }}>{order.sender.name}</TableCell>
+                  <TableCell sx={{ color: "#25344E" }}>{order.receiver.name}</TableCell>
+                  <TableCell>
+                    <span className={`table-status ${order.status}`}>
+                      {order.status}
+                    </span>
+                  </TableCell>
+                  <TableCell sx={{ color: "#25344E" }}>{order.destinationWarehouseName}</TableCell>
                   <TableCell>
                     <Button
                       variant="outlined"
                       sx={{ textTransform: "none", color: "#1E3A5F", borderColor: "#1E3A5F" }}
-                      onClick={() => navigate(`/user/view/order/${order.id}`)}
+                      onClick={() => navigate(`/user/view/order/${order.trackingId}`)}
                     >
                       <IoArrowForwardCircleOutline size={24} />
                     </Button>
@@ -177,7 +205,7 @@ const AllOrderPage = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={type === "all" ? 6 : 5} align="center" sx={{ color: "#7D8695" }}>
+                <TableCell colSpan={6} align="center" sx={{ color: "#7D8695" }}>
                   No orders found for the selected date.
                 </TableCell>
               </TableRow>

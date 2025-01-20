@@ -19,7 +19,7 @@ const UserTemplate = () => {
       headingIcon: <FaBoxOpen style={{ marginRight: "8px" }} />, // Icon for "Orders"
       items: [
         { text: "All Orders", path: "/user/order/all", icon: <FaRegFileAlt /> },
-        { text: "Dispatched", path: "/user/order/dispatched", icon: <FaRegFileAlt /> },
+        { text: "Dispatched", path: "/user/order/partial", icon: <FaRegFileAlt /> },
         { text: "Delivered", path: "/user/order/delivered", icon: <FaRegFileAlt /> },
         { text: "Arrived", path: "/user/order/arrived", icon: <FaRegFileAlt /> },
       ],
