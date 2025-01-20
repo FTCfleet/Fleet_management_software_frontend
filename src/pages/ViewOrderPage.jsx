@@ -69,6 +69,18 @@ export default function ViewOrderPage() {
     setCurrentItem(null);
   };
 
+  const printLR = async () => {
+    const response = await fetch(`${BASE_URL}/api/parcel/print/${id}`);
+    console.log(response);
+    console.log((await response.json()));
+  };
+
+  const printQR = async () => {
+    const response = await fetch(`${BASE_URL}/api/parcel/qr/${id}`);
+    console.log(response);
+    console.log((await response.json()));
+  };
+
   return (
     <Box
       sx={{
@@ -196,11 +208,27 @@ export default function ViewOrderPage() {
             textTransform: "none",
             "&:hover": { backgroundColor: "#16314D" },
           }}
-          onClick={() => console.log("Print all QR codes")}
+          onClick={printQR}
         >
           Print QR Codes
         </Button>
       </Box>
+          {/* Print LR Recipt */}
+      <Box sx={{ marginTop: "20px", textAlign: "center" }}>
+        <Button
+          variant="contained"
+          sx={{
+            backgroundColor: "#1E3A5F",
+            color: "#ffffff",
+            textTransform: "none",
+            "&:hover": { backgroundColor: "#16314D" },
+          }}
+          onClick={printLR}
+        >
+          Print LR Receipt
+        </Button>
+      </Box>
+
 
       {/* QR Modal */}
       <Modal open={isModalOpen} onClose={handleCloseModal}>

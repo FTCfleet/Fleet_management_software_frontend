@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
   const [isOtpVerified, setIsOtpVerified] = useState(false);
   const [forgetUsername, setForgetUsername] = useState("");
   const [user, setUser] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const resetAuth = () => {
     setIsUsernameSubmitted(false);

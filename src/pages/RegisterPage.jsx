@@ -8,16 +8,17 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const RegisterPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [name, setname] = useState("");
+  const [name, setName] = useState("");
   const [userVal, setuserVal] = useState("");
   const [passwordVal, setpasswordVal] = useState("");
   const [confirmPasswordVal, setConfirmPasswordVal] = useState("");
-  const [phoneNo, setphoneNo] = useState("");
-  const [warehouseNo, setWarehouseNo] = useState("1");
+  const [phoneNo, setPhoneNo] = useState("");
+  const [warehouseNo, setWarehouseNo] = useState("HYO");
   const [code, setCode] = useState("");
   const [isMatch, setIsMatch] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isSection1, setIsSection1] = useState(true);
+  const [allWarehouse, setAllWarehouse] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
 
   const navigate = useNavigate();
@@ -35,13 +36,32 @@ const RegisterPage = () => {
 
   useEffect(() => {
     fetchData();
+    setAllWarehouse(fetchWarehouse());
+    // console.log(allWarehouse); // Logs fetched data
   }, []);
+  // useEffect(async () => {
+  //   fetchWarehouse();
+  //   // fetchData();
+  // }, []);
 
   const fetchData = async () => {
-    const response = await fetch(`${BASE_URL}/api/users`);
+    const response = await fetch(`${BASE_URL}/api/auth/get-all-usernames`);
     const data = await response.json();
-    setAllUsers(data.body.users);
+    setAllUsers(data.body);
+    console.log(allUsers); // Logs fetched data
+    // setAllUsers(['hello']);
   };
+
+  const fetchWarehouse = async () => {
+    const response = await fetch(`${BASE_URL}/api/warehouse/get-all`);
+    const data = await response.json();
+    
+
+    // console.log(data.body); // Logs fetched data
+    return (data.body); // Update state
+
+  // });
+};
 
   const handleSection1 = async (event) => {
     event.preventDefault();
@@ -158,14 +178,14 @@ const RegisterPage = () => {
               placeholder="Enter name"
               className={styles.input}
               value={name}
-              onChange={(event) => setname(event.target.value)}
+              onChange={(event) => setName(event.target.value)}
             />
             <input
               type="text"
               placeholder="Enter phone number"
               className={styles.input}
               value={phoneNo}
-              onChange={(event) => setphoneNo(event.target.value)}
+              onChange={(event) => setPhoneNo(event.target.value)}
             />
               <Select
                 id="warehouse-select"
@@ -174,15 +194,9 @@ const RegisterPage = () => {
                 fullWidth
                 style={{textAlign: 'left', background: '#f9f9f9', borderRadius: '8px'}}
               >
-                <MenuItem value="1">Warehouse 1</MenuItem>
-                <MenuItem value="2">Warehouse 2</MenuItem>
-                <MenuItem value="3">Warehouse 3</MenuItem>
-                <MenuItem value="4">Warehouse 4</MenuItem>
-                <MenuItem value="5">Warehouse 5</MenuItem>
-                <MenuItem value="6">Warehouse 6</MenuItem>
-                <MenuItem value="7">Warehouse 7</MenuItem>
-                <MenuItem value="8">Warehouse 8</MenuItem>
-                <MenuItem value="9">Warehouse 9</MenuItem>
+                {allWarehouse.map((element) => {
+                  <MenuItem value={element.warehouseID} key={element.warehouseID}>{element.name}</MenuItem>
+                })}
               </Select>
             <div>
               Already have an account?

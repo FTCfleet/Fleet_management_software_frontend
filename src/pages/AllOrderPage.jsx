@@ -49,6 +49,8 @@ const AllOrderPage = () => {
     filterOrdersByTypeAndDate(type, selectedDate, mockOrders);
   }, [type]);
 
+  
+
   const filterOrdersByTypeAndDate = (type, date, allOrders = orders) => {
     const filteredByDate = allOrders.filter((order) => order.date === date);
     if (type === "all") {

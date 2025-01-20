@@ -7,14 +7,27 @@ import {
   ToggleButtonGroup,
   ToggleButton,
 } from "@mui/material";
+import {Link} from "react-router-dom";
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function GenReportPage() {
   const [dateRange, setDateRange] = useState("");
+  const [truckNo, setTruckNo] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [startDateFormatted, setStartDateFormatted] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [endDateFormatted, setEndDateFormatted] = useState("");
   const handleDateRangeChange = (event, newRange) => {
     if (newRange !== null) {
       setDateRange(newRange);
     }
   };
+
+  const formatDate = (dateString) => {
+    const [year, month, day] = dateString.split("-");
+    return `${day}${month}${year}`;
+  };
+
   return (
     <div className="app">
       <Box
@@ -36,7 +49,9 @@ export default function GenReportPage() {
           variant="outlined"
           fullWidth
           margin="normal"
+          value={truckNo}
           placeholder="Enter truck no."
+          onChange={(e) => setTruckNo(e.target.value)}
         />
 
         <Box display="flex" gap={2} marginTop={2}>
@@ -45,23 +60,27 @@ export default function GenReportPage() {
             type="date"
             variant="outlined"
             fullWidth
+            value={startDate}
+            onChange={(e) => {setStartDate(e.target.value); setStartDateFormatted(formatDate(e.target.value))}}
             InputLabelProps={{
               shrink: true,
             }}
-          />
+            />
 
           <TextField
             label="End Date"
             type="date"
             variant="outlined"
             fullWidth
+            value={endDate}
+            onChange={(e) => {setEndDate(e.target.value); setEndDateFormatted(formatDate(e.target.value))}}
             InputLabelProps={{
               shrink: true,
             }}
           />
         </Box>
-
-        <ToggleButtonGroup
+        
+        {/* <ToggleButtonGroup
           value={dateRange}
           exclusive
           onChange={handleDateRangeChange}
@@ -77,15 +96,17 @@ export default function GenReportPage() {
           <ToggleButton value="monthly" aria-label="Monthly">
             Monthly
           </ToggleButton>
-        </ToggleButtonGroup>
+        </ToggleButtonGroup> */}
 
         <Button
           variant="contained"
           color="primary"
           fullWidth
-          sx={{ marginTop: 3 }}
+          sx={{ marginTop: 3 }}          
         >
+          <Link to={`${BASE_URL}/api/ledger/generate-report/${startDateFormatted}${endDateFormatted}` + (truckNo ? `?vehicleNo=${truckNo}` : "")}>
           Download
+          </Link>
         </Button>
       </Box>
     </div>
