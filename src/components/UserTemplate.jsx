@@ -3,7 +3,8 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Box, List, ListItem, ListItemIcon, ListItemText, Typography, Fab } from "@mui/material";
 import { FaRegFileAlt, FaTruckMoving, FaMoneyCheckAlt, FaBoxOpen, FaFileInvoice, FaPlus } from "react-icons/fa"; // Import different icons for headings
 import { useAuth } from "../routes/AuthContext";
-import "../css/dashboard.css"; // Add custom CSS for fine-tuning if needed
+import "../css/dashboard.css";
+import "../css/main.css";
 
 const UserTemplate = () => {
   const { isLoggedIn } = useAuth();
@@ -137,40 +138,25 @@ const UserTemplate = () => {
       <Box sx={{ flexGrow: 1, padding: "20px", backgroundColor: "#ffffff", minHeight: "100vh" }}>
         <Outlet />
         {/* Floating Add Order Button */}
-        {!isAddOrderPage && ( 
-        <Box
-          sx={{
-            position: "fixed",
-            bottom: "16px",
-            right: "25px",
-            zIndex: 1000, // Ensure it floats above other elements
-          }}
-        >
-          <button
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "10px 20px",
-              backgroundColor: "#145a9f",
-              color: "#fff",
-              fontSize: "14px",
-              fontWeight: "bold",
-              borderRadius: "24px",
-              border: "none",
-              cursor: "pointer",
-              transition: "background-color 0.3s ease",
-              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+        {!isAddOrderPage && (
+          <Box
+            sx={{
+              position: "fixed",
+              bottom: "16px",
+              right: "25px",
+              zIndex: 1000,
             }}
-            onClick={() => navigate("/user/add/order/")}
-            onMouseOver={(e) => (e.target.style.backgroundColor = "#1E3A5F")}
-            onMouseOut={(e) => (e.target.style.backgroundColor = "#145a9f")}
           >
-            <FaPlus style={{ marginRight: "8px" }} /> Add Order
-          </button>
-        </Box>
+            <button
+              className="button"
+              onClick={() => navigate("/user/add/order/")}
+              onMouseOver={(e) => (e.target.style.backgroundColor = "#1E3A5F")}
+              onMouseOut={(e) => (e.target.style.backgroundColor = "#145a9f")}
+            >
+              <FaPlus style={{ marginRight: "8px" }} /> Add Order
+            </button>
+          </Box>
         )}
-
       </Box>
     </div>
   );
