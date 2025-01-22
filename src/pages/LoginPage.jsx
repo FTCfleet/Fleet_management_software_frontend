@@ -36,30 +36,21 @@ const LoginPage = () => {
       });
 
       const data = await response.json();
-      console.log(data);
       if (!response.ok) {
         alert(data.message || "Login failed");
         return;
       }
 
-      // Add console.log to debug
-      console.log("Login response:", data);
-      // Store token immediately after receiving it
       if (data.token) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
 
-        // Verify token was stored
-        console.log("Stored token:", localStorage.getItem("token"));
-
         setIsLoggedIn(true);
-        // navigate("/user/order/all");
       } else {
         throw new Error("No token received");
       }
     } catch (error) {
-      console.error("Login error:", error);
-      alert("Login failed. Please try again.");
+      alert("Login failed. Please try again. "+err);
     }
   };
 

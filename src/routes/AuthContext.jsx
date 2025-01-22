@@ -1,6 +1,6 @@
 // AuthContext.jsx
 import React, { createContext, useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { replace, useNavigate } from "react-router-dom";
 const AuthContext = createContext();
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setIsLoggedIn(false);
-    navigate('/auth/login');
+    location.pathname = ('/auth/login');
   };
 
   const resetForgetAuth = () => {

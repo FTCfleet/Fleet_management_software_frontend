@@ -100,13 +100,12 @@ const RegisterPage = () => {
         setIsLoading(false);
         return;
       }
-      // Store token and navigate
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       setIsLoading(false);
       setIsLoggedIn(true);
-      navigate("/user/dashboard");
+      navigate("/user/order/all");
     } catch (error) {
       console.error("Registration error:", error);
       alert("Registration failed. Please try again.");

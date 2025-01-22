@@ -1,17 +1,18 @@
 import { AppBar, Box, Typography, Button, ButtonGroup } from "@mui/material";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useParams } from "react-router-dom";
 import logoImg from "../assets/logo.jpg";
 import "../css/header.css";
 import { useAuth } from "../routes/AuthContext";
+import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
 
-const HeaderTabs = () => {
+const HeaderTabs = ({ isDashboard }) => {
   const { isLoggedIn, resetAuth } = useAuth();
   const tabs = [
     { url: "/", text: "Home" },
     { url: "/track", text: "Track Shipment" },
     { url: "/about", text: "About Us" },
     { url: "/faq", text: "FAQ" },
-    { url: "/auth/login", text: isLoggedIn ? "Logout" : "Login", onClick: resetAuth },
   ];
   return (
     <ButtonGroup sx={{ textDecoration: "none", marginRight: 1 }}>
@@ -27,13 +28,26 @@ const HeaderTabs = () => {
           </Button>
         </NavLink>
       ))}
+      <NavLink
+        className="navlink"
+        to={isLoggedIn ? "/user/order/all" : "/auth/login"}
+      >
+        <Button
+          className="header-button"
+          onClick={isDashboard ? resetAuth : null}
+          style={{ border: "none", outline: "none" }}
+          color="inherit"
+        >
+          {isLoggedIn ? (isDashboard ? "Logout" : "Dashboard") : "Login"}
+        </Button>
+      </NavLink>
     </ButtonGroup>
   );
 };
 
 const Header = () => {
   const { checkAuthStatus } = useAuth();
-
+    const location = useLocation();
   return (
     <div className="header-box">
       <AppBar
@@ -65,7 +79,7 @@ const Header = () => {
           </Link>
           <button onClick={checkAuthStatus}>Check</button>
         </Box>
-        <HeaderTabs />
+        <HeaderTabs isDashboard={location.pathname.startsWith("/user/")} />
       </AppBar>
     </div>
   );

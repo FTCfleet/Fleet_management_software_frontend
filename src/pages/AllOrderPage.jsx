@@ -34,7 +34,7 @@ const AllOrderPage = () => {
   }, [selectedDate]);
 
   useEffect(() => {
-    if (orders.length > 0) filterOrdersByTypeAndDate(type);
+    filterOrdersByTypeAndDate(type);
   }, [type, orders]);
 
   const fetchData = async () => {
@@ -161,25 +161,17 @@ const AllOrderPage = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
-                Order ID
+              <TableCell className="table-header">Order ID</TableCell>
+              <TableCell className="table-header">{"Sender's\nName"}</TableCell>
+              <TableCell className="table-header">
+                {"Receiver's\nName"}
               </TableCell>
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
-                Sender's Address
+              {/* <TableCell className="table-header">Source</TableCell> */}
+              <TableCell className="table-header">
+                {"Destination" + "\n" + "Warehouse"}
               </TableCell>
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
-                Receiver's Address
-              </TableCell>
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
-                Status
-              </TableCell>
-              {/* <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>Source</TableCell> */}
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
-                Destination
-              </TableCell>
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
-                View Order
-              </TableCell>
+              <TableCell className="table-header">Status</TableCell>
+              <TableCell className="table-header">View Order</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -195,13 +187,13 @@ const AllOrderPage = () => {
                   <TableCell sx={{ color: "#25344E" }}>
                     {order.receiver.name}
                   </TableCell>
+                  <TableCell sx={{ color: "#25344E" }}>
+                    {order.destinationWarehouseName}
+                  </TableCell>
                   <TableCell>
                     <span className={`table-status ${order.status}`}>
                       {order.status}
                     </span>
-                  </TableCell>
-                  <TableCell sx={{ color: "#25344E" }}>
-                    {order.destinationWarehouseName}
                   </TableCell>
                   <TableCell>
                     <Button
