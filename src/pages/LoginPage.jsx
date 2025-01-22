@@ -1,7 +1,7 @@
 import { React, useEffect, useState } from "react";
 import styles from "../css/auth_card.module.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { data, useNavigate } from "react-router-dom";
 import { useAuth } from "../routes/AuthContext";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -10,7 +10,7 @@ const LoginPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [passwordVal, setpasswordVal] = useState("");
   const [userVal, setuserVal] = useState("");
-  const { setIsLoggedIn, resetAuth } = useAuth();
+  const { setIsLoggedIn, resetForgetAuth } = useAuth();
   const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
@@ -18,36 +18,49 @@ const LoginPage = () => {
   };
 
   useEffect(() => {
-    resetAuth();
+    resetForgetAuth();
   }, []);
 
   const handleLogin = async (event) => {
     event.preventDefault();
-    await fetch(`${BASE_URL}/api/auth/login`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username: userVal,
-        password: passwordVal,
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          alert("Error occurred");
-          return;
-        }
-        console.log(response.status);
-        if (response.status === 201) {
-          alert("No such user");
-          return;
-        }
-        alert('Login');
-        setIsLoggedIn(true);
-        navigate("/user/dashboard");
+    try {
+      const response = await fetch(`${BASE_URL}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: userVal,
+          password: passwordVal,
+        }),
       });
+
+      const data = await response.json();
+      console.log(data);
+      if (!response.ok) {
+        alert(data.message || "Login failed");
+        return;
+      }
+
+      // Add console.log to debug
+      console.log("Login response:", data);
+      // Store token immediately after receiving it
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+
+        // Verify token was stored
+        console.log("Stored token:", localStorage.getItem("token"));
+
+        setIsLoggedIn(true);
+        // navigate("/user/order/all");
+      } else {
+        throw new Error("No token received");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Login failed. Please try again.");
+    }
   };
 
   return (

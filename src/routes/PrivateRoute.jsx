@@ -4,10 +4,10 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 
 const PrivateRoute = ({ element, requiredStep, redirectTo }) => {
-  const {isUsernameSubmitted, isOtpVerified} = useAuth();
+  const {isForgetUsernameSubmitted, isOtpVerified} = useAuth();
 
   const isAllowed =
-    (requiredStep === "otp" && isUsernameSubmitted) ||
+    (requiredStep === "otp" && isForgetUsernameSubmitted) ||
     (requiredStep === "reset" && isOtpVerified);
 
   return isAllowed ? element : <Navigate to={redirectTo} replace />;

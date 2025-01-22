@@ -32,7 +32,7 @@ const UserTemplate = () => {
         { text: "All Trucks", path: "/user/ledgers/all", icon: <FaTruckMoving /> },
         { text: "Outgoing", path: "/user/ledgers/outgoing", icon: <FaTruckMoving /> },
         { text: "Incoming", path: "/user/ledgers/incoming", icon: <FaTruckMoving /> },
-        { text: "Complete", path: "/user/ledgers/complete", icon: <FaTruckMoving /> },
+        { text: "Completed", path: "/user/ledgers/completed", icon: <FaTruckMoving /> },
         { text: "Pending", path: "/user/ledgers/pending", icon: <FaTruckMoving /> },
       ],
     },
@@ -48,7 +48,7 @@ const UserTemplate = () => {
 
   useEffect(() => {
     if (!isLoggedIn) navigate('/auth/login');
-  })
+  },[]);
 
   return (
     <div style={{ display: "flex" }}>

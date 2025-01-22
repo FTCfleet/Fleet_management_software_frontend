@@ -3,6 +3,7 @@ import styles from "../css/auth_card.module.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { Select, MenuItem, InputLabel } from "@mui/material";
+import { useAuth } from "../routes/AuthContext";
 const CODE = import.meta.env.VITE_CODE;
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -37,23 +38,23 @@ const RegisterPage = () => {
 
   useEffect(() => {
     fetchData();
-    fetchWarehouse()
-      .then(data => {
-        setAllWarehouse(data);
-      });
+    fetchWarehouse();
   }, []);
 
   const fetchData = async () => {
     const response = await fetch(`${BASE_URL}/api/auth/get-all-usernames`);
-    const data = await response.json();
-    if(data.body.length===0) return;
-    setAllUsers(data.body);
+    if (response.ok) {
+      const data = await response.json();
+      setAllUsers(data.body);
+    }
   };
 
   const fetchWarehouse = async () => {
-      const response = await fetch(`${BASE_URL}/api/warehouse/get-all`);
+    const response = await fetch(`${BASE_URL}/api/warehouse/get-all`);
+    if (response.ok) {
       const data = await response.json();
-      return data.body;
+      setAllWarehouse(data.body);
+    }
   };
 
   const handleSection1 = async (event) => {
@@ -66,7 +67,7 @@ const RegisterPage = () => {
       alert("Enter valid code");
       return;
     }
-    if (allUsers.length===0 || !allUsers.includes(userVal)) {
+    if (allUsers.length === 0 || !allUsers.includes(userVal)) {
       setIsSection1(false);
     } else {
       alert("Username already exists");
@@ -76,29 +77,41 @@ const RegisterPage = () => {
   const handleRegister = async (event) => {
     event.preventDefault();
     setIsLoading(true);
-    await fetch(`${BASE_URL}/api/auth/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username: userVal,
-        password: passwordVal,
-        name: name,
-        phoneNo: phoneNo,
-        warehouseCode: warehouseNo,
-        role: "supervisor",
-      }),
-    }).then((response) => {
+    try {
+      const response = await fetch(`${BASE_URL}/api/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: userVal,
+          password: passwordVal,
+          name: name,
+          phoneNo: phoneNo,
+          warehouseCode: warehouseNo,
+          role: "supervisor",
+        }),
+      });
+
+      const data = await response.json();
+      console.log(data);
       if (!response.ok) {
-        alert("Error occurred");
-      } else {
-        alert("Registered Successfully");
+        alert(data.message || "Registration failed");
         setIsLoading(false);
-        setIsLoggedIn(true);
-        navigate("/user/dashboard");
+        return;
       }
-    });
+      // Store token and navigate
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      setIsLoading(false);
+      setIsLoggedIn(true);
+      navigate("/user/dashboard");
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert("Registration failed. Please try again.");
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -181,19 +194,27 @@ const RegisterPage = () => {
               value={phoneNo}
               onChange={(event) => setPhoneNo(event.target.value)}
             />
-              <Select
-                id="warehouse-select"
-                value={warehouseNo}
-                onChange={(event) => setWarehouseNo(event.target.value)}
-                fullWidth
-                style={{textAlign: 'left', background: '#f9f9f9', borderRadius: '8px'}}
-              >
-                {allWarehouse && allWarehouse.map((element) => (
-                  <MenuItem value={element.warehouseID} key={element.warehouseID}>
+            <Select
+              id="warehouse-select"
+              value={warehouseNo}
+              onChange={(event) => setWarehouseNo(event.target.value)}
+              fullWidth
+              style={{
+                textAlign: "left",
+                background: "#f9f9f9",
+                borderRadius: "8px",
+              }}
+            >
+              {allWarehouse &&
+                allWarehouse.map((element) => (
+                  <MenuItem
+                    value={element.warehouseID}
+                    key={element.warehouseID}
+                  >
                     {element.name}
                   </MenuItem>
                 ))}
-              </Select>
+            </Select>
             <div>
               Already have an account?
               <a href="/auth/login" className={styles.forgotPassword}>
