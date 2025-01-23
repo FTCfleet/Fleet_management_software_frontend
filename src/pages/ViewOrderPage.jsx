@@ -18,7 +18,7 @@ import { useParams } from "react-router-dom";
 // import qrcode from "../assets/qr.png";
 import orders from "../assets/orders.png";
 import "../css/table.css";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -45,12 +45,18 @@ export default function ViewOrderPage() {
 
   const fetchQRCodes = async () => {
     const response = await fetch(`${BASE_URL}/api/parcel/generate-qr/${id}`);
-    const data = (await response.json());
+    const data = await response.json();
     return data.body;
   };
 
   const fetchData = async () => {
-    const response = await fetch(`${BASE_URL}/api/parcel/track/${id}`);
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${BASE_URL}/api/parcel/track/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
     if (!response.ok) {
       alert("Error occurred");
       return;
@@ -81,16 +87,10 @@ export default function ViewOrderPage() {
     setQrCode("");
   };
 
-  const printLR = async () => {
-    const response = await fetch(`${BASE_URL}/api/parcel/print/${id}`);
-    console.log(response);
-    console.log((await response.json()));
-  };
-
   const printQR = async () => {
     const response = await fetch(`${BASE_URL}/api/parcel/qr/${id}`);
     console.log(response);
-    console.log((await response.json()));
+    console.log(await response.json());
   };
 
   return (
@@ -225,24 +225,23 @@ export default function ViewOrderPage() {
           Print QR Codes
         </Button>
       </Box> */}
-          {/* Print LR Recipt */}
+      {/* Print LR Recipt */}
       <Box sx={{ marginTop: "20px", textAlign: "center" }}>
-        <Button
-          variant="contained"
-          sx={{
-            backgroundColor: "#1E3A5F",
-            color: "#ffffff",
-            textTransform: "none",
-            "&:hover": { backgroundColor: "#16314D" },
-          }}
-          // onClick={Navigate(`{}`)}
-        >
-          <Link to={`${BASE_URL}/api/parcel/generate-lr-receipt/${id}`}> 
-          Print LR Receipt
-          </Link>
-        </Button>
+        <Link to={`${BASE_URL}/api/parcel/generate-lr-receipt/${id}`}>
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: "#1E3A5F",
+              color: "#ffffff",
+              textTransform: "none",
+              "&:hover": { backgroundColor: "#16314D" },
+            }}
+            // onClick={Navigate(`{}`)}
+          >
+            Print LR Receipt
+          </Button>
+        </Link>
       </Box>
-
 
       {/* QR Modal */}
       <Modal open={isModalOpen} onClose={handleCloseModal}>
@@ -272,8 +271,11 @@ export default function ViewOrderPage() {
               >
                 QR Code for {currentItem.name}
               </Typography>
-              <img  
-                src={qrCodes.find((item) => item.id === currentItem.itemId).qrCodeURL}
+              <img
+                src={
+                  qrCodes.find((item) => item.id === currentItem.itemId)
+                    .qrCodeURL
+                }
                 alt="QR Code"
                 style={{ width: "100%", height: "auto" }}
               />

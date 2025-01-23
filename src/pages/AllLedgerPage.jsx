@@ -18,46 +18,64 @@ import { AiOutlineCalendar } from "react-icons/ai";
 import { IoArrowForwardCircleOutline } from "react-icons/io5"; // Icon for View Ledger
 import "../css/table.css"; // Import CSS
 
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+
 const AllLedgerPage = () => {
   const { type } = useParams(); // Retrieve the type (all, outgoing, incoming, etc.) from the URL
   const [ledgerEntries, setLedgerEntries] = useState([]); // All ledger entries
   const [filteredLedger, setFilteredLedger] = useState([]); // Filtered ledger entries
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]); // Default to today
+  const [selectedDate, setSelectedDate] = useState(
+    () => new Date().toISOString().split("T")[0]
+  ); // Default to today
   const navigate = useNavigate();
-  
+
   useEffect(() => {
+    fetchData();
+  }, [selectedDate]);
 
-    // Mock data for ledger entries
-    const mockLedgerEntries = [
-      { id: 1, vehicleNo: "KA-01-AB-1234", deliveryStation: "Station A", status: "Completed", date: "2025-01-15" },
-      { id: 2, vehicleNo: "KA-02-CD-5678", deliveryStation: "Station B", status: "Pending", date: "2025-01-14" },
-      { id: 3, vehicleNo: "KA-03-EF-9876", deliveryStation: "Station C", status: "Completed", date: "2025-01-15" },
-      { id: 4, vehicleNo: "KA-04-GH-6543", deliveryStation: "Station D", status: "Pending", date: "2025-01-13" },
-      { id: 5, vehicleNo: "KA-05-IJ-3210", deliveryStation: "Station E", status: "Completed", date: "2025-01-14" },
-      { id: 6, vehicleNo: "KA-06-KL-4321", deliveryStation: "Station F", status: "Completed", date: "2025-01-15" },
-      { id: 7, vehicleNo: "KA-07-MN-6789", deliveryStation: "Station G", status: "Pending", date: "2025-01-15" },
-      { id: 8, vehicleNo: "KA-08-OP-2345", deliveryStation: "Station H", status: "Outgoing", date: "2025-01-14" },
-      { id: 9, vehicleNo: "KA-09-QR-8765", deliveryStation: "Station I", status: "Incoming", date: "2025-01-13" },
-    ];
+  useEffect(() => {
+    if (ledgerEntries.length > 0) filterLedgersByTypeAndDate(type);
+  }, [type, ledgerEntries]);
 
-    setLedgerEntries(mockLedgerEntries);
-    filterLedgerByTypeAndDate(type, selectedDate, mockLedgerEntries);
-  }, [type]);
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${BASE_URL}/api/ledger/track-by-date/${selectedDate}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
 
-  const filterLedgerByTypeAndDate = (type, date, allEntries = ledgerEntries) => {
-    const filteredByDate = allEntries.filter((entry) => entry.date === date);
+      if (!response.ok) {
+        throw new Error("Failed to fetch orders");
+      }
+
+      const data = await response.json();
+      setLedgerEntries(data.body);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
+  };
+
+  const filterLedgersByTypeAndDate = (type) => {
+    console.log(ledgerEntries);
     if (type === "all") {
-      setFilteredLedger(filteredByDate);
+      setFilteredLedger(ledgerEntries);
     } else {
-      setFilteredLedger(filteredByDate.filter((entry) => entry.status.toLowerCase() === type));
+      setFilteredLedger(ledgerEntries.filter((order) => order.isComplete === type));
     }
   };
 
   const handleDateChange = (event) => {
     const date = event.target.value;
     setSelectedDate(date);
-    filterLedgerByTypeAndDate(type, date);
+    filterLedgersByTypeAndDate(type);
   };
 
   const handleSearchChange = (event) => {
@@ -67,13 +85,15 @@ const AllLedgerPage = () => {
       (entry) =>
         entry.vehicleNo.toLowerCase().includes(term) ||
         entry.deliveryStation.toLowerCase().includes(term) ||
-        entry.id.toString().includes(term)
+        entry.ledgerId.toString().includes(term)
     );
     setFilteredLedger(filteredBySearch);
   };
 
   return (
-    <Box sx={{ padding: "20px", backgroundColor: "#ffffff", minHeight: "100vh" }}>
+    <Box
+      sx={{ padding: "20px", backgroundColor: "#ffffff", minHeight: "100vh" }}
+    >
       <Typography
         variant="h4"
         sx={{
@@ -109,7 +129,14 @@ const AllLedgerPage = () => {
             }}
           />
         </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: "10px", flexGrow: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            flexGrow: 1,
+          }}
+        >
           <FiSearch size={24} color="#82ACC2" />
           <TextField
             placeholder="Search ledger entries..."
@@ -135,30 +162,54 @@ const AllLedgerPage = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>Ledger No</TableCell>
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>Vehicle No</TableCell>
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>Delivery Station</TableCell>
-              {type === "all" && <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>Status</TableCell>}
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>View Ledger</TableCell>
+              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+                Ledger No
+              </TableCell>
+              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+                Vehicle No
+              </TableCell>
+              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+                Delivery Station
+              </TableCell>
+              {type === "all" && (
+                <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+                  Status
+                </TableCell>
+              )}
+              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+                View Ledger
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredLedger.length > 0 ? (
               filteredLedger.map((entry) => (
-                <TableRow key={entry.id}>
-                  <TableCell sx={{ color: "#25344E" }}>{entry.id}</TableCell>
-                  <TableCell sx={{ color: "#25344E" }}>{entry.vehicleNo}</TableCell>
-                  <TableCell sx={{ color: "#25344E" }}>{entry.deliveryStation}</TableCell>
+                <TableRow key={entry.ledgerId}>
+                  <TableCell sx={{ color: "#25344E" }}>{entry.ledgerId}</TableCell>
+                  <TableCell sx={{ color: "#25344E" }}>
+                    {entry.vehicleNo}
+                  </TableCell>
+                  <TableCell sx={{ color: "#25344E" }}>
+                    {entry.deliveryStation}
+                  </TableCell>
                   {type === "all" && (
                     <TableCell>
-                      <span className={`table-status ${entry.status.toLowerCase()}`}>{entry.status}</span>
+                      <span
+                        className={`table-status ${entry.isComplete.toLowerCase()}`}
+                      >
+                        {entry.isComplete}
+                      </span>
                     </TableCell>
                   )}
                   <TableCell>
                     <Button
                       variant="outlined"
-                      sx={{ textTransform: "none", color: "#1E3A5F", borderColor: "#1E3A5F" }}
-                      onClick={() => navigate(`/user/view/ledger/${entry.id}`)}
+                      sx={{
+                        textTransform: "none",
+                        color: "#1E3A5F",
+                        borderColor: "#1E3A5F",
+                      }}
+                      onClick={() => navigate(`/user/view/ledger/${entry.ledgerId}`)}
                     >
                       <IoArrowForwardCircleOutline size={24} />
                     </Button>
@@ -167,7 +218,11 @@ const AllLedgerPage = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={type === "all" ? 5 : 4} align="center" sx={{ color: "#7D8695" }}>
+                <TableCell
+                  colSpan={type === "all" ? 5 : 4}
+                  align="center"
+                  sx={{ color: "#7D8695" }}
+                >
                   No ledger entries found for the selected date.
                 </TableCell>
               </TableRow>

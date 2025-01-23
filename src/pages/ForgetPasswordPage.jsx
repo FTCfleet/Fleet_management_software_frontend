@@ -6,22 +6,20 @@ import { useAuth } from "../routes/AuthContext";
 const ForgetPasswordPage = () => {
   const navigate = useNavigate();
 
+  const [forgetUsername, setForgetUsername] = useState("");
   const {
-    forgetUsername,
-    setForgetUsername,
-    setIsUsernameSubmitted,
+    setIsForgetUsernameSubmitted,
     setIsOtpVerified,
   } = useAuth();
   
   useEffect(() => {
-    setIsUsernameSubmitted(false);
+    setIsForgetUsernameSubmitted(false);
     setIsOtpVerified(false);
   }, []);
   
   const handleLogin = async (event) => {
     event.preventDefault();
-    setForgetUsername(forgetUsername);
-    setIsUsernameSubmitted(true);
+    setIsForgetUsernameSubmitted(true);
     navigate("/auth/otp");
   };
 

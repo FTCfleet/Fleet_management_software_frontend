@@ -95,27 +95,31 @@ export default function AddOrderPage() {
     // console.log(senderDetails);
     // console.log(receiverDetails);
     // console.log(items);
+    const token = localStorage.getItem("token");
     await fetch(`${BASE_URL}/api/parcel/new`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         senderDetails: senderDetails,
         receiverDetails: receiverDetails,
         items: items,
-        sourceWarehouse: 'HYO',
-        destinationWarehouse: 'MNC'
+        destinationWarehouse: "MNC",
       }),
-    }).then( async (response) => {
-      if (!response.ok) {
-        alert("Error occurred");
-      } else {
-        alert("Order Added Successfully");
-        const data = await response.json();
+    })
+      .then((response) => {
+        if (!response.ok) {
+          alert("Error occurred");
+        } else {
+          alert("Order Added Successfully");
+          return response.json();
+        }
+      })
+      .then((data) => {
         navigate(`/user/view/order/${data.body.trackingId}`);
-      }
-    });
+      });
   };
 
   const renderTextField = ({ label, name, isOptional, isSender }) => (

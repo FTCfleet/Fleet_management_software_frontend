@@ -98,16 +98,16 @@ export default function GenReportPage() {
           </ToggleButton>
         </ToggleButtonGroup> */}
 
+<Link to={`${BASE_URL}/api/ledger/generate-report/${startDateFormatted}${endDateFormatted}` + (truckNo ? `?vehicleNo=${truckNo}` : "")}>
         <Button
           variant="contained"
           color="primary"
           fullWidth
           sx={{ marginTop: 3 }}          
         >
-          <Link to={`${BASE_URL}/api/ledger/generate-report/${startDateFormatted}${endDateFormatted}` + (truckNo ? `?vehicleNo=${truckNo}` : "")}>
           Download
-          </Link>
         </Button>
+          </Link>
       </Box>
     </div>
   );

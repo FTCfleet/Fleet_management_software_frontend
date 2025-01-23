@@ -17,7 +17,7 @@
 .styled-table thead tr {
     background-color: #f4f6f8;
     color: #1E3A5F;
-    text-align: left;
+    /* text-align: left; */
     font-weight: bold;
 }
 
@@ -101,6 +101,11 @@
     color: #155724;
 }
 
+.table-status.dispatched {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
 .table-status.partial {
     background-color: #fff3cd;
     color: #856404;
@@ -111,17 +116,21 @@
     color: #0c5460;
 }
 
-.table-status.pending{
+.table-status.pending {
     background-color: #f8d7da;
     color: #721c24;
 }
 
-.table-status.outgoing{
+.table-status.outgoing {
     background-color: #cce5ff;
     color: #004085;
 }
 
-.table-status.incoming{
+.table-status.incoming {
     background-color: #cce5ff;
     color: #004085;
+}
+
+.table-header {
+    white-space: pre-line;
 }
