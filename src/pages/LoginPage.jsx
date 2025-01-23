@@ -50,7 +50,7 @@ const LoginPage = () => {
         throw new Error("No token received");
       }
     } catch (error) {
-      alert("Login failed. Please try again. "+err);
+      alert("Login failed. Please try again. "+error);
     }
   };
 

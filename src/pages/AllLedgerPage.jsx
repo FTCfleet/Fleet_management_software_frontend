@@ -44,14 +44,11 @@ const AllLedgerPage = () => {
       const response = await fetch(
         `${BASE_URL}/api/ledger/track-by-date/${selectedDate}`,
         {
-          method: "POST",
+          method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            date: selectedDate,
-          }),
+          }
         }
       );
 
@@ -60,18 +57,18 @@ const AllLedgerPage = () => {
       }
 
       const data = await response.json();
-      setLedgerEntries(data);
-      console.log(data);
+      setLedgerEntries(data.body);
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
   };
 
   const filterLedgersByTypeAndDate = (type) => {
+    console.log(ledgerEntries);
     if (type === "all") {
       setFilteredLedger(ledgerEntries);
     } else {
-      setFilteredLedger(ledgerEntries.filter((order) => order.status === type));
+      setFilteredLedger(ledgerEntries.filter((order) => order.isComplete === type));
     }
   };
 
@@ -88,7 +85,7 @@ const AllLedgerPage = () => {
       (entry) =>
         entry.vehicleNo.toLowerCase().includes(term) ||
         entry.deliveryStation.toLowerCase().includes(term) ||
-        entry.id.toString().includes(term)
+        entry.ledgerId.toString().includes(term)
     );
     setFilteredLedger(filteredBySearch);
   };
@@ -187,8 +184,8 @@ const AllLedgerPage = () => {
           <TableBody>
             {filteredLedger.length > 0 ? (
               filteredLedger.map((entry) => (
-                <TableRow key={entry.id}>
-                  <TableCell sx={{ color: "#25344E" }}>{entry.id}</TableCell>
+                <TableRow key={entry.ledgerId}>
+                  <TableCell sx={{ color: "#25344E" }}>{entry.ledgerId}</TableCell>
                   <TableCell sx={{ color: "#25344E" }}>
                     {entry.vehicleNo}
                   </TableCell>
@@ -198,9 +195,9 @@ const AllLedgerPage = () => {
                   {type === "all" && (
                     <TableCell>
                       <span
-                        className={`table-status ${entry.status.toLowerCase()}`}
+                        className={`table-status ${entry.isComplete.toLowerCase()}`}
                       >
-                        {entry.status}
+                        {entry.isComplete}
                       </span>
                     </TableCell>
                   )}
@@ -212,7 +209,7 @@ const AllLedgerPage = () => {
                         color: "#1E3A5F",
                         borderColor: "#1E3A5F",
                       }}
-                      onClick={() => navigate(`/user/view/ledger/${entry.id}`)}
+                      onClick={() => navigate(`/user/view/ledger/${entry.ledgerId}`)}
                     >
                       <IoArrowForwardCircleOutline size={24} />
                     </Button>
