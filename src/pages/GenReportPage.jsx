@@ -82,7 +82,11 @@ export default function GenReportPage() {
   };
 
   const handleDateSelect = (date) => {
-    const correctedDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000).toISOString().split("T")[0];
+    const correctedDate = new Date(
+      date.getTime() + date.getTimezoneOffset() * 60000
+    )
+      .toISOString()
+      .split("T")[0];
     if (activeField === "startDate") {
       setStartDate(correctedDate);
       if (dateRange === "weekly") {
@@ -105,18 +109,23 @@ export default function GenReportPage() {
   const isDateRangeMonthly = dateRange === "monthly";
 
   return (
-    <div className="app">
+    <div>
       <Box
         sx={{
           maxWidth: 600,
           margin: "0 auto",
-          padding: 4,
-          borderRadius: 2,
-          backgroundColor: "#f9f9f9",
-          boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
+          padding: 7,
         }}
       >
-        <Typography variant="h5" gutterBottom>
+        <Typography
+          gutterBottom
+          variant="h4"
+          sx={{
+            marginBottom: "20px",
+            color: "#1E3A5F",
+            fontWeight: "bold",
+          }}
+        >
           Ledger Generation
         </Typography>
 
@@ -185,13 +194,16 @@ export default function GenReportPage() {
             <FormControl fullWidth>
               <InputLabel id="month-label">Month</InputLabel>
               <Select
+                label="Month"
                 labelId="month-label"
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
               >
                 {Array.from({ length: 12 }, (_, i) => (
                   <MenuItem key={i + 1} value={i + 1}>
-                    {new Date(0, i).toLocaleString("default", { month: "long" })}
+                    {new Date(0, i).toLocaleString("default", {
+                      month: "long",
+                    })}
                   </MenuItem>
                 ))}
               </Select>
@@ -200,15 +212,19 @@ export default function GenReportPage() {
             <FormControl fullWidth>
               <InputLabel id="year-label">Year</InputLabel>
               <Select
+                label="Year"
                 labelId="year-label"
                 value={year}
                 onChange={(e) => setYear(e.target.value)}
               >
-                {Array.from({ length: new Date().getFullYear() - 1999 + 1 }, (_, i) => (
-                  <MenuItem key={1999 + i} value={1999 + i}>
-                    {1999 + i}
-                  </MenuItem>
-                ))}
+                {Array.from(
+                  { length: new Date().getFullYear() - 1999 + 1 },
+                  (_, i) => (
+                    <MenuItem key={1999 + i} value={1999 + i}>
+                      {1999 + i}
+                    </MenuItem>
+                  )
+                )}
               </Select>
             </FormControl>
           </Box>
@@ -256,8 +272,11 @@ export default function GenReportPage() {
         )}
 
         <Link
-          to={`${BASE_URL}/api/ledger/generate-report/${formatDate(startDate)}${formatDate(endDate)}` +
-            (truckNo ? `?vehicleNo=${truckNo}` : "")}
+          to={
+            `${BASE_URL}/api/ledger/generate-report/${formatDate(
+              startDate
+            )}${formatDate(endDate)}` + (truckNo ? `?vehicleNo=${truckNo}` : "")
+          }
         >
           <div className="button-wrapper">
             <button

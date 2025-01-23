@@ -76,34 +76,44 @@ const TrackShipmentPage = () => {
           gap: "20px",
         }}
       >
-        <div style={{
-          flex: "60%", boxShadow: "0 4px 10px rgba(0,0,0,0.2)", // Added shadow here
-          borderRadius: "8px", // Added border radius
-          padding: "20px"
-        }}>
+        <div
+          style={{
+            flex: "60%",
+            boxShadow: "0 4px 10px rgba(0,0,0,0.2)", // Added shadow here
+            borderRadius: "8px", // Added border radius
+            padding: "20px",
+          }}
+        >
           <Typography
             variant="h4"
             sx={{ color: "#1b3655", marginBottom: "20px" }}
           >
             Wondering where your package is?
           </Typography>
-          <Typography sx={{ color: "#82a7c1", marginBottom: "30px" }}>
-            Keep track of your shipment by inputting shipment ID or AWB number
-          </Typography>
-          <div
-            classname="button-wrapper"
-            style={{ alignItems: "center", display: "flex", gap: "20px", justifyContent: "center", }}
-          >
-            <TextField
-              variant="outlined"
-              placeholder="Enter Shipment ID"
-              value={shipmentIdInput}
-              onChange={(e) => setShipmentIdInput(e.target.value.trim())}
-              sx={{ width: "300px", backgroundColor: "white", }}
-            />
-            <button className="button button-large" onClick={handleTrack}>
-              Track
-            </button>
+          <div>
+            <Typography sx={{ color: "#82a7c1", marginBottom: "30px" }}>
+              Keep track of your shipment by inputting shipment ID or AWB number
+            </Typography>
+            <div
+              classname="button-wrapper"
+              style={{
+                alignItems: "center",
+                display: "flex",
+                gap: "20px",
+                justifyContent: "center",
+              }}
+            >
+              <TextField
+                variant="outlined"
+                placeholder="Enter Shipment ID"
+                value={shipmentIdInput}
+                onChange={(e) => setShipmentIdInput(e.target.value.trim())}
+                sx={{ width: "300px", backgroundColor: "white" }}
+              />
+              <button className="button button-large" onClick={handleTrack}>
+                Track
+              </button>
+            </div>
           </div>
         </div>
 
@@ -296,15 +306,10 @@ const TrackShipmentPage = () => {
                   <TableCell sx={rowCellStyle}>{item.name}</TableCell>
                   <TableCell sx={rowCellStyle}>{item.quantity}</TableCell>
                   <TableCell sx={rowCellStyle}>
-                    <span
-                      className={`table-status ${item.status
-                        .replace(" ", "-")
-                        .toLowerCase()}`}
-                    >
+                    <span className={`table-status ${item.status}`}>
                       {item.status}
                     </span>
                   </TableCell>
-
                 </TableRow>
               ))}
             </TableBody>

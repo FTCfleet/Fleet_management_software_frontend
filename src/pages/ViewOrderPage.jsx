@@ -14,11 +14,10 @@ import {
   IconButton,
 } from "@mui/material";
 import { Close, QrCode2 } from "@mui/icons-material";
-import { useParams } from "react-router-dom";
-// import qrcode from "../assets/qr.png";
+import { Link, useParams } from "react-router-dom";
 import orders from "../assets/orders.png";
 import "../css/table.css";
-import { Link } from "react-router-dom";
+import "../css/main.css";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -33,24 +32,23 @@ export default function ViewOrderPage() {
   const [status, setStatus] = useState(0);
   const [items, setItems] = useState([]);
   const [qrCodes, setQrCodes] = useState([]);
-  const [qrCode, setQrCode] = useState("");
 
   const cellStyle = { color: "#1E3A5F", fontWeight: "bold" };
   const rowCellStyle = { color: "#25344E" };
 
   useEffect(() => {
     fetchData();
-    fetchQRCodes().then((data) => setQrCodes(data));
+    fetchQRCodes();
   }, []);
 
   const fetchQRCodes = async () => {
     const response = await fetch(`${BASE_URL}/api/parcel/generate-qr/${id}`);
     const data = await response.json();
-    return data.body;
+    setQrCodes(data.body);
   };
 
   const fetchData = async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     const response = await fetch(`${BASE_URL}/api/parcel/track/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -84,7 +82,6 @@ export default function ViewOrderPage() {
   const handleCloseModal = () => {
     setModalOpen(false);
     setCurrentItem(null);
-    setQrCode("");
   };
 
   const printQR = async () => {
@@ -101,12 +98,11 @@ export default function ViewOrderPage() {
         minHeight: "100vh",
       }}
     >
-      {/* Top Section: Order Details + Image */}
       <Box
         sx={{
           display: "flex",
-          justifyContent: "flex-start", // Ensure content stays aligned to the left
-          alignItems: "flex-start", // Align items at the top
+          justifyContent: "flex-start",
+          alignItems: "flex-start",
           backgroundColor: "#ffffff",
           padding: "20px",
           borderRadius: "8px",
@@ -117,37 +113,48 @@ export default function ViewOrderPage() {
           <Typography variant="h5" sx={{ marginBottom: "10px", ...cellStyle }}>
             Order Details
           </Typography>
+
+          {/* Order ID */}
           <Typography sx={rowCellStyle}>
             <strong>Order ID:</strong> {id}
           </Typography>
-          <Typography sx={rowCellStyle}>
-            <strong>Sender's Name:</strong> {senderDetails.name}
-          </Typography>
-          <Typography sx={rowCellStyle}>
-            <strong>Sender's Phone:</strong> {senderDetails.phoneNo}
-          </Typography>
-          <Typography sx={rowCellStyle}>
-            <strong>Sender's Address:</strong> {senderDetails.address}
-          </Typography>
-          <Typography sx={rowCellStyle}>
-            <strong>Receiver's Name:</strong> {receiverDetails.name}
-          </Typography>
-          <Typography sx={rowCellStyle}>
-            <strong>Receiver's Phone:</strong> {receiverDetails.phoneNo}
-          </Typography>
-          <Typography sx={rowCellStyle}>
-            <strong>Receiver's Address:</strong> {receiverDetails.address}
-          </Typography>
-          <Typography sx={rowCellStyle}>
-            <strong>Source Warehouse:</strong> {sourceWarehouse}
-          </Typography>
-          <Typography sx={rowCellStyle}>
-            <strong>Destination Warehouse:</strong> {destWarehouse}
-          </Typography>
-          <Typography sx={rowCellStyle}>
-            <strong>Package:</strong> {items.length}
-          </Typography>
+
+          <Box sx={{ display: "flex", marginBottom: "10px" }}>
+            <Box sx={{ flex: 1 }}>
+              <Typography sx={rowCellStyle}>
+                <strong>Sender's Name:</strong> {senderDetails.name}
+              </Typography>
+              <Typography sx={rowCellStyle}>
+                <strong>Sender's Phone:</strong> {senderDetails.phoneNo}
+              </Typography>
+              <Typography sx={rowCellStyle}>
+                <strong>Sender's Address:</strong> {senderDetails.address}
+              </Typography>
+              <Typography sx={rowCellStyle}>
+                <strong>Source Warehouse:</strong> {sourceWarehouse}
+              </Typography>
+              <Typography sx={rowCellStyle}>
+                <strong>Package:</strong> {items.length}
+              </Typography>
+            </Box>
+
+            <Box sx={{ flex: 1 }}>
+              <Typography sx={rowCellStyle}>
+                <strong>Receiver's Name:</strong> {receiverDetails.name}
+              </Typography>
+              <Typography sx={rowCellStyle}>
+                <strong>Receiver's Phone:</strong> {receiverDetails.phoneNo}
+              </Typography>
+              <Typography sx={rowCellStyle}>
+                <strong>Receiver's Address:</strong> {receiverDetails.address}
+              </Typography>
+              <Typography sx={rowCellStyle}>
+                <strong>Destination Warehouse:</strong> {destWarehouse}
+              </Typography>
+            </Box>
+          </Box>
         </Box>
+
         <Box sx={{ flex: "0 0 150px", marginLeft: "20px" }}>
           <img
             src={orders}
@@ -182,11 +189,7 @@ export default function ViewOrderPage() {
                 <TableCell sx={rowCellStyle}>{item.name}</TableCell>
                 <TableCell sx={rowCellStyle}>{item.quantity}</TableCell>
                 <TableCell sx={rowCellStyle}>
-                  <span
-                    className={`table-status ${item.status
-                      .replace(" ", "-")
-                      .toLowerCase()}`}
-                  >
+                  <span className={`table-status ${item.status}`}>
                     {item.status}
                   </span>
                 </TableCell>
@@ -210,37 +213,27 @@ export default function ViewOrderPage() {
         </Table>
       </TableContainer>
 
-      {/* Print QR Button */}
-      {/* <Box sx={{ marginTop: "20px", textAlign: "center" }}>
-        <Button
-          variant="contained"
-          sx={{
-            backgroundColor: "#1E3A5F",
-            color: "#ffffff",
-            textTransform: "none",
-            "&:hover": { backgroundColor: "#16314D" },
-          }}
-          onClick={printQR}
-        >
-          Print QR Codes
-        </Button>
-      </Box> */}
-      {/* Print LR Recipt */}
       <Box sx={{ marginTop: "20px", textAlign: "center" }}>
-        <Link to={`${BASE_URL}/api/parcel/generate-lr-receipt/${id}`}>
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: "#1E3A5F",
-              color: "#ffffff",
-              textTransform: "none",
-              "&:hover": { backgroundColor: "#16314D" },
-            }}
-            // onClick={Navigate(`{}`)}
+        <div className="button-wrapper">
+          <button className="button">
+            <Link
+              to={`${BASE_URL}/api/parcel/generate-lr-receipt/${id}`}
+              style={{ color: "inherit", textDecoration: "none" }}
+            >
+              Print LR Receipt
+            </Link>
+          </button>
+        </div>
+        <div className="button-wrapper" style={{ marginLeft: "20px" }}>
+          <Link
+            to={`/user/edit/order/${id}`}
+            style={{ color: "inherit", textDecoration: "none" }}
           >
-            Print LR Receipt
-          </Button>
-        </Link>
+            <button className="button">
+              Add items
+            </button>
+          </Link>
+        </div>
       </Box>
 
       {/* QR Modal */}

@@ -13,6 +13,8 @@ import {
   TableRow,
 } from "@mui/material";
 import { FaCopy, FaTrash, FaPlus } from "react-icons/fa";
+import "../css/main.css";
+
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function AddOrderPage() {
@@ -21,6 +23,7 @@ export default function AddOrderPage() {
   const [senderDetails, setSenderDetails] = useState({ role: "sender" });
   const [receiverDetails, setReceiverDetails] = useState({ role: "receiver" });
   const [error, setError] = useState(false);
+  const [charges, setCharges] = useState(0);
   const navigate = useNavigate();
 
   const handleAddRow = () => {
@@ -92,9 +95,6 @@ export default function AddOrderPage() {
       setError(true);
       return;
     }
-    // console.log(senderDetails);
-    // console.log(receiverDetails);
-    // console.log(items);
     const token = localStorage.getItem("token");
     await fetch(`${BASE_URL}/api/parcel/new`, {
       method: "POST",
@@ -202,6 +202,17 @@ export default function AddOrderPage() {
           name: "address",
           isSender: false,
         })}
+        <TextField
+          label="Charges"
+          variant="outlined"
+          fullWidth
+          value={charges}
+          onChange={(e) => setCharges(parseInt(e.target.value) || charges)}
+          sx={{
+            "& .MuiInputBase-root": { fontSize: "14px", color: "#1b3655" },
+            "& .MuiInputLabel-root": { fontSize: "14px", color: "#7d8695" },
+          }}
+        />
       </Box>
 
       <Box sx={{ marginTop: "30px" }}>
@@ -296,23 +307,17 @@ export default function AddOrderPage() {
           </TableBody>
         </Table>
         <Box sx={{ textAlign: "right", marginTop: "10px" }}>
-                            <button
-                                className="button"
-                                onClick={handleAddRow}
-                            >
-                                <FaPlus style={{ marginRight: "8px" }} /> Add Item
-                            </button>
-                        </Box>
-                    </Box>
-        
-                    <Box sx={{ textAlign: "center", marginTop: "30px" }}>
-                        <button
-                            className="button button-large"
-                            onClick={handleAddOrder}
-                        >
-                            Add Order
-                        </button>
-                    </Box>
-                </Box>
+          <button className="button" onClick={handleAddRow}>
+            <FaPlus style={{ marginRight: "8px" }} /> Add Item
+          </button>
+        </Box>
+      </Box>
+
+      <Box sx={{ textAlign: "center", marginTop: "30px" }}>
+        <button className="button button-large" onClick={handleAddOrder}>
+          Add Order
+        </button>
+      </Box>
+    </Box>
   );
 }

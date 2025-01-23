@@ -219,9 +219,6 @@ const handleHamaliUpdate = (value, index) => {
                   />
                 </TableCell>
                 <TableCell>
-                  <IconButton color="success">
-                    <CheckCircle />
-                  </IconButton>
                   <IconButton color="error">
                     <Cancel />
                   </IconButton>

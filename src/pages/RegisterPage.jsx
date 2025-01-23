@@ -2,8 +2,9 @@ import { React, useEffect, useState } from "react";
 import styles from "../css/auth_card.module.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { Select, MenuItem, InputLabel } from "@mui/material";
+import { Select, MenuItem } from "@mui/material";
 import { useAuth } from "../routes/AuthContext";
+
 const CODE = import.meta.env.VITE_CODE;
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
