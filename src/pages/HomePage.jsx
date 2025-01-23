@@ -4,6 +4,7 @@ import cardImg from '../assets/card.jpg'
 import workImg from '../assets/workflow.jpg'
 import { Typography, Button } from "@mui/material";
 import {Link} from "react-router-dom";
+import "../css/main.css";
 
 const HomePage = () => {
   return (
@@ -25,7 +26,7 @@ const HomePage = () => {
             }}
           >We Transport anything<br />anywhere!</Typography>
           <Link to='/about'>
-          <button className="button-element" style={{ width: '10%' }}>Know More</button>
+          <button className="button button-large" style={{ width: '10%' }}>Know More</button>
           </Link>
         </div>
       </div>

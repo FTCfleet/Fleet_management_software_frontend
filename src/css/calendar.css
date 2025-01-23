@@ -1,0 +1,36 @@
+/* Add these calendar specific styles */
+.custom-calendar {
+    background-color: white;
+    border-radius: 8px;
+    padding: 10px;
+  }
+  
+  .custom-calendar .react-calendar__tile {
+    color: #333;
+    background: white;
+    padding: 10px;
+  }
+  
+  .custom-calendar .react-calendar__tile:enabled:hover,
+  .custom-calendar .react-calendar__tile:enabled:focus {
+    background-color: #e6e6e6;
+  }
+  
+  .custom-calendar .react-calendar__tile--active {
+    background: #1E3A5F !important;
+    color: white !important;
+  }
+  
+  .custom-calendar .react-calendar__tile--now {
+    background: #82acc2;
+    color: white;
+  }
+  
+  .custom-calendar .react-calendar__navigation button {
+    color: #333;
+  }
+  
+  .custom-calendar .react-calendar__month-view__weekdays {
+    color: #1E3A5F;
+    font-weight: bold;
+  }

@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import backImg from "../assets/back2.jpg";
 const BASE_URL = import.meta.env.VITE_BASE_URL;
+import "../css/main.css";
 
 const TrackShipmentPage = () => {
   const [shipmentIdInput, setShipmentIdInput] = useState("");
@@ -75,7 +76,11 @@ const TrackShipmentPage = () => {
           gap: "20px",
         }}
       >
-        <div style={{ flex: "60%" }}>
+        <div style={{
+          flex: "60%", boxShadow: "0 4px 10px rgba(0,0,0,0.2)", // Added shadow here
+          borderRadius: "8px", // Added border radius
+          padding: "20px"
+        }}>
           <Typography
             variant="h4"
             sx={{ color: "#1b3655", marginBottom: "20px" }}
@@ -86,30 +91,19 @@ const TrackShipmentPage = () => {
             Keep track of your shipment by inputting shipment ID or AWB number
           </Typography>
           <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: "10px",
-              boxShadow: "0 4px 10px rgba(0,0,0,0.2)", // Shadow added
-              padding: "10px", // Padding for input bar
-              borderRadius: "8px", // Rounded corners
-            }}
+            classname="button-wrapper"
+            style={{ alignItems: "center", display: "flex", gap: "20px", justifyContent: "center", }}
           >
             <TextField
               variant="outlined"
               placeholder="Enter Shipment ID"
               value={shipmentIdInput}
               onChange={(e) => setShipmentIdInput(e.target.value.trim())}
-              sx={{ width: "300px", backgroundColor: "white" }}
+              sx={{ width: "300px", backgroundColor: "white", }}
             />
-            <Button
-              variant="contained"
-              onClick={handleTrack}
-              sx={{ backgroundColor: "#003366", color: "white" }}
-            >
+            <button className="button button-large" onClick={handleTrack}>
               Track
-            </Button>
+            </button>
           </div>
         </div>
 
@@ -300,7 +294,7 @@ const TrackShipmentPage = () => {
               {items.map((item) => (
                 <TableRow key={item.itemId}>
                   <TableCell sx={rowCellStyle}>{item.name}</TableCell>
-                    <TableCell sx={rowCellStyle}>{item.quantity}</TableCell>
+                  <TableCell sx={rowCellStyle}>{item.quantity}</TableCell>
                   <TableCell sx={rowCellStyle}>
                     <span
                       className={`table-status ${item.status
@@ -310,7 +304,7 @@ const TrackShipmentPage = () => {
                       {item.status}
                     </span>
                   </TableCell>
-                  
+
                 </TableRow>
               ))}
             </TableBody>

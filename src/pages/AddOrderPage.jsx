@@ -296,36 +296,23 @@ export default function AddOrderPage() {
           </TableBody>
         </Table>
         <Box sx={{ textAlign: "right", marginTop: "10px" }}>
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: "#1c3553",
-              "&:hover": { backgroundColor: "#25344e" },
-            }}
-            startIcon={<FaPlus />}
-            onClick={handleAddRow}
-          >
-            Add Item
-          </Button>
-        </Box>
-      </Box>
-
-      <Box sx={{ textAlign: "center", marginTop: "30px" }}>
-        <Button
-          variant="contained"
-          color="primary"
-          sx={{
-            backgroundColor: "#1c3553",
-            "&:hover": { backgroundColor: "#25344e" },
-            padding: "10px 20px",
-            fontSize: "16px",
-            fontWeight: "bold",
-          }}
-          onClick={handleAddOrder}
-        >
-          Add Order
-        </Button>
-      </Box>
-    </Box>
+                            <button
+                                className="button"
+                                onClick={handleAddRow}
+                            >
+                                <FaPlus style={{ marginRight: "8px" }} /> Add Item
+                            </button>
+                        </Box>
+                    </Box>
+        
+                    <Box sx={{ textAlign: "center", marginTop: "30px" }}>
+                        <button
+                            className="button button-large"
+                            onClick={handleAddOrder}
+                        >
+                            Add Order
+                        </button>
+                    </Box>
+                </Box>
   );
 }

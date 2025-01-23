@@ -204,28 +204,14 @@ const UserTemplate = () => {
               position: "fixed",
               bottom: "16px",
               right: "25px",
-              zIndex: 1000, // Ensure it floats above other elements
+              zIndex: 1000,
             }}
           >
             <button
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "10px 20px",
-                backgroundColor: "#145a9f",
-                color: "#fff",
-                fontSize: "14px",
-                fontWeight: "bold",
-                borderRadius: "24px",
-                border: "none",
-                cursor: "pointer",
-                transition: "background-color 0.3s ease",
-                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-              }}
+              className="button"
               onClick={() => navigate("/user/add/order/")}
-              onMouseOver={(e) => (e.target.style.backgroundColor = "#1E3A5F")}
-              onMouseOut={(e) => (e.target.style.backgroundColor = "#145a9f")}
+              onMouseOver={(e) => (e.target.style.backgroundColor = "#25344e")}
+              onMouseOut={(e) => (e.target.style.backgroundColor = "#1E3A5F")}
             >
               <FaPlus style={{ marginRight: "8px" }} /> Add Order
             </button>
