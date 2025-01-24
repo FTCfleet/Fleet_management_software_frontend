@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Box,
   Button,
@@ -17,7 +17,8 @@ import "../css/main.css";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-export default function AddOrderPage() {
+export default function AddOrderPage({}) {
+  const { id } = useParams();
   const [items, setItems] = useState([]);
   const [counter, setCounter] = useState(1);
   const [senderDetails, setSenderDetails] = useState({ role: "sender" });

@@ -21,7 +21,7 @@ import ledger from "../assets/ledger.jpg";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-export default function ViewLedgerPage() {
+export default function ViewLedgerPage({admin}) {
   const { id } = useParams();
   const [ledgerData, setLedgerData] = useState([]);
   const [items, setItems] = useState([]);
@@ -30,7 +30,6 @@ export default function ViewLedgerPage() {
   const [hamaliLst, setHamaliLst] = useState([]);
   const [warehouseNo, setWarehouseNo] = useState("");
   const [allWarehouse, setAllWarehouse] = useState([]);
-  const [removeItems, setRemoveItems] = useState([]);
 
   useEffect(() => {
     fetchWarehouse();
@@ -112,7 +111,7 @@ export default function ViewLedgerPage() {
       },
       body: JSON.stringify({
         warehouseId: warehouseNo,
-        items: items.filter((item, index) => !removeItems.includes(index)),
+        items: items,
         freight: freightLst,
         hamali: hamaliLst,
       }),

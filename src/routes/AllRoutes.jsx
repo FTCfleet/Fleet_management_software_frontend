@@ -11,6 +11,8 @@ import ForgetPasswordPage from "../pages/ForgetPasswordPage";
 import OtpPage from "../pages/Otpage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 import AddOrderPage from "../pages/AddOrderPage";
+import AddTruckPage from "../pages/AddTruckPage";
+import EditEmployeePage from "../pages/EditEmployeePage";
 import AllLedgerPage from "../pages/AllLedgerPage";
 import AllOrderPage from "../pages/AllOrderPage";
 import GenReportPage from "../pages/GenReportPage";
@@ -20,7 +22,6 @@ import UserTemplate from "../components/UserTemplate";
 import PrivateRoute from "./PrivateRoute";
 import ViewOrderPage from "../pages/ViewOrderPage";
 import ViewLedgerPage from "../pages/ViewLedgerPage";
-
 
 function AllRoutes() {
   return (
@@ -58,11 +59,29 @@ function AllRoutes() {
         <Route path="*" element={<ErrorPage />} />
       </Route>
       <Route path="/user/*" element={<UserTemplate />}>
-        <Route exact path="add/order" element={<AddOrderPage />} />
+        <Route exact path="edit/*">
+          <Route exact path="order/:id" element={<AddOrderPage />} />
+          <Route
+            exact
+            path="ledger/:id"
+            element={<ViewLedgerPage admin={true} />}
+          />
+          <Route
+            exact
+            path="employee/:username"
+            element={<EditEmployeePage />}
+          />
+        </Route>
+        <Route exact path="add/*">
+          <Route exact path="order" element={<AddOrderPage />} />
+          <Route exact path="truck" element={<AddTruckPage />} />
+        </Route>
         <Route exact path="order/:type" element={<AllOrderPage />} />
         <Route exact path="ledgers/:type" element={<AllLedgerPage />} />
-        <Route exact path="view/order/:id" element={<ViewOrderPage />} />
-        <Route exact path="view/ledger/:id" element={<ViewLedgerPage />} />
+        <Route exact path="view/*">
+          <Route exact path="order/:id" element={<ViewOrderPage />} />
+          <Route exact path="ledger/:id" element={<ViewLedgerPage />} />
+        </Route>
         <Route exact path="gen-report" element={<GenReportPage />} />
         <Route path="*" element={<ErrorPage />} />
       </Route>

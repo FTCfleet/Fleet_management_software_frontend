@@ -72,9 +72,14 @@ const AllOrderPage = () => {
   };
 
   const handleDateChange = (event) => {
-    const date = event.target.value;
-    setSelectedDate(date);
-    filterOrdersByTypeAndDate(type);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const newDate = new Date(event.target.value);
+    if (newDate <= today) {
+      const date = newDate.toISOString().split("T")[0];
+      setSelectedDate(date);
+      filterOrdersByTypeAndDate(type);
+    }
   };
 
   const handleSearchChange = (event) => {
@@ -115,8 +120,10 @@ const AllOrderPage = () => {
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <AiOutlineCalendar size={24} color="#82ACC2" />
-          <TextField
+          <input
             type="date"
+            onFocus={(e) => e.target.showPicker()}
+            onKeyDown={(e) => e.preventDefault()}
             value={selectedDate}
             onChange={handleDateChange}
             sx={{
