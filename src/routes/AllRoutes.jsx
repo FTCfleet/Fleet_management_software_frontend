@@ -66,6 +66,7 @@ function AllRoutes() {
         <Route exact path="gen-report" element={<GenReportPage />} />
         <Route path="*" element={<ErrorPage />} />
       </Route>
+      <Route path="*" element={<ErrorPage />} />
     </Routes>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -22,16 +22,17 @@ import "../css/dashboard.css";
 import "../css/main.css";
 
 const UserTemplate = () => {
-  const { isLoggedIn } = useAuth();
+  // const { isLoggedIn, isAdmin, isSource } = useAuth();
+  const { isLoggedIn, isAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isAddOrderPage = location.pathname === "/user/add/order/";
-  let isOutgoing = true;
-  if (localStorage.getItem("user")) {
-    isOutgoing = ["HYO", "HYT", "BHP", "SEC"].includes(
-      JSON.parse(localStorage.getItem("user")).warehouseCode
-    );
-  }
+  const [isSource, setIsSource] = useState(true);
+  // if (localStorage.getItem("user")) {
+  //   isSource = ["HYO", "HYT", "BHP", "SEC"].includes(
+  //     JSON.parse(localStorage.getItem("user")).warehouseCode
+  //   );
+  // }
 
   const menuSections = [
     {
@@ -73,8 +74,8 @@ const UserTemplate = () => {
           icon: <FaTruckMoving />,
         },
         {
-          text: isOutgoing ? "Outgoing Ledgers" : "Incoming Ledgers",
-          path: `/user/ledgers/${isOutgoing ? "outgoing" : "incoming"}`,
+          text: isSource ? "Outgoing Ledgers" : "Incoming Ledgers",
+          path: `/user/ledgers/${isSource ? "outgoing" : "incoming"}`,
           icon: <FaTruckMoving />,
         },
         {
@@ -96,6 +97,33 @@ const UserTemplate = () => {
         },
       ],
     },
+    isAdmin ? {
+      heading: "Admin",
+      path: "/admin",
+      headingIcon: <FaMoneyCheckAlt style={{ marginRight: "8px" }} />,
+      items: [
+        {
+          text: "Truck Drivers List",
+          path: "/user/admin/truck-drivers",
+          icon: <FaMoneyCheckAlt />,
+        },
+        {
+          text: "Employees List",
+          path: "/user/admin/employees",
+          icon: <FaMoneyCheckAlt />,
+        },
+        {
+          text: "Orders List",
+          path: "/user/admin/orders",
+          icon: <FaMoneyCheckAlt />,
+        },
+        {
+          text: "Ledgers List",
+          path: "/user/admin/ledgers",
+          icon: <FaMoneyCheckAlt />,
+        },
+      ],
+    } : {},
   ];
 
   useEffect(() => {
@@ -117,6 +145,7 @@ const UserTemplate = () => {
         }}
       >
         {menuSections.map((section, sectionIndex) => (
+          (Object.keys(section).length === 0) ? null :  
           <Box key={sectionIndex} sx={{ marginBottom: "12px" }}>
             {" "}
             {/* Reduced margin between sections */}

@@ -95,7 +95,7 @@ const TrackShipmentPage = () => {
               Keep track of your shipment by inputting shipment ID or AWB number
             </Typography>
             <div
-              classname="button-wrapper"
+              className="button-wrapper"
               style={{
                 alignItems: "center",
                 display: "flex",

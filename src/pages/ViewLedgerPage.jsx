@@ -30,10 +30,11 @@ export default function ViewLedgerPage() {
   const [hamaliLst, setHamaliLst] = useState([]);
   const [warehouseNo, setWarehouseNo] = useState("");
   const [allWarehouse, setAllWarehouse] = useState([]);
+  const [removeItems, setRemoveItems] = useState([]);
 
   useEffect(() => {
-      fetchWarehouse();
-      fetchData();
+    fetchWarehouse();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -79,10 +80,10 @@ export default function ViewLedgerPage() {
     const updatedFreight = [...freightLst];
     updatedFreight[index] = value;
     setFreightLst(updatedFreight);
-};
+  };
 
-const handleHamaliUpdate = (value, index) => {
-      value = parseInt(value);
+  const handleHamaliUpdate = (value, index) => {
+    value = parseInt(value);
     const updatedHamali = [...hamaliLst];
     updatedHamali[index] = value;
     setHamaliLst(updatedHamali);
@@ -92,14 +93,39 @@ const handleHamaliUpdate = (value, index) => {
   const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
   const rowStyle = { color: "#25344E" };
 
-  // Handler for updating Freight or Hamali
-  const handleUpdate = (id, field, value) => {
-    setLedgerData((prevData) =>
-      prevData.map((item) =>
-        item.id === id ? { ...item, [field]: Number(value) } : item
-      )
-    );
-    console.log(`Updated ${field} for ID ${id} to ${value}`); // Replace with your database function later
+  const handleDelete = (index) => {
+    items.splice(index, 1);
+    hamaliLst.splice(index, 1);
+    freightLst.splice(index, 1);
+    setFreightLst([...freightLst]);
+  };
+
+  const handleSave = async () => {
+    alert('Implement Save');
+    return ;
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${BASE_URL}/api/ledger/edit/${id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        warehouseId: warehouseNo,
+        items: items.filter((item, index) => !removeItems.includes(index)),
+        freight: freightLst,
+        hamali: hamaliLst,
+      }),
+    });
+    if (response.ok) {
+      alert("Items dispatched successfully");
+    } else {
+      alert("Error occurred");
+    }
+  };
+
+  const handleDispatch = async () => {
+    alert('Implement Dispatch');
   };
 
   return (
@@ -135,8 +161,10 @@ const handleHamaliUpdate = (value, index) => {
           <Typography sx={rowStyle}>
             <strong>Truck No:</strong> {ledgerData.vehicleNo}
           </Typography>
-          <Typography sx={rowStyle}>
-            <strong>Delivery Station:</strong>{" "}
+          <div style={{ display: "flex", flexDirection: "row", gap: "20px", alignItems: "center" }}>
+            <Typography sx={rowStyle}>
+              <strong>Delivery Station:</strong>{" "}
+            </Typography>
             {ledgerData.destinationWarehouse ? (
               ledgerData.destinationWarehouse
             ) : (
@@ -144,8 +172,9 @@ const handleHamaliUpdate = (value, index) => {
                 id="warehouse-select"
                 value={warehouseNo}
                 onChange={(event) => setWarehouseNo(event.target.value)}
-                fullWidth
+                // fullWidth
                 style={{
+                  width: "40%",
                   textAlign: "left",
                   background: "#f9f9f9",
                   borderRadius: "8px",
@@ -162,7 +191,7 @@ const handleHamaliUpdate = (value, index) => {
                   ))}
               </Select>
             )}
-          </Typography>
+          </div>
         </Box>
         <Box sx={{ flex: "0 0 150px", marginLeft: "20px" }}>
           <img
@@ -205,9 +234,7 @@ const handleHamaliUpdate = (value, index) => {
                     type="number"
                     size="small"
                     value={freightLst[index]}
-                    onChange={(e) =>
-                      handleFreightUpdate(e.target.value, index)
-                    }
+                    onChange={(e) => handleFreightUpdate(e.target.value, index)}
                   />
                 </TableCell>
                 <TableCell sx={rowStyle}>
@@ -219,7 +246,7 @@ const handleHamaliUpdate = (value, index) => {
                   />
                 </TableCell>
                 <TableCell>
-                  <IconButton color="error">
+                  <IconButton color="error" onClick={(e) => handleDelete(index)}>
                     <Cancel />
                   </IconButton>
                 </TableCell>
@@ -245,6 +272,12 @@ const handleHamaliUpdate = (value, index) => {
           </TableBody>
         </Table>
       </TableContainer>
+      <button onClick={handleSave}>
+        Save Items
+      </button>
+      <button onClick={handleDispatch}>
+        Dispatch Items
+      </button>
     </Box>
   );
 }
