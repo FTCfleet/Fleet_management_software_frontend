@@ -1,36 +1,49 @@
-/* Add these calendar specific styles */
-.custom-calendar {
-    background-color: white;
-    border-radius: 8px;
-    padding: 10px;
-  }
-  
-  .custom-calendar .react-calendar__tile {
-    color: #333;
-    background: white;
-    padding: 10px;
-  }
-  
-  .custom-calendar .react-calendar__tile:enabled:hover,
-  .custom-calendar .react-calendar__tile:enabled:focus {
-    background-color: #e6e6e6;
-  }
-  
-  .custom-calendar .react-calendar__tile--active {
-    background: #1E3A5F !important;
-    color: white !important;
-  }
-  
-  .custom-calendar .react-calendar__tile--now {
-    background: #82acc2;
-    color: white;
-  }
-  
-  .custom-calendar .react-calendar__navigation button {
-    color: #333;
-  }
-  
-  .custom-calendar .react-calendar__month-view__weekdays {
-    color: #1E3A5F;
-    font-weight: bold;
-  }
+/* calendar.css */
+
+/* Calendar Input Wrapper */
+.calendar-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #ffffff;
+  border: 1px solid #9da8bb;
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.calendar-input:hover {
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Calendar Input Field */
+.calendar-input input[type="date"] {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-size: 16px;
+  font-family: Arial, sans-serif;
+  color: #25344E;
+  cursor: pointer;
+}
+
+.calendar-input input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(43%) sepia(27%) saturate(368%) hue-rotate(174deg) brightness(92%) contrast(88%);
+}
+
+/* Placeholder and Input Focus State */
+.calendar-input input[type="date"]::placeholder {
+  color: #7d8695;
+}
+
+.calendar-input input[type="date"]:focus {
+  color: #1E3A5F;
+}
+
+/* Icon Styling */
+.calendar-input svg {
+  color: #82ACC2;
+  font-size: 24px;
+}

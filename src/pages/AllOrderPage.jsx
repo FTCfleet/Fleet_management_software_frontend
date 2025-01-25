@@ -16,6 +16,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FiSearch } from "react-icons/fi";
 import { AiOutlineCalendar } from "react-icons/ai";
 import "../css/table.css"; // Import CSS
+import "../css/calendar.css"; // Import Calendar CSS
 import { IoArrowForwardCircleOutline } from "react-icons/io5"; // Icon for View Ledger
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -118,21 +119,13 @@ const AllOrderPage = () => {
           alignItems: "center",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <AiOutlineCalendar size={24} color="#82ACC2" />
+        <Box className="calendar-input">
           <input
             type="date"
             onFocus={(e) => e.target.showPicker()}
             onKeyDown={(e) => e.preventDefault()}
             value={selectedDate}
             onChange={handleDateChange}
-            sx={{
-              backgroundColor: "#ffffff",
-              borderRadius: "5px",
-              "& .MuiInputBase-input": {
-                color: "#25344E",
-              },
-            }}
           />
         </Box>
         <Box
@@ -148,7 +141,6 @@ const AllOrderPage = () => {
             placeholder="Search orders..."
             fullWidth
             value={searchTerm}
-            // onChange={handleSearchChange}
             sx={{
               backgroundColor: "#ffffff",
               borderRadius: "5px",
@@ -173,7 +165,6 @@ const AllOrderPage = () => {
               <TableCell className="table-header">
                 {"Receiver's\nName"}
               </TableCell>
-              {/* <TableCell className="table-header">Source</TableCell> */}
               <TableCell className="table-header">
                 {"Destination" + "\n" + "Warehouse"}
               </TableCell>

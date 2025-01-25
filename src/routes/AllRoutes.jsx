@@ -66,9 +66,9 @@ function AllRoutes() {
             path="ledger/:id"
             element={<ViewLedgerPage edit={true} />}
           />
-          <Route exact path="employees" element={<AllEmployeePage />} />
-          <Route exact path="trucks" element={<AllTruckPage />} />
         </Route>
+        <Route exact path="employees" element={<AllEmployeePage />} />
+        <Route exact path="trucks" element={<AllTruckPage />} />
         <Route exact path="add/order" element={<AddOrderPage />} />
         <Route exact path="order/:type" element={<AllOrderPage />} />
         <Route exact path="ledgers/:type" element={<AllLedgerPage />} />
