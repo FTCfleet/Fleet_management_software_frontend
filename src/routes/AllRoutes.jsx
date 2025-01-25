@@ -11,8 +11,8 @@ import ForgetPasswordPage from "../pages/ForgetPasswordPage";
 import OtpPage from "../pages/Otpage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 import AddOrderPage from "../pages/AddOrderPage";
-import AddTruckPage from "../pages/AddTruckPage";
-import EditEmployeePage from "../pages/EditEmployeePage";
+import AllTruckPage from "../pages/AllTruckPage";
+import AllEmployeePage from "../pages/AllEmployeePage";
 import AllLedgerPage from "../pages/AllLedgerPage";
 import AllOrderPage from "../pages/AllOrderPage";
 import GenReportPage from "../pages/GenReportPage";
@@ -60,22 +60,16 @@ function AllRoutes() {
       </Route>
       <Route path="/user/*" element={<UserTemplate />}>
         <Route exact path="edit/*">
-          <Route exact path="order/:id" element={<AddOrderPage />} />
+          <Route exact path="order/:id" element={<AddOrderPage edit={true} />} />
           <Route
             exact
             path="ledger/:id"
-            element={<ViewLedgerPage admin={true} />}
+            element={<ViewLedgerPage edit={true} />}
           />
-          <Route
-            exact
-            path="employee/:username"
-            element={<EditEmployeePage />}
-          />
+          <Route exact path="employees" element={<AllEmployeePage />} />
+          <Route exact path="trucks" element={<AllTruckPage />} />
         </Route>
-        <Route exact path="add/*">
-          <Route exact path="order" element={<AddOrderPage />} />
-          <Route exact path="truck" element={<AddTruckPage />} />
-        </Route>
+        <Route exact path="add/order" element={<AddOrderPage />} />
         <Route exact path="order/:type" element={<AllOrderPage />} />
         <Route exact path="ledgers/:type" element={<AllLedgerPage />} />
         <Route exact path="view/*">

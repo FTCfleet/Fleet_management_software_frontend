@@ -5,8 +5,9 @@ import { useAuth } from "../routes/AuthContext";
 const AuthTemplate = () => {
   const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
+
   useEffect(() => {
-    if (!isLoggedIn) navigate("/user/order/all");
+    if (isLoggedIn) navigate("/user/order/all");
   });
 
   return (

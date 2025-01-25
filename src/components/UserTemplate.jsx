@@ -99,27 +99,17 @@ const UserTemplate = () => {
     },
     isAdmin ? {
       heading: "Admin",
-      path: "/admin",
+      path: "/user",
       headingIcon: <FaMoneyCheckAlt style={{ marginRight: "8px" }} />,
       items: [
         {
           text: "Truck Drivers List",
-          path: "/user/admin/truck-drivers",
+          path: "/user/trucks",
           icon: <FaMoneyCheckAlt />,
         },
         {
           text: "Employees List",
-          path: "/user/admin/employees",
-          icon: <FaMoneyCheckAlt />,
-        },
-        {
-          text: "Orders List",
-          path: "/user/admin/orders",
-          icon: <FaMoneyCheckAlt />,
-        },
-        {
-          text: "Ledgers List",
-          path: "/user/admin/ledgers",
+          path: "/user/employees",
           icon: <FaMoneyCheckAlt />,
         },
       ],
