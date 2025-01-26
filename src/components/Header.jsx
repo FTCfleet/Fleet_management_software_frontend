@@ -12,7 +12,6 @@ const HeaderTabs = ({ isDashboard }) => {
     { url: "/", text: "Home" },
     { url: "/track", text: "Track Shipment" },
     { url: "/about", text: "About Us" },
-    { url: "/faq", text: "FAQ" },
   ];
   return (
     <ButtonGroup sx={{ textDecoration: "none", marginRight: 1 }}>

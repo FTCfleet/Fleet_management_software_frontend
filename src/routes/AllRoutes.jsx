@@ -4,7 +4,6 @@ import { Routes, Route } from "react-router-dom";
 import HomePage from "../pages/HomePage";
 import TrackShipmentPage from "../pages/TrackShipmentPage";
 import AboutPage from "../pages/AboutPage";
-import FAQPage from "../pages/FAQPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import ForgetPasswordPage from "../pages/ForgetPasswordPage";
@@ -29,7 +28,6 @@ function AllRoutes() {
       <Route exact path="/" element={<HomePage />} />
       <Route exact path="/track" element={<TrackShipmentPage />} />
       <Route exact path="/about" element={<AboutPage />} />
-      <Route exact path="/faq" element={<FAQPage />} />
       <Route path="/auth/*" element={<AuthTemplate />}>
         <Route exact path="login" element={<LoginPage />} />
         <Route exact path="register" element={<RegisterPage />} />
