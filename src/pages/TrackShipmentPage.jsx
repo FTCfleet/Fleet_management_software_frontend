@@ -11,6 +11,8 @@ import {
   TableCell,
   Paper,
 } from "@mui/material";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import backImg from "../assets/back2.jpg";
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 import "../css/main.css";
@@ -33,15 +35,14 @@ const TrackShipmentPage = () => {
     }
     return "#9da8bb"; // Grey for future steps
   };
-
   const handleTrack = async () => {
     fetch(`${BASE_URL}/api/parcel/track/${shipmentIdInput}`)
       .then((response) => {
         if (!response.ok) {
-          alert("Error occurred");
+          toast.error("Error occurred", { className: "custom-toast" , position: "bottom-right" });
         }
         if (response.status === 201) {
-          alert("Invalid Tracking ID");
+          toast.warn("Invalid Tracking ID", {  className: "custom-toast" , position: "bottom-right" });
           setShipmentIdInput("");
         }
         return response.json();
@@ -66,6 +67,7 @@ const TrackShipmentPage = () => {
 
   return (
     <div className="app">
+      <ToastContainer />
       <div
         style={{
           backgroundColor: "#eaf7ff",
@@ -79,8 +81,8 @@ const TrackShipmentPage = () => {
         <div
           style={{
             flex: "60%",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.2)", // Added shadow here
-            borderRadius: "8px", // Added border radius
+            boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+            borderRadius: "8px",
             padding: "20px",
           }}
         >
@@ -125,7 +127,7 @@ const TrackShipmentPage = () => {
               width: "100%",
               height: "auto",
               borderRadius: "10px",
-              boxShadow: "0 6px 15px rgba(0,0,0,0.3)", // Increased shadow
+              boxShadow: "0 6px 15px rgba(0,0,0,0.3)",
             }}
           />
         </div>
@@ -153,168 +155,174 @@ const TrackShipmentPage = () => {
         <div
           style={{
             display: "flex",
-            gap: "20px",
-            border: "1px solid #ddd",
-            borderRadius: "8px",
-            padding: "40px",
-            boxShadow: "0 8px 20px rgba(0,0,0,0.3)", // Increased shadow
-            width: "90%",
-            margin: "0 auto",
-            position: "relative",
+            flexDirection: "column",
+            gap: "40px",
+            alignItems: "center",
           }}
         >
-          {/* Shipment Details */}
-          <div style={{ flex: "60%", position: "relative" }}>
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <div style={{ flex: 1, textAlign: "center" }}>
-                  <Typography sx={{ color: "#7d8695" }}>
-                    <b>Shipment ID</b>
-                  </Typography>
-                  <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>
-                    {shipmentIdInput}
-                  </Typography>
+          <div
+            style={{
+              display: "flex",
+              gap: "20px",
+              border: "1px solid #ddd",
+              borderRadius: "8px",
+              padding: "40px",
+              boxShadow: "0 8px 20px rgba(0,0,0,0.3)",
+              width: "90%",
+            }}
+          >
+            {/* Shipment Details */}
+            <div style={{ flex: "60%", position: "relative" }}>
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <div style={{ flex: 1, textAlign: "center" }}>
+                    <Typography sx={{ color: "#7d8695" }}>
+                      <b>Shipment ID</b>
+                    </Typography>
+                    <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>
+                      {shipmentIdInput}
+                    </Typography>
+                  </div>
+                  <div style={{ flex: 1, textAlign: "center" }}>
+                    <Typography sx={{ color: "#7d8695" }}>
+                      <b>Status</b>
+                    </Typography>
+                    <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>
+                      {status}
+                    </Typography>
+                  </div>
                 </div>
-                <div style={{ flex: 1, textAlign: "center" }}>
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginTop: "20px",
+                  }}
+                >
+                  <div style={{ flex: 1, textAlign: "center" }}>
+                    <Typography sx={{ color: "#7d8695" }}>
+                      <b>Shipper</b>
+                    </Typography>
+                    <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>
+                      {shipper}
+                    </Typography>
+                  </div>
+                  <div style={{ flex: 1, textAlign: "center" }}>
+                    <Typography sx={{ color: "#7d8695" }}>
+                      <b>Consignee</b>
+                    </Typography>
+                    <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>
+                      {consignee}
+                    </Typography>
+                  </div>
+                </div>
+
+                <div style={{ textAlign: "center", marginTop: "20px" }}>
                   <Typography sx={{ color: "#7d8695" }}>
-                    <b>Status</b>
+                    <b>Service</b>
                   </Typography>
                   <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>
-                    {status}
+                    {service}
                   </Typography>
                 </div>
               </div>
-
+              {/* Vertical Divider */}
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginTop: "20px",
+                  position: "absolute",
+                  right: "-10px",
+                  top: "0",
+                  bottom: "0",
+                  width: "2px",
+                  backgroundColor: "#ddd",
                 }}
-              >
-                <div style={{ flex: 1, textAlign: "center" }}>
-                  <Typography sx={{ color: "#7d8695" }}>
-                    <b>Shipper</b>
-                  </Typography>
-                  <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>
-                    {shipper}
-                  </Typography>
-                </div>
-                <div style={{ flex: 1, textAlign: "center" }}>
-                  <Typography sx={{ color: "#7d8695" }}>
-                    <b>Consignee</b>
-                  </Typography>
-                  <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>
-                    {consignee}
-                  </Typography>
-                </div>
-              </div>
-
-              <div style={{ textAlign: "center", marginTop: "20px" }}>
-                <Typography sx={{ color: "#7d8695" }}>
-                  <b>Service</b>
-                </Typography>
-                <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>
-                  {service}
-                </Typography>
-              </div>
+              ></div>
             </div>
-            {/* Vertical Divider */}
-            <div
-              style={{
-                position: "absolute",
-                right: "-10px",
-                top: "0",
-                bottom: "0",
-                width: "2px",
-                backgroundColor: "#ddd",
-              }}
-            ></div>
-          </div>
 
-          {/* Tracking Section */}
-          <div
-            style={{ flex: "40%", textAlign: "center", position: "relative" }}
-          >
+            {/* Tracking Section */}
             <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100%",
-                // padding: "20px",
-              }}
+              style={{ flex: "40%", textAlign: "center", position: "relative" }}
             >
               <div
                 style={{
                   display: "flex",
-                  flexDirection: "column",
-                  alignItems: "flex-start", // Align to the left
-                  gap: "30px",
                   justifyContent: "center",
+                  alignItems: "center",
+                  height: "100%",
                 }}
               >
-                {steps.map((step, index) => (
-                  <div
-                    key={index}
-                    style={{ display: "flex", alignItems: "center" }}
-                  >
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    gap: "30px",
+                    justifyContent: "center",
+                  }}
+                >
+                  {steps.map((step, index) => (
                     <div
-                      style={{
-                        width: "10px",
-                        height: "10px",
-                        borderRadius: "50%",
-                        backgroundColor: getStepColor(index), // Apply dynamic color based on the current step
-                        transition: "background-color 0.3s",
-                      }}
-                    />
-                    <Typography
-                      sx={{
-                        marginLeft: "10px",
-                        fontWeight:
-                          currentStep >= index + 1 ? "bold" : "normal",
-                        color: getStepColor(index),
-                      }}
+                      key={index}
+                      style={{ display: "flex", alignItems: "center" }}
                     >
-                      {step}
-                    </Typography>
-                  </div>
-                ))}
+                      <div
+                        style={{
+                          width: "10px",
+                          height: "10px",
+                          borderRadius: "50%",
+                          backgroundColor: getStepColor(index),
+                          transition: "background-color 0.3s",
+                        }}
+                      />
+                      <Typography
+                        sx={{
+                          marginLeft: "10px",
+                          fontWeight:
+                            currentStep >= index + 1 ? "bold" : "normal",
+                          color: getStepColor(index),
+                        }}
+                      >
+                        {step}
+                      </Typography>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <TableContainer
-          component={Paper}
-          sx={{ backgroundColor: "#ffffff", borderRadius: "8px" }}
-        >
-          <Typography variant="h6" sx={{ padding: "16px", ...cellStyle }}>
-            Items in Package
-          </Typography>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={cellStyle}>Item Name</TableCell>
-                <TableCell sx={cellStyle}>Quantity</TableCell>
-                <TableCell sx={cellStyle}>Status</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {items.map((item) => (
-                <TableRow key={item.itemId}>
-                  <TableCell sx={rowCellStyle}>{item.name}</TableCell>
-                  <TableCell sx={rowCellStyle}>{item.quantity}</TableCell>
-                  <TableCell sx={rowCellStyle}>
-                    <span className={`table-status ${item.status}`}>
-                      {item.status}
-                    </span>
-                  </TableCell>
+          <TableContainer
+            component={Paper}
+            sx={{ backgroundColor: "#ffffff", borderRadius: "8px", width: "90%" }}
+          >
+            <Typography variant="h6" sx={{ padding: "16px", ...cellStyle }}>
+              Items in Package
+            </Typography>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={cellStyle}>Item Name</TableCell>
+                  <TableCell sx={cellStyle}>Quantity</TableCell>
+                  <TableCell sx={cellStyle}>Status</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {items.map((item) => (
+                  <TableRow key={item.itemId}>
+                    <TableCell sx={rowCellStyle}>{item.name}</TableCell>
+                    <TableCell sx={rowCellStyle}>{item.quantity}</TableCell>
+                    <TableCell sx={rowCellStyle}>
+                      <span className={`table-status ${item.status}`}>
+                        {item.status}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </div>
       </div>
     </div>
   );

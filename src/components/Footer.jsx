@@ -62,7 +62,6 @@ const Footer = () => {
                             <li><a className="footer-links" href='/' style={{fontWeight: 'none'}} >Home</a></li>
                             <li><a className="footer-links" href='/track' >Track Shipment</a></li>
                             <li><a className="footer-links" href='/about' >About Us</a></li>
-                            <li><a className="footer-links" href='/faq' >FAQ</a></li>
                         </ul>
                     </div>
                     <div>
