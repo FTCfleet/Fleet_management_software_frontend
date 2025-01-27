@@ -19,6 +19,7 @@ import { CheckCircle, Cancel } from "@mui/icons-material";
 import { useParams } from "react-router-dom";
 import ledger from "../assets/ledger.jpg";
 
+
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function ViewLedgerPage({admin}) {
@@ -43,6 +44,8 @@ export default function ViewLedgerPage({admin}) {
     });
   }, [freightLst, hamaliLst]);
 
+  // console.log(items);
+
   const fetchData = async () => {
     const token = localStorage.getItem("token");
     const response = await fetch(`${BASE_URL}/api/ledger/track/${id}`, {
@@ -61,6 +64,8 @@ export default function ViewLedgerPage({admin}) {
     }
     const data = (await response.json()).body;
     setLedgerData(data);
+    console.log(data.items);
+    if (data.items.itemId)
     setItems(data.items.map((item) => item.itemId));
     setFreightLst(data.items.map((item) => (item.freight ? item.freight : 0)));
     setHamaliLst(data.items.map((item) => (item.hamali ? item.hamali : 0)));
@@ -222,7 +227,7 @@ export default function ViewLedgerPage({admin}) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {items.map((item, index) => (
+            {items.length !==0 && items.map((item, index) => (
               <TableRow key={item.itemId}>
                 <TableCell sx={rowStyle}>{item.name}</TableCell>
                 <TableCell sx={rowStyle}>{item.parcelId}</TableCell>
@@ -271,10 +276,10 @@ export default function ViewLedgerPage({admin}) {
           </TableBody>
         </Table>
       </TableContainer>
-      <button onClick={handleSave}>
+      <button className="button button-large" onClick={handleSave}>
         Save Items
       </button>
-      <button onClick={handleDispatch}>
+      <button className="button button-large" onClick={handleDispatch}>
         Dispatch Items
       </button>
     </Box>

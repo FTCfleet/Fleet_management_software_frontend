@@ -37,8 +37,8 @@ export const AuthProvider = ({ children }) => {
       if (response.ok && data.flag) {
         setIsLoggedIn(true);
         const user_data = JSON.stringify(data.user);
-        // setIsAdmin(user_data.isAdmin);
-        // setIsSource(user_data.warehouseCode.isSource);
+        setIsAdmin(user_data.role === 'admin');
+        setIsSource(user_data.warehouseID?.isSource);
       } else {
         throw new Error('Auth check failed');
       }
@@ -76,7 +76,9 @@ export const AuthProvider = ({ children }) => {
         resetForgetAuth,
         checkAuthStatus,
         isAdmin,
-        isSource
+        setIsAdmin,
+        isSource,
+        setIsSource
       }}
     >
       {children}

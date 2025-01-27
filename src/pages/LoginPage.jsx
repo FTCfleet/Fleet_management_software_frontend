@@ -10,7 +10,7 @@ const LoginPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [passwordVal, setpasswordVal] = useState("");
   const [userVal, setuserVal] = useState("");
-  const { setIsLoggedIn, resetForgetAuth } = useAuth();
+  const { setIsLoggedIn, resetForgetAuth, setIsAdmin, setIsSource } = useAuth();
   const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
@@ -43,8 +43,10 @@ const LoginPage = () => {
 
       if (data.token) {
         localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-
+        console.log(data.user);
+        // localStorage.setItem("user", JSON.stringify(data.user));
+        setIsAdmin(data.user.role === "admin");
+        // setIsSource(data.user.warehouseCode.isSource);
         setIsLoggedIn(true);
       } else {
         throw new Error("No token received");

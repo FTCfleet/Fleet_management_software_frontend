@@ -112,6 +112,11 @@ const UserTemplate = () => {
           path: "/user/employees",
           icon: <FaMoneyCheckAlt />,
         },
+        {
+          text: "Warehouse List",
+          path: "/user/warehouses",
+          icon: <FaMoneyCheckAlt />,
+        },
       ],
     } : {},
   ];

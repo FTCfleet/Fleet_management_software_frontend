@@ -24,8 +24,8 @@ export default function AboutPage() {
           src={about}
           alt="About Us"
           style={{
-            width: "213px",
-            height: "220px",
+            width: "25%",
+            height: "auto",
             borderRadius: "20px",
             boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
           }}

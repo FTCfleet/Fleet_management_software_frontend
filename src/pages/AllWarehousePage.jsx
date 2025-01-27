@@ -21,28 +21,28 @@ const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
 const rowStyle = { color: "#25344E" };
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-export default function AllTruckPage() {
-  const [trucks, setTrucks] = useState([]);
-  const [filteredTrucks, setFilteredTrucks] = useState([]);
+export default function AllWarehousePage() {
+  const [warehouses, setWarehouses] = useState([]);
+  const [filteredWarehouses, setFilteredWarehouses] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentTruck, setCurrentTruck] = useState(null);
+  const [currentWarehouse, setCurrentWarehouse] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [nameFilter, setNameFilter] = useState("");
-  const [truckNoFilter, setTruckNoFilter] = useState("");
+  const [warehouseFilter, setWarehouseFilter] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [truckToDelete, setTruckToDelete] = useState(null);
+  const [warehouseToDelete, setWarehouseToDelete] = useState(null);
 
   useEffect(() => {
     fetchData();
   }, []);
 
   useEffect(() => {
-      setFilteredTrucks(trucks);
-    }, [trucks]);
-    
-    const fetchData = async () => {
-      const token = localStorage.getItem("token");
-    const res = await fetch(`${BASE_URL}/api/admin/get-all-drivers`, {
+    setFilteredWarehouses(warehouses);
+  }, [warehouses]);
+
+  const fetchData = async () => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${BASE_URL}/api/admin/get-all-warehouses`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -51,68 +51,70 @@ export default function AllTruckPage() {
     });
     const data = await res.json();
     console.log(data);
-    setTrucks(data.body);
-};
+    setWarehouses(data.body);
+  };
 
-// Filters
+  // Filters
   const applyFilter = () => {
-    const filtered = trucks.filter((truck) => {
+    const filtered = warehouses.filter((warehouse) => {
       return (
         (nameFilter
-          ? truck.name.toLowerCase().includes(nameFilter.toLowerCase())
+          ? warehouse.name.toLowerCase().includes(nameFilter.toLowerCase())
           : true) &&
-        (truckNoFilter
-          ? truck.vehicleNo.toLowerCase().includes(truckNoFilter.toLowerCase())
+        (warehouseFilter
+          ? warehouse.warehouseID
+              .toLowerCase()
+              .includes(warehouseFilter.toLowerCase())
           : true)
       );
     });
-    setFilteredTrucks(filtered);
+    setFilteredWarehouses(filtered);
   };
 
   const clearFilter = () => {
     setNameFilter("");
-    setTruckNoFilter("");
-    setFilteredTrucks(trucks);
+    setWarehouseFilter("");
+    setFilteredWarehouses(warehouses);
   };
 
-  const handleEdit = (truck) => {
-    setCurrentTruck({ ...truck });
+  const handleEdit = (warehouse) => {
+    setCurrentWarehouse({ ...warehouse });
     setIsModalOpen(true);
     setIsAdding(false);
   };
 
   const handleDelete = (id) => {
-    setTruckToDelete(id);
+    setWarehouseToDelete(id);
     setDeleteModalOpen(true);
   };
 
   const confirmDelete = async () => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`${BASE_URL}/api/admin/manage/driver`, {
+    const res = await fetch(`${BASE_URL}/api/admin/manage/warehouse`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        vehicleNo: truckToDelete,
+        warehouseID: warehouseToDelete,
       }),
     });
 
     const data = await res.json();
     fetchData();
     setDeleteModalOpen(false);
-    setTruckToDelete(null);
+    setWarehouseToDelete(null);
     return;
   };
 
   const handleCloseDeleteModal = () => {
     setDeleteModalOpen(false);
-    setTruckToDelete(null);
+    setWarehouseToDelete(null);
   };
 
   const handleAdd = () => {
-    setCurrentTruck({ name: "", phoneNo: "", vehicleNo: "" });
+    setCurrentWarehouse({ name: "", contactNo: "", warehouseID: "" });
     setIsModalOpen(true);
     setIsAdding(true);
   };
@@ -123,22 +125,25 @@ export default function AllTruckPage() {
     if (isAdding) {
       method = "POST";
       body = {
-        vehicleNo: currentTruck.vehicleNo,
-        name: currentTruck.name,
-        phoneNo: currentTruck.phoneNo,
+        name: currentWarehouse.name,
+        address: currentWarehouse.address,
+        contactNo: currentWarehouse.contactNo,
+        warehouseID: currentWarehouse.warehouseID,
+        isSource: currentWarehouse.isSource
       };
     } else {
       method = "PUT";
       body = {
-        vehicleNo: currentTruck.vehicleNo,
+        warehouseID: currentWarehouse.warehouseID,
         updates: {
-          name: currentTruck.name,
-          phoneNo: currentTruck.phoneNo,
+          name: currentWarehouse.name,
+          contactNo: currentWarehouse.contactNo,
+          isSource: currentWarehouse.isSource
         },
       };
     }
     setIsModalOpen(false);
-    const res = await fetch(`${BASE_URL}/api/admin/manage/driver`, {
+    const res = await fetch(`${BASE_URL}/api/admin/manage/warehouse`, {
       method: method,
       headers: {
         "Content-Type": "application/json",
@@ -154,17 +159,17 @@ export default function AllTruckPage() {
 
   const handleClose = () => {
     setIsModalOpen(false);
-    setCurrentTruck(null);
+    setCurrentWarehouse(null);
   };
 
   const handleFieldChange = (field, value) => {
-    setCurrentTruck({ ...currentTruck, [field]: value });
+    setCurrentWarehouse({ ...currentWarehouse, [field]: value });
   };
 
   return (
     <Box sx={{ padding: "20px" }}>
       <Typography variant="h4" sx={{ marginBottom: "20px", ...headerStyle }}>
-        Truck Details
+        Warehouse Details
       </Typography>
 
       {/* Filters */}
@@ -177,9 +182,9 @@ export default function AllTruckPage() {
           size="small"
         />
         <TextField
-          label="Search by Truck Number"
-          value={truckNoFilter}
-          onChange={(e) => setTruckNoFilter(e.target.value)}
+          label="Search by Warehouse Number"
+          value={warehouseFilter}
+          onChange={(e) => setWarehouseFilter(e.target.value)}
           variant="outlined"
           size="small"
         />
@@ -189,35 +194,42 @@ export default function AllTruckPage() {
         <Button variant="outlined" color="secondary" onClick={clearFilter}>
           Clear Filter
         </Button>
-        <button className="button " onClick={handleAdd} style={{ margin: 0 }}>
-          Add Truck
+        <button className="button" onClick={handleAdd} style={{ margin: "0px" }}>
+          Add Warehouse
         </button>
       </Box>
 
-      {/* Truck Table */}
+      {/* Warehouse Table */}
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={headerStyle}>Driver Name</TableCell>
+              <TableCell sx={headerStyle}>Warehouse Name</TableCell>
               <TableCell sx={headerStyle}>Phone Number</TableCell>
-              <TableCell sx={headerStyle}>Truck Number</TableCell>
+              <TableCell sx={headerStyle}>Warehouse Address</TableCell>
+              <TableCell sx={headerStyle}>Warehouse Code</TableCell>
+              <TableCell sx={headerStyle}>Type</TableCell>
               <TableCell sx={headerStyle}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredTrucks.map((truck) => (
-              <TableRow key={truck.vehicleNo}>
-                <TableCell sx={rowStyle}>{truck.name}</TableCell>
-                <TableCell sx={rowStyle}>{truck.phoneNo}</TableCell>
-                <TableCell sx={rowStyle}>{truck.vehicleNo}</TableCell>
+            {filteredWarehouses.map((warehouse) => (
+              <TableRow key={warehouse.warehouseID}>
+                <TableCell sx={rowStyle}>{warehouse.name}</TableCell>
+                <TableCell sx={rowStyle}>{warehouse.contactNo}</TableCell>
+                <TableCell sx={rowStyle}>{warehouse.address}</TableCell>
+                <TableCell sx={rowStyle}>{warehouse.warehouseID}</TableCell>
+                <TableCell sx={rowStyle}>{warehouse.isSource ? "Source" : "Destination"}</TableCell>
                 <TableCell>
-                  <IconButton color="primary" onClick={() => handleEdit(truck)}>
+                  <IconButton
+                    color="primary"
+                    onClick={() => handleEdit(warehouse)}
+                  >
                     <Edit />
                   </IconButton>
                   <IconButton
                     color="error"
-                    onClick={() => handleDelete(truck.vehicleNo)}
+                    onClick={() => handleDelete(warehouse.warehouseID)}
                   >
                     <Delete />
                   </IconButton>
@@ -228,12 +240,12 @@ export default function AllTruckPage() {
         </Table>
       </TableContainer>
 
-      {/* Add Truck Button */}
+      {/* Add Warehouse Button */}
       {/* <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: "20px" }}>
                 
             </Box> */}
 
-      {/* Modal for Add/Edit Truck */}
+      {/* Modal for Add/Edit Warehouse */}
       <Modal open={isModalOpen} onClose={handleClose}>
         <Box
           sx={{
@@ -259,29 +271,35 @@ export default function AllTruckPage() {
             variant="h6"
             sx={{ marginBottom: "16px", textAlign: "center", ...headerStyle }}
           >
-            {isAdding ? "Add Truck" : "Edit Truck Details"}
+            {isAdding ? "Add Warehouse" : "Edit Warehouse Details"}
           </Typography>
-          {currentTruck && (
+          {currentWarehouse && (
             <Box>
               <TextField
                 fullWidth
-                label="Driver Name"
-                value={currentTruck.name}
+                label="Warehouse Name"
+                value={currentWarehouse.name}
                 onChange={(e) => handleFieldChange("name", e.target.value)}
                 sx={{ marginBottom: "16px" }}
               />
               <TextField
                 fullWidth
                 label="Phone Number"
-                value={currentTruck.phoneNo}
-                onChange={(e) => handleFieldChange("phoneNo", e.target.value)}
+                value={currentWarehouse.contactNo}
+                onChange={(e) => handleFieldChange("contactNo", e.target.value)}
                 sx={{ marginBottom: "16px" }}
               />
               <TextField
                 fullWidth
-                label="Truck Number"
-                value={currentTruck.vehicleNo}
-                onChange={(e) => handleFieldChange("vehicleNo", e.target.value)}
+                label="Type"
+                value={currentWarehouse.isSource}
+                onChange={(e) => handleFieldChange("isSource", e.target.value)}
+                sx={{ marginBottom: "16px" }}
+              />
+              <TextField
+                fullWidth
+                label="Warehouse Code"
+                value={currentWarehouse.warehouseID}
                 disabled={!isAdding}
                 sx={{ marginBottom: "16px" }}
               />
@@ -330,7 +348,7 @@ export default function AllTruckPage() {
           <Typography
             sx={{ marginBottom: "16px", textAlign: "center", color: "#1E3A5F" }}
           >
-            Are you sure you want to delete this truck?
+            Are you sure you want to delete this warehouse?
           </Typography>
           <Box sx={{ display: "flex", justifyContent: "center", gap: "16px" }}>
             <Button

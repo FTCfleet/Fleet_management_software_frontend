@@ -57,8 +57,12 @@ const AllOrderPage = () => {
       }
 
       const data = await response.json();
-      setOrders(data);
       console.log(data);
+      // if (!data.flag){
+      //   alert("Please login first");
+      //   return;
+      // }
+      setOrders(data);
     } catch (error) {
       console.error("Error fetching orders:", error);
     }

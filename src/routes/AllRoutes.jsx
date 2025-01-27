@@ -12,6 +12,7 @@ import ResetPasswordPage from "../pages/ResetPasswordPage";
 import AddOrderPage from "../pages/AddOrderPage";
 import AllTruckPage from "../pages/AllTruckPage";
 import AllEmployeePage from "../pages/AllEmployeePage";
+import AllWarehousePage from "../pages/AllWarehousePage";
 import AllLedgerPage from "../pages/AllLedgerPage";
 import AllOrderPage from "../pages/AllOrderPage";
 import GenReportPage from "../pages/GenReportPage";
@@ -67,6 +68,7 @@ function AllRoutes() {
         </Route>
         <Route exact path="employees" element={<AllEmployeePage />} />
         <Route exact path="trucks" element={<AllTruckPage />} />
+        <Route exact path="warehouses" element={<AllWarehousePage />} />
         <Route exact path="add/order" element={<AddOrderPage />} />
         <Route exact path="order/:type" element={<AllOrderPage />} />
         <Route exact path="ledgers/:type" element={<AllLedgerPage />} />

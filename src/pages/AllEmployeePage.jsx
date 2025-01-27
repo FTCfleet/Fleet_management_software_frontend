@@ -1,279 +1,370 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-    Box,
-    Typography,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper,
-    Button,
-    IconButton,
-    Modal,
-    TextField,
-    Select,
-    MenuItem,
+  Box,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+  IconButton,
+  Modal,
+  TextField,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { Edit, Delete, Close, Warning } from "@mui/icons-material";
 
 const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
 const rowStyle = { color: "#25344E" };
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const AllEmployeePage = () => {
-    const initialEmployees = [
-        { id: 1, name: "John Doe", phone: "1234567890", role: "Manager", warehouse: "Warehouse 1" },
-        { id: 2, name: "Jane Smith", phone: "0987654321", role: "Worker", warehouse: "Warehouse 2" },
-        { id: 3, name: "Alice Brown", phone: "5555555555", role: "Supervisor", warehouse: "Warehouse 1" },
-        { id: 4, name: "Bob Johnson", phone: "7777777777", role: "Clerk", warehouse: "Warehouse 3" },
-        { id: 5, name: "Emily Davis", phone: "8888888888", role: "Worker", warehouse: "Warehouse 2" },
-        { id: 6, name: "Chris Wilson", phone: "9999999999", role: "Manager", warehouse: "Warehouse 3" },
-    ];
-    const [employees, setEmployees] = useState(initialEmployees);
-    const [filteredEmployees, setFilteredEmployees] = useState(initialEmployees);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [currentEmployee, setCurrentEmployee] = useState(null);
-    const [nameFilter, setNameFilter] = useState("");
-    const [phoneFilter, setPhoneFilter] = useState("");
-    const [warehouseFilter, setWarehouseFilter] = useState("");
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [employeeToDelete, setEmployeeToDelete] = useState(null);
+  const [employees, setEmployees] = useState([]);
+  const [filteredEmployees, setFilteredEmployees] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentEmployee, setCurrentEmployee] = useState(null);
+  const [nameFilter, setNameFilter] = useState("");
+  const [phoneFilter, setPhoneFilter] = useState("");
+  const [warehouseFilter, setWarehouseFilter] = useState("");
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState(null);
 
-    const [warehouses] = useState(["Warehouse 1", "Warehouse 2", "Warehouse 3"]);
+  const [warehouses, setWarehouses] = useState([""]);
 
-    // Filters
-    const applyFilter = () => {
-        const filtered = employees.filter((emp) => {
-            return (
-                (nameFilter ? emp.name.toLowerCase().includes(nameFilter.toLowerCase()) : true) &&
-                (phoneFilter ? emp.phone.includes(phoneFilter) : true) &&
-                (warehouseFilter ? emp.warehouse === warehouseFilter : true)
-            );
-        });
-        setFilteredEmployees(filtered);
-    };
+  useEffect(() => {
+    fetchData();
+    fetchWarehouses();
+  }, []);
 
-    const clearFilter = () => {
-        setNameFilter("");
-        setPhoneFilter("");
-        setWarehouseFilter("");
-        setFilteredEmployees(employees);
-    };
+  useEffect(() => {
+    setFilteredEmployees(employees);
+  }, [employees]);
 
-    const handleEdit = (employee) => {
-        setCurrentEmployee({ ...employee });
-        setIsModalOpen(true);
-    };
+  const fetchWarehouses = async () => {
+    // const token = localStorage.getItem("token");
 
-    const handleDelete = (id) => {
-        setEmployeeToDelete(id);
-        setDeleteModalOpen(true);
-    };
+    const res = await fetch(`${BASE_URL}/api/warehouse/get-all`);
+    const data = await res.json();
+    console.log(data);
+    setWarehouses(data.body);
+  };
 
-    const confirmDelete = () => {
-        alert("Delete functionality to be implemented.");
-        setDeleteModalOpen(false);
-        setEmployeeToDelete(null);
-    };
+  const fetchData = async () => {
+    const token = localStorage.getItem("token");
 
-    const handleCloseDeleteModal = () => {
-        setDeleteModalOpen(false);
-        setEmployeeToDelete(null);
-    };
+    const res = await fetch(`${BASE_URL}/api/admin/get-all-employees`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    console.log(data);
+    setEmployees(data.body);
+  };
 
+  // Filters
+  const applyFilter = () => {
+    const filtered = employees.filter((emp) => {
+      return (
+        (nameFilter
+          ? emp.name.toLowerCase().includes(nameFilter.toLowerCase())
+          : true) &&
+        (phoneFilter ? emp.phoneNo.includes(phoneFilter) : true) &&
+        (warehouseFilter ? emp.warehouseCode === warehouseFilter : true)
+      );
+    });
+    setFilteredEmployees(filtered);
+  };
 
-    const handleSave = () => {
-        alert("Save functionality to be implemented.");
-        setIsModalOpen(false);
-    };
+  const clearFilter = () => {
+    setNameFilter("");
+    setPhoneFilter("");
+    setWarehouseFilter("");
+    setFilteredEmployees(employees);
+  };
 
-    const handleClose = () => {
-        setIsModalOpen(false);
-        setCurrentEmployee(null);
-    };
+  const handleEdit = (employee) => {
+    setCurrentEmployee({ ...employee });
+    setIsModalOpen(true);
+  };
 
-    const handleFieldChange = (field, value) => {
-        setCurrentEmployee({ ...currentEmployee, [field]: value });
-    };
+  const handleDelete = (username) => {
+    setEmployeeToDelete(username);
+    setDeleteModalOpen(true);
+  };
 
-    return (
-        <Box sx={{ padding: "20px" }}>
-            <Typography variant="h4" sx={{ marginBottom: "20px", ...headerStyle }}>
-                Employee List
-            </Typography>
+  const confirmDelete = async () => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${BASE_URL}/api/admin/manage/employee`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        username: employeeToDelete
+      }),
+    });
+  
+    const data = await res.json();
+    console.log(data);
+    fetchData();
+    setDeleteModalOpen(false);
+    setEmployeeToDelete(null);
+  };
 
-            {/* Filters */}
-            <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
-                <TextField
-                    label="Search by Name"
-                    value={nameFilter}
-                    onChange={(e) => setNameFilter(e.target.value)}
-                    variant="outlined"
-                    size="small"
-                />
-                <TextField
-                    label="Search by Phone"
-                    value={phoneFilter}
-                    onChange={(e) => setPhoneFilter(e.target.value)}
-                    variant="outlined"
-                    size="small"
-                />
-                <Select
-                    value={warehouseFilter}
-                    onChange={(e) => setWarehouseFilter(e.target.value)}
-                    displayEmpty
-                    size="small"
-                >
-                    <MenuItem value="">All Warehouses</MenuItem>
-                    {warehouses.map((warehouse) => (
-                        <MenuItem key={warehouse} value={warehouse}>
-                            {warehouse}
-                        </MenuItem>
-                    ))}
-                </Select>
-                <Button variant="contained" color="primary" onClick={applyFilter}>
-                    Apply Filter
-                </Button>
-                <Button variant="outlined" color="secondary" onClick={clearFilter}>
-                    Clear Filter
-                </Button>
+  const handleCloseDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setEmployeeToDelete(null);
+  };
+
+  const handleSave = async () => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${BASE_URL}/api/admin/manage/employee`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        username: currentEmployee.username,
+        updates: {
+          name: currentEmployee.name,
+          phoneNo: currentEmployee.phoneNo,
+          warehouseID: currentEmployee.warehouseID,
+        },
+      }),
+    });
+
+    const data = await res.json();
+    console.log(data);
+    fetchData();
+    setIsModalOpen(false);
+  };
+
+  const handleClose = () => {
+    setIsModalOpen(false);
+    setCurrentEmployee(null);
+  };
+
+  const handleFieldChange = (field, value) => {
+    setCurrentEmployee({ ...currentEmployee, [field]: value });
+  };
+
+  return (
+    <Box sx={{ padding: "20px" }}>
+      <Typography variant="h4" sx={{ marginBottom: "20px", ...headerStyle }}>
+        Employee List
+      </Typography>
+
+      {/* Filters */}
+      <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
+        <TextField
+          label="Search by Name"
+          value={nameFilter}
+          onChange={(e) => setNameFilter(e.target.value)}
+          variant="outlined"
+          size="small"
+        />
+        <TextField
+          label="Search by Phone"
+          value={phoneFilter}
+          onChange={(e) => setPhoneFilter(e.target.value)}
+          variant="outlined"
+          size="small"
+        />
+        <Select
+          value={warehouseFilter}
+          onChange={(e) => setWarehouseFilter(e.target.value)}
+          displayEmpty
+          size="small"
+        >
+          <MenuItem value="">All Warehouses</MenuItem>
+          {warehouses.map((warehouse) => (
+            <MenuItem key={warehouse.warehouseID} value={warehouse.warehouseID}>
+              {warehouse.name}
+            </MenuItem>
+          ))}
+        </Select>
+        <Button variant="contained" color="primary" onClick={applyFilter}>
+          Apply Filter
+        </Button>
+        <Button variant="outlined" color="secondary" onClick={clearFilter}>
+          Clear Filter
+        </Button>
+      </Box>
+
+      {/* Employee Table */}
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={headerStyle}>Name</TableCell>
+              <TableCell sx={headerStyle}>Phone No</TableCell>
+              <TableCell sx={headerStyle}>Role</TableCell>
+              <TableCell sx={headerStyle}>Warehouse</TableCell>
+              <TableCell sx={headerStyle}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredEmployees.map((employee) => (
+              <TableRow key={employee.username}>
+                <TableCell sx={rowStyle}>{employee.name}</TableCell>
+                <TableCell sx={rowStyle}>{employee.phoneNo}</TableCell>
+                <TableCell sx={rowStyle}>{employee.role}</TableCell>
+                <TableCell sx={rowStyle}>{employee.warehouseCode}</TableCell>
+                <TableCell>
+                  <IconButton
+                    color="primary"
+                    onClick={() => handleEdit(employee)}
+                  >
+                    <Edit />
+                  </IconButton>
+                  <IconButton
+                    color="error"
+                    onClick={() => handleDelete(employee.username)}
+                  >
+                    <Delete />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Edit Modal */}
+      <Modal open={isModalOpen} onClose={handleClose}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 400,
+            bgcolor: "background.paper",
+            borderRadius: 2,
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          <IconButton
+            color="error"
+            onClick={handleClose}
+            sx={{ position: "absolute", top: 8, right: 8 }}
+          >
+            <Close />
+          </IconButton>
+          <Typography
+            variant="h6"
+            sx={{ marginBottom: "16px", textAlign: "center", ...headerStyle }}
+          >
+            Edit Employee Details
+          </Typography>
+          {currentEmployee && (
+            <Box>
+              <TextField
+                fullWidth
+                label="Name"
+                value={currentEmployee.name}
+                onChange={(e) => handleFieldChange("name", e.target.value)}
+                sx={{ marginBottom: "16px" }}
+              />
+              <TextField
+                fullWidth
+                label="Phone No"
+                value={currentEmployee.phoneNo}
+                onChange={(e) => handleFieldChange("phoneNo", e.target.value)}
+                sx={{ marginBottom: "16px" }}
+              />
+              <Select
+                fullWidth
+                value={currentEmployee.warehouseCode}
+                onChange={(e) =>
+                  handleFieldChange("warehouseCode", e.target.value)
+                }
+                sx={{ marginBottom: "16px" }}
+              >
+                {warehouses.map((warehouse) => (
+                  <MenuItem
+                    key={warehouse.warehouseID}
+                    value={warehouse.warehouseID}
+                  >
+                    {warehouse.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginTop: "16px",
+                }}
+              >
+                <button className="button button-large" onClick={handleSave}>
+                  Save
+                </button>
+              </Box>
             </Box>
-
-            {/* Employee Table */}
-            <TableContainer component={Paper}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell sx={headerStyle}>Name</TableCell>
-                            <TableCell sx={headerStyle}>Phone No</TableCell>
-                            <TableCell sx={headerStyle}>Role</TableCell>
-                            <TableCell sx={headerStyle}>Warehouse</TableCell>
-                            <TableCell sx={headerStyle}>Actions</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {filteredEmployees.map((employee) => (
-                            <TableRow key={employee.id}>
-                                <TableCell sx={rowStyle}>{employee.name}</TableCell>
-                                <TableCell sx={rowStyle}>{employee.phone}</TableCell>
-                                <TableCell sx={rowStyle}>{employee.role}</TableCell>
-                                <TableCell sx={rowStyle}>{employee.warehouse}</TableCell>
-                                <TableCell>
-                                    <IconButton color="primary" onClick={() => handleEdit(employee)}>
-                                        <Edit />
-                                    </IconButton>
-                                    <IconButton color="error" onClick={() => handleDelete(employee.id)}>
-                                        <Delete />
-                                    </IconButton>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-
-            {/* Edit Modal */}
-            <Modal open={isModalOpen} onClose={handleClose}>
-                <Box
-                    sx={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        width: 400,
-                        bgcolor: "background.paper",
-                        borderRadius: 2,
-                        boxShadow: 24,
-                        p: 4,
-                    }}
-                >
-                    <IconButton
-                        color="error"
-                        onClick={handleClose}
-                        sx={{ position: "absolute", top: 8, right: 8 }}
-                    >
-                        <Close />
-                    </IconButton>
-                    <Typography variant="h6" sx={{ marginBottom: "16px", textAlign: "center", ...headerStyle }}>
-                        Edit Employee Details
-                    </Typography>
-                    {currentEmployee && (
-                        <Box>
-                            <TextField
-                                fullWidth
-                                label="Name"
-                                value={currentEmployee.name}
-                                onChange={(e) => handleFieldChange("name", e.target.value)}
-                                sx={{ marginBottom: "16px" }}
-                            />
-                            <TextField
-                                fullWidth
-                                label="Phone No"
-                                value={currentEmployee.phone}
-                                onChange={(e) => handleFieldChange("phone", e.target.value)}
-                                sx={{ marginBottom: "16px" }}
-                            />
-                            <Select
-                                fullWidth
-                                value={currentEmployee.warehouse}
-                                onChange={(e) => handleFieldChange("warehouse", e.target.value)}
-                                sx={{ marginBottom: "16px" }}
-                            >
-                                {warehouses.map((warehouse) => (
-                                    <MenuItem key={warehouse} value={warehouse}>
-                                        {warehouse}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                            <Box sx={{ display: "flex", justifyContent: "center", marginTop: "16px" }}>
-                                <button className="button button-large" onClick={handleSave}>
-                                    Save
-                                </button>
-                            </Box>
-                        </Box>
-                    )}
-                </Box>
-            </Modal>
-            {/* Delete Modal */}
-            <Modal open={deleteModalOpen} onClose={handleCloseDeleteModal}>
-                <Box
-                    sx={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        width: 300,
-                        bgcolor: "background.paper",
-                        borderRadius: 2,
-                        boxShadow: 24,
-                        p: 4,
-                    }}
-                >
-                    <Typography variant="h6" sx={{ marginBottom: "16px", textAlign: "center", color: "#d32f2f" }}>
-                        <Warning sx={{ marginRight: 1, marginBottom: -0.5, fontSize: "24px" }} />
-                        Confirm Deletion
-                    </Typography>
-                    <Typography sx={{ marginBottom: "16px", textAlign: "center" , color: "#1E3A5F"}}>
-                        Are you sure you want to delete this employee?
-                    </Typography>
-                    <Box sx={{ display: "flex", justifyContent: "center", gap: "16px" }}>
-                        <Button variant="outlined" color="primary" onClick={handleCloseDeleteModal}>
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="contained"
-                            color="error"
-                            startIcon={<Delete />}
-                            onClick={confirmDelete}
-                        >
-                            Confirm
-                        </Button>
-                    </Box>
-                </Box>
-            </Modal>
+          )}
         </Box>
-    );
+      </Modal>
+      {/* Delete Modal */}
+      <Modal open={deleteModalOpen} onClose={handleCloseDeleteModal}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 300,
+            bgcolor: "background.paper",
+            borderRadius: 2,
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{ marginBottom: "16px", textAlign: "center", color: "#d32f2f" }}
+          >
+            <Warning
+              sx={{ marginRight: 1, marginBottom: -0.5, fontSize: "24px" }}
+            />
+            Confirm Deletion
+          </Typography>
+          <Typography
+            sx={{ marginBottom: "16px", textAlign: "center", color: "#1E3A5F" }}
+          >
+            Are you sure you want to delete this employee?
+          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "center", gap: "16px" }}>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={handleCloseDeleteModal}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              startIcon={<Delete />}
+              onClick={confirmDelete}
+            >
+              Confirm
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+    </Box>
+  );
 };
 
 export default AllEmployeePage;
