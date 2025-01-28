@@ -1,11 +1,39 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Typography, Box, Paper, Stack } from "@mui/material";
-import { FaWarehouse, FaPhone, FaMapMarkerAlt as MapsIcon } from "react-icons/fa";
+import {
+  FaWarehouse,
+  FaPhone,
+  FaMapMarkerAlt as MapsIcon,
+} from "react-icons/fa";
 import about from "../assets/about-us.jpg";
+import Loading from "../components/Loading";
+
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function AboutPage() {
-  return (
-    <div className="app" style={{ backgroundColor: "#f5f5f5", padding: "20px" }}>
+  const [allWarehouse, setAllWarehouse] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchWarehouse();
+  }, []);
+
+  const fetchWarehouse = async () => {
+    const response = await fetch(`${BASE_URL}/api/warehouse/get-all`);
+    if (response.ok) {
+      const data = await response.json();
+      setAllWarehouse(data.body);
+      setIsLoading(false);
+    }
+  };
+
+  return isLoading ? (
+    <Loading />
+  ) : (
+    <div
+      className="app"
+      style={{ backgroundColor: "#f5f5f5", padding: "20px" }}
+    >
       {/* Top Section */}
       <Paper
         elevation={3}
@@ -35,7 +63,11 @@ export default function AboutPage() {
         <Box style={{ textAlign: "center", flex: 1 }}>
           <Typography
             variant="h4"
-            style={{ color: "#1565c0", fontWeight: "bold", marginBottom: "10px" }}
+            style={{
+              color: "#1565c0",
+              fontWeight: "bold",
+              marginBottom: "10px",
+            }}
           >
             Daily Parcel Service
           </Typography>
@@ -87,41 +119,35 @@ export default function AboutPage() {
             <FaWarehouse style={{ marginRight: "8px" }} /> Source Warehouses
           </Typography>
           <Stack spacing={2}>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Box display="flex" alignItems="center" gap={1}>
-                <MapsIcon style={{ color: "#1976d2" }} /> Head Office I, Old Feel Khana,<br /> Hyderabad
-              </Box>
-              <Box display="flex" alignItems="center" gap={1}>
-                24614381 <FaPhone style={{ color: "#1976d2" }} />
-              </Box>
-            </Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Box display="flex" alignItems="center" gap={1}>
-                <MapsIcon style={{ color: "#1976d2" }} /> Head Office II, Old Feel Khana,<br /> Hyderabad
-              </Box>
-              <Box display="flex" alignItems="center" gap={1}>
-                24614381 <FaPhone style={{ color: "#1976d2" }} />
-              </Box>
-            </Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Box display="flex" alignItems="flex-start" gap={1}>
-                <MapsIcon style={{ color: "#1976d2" }} />
-                <Box>
-                  Branch Office, Near M. Alam Filter, <br />Bahadurpura, Hyderabad
-                </Box>
-              </Box>
-              <Box display="flex" alignItems="center" gap={1}>
-                XXXXXXX <FaPhone style={{ color: "#1976d2" }} />
-              </Box>
-            </Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Box display="flex" alignItems="center" gap={1}>
-                <MapsIcon style={{ color: "#1976d2" }} /> Nallagutta, Ramagundam, <br />Secunderabad
-              </Box>
-              <Box display="flex" alignItems="center" gap={1}>
-                66321533 <FaPhone style={{ color: "#1976d2" }} />
-              </Box>
-            </Box>
+            {allWarehouse.map((warehouse) => {
+              if (warehouse.isSource)
+                return (
+                  <Box
+                    key={warehouse.warehouseID}
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                  >
+                    <Box
+                      display="flex"
+                      alignItems="top"
+                      textAlign="left"
+                      gap={1}
+                    >
+                      <MapsIcon
+                        style={{ color: "#1976d2", marginTop: "5px" }}
+                      />
+                      {warehouse.name}
+                      <br />
+                      {warehouse.address}
+                    </Box>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      {warehouse.contactNo}{" "}
+                      <FaPhone style={{ color: "#1976d2" }} />
+                    </Box>
+                  </Box>
+                );
+            })}
           </Stack>
         </Paper>
 
@@ -140,57 +166,39 @@ export default function AboutPage() {
             variant="h6"
             style={{ color: "#1565c0", marginBottom: "10px" }}
           >
-            <FaWarehouse style={{ marginRight: "8px" }} /> Destination Warehouses
+            <FaWarehouse style={{ marginRight: "8px" }} /> Destination
+            Warehouses
           </Typography>
           <Stack spacing={2}>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Box display="flex" alignItems="center" gap={1}>
-                <MapsIcon style={{ color: "#1976d2" }} /> Karimnagar
-              </Box>
-              <Box display="flex" alignItems="center" gap={1}>
-                9908690827 <FaPhone style={{ color: "#1976d2" }} />
-              </Box>
-            </Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Box display="flex" alignItems="center" gap={1}>
-                <MapsIcon style={{ color: "#1976d2" }} /> Sultanabad
-              </Box>
-              <Box display="flex" alignItems="center" gap={1}>
-                9849701721 <FaPhone style={{ color: "#1976d2" }} />
-              </Box>
-            </Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Box display="flex" alignItems="center" gap={1}>
-                <MapsIcon style={{ color: "#1976d2" }} /> Peddapally
-              </Box>
-              <Box display="flex" alignItems="center" gap={1}>
-                9030478492 <FaPhone style={{ color: "#1976d2" }} />
-              </Box>
-            </Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Box display="flex" alignItems="center" gap={1}>
-                <MapsIcon style={{ color: "#1976d2" }} /> Ramagundam (NTPC & FCI)
-              </Box>
-              <Box display="flex" alignItems="center" gap={1}>
-                9866239010 <FaPhone style={{ color: "#1976d2" }} />
-              </Box>
-            </Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Box display="flex" alignItems="center" gap={1}>
-                <MapsIcon style={{ color: "#1976d2" }} /> Godavari Khani
-              </Box>
-              <Box display="flex" alignItems="center" gap={1}>
-                9949121267 <FaPhone style={{ color: "#1976d2" }} />
-              </Box>
-            </Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Box display="flex" alignItems="center" gap={1}>
-                <MapsIcon style={{ color: "#1976d2" }} /> MNCL
-              </Box>
-              <Box display="flex" alignItems="center" gap={1}>
-                XXXXXXXXXX <FaPhone style={{ color: "#1976d2" }} />
-              </Box>
-            </Box>
+            {allWarehouse.map((warehouse) => {
+              if (!warehouse.isSource)
+                return (
+                  <Box
+                    key={warehouse.warehouseID}
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                  >
+                    <Box
+                      display="flex"
+                      alignItems="top"
+                      textAlign="left"
+                      gap={1}
+                    >
+                      <MapsIcon
+                        style={{ color: "#1976d2", marginTop: "5px" }}
+                      />
+                      {warehouse.name}
+                      <br />
+                      {warehouse.address}
+                    </Box>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      {warehouse.contactNo}{" "}
+                      <FaPhone style={{ color: "#1976d2" }} />
+                    </Box>
+                  </Box>
+                );
+            })}
           </Stack>
         </Paper>
       </div>

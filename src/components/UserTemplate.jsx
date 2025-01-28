@@ -26,7 +26,7 @@ const UserTemplate = () => {
   const { isLoggedIn, isAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const isAddOrderPage = location.pathname === "/user/add/order/";
+  const isAddOrderPage = location.pathname.startsWith("/user/add/order/") || location.pathname.startsWith("/user/edit/order/");
   const [isSource, setIsSource] = useState(true);
   // if (localStorage.getItem("user")) {
   //   isSource = ["HYO", "HYT", "BHP", "SEC"].includes(

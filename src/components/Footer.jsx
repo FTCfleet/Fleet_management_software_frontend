@@ -69,9 +69,6 @@ const Footer = () => {
                         <ul style={{ listStyleType: 'none', padding: 0, margin: '-20px 0' }}>
                             <li>Phone Number: +91 98765 43210</li>
                             <li>Email Address: <a className="footer-links" href='mailto: support@yourwebsite.com' >support@yourwebsite.com</a></li>
-                            <li>Warehouse Address:</li>
-                            <li>Hyderabad: [Address]</li>
-                            <li>Telangana: [Address]</li>
                         </ul>
                     </div>
                     <div>

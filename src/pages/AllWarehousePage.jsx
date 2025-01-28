@@ -114,7 +114,7 @@ export default function AllWarehousePage() {
   };
 
   const handleAdd = () => {
-    setCurrentWarehouse({ name: "", phoneNo: "", warehouseID: "" });
+    setCurrentWarehouse({ name: "", contactNo: "", warehouseID: "" });
     setIsModalOpen(true);
     setIsAdding(true);
   };
@@ -127,7 +127,7 @@ export default function AllWarehousePage() {
       body = {
         name: currentWarehouse.name,
         address: currentWarehouse.address,
-        phoneNo: currentWarehouse.phoneNo,
+        contactNo: currentWarehouse.contactNo,
         warehouseID: currentWarehouse.warehouseID,
         isSource: currentWarehouse.isSource
       };
@@ -137,7 +137,7 @@ export default function AllWarehousePage() {
         warehouseID: currentWarehouse.warehouseID,
         updates: {
           name: currentWarehouse.name,
-          phoneNo: currentWarehouse.phoneNo,
+          contactNo: currentWarehouse.contactNo,
           isSource: currentWarehouse.isSource
         },
       };
@@ -219,7 +219,7 @@ export default function AllWarehousePage() {
             {filteredWarehouses.map((warehouse) => (
               <TableRow key={warehouse.warehouseID}>
                 <TableCell sx={rowStyle}>{warehouse.name}</TableCell>
-                <TableCell sx={rowStyle}>{warehouse.phoneNo}</TableCell>
+                <TableCell sx={rowStyle}>{warehouse.contactNo}</TableCell>
                 <TableCell sx={rowStyle}>{warehouse.address}</TableCell>
                 <TableCell sx={rowStyle}>{warehouse.warehouseID}</TableCell>
                 <TableCell sx={rowStyle}>{warehouse.isSource ? "Source" : "Destination"}</TableCell>
@@ -288,8 +288,8 @@ export default function AllWarehousePage() {
               <TextField
                 fullWidth
                 label="Phone Number"
-                value={currentWarehouse.phoneNo}
-                onChange={(e) => handleFieldChange("phoneNo", e.target.value)}
+                value={currentWarehouse.contactNo}
+                onChange={(e) => handleFieldChange("contactNo", e.target.value)}
                 sx={{ marginBottom: "16px" }}
               />
               <TextField
