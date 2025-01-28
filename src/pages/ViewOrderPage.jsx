@@ -64,11 +64,11 @@ export default function ViewOrderPage() {
       return;
     }
     const data = (await response.json()).body;
-
+    console.log(data);
     setSenderDetails(data.sender);
     setReceiverDetails(data.receiver);
-    setSourceWarehouse(data.source);
-    setDestWarehouse(data.destination);
+    setSourceWarehouse(data.sourceWarehouse.warehouseID);
+    setDestWarehouse(data.destinationWarehouse.warehouseID);
     setStatus(data.status);
     setItems(data.items);
   };

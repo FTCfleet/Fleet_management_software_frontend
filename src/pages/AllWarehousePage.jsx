@@ -114,7 +114,7 @@ export default function AllWarehousePage() {
   };
 
   const handleAdd = () => {
-    setCurrentWarehouse({ name: "", contactNo: "", warehouseID: "" });
+    setCurrentWarehouse({ name: "", phoneNo: "", warehouseID: "" });
     setIsModalOpen(true);
     setIsAdding(true);
   };
@@ -127,7 +127,7 @@ export default function AllWarehousePage() {
       body = {
         name: currentWarehouse.name,
         address: currentWarehouse.address,
-        contactNo: currentWarehouse.contactNo,
+        phoneNo: currentWarehouse.phoneNo,
         warehouseID: currentWarehouse.warehouseID,
         isSource: currentWarehouse.isSource
       };
@@ -137,7 +137,7 @@ export default function AllWarehousePage() {
         warehouseID: currentWarehouse.warehouseID,
         updates: {
           name: currentWarehouse.name,
-          contactNo: currentWarehouse.contactNo,
+          phoneNo: currentWarehouse.phoneNo,
           isSource: currentWarehouse.isSource
         },
       };
@@ -163,6 +163,9 @@ export default function AllWarehousePage() {
   };
 
   const handleFieldChange = (field, value) => {
+    if (field == 'isSource'){
+      value = (value === 'true')
+    }
     setCurrentWarehouse({ ...currentWarehouse, [field]: value });
   };
 
@@ -216,7 +219,7 @@ export default function AllWarehousePage() {
             {filteredWarehouses.map((warehouse) => (
               <TableRow key={warehouse.warehouseID}>
                 <TableCell sx={rowStyle}>{warehouse.name}</TableCell>
-                <TableCell sx={rowStyle}>{warehouse.contactNo}</TableCell>
+                <TableCell sx={rowStyle}>{warehouse.phoneNo}</TableCell>
                 <TableCell sx={rowStyle}>{warehouse.address}</TableCell>
                 <TableCell sx={rowStyle}>{warehouse.warehouseID}</TableCell>
                 <TableCell sx={rowStyle}>{warehouse.isSource ? "Source" : "Destination"}</TableCell>
@@ -285,8 +288,8 @@ export default function AllWarehousePage() {
               <TextField
                 fullWidth
                 label="Phone Number"
-                value={currentWarehouse.contactNo}
-                onChange={(e) => handleFieldChange("contactNo", e.target.value)}
+                value={currentWarehouse.phoneNo}
+                onChange={(e) => handleFieldChange("phoneNo", e.target.value)}
                 sx={{ marginBottom: "16px" }}
               />
               <TextField
@@ -295,11 +298,12 @@ export default function AllWarehousePage() {
                 value={currentWarehouse.isSource}
                 onChange={(e) => handleFieldChange("isSource", e.target.value)}
                 sx={{ marginBottom: "16px" }}
-              />
+                />
               <TextField
                 fullWidth
                 label="Warehouse Code"
                 value={currentWarehouse.warehouseID}
+                onChange={(e) => handleFieldChange("warehouseCode", e.target.value)}
                 disabled={!isAdding}
                 sx={{ marginBottom: "16px" }}
               />

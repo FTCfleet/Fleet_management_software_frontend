@@ -47,7 +47,7 @@ const UserTemplate = () => {
           icon: <FaRegFileAlt />,
         },
         {
-          text: "Dispatched Orders",
+          text: "Partial Orders",
           path: "/user/order/partial",
           icon: <FaRegFileAlt />,
         },
@@ -73,11 +73,17 @@ const UserTemplate = () => {
           path: "/user/ledgers/pending",
           icon: <FaTruckMoving />,
         },
+        (isAdmin ? 
+        {
+          text: "Dispatched Ledgers",
+          path: `/user/ledgers/outgoing`,
+          icon: <FaTruckMoving />,
+        }:
         {
           text: isSource ? "Outgoing Ledgers" : "Incoming Ledgers",
           path: `/user/ledgers/${isSource ? "outgoing" : "incoming"}`,
           icon: <FaTruckMoving />,
-        },
+        }),
         {
           text: "Completed Ledgers",
           path: "/user/ledgers/completed",

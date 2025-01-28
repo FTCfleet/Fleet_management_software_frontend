@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
   const [isForgetUsernameSubmitted, setIsForgetUsernameSubmitted] = useState(false);
   const [isOtpVerified, setIsOtpVerified] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isSource, setIsSource] = useState(true);
 
   const checkAuthStatus = async () => {
@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
       
       const response = await fetch(`${BASE_URL}/api/auth/status`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -36,9 +36,10 @@ export const AuthProvider = ({ children }) => {
       
       if (response.ok && data.flag) {
         setIsLoggedIn(true);
-        const user_data = JSON.stringify(data.user);
+        const user_data = data.user;
+        // consol.elog()
         setIsAdmin(user_data.role === 'admin');
-        setIsSource(user_data.warehouseID?.isSource);
+        setIsSource(user_data.isSource);
       } else {
         throw new Error('Auth check failed');
       }
@@ -53,7 +54,7 @@ export const AuthProvider = ({ children }) => {
 
   const resetAuth = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    // localStorage.removeItem('user');
     setIsLoggedIn(false);
     location.pathname = ('/auth/login');
   };

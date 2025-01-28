@@ -1,7 +1,7 @@
 import { React, useEffect, useState } from "react";
 import styles from "../css/auth_card.module.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { data, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../routes/AuthContext";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -41,12 +41,9 @@ const LoginPage = () => {
         return;
       }
 
-      if (data.token) {
+      if (data.flag) {
         localStorage.setItem("token", data.token);
-        console.log(data.user);
-        // localStorage.setItem("user", JSON.stringify(data.user));
-        setIsAdmin(data.user.role === "admin");
-        // setIsSource(data.user.warehouseCode.isSource);
+        console.log(data);
         setIsLoggedIn(true);
       } else {
         throw new Error("No token received");

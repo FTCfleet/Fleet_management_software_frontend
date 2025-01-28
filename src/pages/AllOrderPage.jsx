@@ -18,6 +18,8 @@ import { AiOutlineCalendar } from "react-icons/ai";
 import "../css/table.css"; // Import CSS
 import "../css/calendar.css"; // Import Calendar CSS
 import { IoArrowForwardCircleOutline } from "react-icons/io5"; // Icon for View Ledger
+import { useAuth } from "../routes/AuthContext"
+
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const AllOrderPage = () => {
@@ -28,6 +30,7 @@ const AllOrderPage = () => {
   const [selectedDate, setSelectedDate] = useState(
     () => new Date().toISOString().split("T")[0]
   );
+  const { isSource, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -78,7 +81,7 @@ const AllOrderPage = () => {
 
   const handleDateChange = (event) => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(23, 59, 59, 999);
     const newDate = new Date(event.target.value);
     if (newDate <= today) {
       const date = newDate.toISOString().split("T")[0];
@@ -169,9 +172,18 @@ const AllOrderPage = () => {
               <TableCell className="table-header">
                 {"Receiver's\nName"}
               </TableCell>
+              {isAdmin ? 
+              (<>
               <TableCell className="table-header">
-                {"Destination" + "\n" + "Warehouse"}
+                {("Source") + "\n" + "Warehouse"}
               </TableCell>
+              <TableCell className="table-header">
+                {("Destination") + "\n" + "Warehouse"}
+              </TableCell>
+              </>) : 
+              <TableCell className="table-header">
+                {(isSource ? "Destination" : "Source") + "\n" + "Warehouse"}
+              </TableCell>}
               <TableCell className="table-header">Status</TableCell>
               <TableCell className="table-header">View Order</TableCell>
             </TableRow>
@@ -189,9 +201,18 @@ const AllOrderPage = () => {
                   <TableCell sx={{ color: "#25344E" }}>
                     {order.receiver.name}
                   </TableCell>
+
+                  {isAdmin ? (<>
                   <TableCell sx={{ color: "#25344E" }}>
-                    {order.destinationWarehouseName}
+                    {order.sourceWarehouse.warehouseID}
                   </TableCell>
+                  <TableCell sx={{ color: "#25344E" }}>
+                    {order.destinationWarehouse.warehouseID}
+                  </TableCell>
+                  </>)
+                    : (<TableCell sx={{ color: "#25344E" }}>
+                      {isSource ? order.destinationWarehouse.warehouseID : order.sourceWarehouse.warehouseID}
+                    </TableCell>)}
                   <TableCell>
                     <span className={`table-status ${order.status}`}>
                       {order.status}

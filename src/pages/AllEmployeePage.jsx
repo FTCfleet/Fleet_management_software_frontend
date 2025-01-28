@@ -33,7 +33,7 @@ const AllEmployeePage = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState(null);
 
-  const [warehouses, setWarehouses] = useState([""]);
+  const [warehouses, setWarehouses] = useState([]);
 
   useEffect(() => {
     fetchData();
@@ -42,11 +42,10 @@ const AllEmployeePage = () => {
 
   useEffect(() => {
     setFilteredEmployees(employees);
+    // console.log(employees[0]);
   }, [employees]);
 
   const fetchWarehouses = async () => {
-    // const token = localStorage.getItem("token");
-
     const res = await fetch(`${BASE_URL}/api/warehouse/get-all`);
     const data = await res.json();
     console.log(data);
@@ -64,7 +63,7 @@ const AllEmployeePage = () => {
       },
     });
     const data = await res.json();
-    console.log(data);
+    console.log(data.body);
     setEmployees(data.body);
   };
 
@@ -79,6 +78,7 @@ const AllEmployeePage = () => {
         (warehouseFilter ? emp.warehouseCode === warehouseFilter : true)
       );
     });
+
     setFilteredEmployees(filtered);
   };
 
@@ -206,6 +206,7 @@ const AllEmployeePage = () => {
           <TableHead>
             <TableRow>
               <TableCell sx={headerStyle}>Name</TableCell>
+              <TableCell sx={headerStyle}>Username</TableCell>
               <TableCell sx={headerStyle}>Phone No</TableCell>
               <TableCell sx={headerStyle}>Role</TableCell>
               <TableCell sx={headerStyle}>Warehouse</TableCell>
@@ -213,12 +214,13 @@ const AllEmployeePage = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredEmployees.map((employee) => (
-              <TableRow key={employee.username}>
+            {filteredEmployees.length > 0 && filteredEmployees.map((employee, index) => (employee.role !== 'admin' &&
+              <TableRow key={index}>
                 <TableCell sx={rowStyle}>{employee.name}</TableCell>
+                <TableCell sx={rowStyle}>{employee.username}</TableCell>
                 <TableCell sx={rowStyle}>{employee.phoneNo}</TableCell>
                 <TableCell sx={rowStyle}>{employee.role}</TableCell>
-                <TableCell sx={rowStyle}>{employee.warehouseCode}</TableCell>
+                <TableCell sx={rowStyle}>{employee.warehouseCode.warehouseID}</TableCell>
                 <TableCell>
                   <IconButton
                     color="primary"

@@ -43,10 +43,10 @@ const RegisterPage = () => {
   }, []);
 
   const fetchData = async () => {
-    const response = await fetch(`${BASE_URL}/api/auth/get-all-usernames`);
+    const response = await fetch(`${BASE_URL}/api/auth/get-all-users`);
     if (response.ok) {
       const data = await response.json();
-      setAllUsers(data.body);
+      setAllUsers(data.body.map((obj) => obj.username));
     }
   };
 
@@ -68,6 +68,7 @@ const RegisterPage = () => {
       alert("Enter valid code");
       return;
     }
+    // if (pass)
     if (allUsers.length === 0 || !allUsers.includes(userVal)) {
       setIsSection1(false);
     } else {
@@ -89,7 +90,7 @@ const RegisterPage = () => {
           password: passwordVal,
           name: name,
           phoneNo: phoneNo,
-          warehouseCode: warehouseNo,
+          warehouseID: warehouseNo,
           role: "supervisor",
         }),
       });
@@ -102,11 +103,11 @@ const RegisterPage = () => {
         return;
       }
       localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      // localStorage.setItem("user", JSON.stringify(data.user));
 
       setIsLoading(false);
       setIsLoggedIn(true);
-      navigate("/user/order/all");
+      // navigate("/user/order/all");
     } catch (error) {
       console.error("Registration error:", error);
       alert("Registration failed. Please try again.");
