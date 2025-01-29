@@ -21,7 +21,7 @@ import { useAuth } from "../routes/AuthContext";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-export default function AddOrderPage({}) {
+export default function AddOrderPage({ }) {
   const { id } = useParams();
   const [items, setItems] = useState([]);
   const [counter, setCounter] = useState(1);
@@ -84,8 +84,8 @@ export default function AddOrderPage({}) {
 
   const validateOrder = () => {
     if (!senderDetails.name || !senderDetails.phoneNo ||
-        !receiverDetails.name || !receiverDetails.phoneNo ||
-        !receiverDetails.address || !destinationWarehouse || (isAdmin && !sourceWarehouse)) {
+      !receiverDetails.name || !receiverDetails.phoneNo ||
+      !receiverDetails.address || !destinationWarehouse || (isAdmin && !sourceWarehouse)) {
       return false;
     }
     if (items.length === 0 || items.some(item => !item.name || !item.quantity)) {
@@ -133,20 +133,57 @@ export default function AddOrderPage({}) {
       <Typography variant="h4" sx={{ marginBottom: "20px", textAlign: "center", color: "#1c3553" }}>
         Add Order
       </Typography>
-      
+
       <Box sx={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(3, 1fr)" }}>
-        <TextField label="Sender's Name" name="name" onChange={(e) => setSenderDetails({ ...senderDetails, name: e.target.value })} />
-        <TextField label="Sender's Phone No." name="phoneNo" onChange={(e) => setSenderDetails({ ...senderDetails, phoneNo: e.target.value })} />
-        <TextField label="Sender's Address (Optional)" name="address" onChange={(e) => setSenderDetails({ ...senderDetails, address: e.target.value })} />
-        
-        <TextField label="Receiver's Name" name="name" onChange={(e) => setReceiverDetails({ ...receiverDetails, name: e.target.value })} />
-        <TextField label="Receiver's Phone No." name="phoneNo" onChange={(e) => setReceiverDetails({ ...receiverDetails, phoneNo: e.target.value })} />
-        <TextField label="Receiver's Address" name="address" onChange={(e) => setReceiverDetails({ ...receiverDetails, address: e.target.value })} />
-        
-        <TextField label="Charges" type="number" value={charges} onChange={(e) => setCharges(parseInt(e.target.value) || 0)} />
+        <TextField
+          label="Sender's Name"
+          name="name"
+          onChange={(e) => setSenderDetails({ ...senderDetails, name: e.target.value })}
+          error={error && !senderDetails.name}
+        />
+        <TextField
+          label="Sender's Phone No."
+          name="phoneNo"
+          onChange={(e) => setSenderDetails({ ...senderDetails, phoneNo: e.target.value })}
+          error={error && !senderDetails.phoneNo}
+        />
+        <TextField
+          label="Sender's Address (Optional)"
+          name="address"
+          onChange={(e) => setSenderDetails({ ...senderDetails, address: e.target.value })}
+        />
+        <TextField
+          label="Receiver's Name"
+          name="name"
+          onChange={(e) => setReceiverDetails({ ...receiverDetails, name: e.target.value })}
+          error={error && !receiverDetails.name}
+        />
+        <TextField
+          label="Receiver's Phone No."
+          name="phoneNo"
+          onChange={(e) => setReceiverDetails({ ...receiverDetails, phoneNo: e.target.value })}
+          error={error && !receiverDetails.phoneNo}
+        />
+        <TextField
+          label="Receiver's Address"
+          name="address"
+          onChange={(e) => setReceiverDetails({ ...receiverDetails, address: e.target.value })}
+          error={error && !receiverDetails.address}
+        />
+        <TextField
+          label="Charges"
+          type="number"
+          value={charges}
+          onChange={(e) => setCharges(parseInt(e.target.value) || 0)}
+          error={error && charges === 0}
+        />
         <FormControl>
           <InputLabel>Destination Warehouse</InputLabel>
-          <Select value={destinationWarehouse} onChange={(e) => setDestinationWarehouse(e.target.value)}>
+          <Select
+            value={destinationWarehouse}
+            onChange={(e) => setDestinationWarehouse(e.target.value)}
+            error={error && !destinationWarehouse}
+          >
             {allWarehouse.filter(w => !w.isSource).map(w => (
               <MenuItem key={w.warehouseID} value={w.warehouseID}>{w.name}</MenuItem>
             ))}
@@ -155,7 +192,11 @@ export default function AddOrderPage({}) {
         {isAdmin && (
           <FormControl>
             <InputLabel>Source Warehouse</InputLabel>
-            <Select value={sourceWarehouse} onChange={(e) => setSourceWarehouse(e.target.value)}>
+            <Select
+              value={sourceWarehouse}
+              onChange={(e) => setSourceWarehouse(e.target.value)}
+              error={error && !sourceWarehouse}
+            >
               {allWarehouse.filter(w => w.isSource).map(w => (
                 <MenuItem key={w.warehouseID} value={w.warehouseID}>{w.name}</MenuItem>
               ))}
