@@ -1,30 +1,40 @@
 import { React, useState, useEffect } from "react";
 import styles from "../css/auth_card.module.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../routes/AuthContext";
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const OtpPage = () => {
   const { setIsOtpVerified } = useAuth();
+  const location = useLocation();
+  const userData = location.state;
   const [otp, setOtp] = useState("");
   const navigate = useNavigate();
 
-  const getOtp = () => {
-    return "1234";
+  const handleLogin = async () => {
+    const res = await fetch(`${BASE_URL}/api/auth/verify-otp`, {
+      method: "POST",
+      body:JSON.stringify({
+        phoneNo: userData.phoneNo,
+        otp: otp
+      })
+    });
+
+    if (res.ok){
+      const data = await res.json();
+      if (data.flag){
+        setIsOtpVerified(true);
+        navigate("/auth/reset", {state: {token : data.token, username: data.username}});
+      }
+      else{
+        alert('Invalid OTP');
+      }
+    }
   };
 
   useEffect(() => {
     setIsOtpVerified(false);
   }, []);
-
-  const handleLogin = async (event) => {
-    event.preventDefault();
-    if (otp === getOtp()) {
-      setIsOtpVerified(true);
-      navigate("/auth/reset");
-    } else {
-      alert("Invalid OTP");
-    }
-  };
 
   return (
     <div>

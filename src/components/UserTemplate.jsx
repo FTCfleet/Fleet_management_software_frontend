@@ -22,18 +22,10 @@ import "../css/dashboard.css";
 import "../css/main.css";
 
 const UserTemplate = () => {
-  // const { isLoggedIn, isAdmin, isSource } = useAuth();
-  const { isLoggedIn, isAdmin } = useAuth();
+  const { isLoggedIn, isAdmin, isSource } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isAddOrderPage = location.pathname.startsWith("/user/add/order/") || location.pathname.startsWith("/user/edit/order/");
-  const [isSource, setIsSource] = useState(true);
-  // if (localStorage.getItem("user")) {
-  //   isSource = ["HYO", "HYT", "BHP", "SEC"].includes(
-  //     JSON.parse(localStorage.getItem("user")).warehouseCode
-  //   );
-  // }
-
   const menuSections = [
     {
       heading: "Orders",

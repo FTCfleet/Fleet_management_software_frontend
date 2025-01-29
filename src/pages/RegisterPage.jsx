@@ -2,7 +2,7 @@ import { React, useEffect, useState } from "react";
 import styles from "../css/auth_card.module.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { Select, MenuItem } from "@mui/material";
+import { Select, MenuItem, TextField } from "@mui/material";
 import { useAuth } from "../routes/AuthContext";
 
 const CODE = import.meta.env.VITE_CODE;
@@ -64,6 +64,10 @@ const RegisterPage = () => {
       alert("Enter same password");
       return;
     }
+    if (passwordVal === "") {
+      alert("Password can't be blank");
+      return;
+    }
     if (code !== CODE) {
       alert("Enter valid code");
       return;
@@ -96,18 +100,14 @@ const RegisterPage = () => {
       });
 
       const data = await response.json();
-      console.log(data);
       if (!response.ok) {
         alert(data.message || "Registration failed");
         setIsLoading(false);
         return;
       }
       localStorage.setItem("token", data.token);
-      // localStorage.setItem("user", JSON.stringify(data.user));
-
+      window.location.reload();
       setIsLoading(false);
-      setIsLoggedIn(true);
-      // navigate("/user/order/all");
     } catch (error) {
       console.error("Registration error:", error);
       alert("Registration failed. Please try again.");

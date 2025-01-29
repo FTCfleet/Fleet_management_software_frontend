@@ -2,6 +2,7 @@ import { React, useEffect, useState } from "react";
 import styles from "../css/auth_card.module.css";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../routes/AuthContext";
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const ForgetPasswordPage = () => {
   const navigate = useNavigate();
@@ -19,8 +20,25 @@ const ForgetPasswordPage = () => {
   
   const handleLogin = async (event) => {
     event.preventDefault();
-    setIsForgetUsernameSubmitted(true);
-    navigate("/auth/otp");
+
+    const res = await fetch(`${BASE_URL}/api/auth/get-otp`, {
+      method:"POST",
+      body: JSON.stringify({
+        username: forgetUsername
+      })
+    });
+    if (res.ok){
+      const data = await res.json();
+      if (data.flag){
+        alert("Sent OTP to Mobile Number: xxxx"+data.phoneNo.slice(7));
+        setIsForgetUsernameSubmitted(true);
+        navigate("/auth/otp", { state: { username: forgetUsername,  phoneNo: data.phoneNo } });
+      }
+      else{
+        alert("No such user exist");
+      }
+    }
+
   };
 
 

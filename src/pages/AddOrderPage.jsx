@@ -28,35 +28,35 @@ export default function AddOrderPage({}) {
   const navigate = useNavigate();
 
   const handleAddRow = () => {
-    setItems([...items, { id: counter, name: "", quantity: "" }]);
+    setItems([...items, { itemId: counter, name: "", quantity: "" }]);
     setCounter(counter + 1);
   };
 
-  const handleRemoveRow = (id) => {
+  const handleRemoveRow = (itemId) => {
     const updatedItems = items
-      .filter((item) => item.id !== id)
+      .filter((item) => item.itemId !== itemId)
       .map((item, index) => ({
         ...item,
-        id: index + 1,
+        itemId: index + 1,
       }));
     setItems(updatedItems);
     setCounter(updatedItems.length + 1);
   };
 
-  const handleCopyRow = (id) => {
-    const itemToCopy = items.find((item) => item.id === id);
+  const handleCopyRow = (itemId) => {
+    const itemToCopy = items.find((item) => item.itemId === itemId);
     if (itemToCopy) {
-      setItems([...items, { ...itemToCopy, id: counter }]);
+      setItems([...items, { ...itemToCopy, itemId: counter }]);
       setCounter(counter + 1);
     }
   };
 
-  const handleInputChange = (id, field, value) => {
+  const handleInputChange = (itemId, field, value) => {
     if (field === "quantity") {
       value = parseInt(value);
     }
     const updatedItems = items.map((item) =>
-      item.id === id ? { ...item, [field]: value } : item
+      item.itemId === itemId ? { ...item, [field]: value } : item
     );
     setItems(updatedItems);
   };
@@ -126,6 +126,7 @@ export default function AddOrderPage({}) {
   const renderTextField = ({ label, name, isOptional, isSender }) => (
     <TextField
       label={label}
+      // placeholder={label}
       variant="outlined"
       fullWidth
       name={name}
@@ -247,13 +248,13 @@ export default function AddOrderPage({}) {
           </TableHead>
           <TableBody>
             {items.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.id}</TableCell>
+              <TableRow key={item.itemId}>
+                <TableCell>{item.itemId}</TableCell>
                 <TableCell>
                   <TextField
                     value={item.name}
                     onChange={(e) =>
-                      handleInputChange(item.id, "name", e.target.value)
+                      handleInputChange(item.itemId, "name", e.target.value)
                     }
                     placeholder="Enter Item Name"
                     variant="outlined"
@@ -274,7 +275,7 @@ export default function AddOrderPage({}) {
                     type="number"
                     value={item.quantity}
                     onChange={(e) =>
-                      handleInputChange(item.id, "quantity", e.target.value)
+                      handleInputChange(item.itemId, "quantity", e.target.value)
                     }
                     variant="outlined"
                     size="small"
@@ -292,13 +293,13 @@ export default function AddOrderPage({}) {
                 <TableCell>
                   <IconButton
                     color="primary"
-                    onClick={() => handleCopyRow(item.id)}
+                    onClick={() => handleCopyRow(item.itemId)}
                   >
                     <FaCopy />
                   </IconButton>
                   <IconButton
                     color="secondary"
-                    onClick={() => handleRemoveRow(item.id)}
+                    onClick={() => handleRemoveRow(item.itemId)}
                   >
                     <FaTrash />
                   </IconButton>
