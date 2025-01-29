@@ -11,12 +11,12 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAuthStatus().then(() => setLoading(false));
+    checkAuthStatus().then((data) => setLoading(data.flag));
   }, []);
 
-  useEffect(() => {
-    console.log(loading);
-  },[loading]);
+  // useEffect(() => {
+  //   console.log(loading);
+  // },[loading]);
   
   return (
     <div className="main-box">

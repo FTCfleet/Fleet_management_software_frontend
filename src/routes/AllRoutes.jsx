@@ -9,6 +9,7 @@ import RegisterPage from "../pages/RegisterPage";
 import ForgetPasswordPage from "../pages/ForgetPasswordPage";
 import OtpPage from "../pages/Otpage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
+import DashboardPage from "../pages/DahboardPage";
 import AddOrderPage from "../pages/AddOrderPage";
 import AllTruckPage from "../pages/AllTruckPage";
 import AllEmployeePage from "../pages/AllEmployeePage";
@@ -60,6 +61,7 @@ function AllRoutes() {
         <Route path="*" element={<ErrorPage />} />
       </Route>
       <Route path="/user/*" element={<UserTemplate />}>
+        <Route exact path="dashboard" element={<DashboardPage />} />
         <Route exact path="edit/*">
           <Route exact path="order/:id" element={<EditOrderPage />} />
           <Route exact path="ledger/:id" element={<EditLedgerPage />} />

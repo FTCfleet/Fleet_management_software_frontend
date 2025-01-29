@@ -19,7 +19,6 @@ const HeaderTabs = ({ isDashboard }) => {
         <NavLink key={index} className="navlink" to={item.url}>
           <Button
             className="header-button"
-            onClick={item.onClick}
             style={{ border: "none", outline: "none" }}
             color="inherit"
           >
@@ -29,24 +28,38 @@ const HeaderTabs = ({ isDashboard }) => {
       ))}
       <NavLink
         className="navlink"
-        to={isLoggedIn ? "/user/order/all" : "/auth/login"}
+        to={isLoggedIn ? "/user/dashboard" : "/auth/login"}
       >
         <Button
           className="header-button"
-          onClick={isDashboard ? resetAuth : null}
           style={{ border: "none", outline: "none" }}
           color="inherit"
         >
-          {isLoggedIn ? (isDashboard ? "Logout" : "Dashboard") : "Login"}
+          {isLoggedIn ? "Dashboard" : "Login"}
         </Button>
       </NavLink>
+      {isLoggedIn ? (
+        <NavLink
+          className="navlink"
+          to={"/auth/login"}
+        >
+          <Button
+            className="header-button"
+            style={{ border: "none", outline: "none" }}
+            color="inherit"
+            onClick={resetAuth}
+          >
+            Logout
+          </Button>
+        </NavLink>
+      ) : null}
     </ButtonGroup>
   );
 };
 
 const Header = () => {
   const { checkAuthStatus } = useAuth();
-    const location = useLocation();
+  const location = useLocation();
   return (
     <div className="header-box">
       <AppBar

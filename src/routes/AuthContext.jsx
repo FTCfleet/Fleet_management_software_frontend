@@ -9,65 +9,64 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [isForgetUsernameSubmitted, setIsForgetUsernameSubmitted] = useState(false);
+  const [isForgetUsernameSubmitted, setIsForgetUsernameSubmitted] =
+    useState(false);
   const [isOtpVerified, setIsOtpVerified] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSource, setIsSource] = useState(true);
 
   const checkAuthStatus = async () => {
+    let user_data = {};
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setIsLoggedIn(false);
+      return { flag: false, user_data: user_data };
+    }
     try {
-      const token = localStorage.getItem('token');
-      console.log('Checking auth with token:', token); // Debug log
-      if (!token) {
-        setIsLoggedIn(false);
-        return false;
-      }
-      
       const response = await fetch(`${BASE_URL}/api/auth/status`, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
-      
-      const data = await response.json();
-      console.log('Auth status response:', data); // Debug log
-      
-      if (response.ok && data.flag) {
-        setIsLoggedIn(true);
-        const user_data = data.user;
-        // consol.elog()
-        setIsAdmin(user_data.role === 'admin');
-        setIsSource(user_data.isSource);
-      } else {
-        throw new Error('Auth check failed');
+
+      if (!response.ok) {
+        throw new Error("Bad Response");
       }
+
+      const data = await response.json();
+      if (!data.flag) {
+        throw new Error("Invalid flag");
+      }
+
+      setIsLoggedIn(true);
+      user_data = data.user;
+      setIsAdmin(data.user.role === "admin");
+      setIsSource(data.user.isSource);
     } catch (error) {
-      console.error('Auth check failed:', error);
-      resetAuth();
-    }
-    finally{
-      return false;
+      console.error("Auth check failed:", error);
+    } finally {
+      return { flag: false, user_data: user_data };
     }
   };
 
   const resetAuth = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     // localStorage.removeItem('user');
     setIsLoggedIn(false);
-    location.pathname = ('/auth/login');
+    location.pathname = "/auth/login";
   };
 
   const resetForgetAuth = () => {
     setIsForgetUsernameSubmitted(false);
     setIsOtpVerified(false);
-  }
+  };
 
   return (
     <AuthContext.Provider
       value={{
-        isLoggedIn, 
+        isLoggedIn,
         setIsLoggedIn,
         isForgetUsernameSubmitted,
         setIsForgetUsernameSubmitted,
@@ -79,7 +78,7 @@ export const AuthProvider = ({ children }) => {
         isAdmin,
         setIsAdmin,
         isSource,
-        setIsSource
+        setIsSource,
       }}
     >
       {children}

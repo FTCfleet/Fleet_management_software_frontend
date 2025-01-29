@@ -85,7 +85,7 @@ export default function AddOrderPage({}) {
   const validateOrder = () => {
     if (!senderDetails.name || !senderDetails.phoneNo ||
         !receiverDetails.name || !receiverDetails.phoneNo ||
-        !receiverDetails.address) {
+        !receiverDetails.address || !destinationWarehouse || (isAdmin && !sourceWarehouse)) {
       return false;
     }
     if (items.length === 0 || items.some(item => !item.name || !item.quantity)) {
@@ -110,8 +110,9 @@ export default function AddOrderPage({}) {
         senderDetails: senderDetails,
         receiverDetails: receiverDetails,
         items: items,
-        destinationWarehouse: "MNC",
+        destinationWarehouse: destinationWarehouse,
         charges: charges,
+        sourceWarehouse: isAdmin ? sourceWarehouse : null
       }),
     })
       .then((response) => {
@@ -147,7 +148,7 @@ export default function AddOrderPage({}) {
           <InputLabel>Destination Warehouse</InputLabel>
           <Select value={destinationWarehouse} onChange={(e) => setDestinationWarehouse(e.target.value)}>
             {allWarehouse.filter(w => !w.isSource).map(w => (
-              <MenuItem key={w.id} value={w.id}>{w.name}</MenuItem>
+              <MenuItem key={w.warehouseID} value={w.warehouseID}>{w.name}</MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -156,7 +157,7 @@ export default function AddOrderPage({}) {
             <InputLabel>Source Warehouse</InputLabel>
             <Select value={sourceWarehouse} onChange={(e) => setSourceWarehouse(e.target.value)}>
               {allWarehouse.filter(w => w.isSource).map(w => (
-                <MenuItem key={w.id} value={w.id}>{w.name}</MenuItem>
+                <MenuItem key={w.warehouseID} value={w.warehouseID}>{w.name}</MenuItem>
               ))}
             </Select>
           </FormControl>
