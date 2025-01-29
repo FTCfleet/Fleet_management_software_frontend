@@ -15,6 +15,8 @@ import AllEmployeePage from "../pages/AllEmployeePage";
 import AllWarehousePage from "../pages/AllWarehousePage";
 import AllLedgerPage from "../pages/AllLedgerPage";
 import AllOrderPage from "../pages/AllOrderPage";
+import EditLedgerPage from "../pages/EditLedgerPage";
+import EditOrderPage from "../pages/EditOrderPage";
 import GenReportPage from "../pages/GenReportPage";
 import ErrorPage from "../pages/ErrorPage";
 import AuthTemplate from "../components/AuthTemplate";
@@ -59,12 +61,8 @@ function AllRoutes() {
       </Route>
       <Route path="/user/*" element={<UserTemplate />}>
         <Route exact path="edit/*">
-          <Route exact path="order/:id" element={<AddOrderPage edit={true} />} />
-          <Route
-            exact
-            path="ledger/:id"
-            element={<ViewLedgerPage edit={true} />}
-          />
+          <Route exact path="order/:id" element={<EditOrderPage />} />
+          <Route exact path="ledger/:id" element={<EditLedgerPage />} />
         </Route>
         <Route exact path="employees" element={<AllEmployeePage />} />
         <Route exact path="trucks" element={<AllTruckPage />} />
