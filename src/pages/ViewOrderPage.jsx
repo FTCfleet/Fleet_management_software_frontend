@@ -15,7 +15,9 @@ import {
 } from "@mui/material";
 import { Close, QrCode2 } from "@mui/icons-material";
 import { Link, useParams } from "react-router-dom";
+import { FaPlus, FaEdit, FaTrash, FaPrint, FaExclamationTriangle } from "react-icons/fa";
 import orders from "../assets/orders.png";
+import { useAuth } from "../routes/AuthContext";
 import "../css/table.css";
 import "../css/main.css";
 
@@ -32,7 +34,9 @@ export default function ViewOrderPage() {
   const [status, setStatus] = useState(0);
   const [items, setItems] = useState([]);
   const [qrCodes, setQrCodes] = useState([]);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
+  const { isAdmin } = useAuth();
   const cellStyle = { color: "#1E3A5F", fontWeight: "bold" };
   const rowCellStyle = { color: "#25344E" };
 
@@ -89,6 +93,20 @@ export default function ViewOrderPage() {
     console.log(response);
     console.log(await response.json());
   };
+
+  const handleOpenDeleteModal = () => {
+    setDeleteModalOpen(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setDeleteModalOpen(false);
+  };
+
+  const confirmDelete = () => {
+    console.log("Order deleted!"); // Replace with actual delete logic
+    handleCloseDeleteModal();
+  };
+
 
   return (
     <Box
@@ -214,21 +232,60 @@ export default function ViewOrderPage() {
       </TableContainer>
 
       <Box sx={{ marginTop: "20px", textAlign: "center" }}>
-        <button className="button">
-          <Link
-            to={`${BASE_URL}/api/parcel/generate-lr-receipt/${id}`}
-            style={{ color: "inherit", textDecoration: "none" }}
-          >
-            Print LR Receipt
-          </Link>
-        </button>
+        <Link
+          to={`${BASE_URL}/api/parcel/generate-lr-receipt/${id}`}
+          style={{ color: "inherit", textDecoration: "none" }}
+        >
+          <button className="button">
+            <FaPrint style={{ marginRight: "8px" }} /> Print LR Receipt
+          </button>
+        </Link>
         <Link
           to={`/user/edit/order/${id}`}
           style={{ color: "inherit", textDecoration: "none" }}
         >
-          <button className="button">Add items</button>
+          <button className="button">
+            {isAdmin ? <><FaEdit style={{ marginRight: "8px" }} /> Edit Order</> : <><FaPlus style={{ marginRight: "8px" }} /> Add Items</>}
+          </button>
         </Link>
-          <button className="button" onClick={() => {}}>Delete Order</button>
+        <button className="button" onClick={handleOpenDeleteModal}>
+          <FaTrash style={{ marginRight: "8px" }} /> Delete Order
+        </button>
+
+        {/* Delete Confirmation Modal */}
+        <Modal open={deleteModalOpen} onClose={handleCloseDeleteModal}>
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 300,
+              bgcolor: "background.paper",
+              borderRadius: 2,
+              boxShadow: 24,
+              p: 4,
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{ marginBottom: "16px", textAlign: "center", color: "#d32f2f" }}
+            >
+              <FaExclamationTriangle style={{ marginRight: "8px" }} /> Confirm Deletion
+            </Typography>
+            <Typography sx={{ marginBottom: "16px", textAlign: "center", color: "#1E3A5F" }}>
+              Are you sure you want to delete this order?
+            </Typography>
+            <Box sx={{ display: "flex", justifyContent: "center", gap: "16px" }}>
+              <Button variant="outlined" color="primary" onClick={handleCloseDeleteModal}>
+                Cancel
+              </Button>
+              <Button variant="contained" color="error" startIcon={<FaTrash />} onClick={confirmDelete}>
+                Confirm
+              </Button>
+            </Box>
+          </Box>
+        </Modal>
       </Box>
 
       {/* QR Modal */}

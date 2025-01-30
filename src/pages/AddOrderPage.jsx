@@ -85,7 +85,7 @@ export default function AddOrderPage({ }) {
   const validateOrder = () => {
     if (!senderDetails.name || !senderDetails.phoneNo ||
       !receiverDetails.name || !receiverDetails.phoneNo ||
-      !receiverDetails.address || !destinationWarehouse || (isAdmin && !sourceWarehouse)) {
+      !receiverDetails.address || !destinationWarehouse || (isAdmin && !sourceWarehouse) || charges === 0) {
       return false;
     }
     if (items.length === 0 || items.some(item => !item.name || !item.quantity)) {

@@ -14,8 +14,10 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Modal,
+  Button,
 } from "@mui/material";
-import { FaCopy, FaTrash, FaPlus } from "react-icons/fa";
+import { FaCopy, FaSave, FaPlus, FaExclamationTriangle } from "react-icons/fa";
 import { useAuth } from "../routes/AuthContext";
 import "../css/main.css";
 
@@ -31,6 +33,8 @@ export default function EditOrderPage() {
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [allWarehouse, setAllWarehouse] = useState([]);
+  const [error, setError] = useState(false);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
 
@@ -85,7 +89,7 @@ export default function EditOrderPage() {
 
 
   const handleAddRow = () => {
-    setNewItems([...newItems, { itemId: newItems.length + 1, name: "", quantity: "", status: "Pending" }]);
+    setNewItems([...newItems, { itemId: newItems.length + 1, name: "", quantity: "" }]);
   };
 
   const handleRemoveRow = (itemId) => {
@@ -107,10 +111,30 @@ export default function EditOrderPage() {
     setOldItems(oldItems.map(item => (item.itemId === itemId ? { ...item, status } : item)));
   };
 
-  const handleSaveChanges = async () => {
+  const validateOrder = () => {
+    if (!senderDetails.name || !senderDetails.phoneNo ||
+      !receiverDetails.name || !receiverDetails.phoneNo ||
+      !receiverDetails.address || !destinationWarehouse || (isAdmin && !sourceWarehouse) || charges === 0) {
+      return false;
+    }
+    if (newItems.some(item => !item.name || !item.quantity)) {
+      return false;
+    }
+    return true;
+  };
+
+  const handleOpenSaveModal = () => {
+    setSaveModalOpen(true);
+  };
+
+  const handleCloseSaveModal = () => {
+    setSaveModalOpen(false);
+  };
+
+  const confirmSave = async () => {
     const token = localStorage.getItem("token");
 
-    await fetch(`${BASE_URL}/api/parcel/update/${itemId}`, {
+    await fetch(`${BASE_URL}/api/parcel/update/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -132,7 +156,17 @@ export default function EditOrderPage() {
           alert("Order Updated Successfully");
           navigate(`/user/view/order/${itemId}`);
         }
-      });
+      });// Replace with actual save logic
+    handleCloseSaveModal();
+  };
+
+  const handleSaveChanges = () => {
+    if (!validateOrder()) {
+      setError(true);
+      return;
+    }
+
+    handleOpenSaveModal();
   };
 
   return (
@@ -147,16 +181,18 @@ export default function EditOrderPage() {
           label="Sender's Name"
           value={senderDetails.name || ""}
           onChange={(e) => setSenderDetails({ ...senderDetails, name: e.target.value })}
+          error={error && !senderDetails.name}
           disabled={!isAdmin}
         />
         <TextField
           label="Sender's Phone No."
           value={senderDetails.phoneNo || ""}
           onChange={(e) => setSenderDetails({ ...senderDetails, phoneNo: e.target.value })}
+          error={error && !senderDetails.phoneNo}
           disabled={!isAdmin}
         />
         <TextField
-          label="Sender's Address"
+          label="Sender's Address (Optional)"
           value={senderDetails.address || ""}
           onChange={(e) => setSenderDetails({ ...senderDetails, address: e.target.value })}
           disabled={!isAdmin}
@@ -167,18 +203,21 @@ export default function EditOrderPage() {
           label="Receiver's Name"
           value={receiverDetails.name || ""}
           onChange={(e) => setReceiverDetails({ ...receiverDetails, name: e.target.value })}
+          error={error && !receiverDetails.name}
           disabled={!isAdmin}
         />
         <TextField
           label="Receiver's Phone No."
           value={receiverDetails.phoneNo || ""}
           onChange={(e) => setReceiverDetails({ ...receiverDetails, phoneNo: e.target.value })}
+          error={error && !receiverDetails.phoneNo}
           disabled={!isAdmin}
         />
         <TextField
           label="Receiver's Address"
           value={receiverDetails.address || ""}
           onChange={(e) => setReceiverDetails({ ...receiverDetails, address: e.target.value })}
+          error={error && !receiverDetails.address}
           disabled={!isAdmin}
         />
 
@@ -187,6 +226,7 @@ export default function EditOrderPage() {
           type="number"
           value={charges}
           onChange={(e) => setCharges(parseInt(e.target.value) || 0)}
+          error={error && charges === 0}
         />
 
         {/* Warehouse Selection */}
@@ -271,7 +311,7 @@ export default function EditOrderPage() {
                         size="small"
                         displayEmpty
                       >
-                        <MenuItem value="arrived">Pending</MenuItem>
+                        <MenuItem value="arrived">Arrived</MenuItem>
                         <MenuItem value="dispatched">Shipped</MenuItem>
                         <MenuItem value="delivered">Delivered</MenuItem>
                       </Select>
@@ -345,8 +385,41 @@ export default function EditOrderPage() {
 
       <Box sx={{ textAlign: "center", marginTop: "30px" }}>
         <button className="button button-large" onClick={handleSaveChanges}>
-          Save Changes
+          <FaSave style={{ marginRight: "8px" }} />Save Changes
         </button>
+        <Modal open={saveModalOpen} onClose={handleCloseSaveModal}>
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 300,
+              bgcolor: "background.paper",
+              borderRadius: 2,
+              boxShadow: 24,
+              p: 4,
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{ marginBottom: "16px", textAlign: "center", color: "#ffc107" }}
+            >
+              <FaExclamationTriangle style={{marginRight: "8px"  }} /> Confirm Save
+            </Typography>
+            <Typography sx={{ marginBottom: "16px", textAlign: "center", color: "#1E3A5F" }}>
+              Are you sure you want to save the changes?
+            </Typography>
+            <Box sx={{ display: "flex", justifyContent: "center", gap: "16px" }}>
+              <Button variant="outlined" color="primary" onClick={handleCloseSaveModal}>
+                Cancel
+              </Button>
+              <Button variant="contained" color="primary" startIcon={<FaSave style={{ marginRight: "8px" }} />} onClick={confirmSave}>
+                Confirm
+              </Button>
+            </Box>
+          </Box>
+        </Modal>
       </Box>
     </Box>
   );

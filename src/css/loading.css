@@ -1,0 +1,26 @@
+.loading-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 160px;
+    background-color: #ebf8ff;
+  }
+  
+  .loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .loading-text {
+    margin-top: 8px;
+    font-size: 18px;
+    color: #1e3a8a;
+    font-weight: 500;
+  }
+  
