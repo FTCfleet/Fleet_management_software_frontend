@@ -214,26 +214,21 @@ export default function ViewOrderPage() {
       </TableContainer>
 
       <Box sx={{ marginTop: "20px", textAlign: "center" }}>
-        <div className="button-wrapper">
-          <button className="button">
-            <Link
-              to={`${BASE_URL}/api/parcel/generate-lr-receipt/${id}`}
-              style={{ color: "inherit", textDecoration: "none" }}
-            >
-              Print LR Receipt
-            </Link>
-          </button>
-        </div>
-        <div className="button-wrapper" style={{ marginLeft: "20px" }}>
+        <button className="button">
           <Link
-            to={`/user/edit/order/${id}`}
+            to={`${BASE_URL}/api/parcel/generate-lr-receipt/${id}`}
             style={{ color: "inherit", textDecoration: "none" }}
           >
-            <button className="button">
-              Add items
-            </button>
+            Print LR Receipt
           </Link>
-        </div>
+        </button>
+        <Link
+          to={`/user/edit/order/${id}`}
+          style={{ color: "inherit", textDecoration: "none" }}
+        >
+          <button className="button">Add items</button>
+        </Link>
+          <button className="button" onClick={() => {}}>Delete Order</button>
       </Box>
 
       {/* QR Modal */}

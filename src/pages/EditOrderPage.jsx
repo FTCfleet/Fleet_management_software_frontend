@@ -77,40 +77,40 @@ export default function EditOrderPage() {
     setOldItems(data.items);
   };
 
-  const handleOldItemChange = (id, field, value) => {
+  const handleOldItemChange = (itemId, field, value) => {
     setOldItems(oldItems.map(item =>
-      item.itemId === id ? { ...item, [field]: value } : item
+      item.itemId === itemId ? { ...item, [field]: value } : item
     ));
   };
 
 
   const handleAddRow = () => {
-    setNewItems([...newItems, { id: newItems.length + 1, name: "", quantity: "", status: "Pending" }]);
+    setNewItems([...newItems, { itemId: newItems.length + 1, name: "", quantity: "", status: "Pending" }]);
   };
 
-  const handleRemoveRow = (id) => {
-    setNewItems(newItems.filter(item => item.id !== id));
+  const handleRemoveRow = (itemId) => {
+    setNewItems(newItems.filter(item => item.itemId !== itemId));
   };
 
-  const handleCopyRow = (id) => {
-    const itemToCopy = newItems.find(item => item.id === id);
+  const handleCopyRow = (itemId) => {
+    const itemToCopy = newItems.find(item => item.itemId === itemId);
     if (itemToCopy) {
-      setNewItems([...newItems, { ...itemToCopy, id: newItems.length + 1 }]);
+      setNewItems([...newItems, { ...itemToCopy, itemId: newItems.length + 1 }]);
     }
   };
 
-  const handleInputChange = (id, field, value) => {
-    setNewItems(newItems.map(item => (item.id === id ? { ...item, [field]: value } : item)));
+  const handleInputChange = (itemId, field, value) => {
+    setNewItems(newItems.map(item => (item.itemId === itemId ? { ...item, [field]: value } : item)));
   };
 
-  const handleStatusChange = (id, status) => {
-    setOldItems(oldItems.map(item => (item.id === id ? { ...item, status } : item)));
+  const handleStatusChange = (itemId, status) => {
+    setOldItems(oldItems.map(item => (item.itemId === itemId ? { ...item, status } : item)));
   };
 
   const handleSaveChanges = async () => {
     const token = localStorage.getItem("token");
 
-    await fetch(`${BASE_URL}/api/parcel/update/${id}`, {
+    await fetch(`${BASE_URL}/api/parcel/update/${itemId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -130,7 +130,7 @@ export default function EditOrderPage() {
           alert("Error occurred");
         } else {
           alert("Order Updated Successfully");
-          navigate(`/user/view/order/${id}`);
+          navigate(`/user/view/order/${itemId}`);
         }
       });
   };
@@ -271,9 +271,9 @@ export default function EditOrderPage() {
                         size="small"
                         displayEmpty
                       >
-                        <MenuItem value="Pending">Pending</MenuItem>
-                        <MenuItem value="Shipped">Shipped</MenuItem>
-                        <MenuItem value="Delivered">Delivered</MenuItem>
+                        <MenuItem value="arrived">Pending</MenuItem>
+                        <MenuItem value="dispatched">Shipped</MenuItem>
+                        <MenuItem value="delivered">Delivered</MenuItem>
                       </Select>
                     </FormControl>
                   ) : (
@@ -301,12 +301,12 @@ export default function EditOrderPage() {
           </TableHead>
           <TableBody>
             {newItems.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.id}</TableCell>
+              <TableRow key={item.itemId}>
+                <TableCell>{item.itemId}</TableCell>
                 <TableCell>
                   <TextField
                     value={item.name}
-                    onChange={(e) => handleInputChange(item.id, "name", e.target.value)}
+                    onChange={(e) => handleInputChange(item.itemId, "name", e.target.value)}
                     placeholder="Enter Item Name"
                     variant="outlined"
                     size="small"
@@ -317,17 +317,17 @@ export default function EditOrderPage() {
                   <TextField
                     type="number"
                     value={item.quantity}
-                    onChange={(e) => handleInputChange(item.id, "quantity", e.target.value)}
+                    onChange={(e) => handleInputChange(item.itemId, "quantity", e.target.value)}
                     variant="outlined"
                     size="small"
                     fullWidth
                   />
                 </TableCell>
                 <TableCell>
-                  <IconButton color="primary" onClick={() => handleCopyRow(item.id)}>
+                  <IconButton color="primary" onClick={() => handleCopyRow(item.itemId)}>
                     <FaCopy />
                   </IconButton>
-                  <IconButton color="secondary" onClick={() => handleRemoveRow(item.id)}>
+                  <IconButton color="secondary" onClick={() => handleRemoveRow(item.itemId)}>
                     <FaTrash />
                   </IconButton>
                 </TableCell>
