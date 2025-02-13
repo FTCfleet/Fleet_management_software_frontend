@@ -31,7 +31,11 @@ const AllOrderPage = () => {
     () => new Date().toISOString().split("T")[0]
   );
   const { isSource, isAdmin } = useAuth();
+  const [nameFilter, setNameFilter] = useState("");
+  const [warehouseFilter, setWarehouseFilter] = useState("");
   const navigate = useNavigate();
+  const cellStyle = { color: "#1E3A5F", fontWeight: "bold", textAlign: "center" };
+  const rowCellStyle = { color: "#25344E", textAlign: "center" };
 
   useEffect(() => {
     fetchData();
@@ -61,7 +65,7 @@ const AllOrderPage = () => {
 
       const data = await response.json();
       console.log(data);
-      if (!data.flag){
+      if (!data.flag) {
         alert("Please login first");
         return;
       }
@@ -77,6 +81,40 @@ const AllOrderPage = () => {
     } else {
       setFilteredOrders(orders.filter((order) => order.status === type));
     }
+    console.log(filteredOrders);
+  };
+
+  const applyFilter = () => {
+    let filtered = orders.filter((order) => order.status === type || type === "all");
+    console.log(orders);
+    console.log(filtered);
+    console.log(nameFilter, warehouseFilter);
+    // Apply name filter
+    if (nameFilter) {
+      filtered = filtered.filter(
+        (order) =>
+          order.sender.name.toLowerCase().includes(nameFilter.toLowerCase()) ||
+          order.receiver.name.toLowerCase().includes(nameFilter.toLowerCase())
+      );
+    }
+
+    // Apply warehouse filter
+    if (warehouseFilter) {
+      filtered = filtered.filter(
+        (order) =>
+          order.sourceWarehouse.warehouseID.toLowerCase().includes(warehouseFilter.toLowerCase()) ||
+          order.destinationWarehouse.warehouseID.toLowerCase().includes(warehouseFilter.toLowerCase())
+      );
+    }
+    console.log(filtered);
+    setFilteredOrders(filtered);
+  };
+
+  const clearFilter = () => {
+    setNameFilter("");
+    setWarehouseFilter("");
+    let filtered = orders.filter((order) => order.status === type || type === "all");
+    setFilteredOrders(filtered);
   };
 
   const handleDateChange = (event) => {
@@ -88,18 +126,6 @@ const AllOrderPage = () => {
       setSelectedDate(date);
       filterOrdersByTypeAndDate(type);
     }
-  };
-
-  const handleSearchChange = (event) => {
-    const term = event.target.value.toLowerCase();
-    setSearchTerm(term);
-    const filteredBySearch = filteredOrders.filter(
-      (order) =>
-        order.sender.toLowerCase().includes(term) ||
-        order.receiver.toLowerCase().includes(term) ||
-        order.id.toString().includes(term)
-    );
-    setFilteredOrders(filteredBySearch);
   };
 
   return (
@@ -135,30 +161,27 @@ const AllOrderPage = () => {
             onChange={handleDateChange}
           />
         </Box>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            flexGrow: 1,
-          }}
-        >
-          <FiSearch size={24} color="#82ACC2" />
+        <Box sx={{ display: "flex", gap: "10px"}}>
           <TextField
-            placeholder="Search orders..."
-            fullWidth
-            value={searchTerm}
-            sx={{
-              backgroundColor: "#ffffff",
-              borderRadius: "5px",
-              "& .MuiInputBase-input": {
-                color: "#25344E",
-              },
-              "& .MuiInputBase-input::placeholder": {
-                color: "#7D8695",
-              },
-            }}
+            label="Search by Customer Name"
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
+            variant="outlined"
+            size="small"
           />
+          <TextField
+            label="Search by Warehouse Code"
+            value={warehouseFilter}
+            onChange={(e) => setWarehouseFilter(e.target.value)}
+            variant="outlined"
+            size="small"
+          />
+          <Button variant="contained" color="primary" onClick={applyFilter}>
+            Apply Filter
+          </Button>
+          <Button variant="outlined" color="secondary" onClick={clearFilter}>
+            Clear Filter
+          </Button>
         </Box>
       </Box>
 
@@ -167,55 +190,55 @@ const AllOrderPage = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell className="table-header">Order ID</TableCell>
-              <TableCell className="table-header">{"Sender's\nName"}</TableCell>
-              <TableCell className="table-header">
-                {"Receiver's\nName"}
+              <TableCell sx={cellStyle}>Order ID</TableCell>
+              <TableCell sx={cellStyle}>{"Sender's\nName"}</TableCell>
+              <TableCell sx={cellStyle}>
+                {"Receiver's Name"}
               </TableCell>
-              {isAdmin ? 
-              (<>
-              <TableCell className="table-header">
-                {("Source") + "\n" + "Warehouse"}
-              </TableCell>
-              <TableCell className="table-header">
-                {("Destination") + "\n" + "Warehouse"}
-              </TableCell>
-              </>) : 
-              <TableCell className="table-header">
-                {(isSource ? "Destination" : "Source") + "\n" + "Warehouse"}
-              </TableCell>}
-              <TableCell className="table-header">Status</TableCell>
-              <TableCell className="table-header">View Order</TableCell>
+              {isAdmin ?
+                (<>
+                  <TableCell sx={cellStyle}>
+                    {("Source") + "\n" + "Warehouse"}
+                  </TableCell>
+                  <TableCell sx={cellStyle}>
+                    {("Destination") + "\n" + "Warehouse"}
+                  </TableCell>
+                </>) :
+                <TableCell sx={cellStyle}>
+                  {(isSource ? "Destination" : "Source") + "\n" + "Warehouse"}
+                </TableCell>}
+              <TableCell sx={cellStyle}>Status</TableCell>
+              <TableCell sx={cellStyle}>View Order</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredOrders.length > 0 ? (
               filteredOrders.map((order) => (
                 <TableRow key={order.trackingId}>
-                  <TableCell sx={{ color: "#25344E" }}>
+                  <TableCell sx={rowCellStyle}>
                     {order.trackingId}
                   </TableCell>
-                  <TableCell sx={{ color: "#25344E" }}>
-                    {order.sender.name? order.sender.name : "NA" }
+                  <TableCell sx={rowCellStyle}>
+                    {order.sender.name ? order.sender.name : "NA"}
                   </TableCell>
-                  <TableCell sx={{ color: "#25344E" }}>
-                    {order.receiver.name? order.receiver.name : "NA" }
+                  <TableCell sx={rowCellStyle}>
+                    {order.receiver.name ? order.receiver.name : "NA"}
                   </TableCell>
 
                   {isAdmin ? (<>
-                  <TableCell sx={{ color: "#25344E" }}>
-                    {order.sourceWarehouse.warehouseID}
-                  </TableCell>
-                  <TableCell sx={{ color: "#25344E" }}>
-                    {order.destinationWarehouse.warehouseID}
-                  </TableCell>
+                    <TableCell sx={rowCellStyle}>
+                      {order.sourceWarehouse.warehouseID}
+                    </TableCell>
+                    <TableCell sx={rowCellStyle}>
+                      {order.destinationWarehouse.warehouseID}
+                    </TableCell>
                   </>)
-                    : (<TableCell sx={{ color: "#25344E" }}>
+                    : (<TableCell sx={rowCellStyle}>
                       {isSource ? order.destinationWarehouse.warehouseID : order.sourceWarehouse.warehouseID}
                     </TableCell>)}
                   <TableCell>
                     <span className={`table-status ${order.status}`}>
-                      {order.status}
+                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                     </span>
                   </TableCell>
                   <TableCell>
