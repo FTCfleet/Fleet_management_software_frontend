@@ -16,6 +16,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FiSearch } from "react-icons/fi";
 import { AiOutlineCalendar } from "react-icons/ai";
 import { IoArrowForwardCircleOutline } from "react-icons/io5"; // Icon for View Ledger
+import { useAuth } from "../routes/AuthContext"
 import "../css/table.css"; // Import CSS
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -29,6 +30,7 @@ const AllLedgerPage = () => {
     () => new Date().toISOString().split("T")[0]
   ); // Default to today
   const navigate = useNavigate();
+  const { isAdmin, isSource } = useAuth();
 
   useEffect(() => {
     fetchData();
@@ -42,7 +44,7 @@ const AllLedgerPage = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `${BASE_URL}/api/ledger/track-by-date/${selectedDate}`,
+        `${BASE_URL}/api/ledger/track-all/${selectedDate}`,
         {
           method: "GET",
           headers: {
@@ -168,9 +170,16 @@ const AllLedgerPage = () => {
               <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
                 Vehicle No
               </TableCell>
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
-                Destination Warehouse
-              </TableCell>
+              {isAdmin || !isSource ?
+                <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+                  Source Warehouse
+                </TableCell> : null
+              }
+              {isAdmin || isSource ?
+                <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+                  Destination Warehouse
+                </TableCell> : null
+              }
               {type === "all" && (
                 <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
                   Status
@@ -189,9 +198,16 @@ const AllLedgerPage = () => {
                   <TableCell sx={{ color: "#25344E" }}>
                     {entry.vehicleNo}
                   </TableCell>
-                  <TableCell sx={{ color: "#25344E" }}>
-                    {entry.destinationWarehouse}
-                  </TableCell>
+                  {(isAdmin || !isSource) ?
+                    <TableCell sx={{ color: "#25344E" }}>
+                      {entry.sourceWarehouse ? entry.sourceWarehouse.warehouseID : "NA"}
+                    </TableCell> : null
+                  }
+
+                  {(isAdmin || isSource) ?
+                    <TableCell sx={{ color: "#25344E" }}>
+                      {entry.destinationWarehouse ? entry.destinationWarehouse.warehouseID : "NA"}
+                    </TableCell> : null}
                   {type === "all" && (
                     <TableCell>
                       <span
