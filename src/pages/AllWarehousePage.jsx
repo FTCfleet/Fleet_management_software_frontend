@@ -13,6 +13,8 @@ import {
   IconButton,
   Modal,
   TextField,
+  ToggleButtonGroup,
+  ToggleButton,
 } from "@mui/material";
 import { Edit, Delete, Close, Warning } from "@mui/icons-material";
 import "../css/main.css";
@@ -63,8 +65,8 @@ export default function AllWarehousePage() {
           : true) &&
         (warehouseFilter
           ? warehouse.warehouseID
-              .toLowerCase()
-              .includes(warehouseFilter.toLowerCase())
+            .toLowerCase()
+            .includes(warehouseFilter.toLowerCase())
           : true)
       );
     });
@@ -114,7 +116,7 @@ export default function AllWarehousePage() {
   };
 
   const handleAdd = () => {
-    setCurrentWarehouse({ name: "", contactNo: "", warehouseID: "" });
+    setCurrentWarehouse({ name: "", contactNo: "", warehouseID: "", isSource: true });
     setIsModalOpen(true);
     setIsAdding(true);
   };
@@ -163,9 +165,6 @@ export default function AllWarehousePage() {
   };
 
   const handleFieldChange = (field, value) => {
-    if (field == 'isSource'){
-      value = (value === 'true')
-    }
     setCurrentWarehouse({ ...currentWarehouse, [field]: value });
   };
 
@@ -178,14 +177,14 @@ export default function AllWarehousePage() {
       {/* Filters */}
       <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
         <TextField
-          label="Search by Driver Name"
+          label="Search by Warehouse Name"
           value={nameFilter}
           onChange={(e) => setNameFilter(e.target.value)}
           variant="outlined"
           size="small"
         />
         <TextField
-          label="Search by Warehouse Number"
+          label="Search by Warehouse Code"
           value={warehouseFilter}
           onChange={(e) => setWarehouseFilter(e.target.value)}
           variant="outlined"
@@ -292,13 +291,39 @@ export default function AllWarehousePage() {
                 onChange={(e) => handleFieldChange("contactNo", e.target.value)}
                 sx={{ marginBottom: "16px" }}
               />
-              <TextField
-                fullWidth
-                label="Type"
-                value={currentWarehouse.isSource}
-                onChange={(e) => handleFieldChange("isSource", e.target.value)}
-                sx={{ marginBottom: "16px" }}
-                />
+              <ToggleButtonGroup
+                value={currentWarehouse.isSource} // Default to true if undefined
+                exclusive
+                onChange={(e, newValue) => {
+                  if (newValue !== null) {
+                    handleFieldChange("isSource", newValue);
+                  }
+                }}
+                sx={{ display: "flex", marginBottom: "16px" }}
+              >
+                <ToggleButton
+                  value={true}
+                  sx={{
+                    flex: 1,
+                    backgroundColor: currentWarehouse.isSource ? "#003366" : "inherit",
+                    color: currentWarehouse.isSource ? "white" : "black",
+                    "&.Mui-selected, &.Mui-selected:hover": { backgroundColor: "#003366", color: "white" }
+                  }}
+                >
+                  Source
+                </ToggleButton>
+                <ToggleButton
+                  value={false}
+                  sx={{
+                    flex: 1,
+                    backgroundColor: !currentWarehouse.isSource ? "#003366" : "inherit",
+                    color: !currentWarehouse.isSource ? "white" : "black",
+                    "&.Mui-selected, &.Mui-selected:hover": { backgroundColor: "#003366", color: "white" }
+                  }}
+                >
+                  Destination
+                </ToggleButton>
+              </ToggleButtonGroup>
               <TextField
                 fullWidth
                 label="Warehouse Code"
