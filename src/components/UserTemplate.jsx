@@ -25,7 +25,9 @@ const UserTemplate = () => {
   const { isLoggedIn, isAdmin, isSource } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const isAddOrderPage = location.pathname.startsWith("/user/add/order/") || location.pathname.startsWith("/user/edit/order/");
+  const isAddOrderPage =
+    location.pathname.startsWith("/user/add/order/") ||
+    location.pathname.startsWith("/user/edit/order/");
   const menuSections = [
     {
       heading: "Orders",
@@ -60,22 +62,24 @@ const UserTemplate = () => {
           path: "/user/ledgers/all",
           icon: <FaTruckMoving />,
         },
-        {
-          text: "Pending Ledgers",
-          path: "/user/ledgers/pending",
-          icon: <FaTruckMoving />,
-        },
-        (isAdmin ? 
-        {
-          text: "Dispatched Ledgers",
-          path: `/user/ledgers/outgoing`,
-          icon: <FaTruckMoving />,
-        }:
-        {
-          text: isSource ? "Outgoing Ledgers" : "Incoming Ledgers",
-          path: `/user/ledgers/${isSource ? "outgoing" : "incoming"}`,
-          icon: <FaTruckMoving />,
-        }),
+        isAdmin || isSource
+          ? {
+              text: "Pending Ledgers",
+              path: "/user/ledgers/pending",
+              icon: <FaTruckMoving />,
+            }
+          : {},
+        isAdmin
+          ? {
+              text: "Dispatched Ledgers",
+              path: `/user/ledgers/outgoing`,
+              icon: <FaTruckMoving />,
+            }
+          : {
+              text: isSource ? "Outgoing Ledgers" : "Incoming Ledgers",
+              path: `/user/ledgers/${isSource ? "outgoing" : "incoming"}`,
+              icon: <FaTruckMoving />,
+            },
         {
           text: "Completed Ledgers",
           path: "/user/ledgers/completed",
@@ -95,28 +99,30 @@ const UserTemplate = () => {
         },
       ],
     },
-    isAdmin ? {
-      heading: "Admin",
-      path: "/user",
-      headingIcon: <FaMoneyCheckAlt style={{ marginRight: "8px" }} />,
-      items: [
-        {
-          text: "Truck Drivers List",
-          path: "/user/trucks",
-          icon: <FaMoneyCheckAlt />,
-        },
-        {
-          text: "Employees List",
-          path: "/user/employees",
-          icon: <FaMoneyCheckAlt />,
-        },
-        {
-          text: "Warehouse List",
-          path: "/user/warehouses",
-          icon: <FaMoneyCheckAlt />,
-        },
-      ],
-    } : {},
+    isAdmin
+      ? {
+          heading: "Admin",
+          path: "/user",
+          headingIcon: <FaMoneyCheckAlt style={{ marginRight: "8px" }} />,
+          items: [
+            {
+              text: "Truck Drivers List",
+              path: "/user/trucks",
+              icon: <FaMoneyCheckAlt />,
+            },
+            {
+              text: "Employees List",
+              path: "/user/employees",
+              icon: <FaMoneyCheckAlt />,
+            },
+            {
+              text: "Warehouse List",
+              path: "/user/warehouses",
+              icon: <FaMoneyCheckAlt />,
+            },
+          ],
+        }
+      : {},
   ];
 
   useEffect(() => {
@@ -137,76 +143,77 @@ const UserTemplate = () => {
           overflowX: "hidden",
         }}
       >
-        {menuSections.map((section, sectionIndex) => (
-          (Object.keys(section).length === 0) ? null :  
-          <Box key={sectionIndex} sx={{ marginBottom: "12px" }}>
-            {" "}
-            {/* Reduced margin between sections */}
-            <Typography
-              variant="body1"
-              sx={{
-                color: "#1E3A5F", // Heading color
-                fontWeight: "bold",
-                fontSize: "15px", // Reduced font size for headings
-                display: "flex",
-                alignItems: "center",
-                marginBottom: "6px", // Reduced gap between heading and items
-              }}
-            >
-              {section.headingIcon} {section.heading}
-            </Typography>
-            <List>
-              {section.items.map((item, index) => (
-                <ListItem
-                  key={index}
-                  disablePadding
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    padding: "4px 0", // Reduced padding
-                    "&:hover": {
-                      backgroundColor: "#e3f2fd",
-                      borderRadius: "4px",
-                      color: "#1976d2", // Hover effect color
-                    },
-                  }}
-                >
-                  <NavLink
-                    to={item.path}
-                    style={({ isActive }) => ({
-                      textDecoration: "none",
-                      color: isActive ? "#82acc2" : "#25344e", // Active/Inactive color
-                      fontWeight: isActive ? "bold" : "normal",
+        {menuSections.map((section, sectionIndex) =>
+          Object.keys(section).length === 0 ? null : (
+            <Box key={sectionIndex} sx={{ marginBottom: "12px" }}>
+              {" "}
+              {/* Reduced margin between sections */}
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#1E3A5F", // Heading color
+                  fontWeight: "bold",
+                  fontSize: "15px", // Reduced font size for headings
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "6px", // Reduced gap between heading and items
+                }}
+              >
+                {section.headingIcon} {section.heading}
+              </Typography>
+              <List>
+                {section.items.map((item, index) => (
+                  <ListItem
+                    key={index}
+                    disablePadding
+                    sx={{
                       display: "flex",
                       alignItems: "center",
-                      width: "100%",
-                      padding: "4px 12px", // Adjusted padding
-                      transform: isActive ? "scale(1.05)" : "none",
-                      backgroundColor: isActive ? "#e3f2fd" : "", // Slight scaling effect for active item
-                    })}
+                      padding: "4px 0", // Reduced padding
+                      "&:hover": {
+                        backgroundColor: "#e3f2fd",
+                        borderRadius: "4px",
+                        color: "#1976d2", // Hover effect color
+                      },
+                    }}
                   >
-                    <ListItemIcon
-                      sx={{
-                        minWidth: "25px",
-                        color: "#82acc2",
-                      }}
+                    <NavLink
+                      to={item.path}
+                      style={({ isActive }) => ({
+                        textDecoration: "none",
+                        color: isActive ? "#82acc2" : "#25344e", // Active/Inactive color
+                        fontWeight: isActive ? "bold" : "normal",
+                        display: "flex",
+                        alignItems: "center",
+                        width: "100%",
+                        padding: "4px 12px", // Adjusted padding
+                        transform: isActive ? "scale(1.05)" : "none",
+                        backgroundColor: isActive ? "#e3f2fd" : "", // Slight scaling effect for active item
+                      })}
                     >
-                      {item.icon} {/* Icon for the menu item */}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={item.text}
-                      sx={{
-                        fontSize: "12px", // Reduced font size
-                        margin: "-5px", // Reduced margin
-                        color: "#25344e", // Text color
-                      }}
-                    />
-                  </NavLink>
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-        ))}
+                      <ListItemIcon
+                        sx={{
+                          minWidth: "25px",
+                          color: "#82acc2",
+                        }}
+                      >
+                        {item.icon} {/* Icon for the menu item */}
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item.text}
+                        sx={{
+                          fontSize: "12px", // Reduced font size
+                          margin: "-5px", // Reduced margin
+                          color: "#25344e", // Text color
+                        }}
+                      />
+                    </NavLink>
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          )
+        )}
       </Box>
 
       {/* Main Content Area */}

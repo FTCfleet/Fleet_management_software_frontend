@@ -1,16 +1,29 @@
 import React, { useState } from "react";
-import backImg from '../assets/back2.jpg'
-import cardImg from '../assets/card.jpg'
-import workImg from '../assets/workflow.jpg'
+import backImg from "../assets/back2.jpg";
+import cardImg from "../assets/card.jpg";
+import workImg from "../assets/workflow.jpg";
 import { Typography, Button } from "@mui/material";
 import { Link } from "react-router-dom";
-import { FaTruck, FaMapMarkerAlt, FaWarehouse, FaCheckCircle, FaTasks, FaHeadset, FaShippingFast, FaQrcode, FaMobileAlt, FaBox, FaBoxOpen, FaSearchLocation, FaArrowRight } from "react-icons/fa";
+import {
+  FaTruck,
+  FaMapMarkerAlt,
+  FaWarehouse,
+  FaCheckCircle,
+  FaTasks,
+  FaHeadset,
+  FaShippingFast,
+  FaQrcode,
+  FaMobileAlt,
+  FaBox,
+  FaBoxOpen,
+  FaSearchLocation,
+  FaArrowRight,
+} from "react-icons/fa";
 import { FaArrowRightLong } from "react-icons/fa6";
 // import { FaArrowRightLong } from "react-icons/fa";
 import "../css/main.css";
 
 const HomePage = () => {
-
   const services = [
     {
       title: "End-to-End Goods Transport",
@@ -80,173 +93,205 @@ const HomePage = () => {
   ];
 
   return (
-    <div className='app' >
-      <div style={{
-  width: '100%',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  position: 'relative',
-}}>
-  {/* Background Image */}
-  <img 
-    src={backImg} 
-    alt="Background"
-    style={{
-      width: '100%', 
-      height: 'auto', 
-      display: 'block', 
-    }} 
-  />
-
-  {/* Overlay Content - Left Aligned */}
-  <div style={{
-    position: 'absolute',
-    top: '50%', 
-    left: '5%',  // Aligns text to the left
-    transform: 'translateY(-50%)', 
-    color: 'white',
-    textAlign: 'left', // Ensures text stays left-aligned
-    width: '55%', // Ensures text doesn't stretch too much
-  }}>
-    <Typography 
-      variant='h2'
-      sx={{
-        fontSize: 'clamp(24px, 5vw, 60px)', // Responsive font size
-        fontWeight: 'bold',
-        fontFamily: "'Dancing Script', cursive",
-      }}
-    >
-      We Transport anything<br />anywhere!
-    </Typography>
-    <Link to='/about'>
-      <button className="button button-large">Know More</button>
-    </Link>
-  </div>
-</div>
-
-<div style={{ backgroundColor: '#efefef', padding: '5vw' }}>
-  <h1 style={{ textAlign: 'center', fontSize: 'clamp(20px, 4vw, 40px)' }}>Our Services</h1>
-
-  <div className="card-container" style={{
-    display: "flex",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: "3vw", // Responsive gap
-  }}>
-    {services.map((service, index) => (
+    <div className="app">
       <div
-        key={index}
-        className="card"
         style={{
-          backgroundColor: service.bgColor,
-          color: service.textColor,
-          padding: "2vw",
-          borderRadius: "10px",
-          textAlign: "center",
-          width: "clamp(200px, 30%, 400px)", // Responsive width
-          boxSizing: "border-box",
-          boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          position: "relative",
         }}
       >
+        {/* Background Image */}
+        <img
+          src={backImg}
+          alt="Background"
+          style={{
+            width: "100%",
+            height: "auto",
+            display: "block",
+          }}
+        />
+
+        {/* Overlay Content - Left Aligned */}
         <div
           style={{
-            backgroundColor: service.bgColor === '#ffffff' ? '#003366' : '#ffffff',
-            borderRadius: "50%",
-            width: "clamp(50px, 6vw, 80px)",
-            height: "clamp(50px, 6vw, 80px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            margin: "0 auto 10px",
+            position: "absolute",
+            top: "50%",
+            left: "5%", // Aligns text to the left
+            transform: "translateY(-50%)",
+            color: "white",
+            textAlign: "left", // Ensures text stays left-aligned
+            width: "55%", // Ensures text doesn't stretch too much
           }}
         >
-          {service.icon}
+          <Typography
+            variant="h2"
+            sx={{
+              fontSize: "clamp(24px, 5vw, 60px)", // Responsive font size
+              fontWeight: "bold",
+            }}
+          >
+            We Transport anything
+            <br />
+            anywhere!
+          </Typography>
+          <Link to="/about">
+            <button className="button button-large">Know More</button>
+          </Link>
         </div>
-        <h2 style={{ fontSize: "clamp(16px, 2vw, 24px)", margin: "10px 0" }}>{service.title}</h2>
-        <p style={{ fontSize: "clamp(12px, 1.5vw, 16px)" }}>{service.description}</p>
       </div>
-    ))}
-  </div>
-</div>
 
-{/* How It Works Section */}
-<div style={{ padding: "5vw 0" }}>
-  <h1 style={{ textAlign: 'center', fontSize: 'clamp(20px, 4vw, 40px)' }}>HOW DOES IT WORK</h1>
+      <div style={{ backgroundColor: "#efefef", padding: "5vw" }}>
+        <h1 style={{ textAlign: "center", fontSize: "clamp(20px, 4vw, 40px)" }}>
+          Our Services
+        </h1>
 
-  <div style={{
-    display: "flex",
-    flexWrap: "wrap",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "5vw",
-    width: "90%",
-    margin: "0 auto",
-  }}>
-    {steps.map((step, index) => (
-      <div
-        key={index}
-        style={{
-          textAlign: "center",
-          position: "relative",
-          flex: "1",
-          maxWidth: "clamp(150px, 20%, 250px)", // Responsive width
-          minWidth: "150px",
-        }}
-      >
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          margin: "10px auto",
-        }}>
-          <div style={{
-            backgroundColor: "#cce7ff",
-            borderRadius: "50%",
-            width: "clamp(60px, 8vw, 100px)",
-            height: "clamp(60px, 8vw, 100px)",
+        <div
+          className="card-container"
+          style={{
             display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: "3vw", // Responsive gap
+          }}
+        >
+          {services.map((service, index) => (
+            <div
+              key={index}
+              className="card"
+              style={{
+                backgroundColor: service.bgColor,
+                color: service.textColor,
+                padding: "2vw",
+                borderRadius: "10px",
+                textAlign: "center",
+                width: "clamp(200px, 30%, 400px)", // Responsive width
+                boxSizing: "border-box",
+                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor:
+                    service.bgColor === "#ffffff" ? "#003366" : "#ffffff",
+                  borderRadius: "50%",
+                  width: "clamp(50px, 6vw, 80px)",
+                  height: "clamp(50px, 6vw, 80px)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 10px",
+                }}
+              >
+                {service.icon}
+              </div>
+              <h2
+                style={{ fontSize: "clamp(16px, 2vw, 24px)", margin: "10px 0" }}
+              >
+                {service.title}
+              </h2>
+              <p style={{ fontSize: "clamp(12px, 1.5vw, 16px)" }}>
+                {service.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* How It Works Section */}
+      <div style={{ padding: "5vw 0" }}>
+        <h1 style={{ textAlign: "center", fontSize: "clamp(20px, 4vw, 40px)" }}>
+          HOW DOES IT WORK
+        </h1>
+
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
             alignItems: "center",
             justifyContent: "center",
-          }}>
-            {step.icon}
-          </div>
+            gap: "5vw",
+            width: "90%",
+            margin: "0 auto",
+          }}
+        >
+          {steps.map((step, index) => (
+            <div
+              key={index}
+              style={{
+                textAlign: "center",
+                position: "relative",
+                flex: "1",
+                maxWidth: "clamp(150px, 20%, 250px)", // Responsive width
+                minWidth: "150px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "10px auto",
+                }}
+              >
+                <div
+                  style={{
+                    backgroundColor: "#cce7ff",
+                    borderRadius: "50%",
+                    width: "clamp(60px, 8vw, 100px)",
+                    height: "clamp(60px, 8vw, 100px)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {step.icon}
+                </div>
 
-          {index < steps.length - 1 && (
-            <div style={{
-              position: "absolute",
-              top: "50%",
-              left: "110%",
-              transform: "translateY(-50%)",
-            }}>
-              <FaArrowRightLong 
-  size={Math.min(Math.max(10, window.innerWidth * 0.02), 20)} 
-  style={{ color: "#003366" }} 
-/>
+                {index < steps.length - 1 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "110%",
+                      transform: "translateY(-50%)",
+                    }}
+                  >
+                    <FaArrowRightLong
+                      size={Math.min(
+                        Math.max(10, window.innerWidth * 0.02),
+                        20
+                      )}
+                      style={{ color: "#003366" }}
+                    />
+                  </div>
+                )}
+              </div>
 
+              <p
+                style={{
+                  margin: "10px 0",
+                  fontWeight: "bold",
+                  fontSize: "clamp(14px, 2vw, 18px)",
+                  maxWidth: "100%",
+                }}
+              >
+                {step.step}
+              </p>
+              <p
+                style={{
+                  fontSize: "clamp(12px, 1.5vw, 16px)",
+                  maxWidth: "100%",
+                }}
+              >
+                {step.description}
+              </p>
             </div>
-          )}
+          ))}
         </div>
-
-        <p style={{
-          margin: "10px 0",
-          fontWeight: "bold",
-          fontSize: "clamp(14px, 2vw, 18px)",
-          maxWidth: "100%",
-        }}>
-          {step.step}
-        </p>
-        <p style={{
-          fontSize: "clamp(12px, 1.5vw, 16px)",
-          maxWidth: "100%",
-        }}>
-          {step.description}
-        </p>
       </div>
-    ))}
-  </div>
-</div>
-
     </div>
   );
 };
