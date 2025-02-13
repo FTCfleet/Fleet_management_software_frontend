@@ -68,7 +68,7 @@ const AllLedgerPage = () => {
     if (type === "all") {
       setFilteredLedger(ledgerEntries);
     } else {
-      setFilteredLedger(ledgerEntries.filter((order) => order.isComplete === type));
+      setFilteredLedger(ledgerEntries.filter((order) => order.status === type));
     }
   };
 
@@ -84,7 +84,7 @@ const AllLedgerPage = () => {
     const filteredBySearch = filteredLedger.filter(
       (entry) =>
         entry.vehicleNo.toLowerCase().includes(term) ||
-        entry.deliveryStation.toLowerCase().includes(term) ||
+        entry.destinationWarehouse.toLowerCase().includes(term) ||
         entry.ledgerId.toString().includes(term)
     );
     setFilteredLedger(filteredBySearch);
@@ -169,7 +169,7 @@ const AllLedgerPage = () => {
                 Vehicle No
               </TableCell>
               <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
-                Delivery Station
+                Destination Warehouse
               </TableCell>
               {type === "all" && (
                 <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
@@ -190,14 +190,14 @@ const AllLedgerPage = () => {
                     {entry.vehicleNo}
                   </TableCell>
                   <TableCell sx={{ color: "#25344E" }}>
-                    {entry.deliveryStation}
+                    {entry.destinationWarehouse}
                   </TableCell>
                   {type === "all" && (
                     <TableCell>
                       <span
-                        className={`table-status ${entry.isComplete.toLowerCase()}`}
+                        className={`table-status ${entry.status.toLowerCase()}`}
                       >
-                        {entry.isComplete}
+                        {entry.status}
                       </span>
                     </TableCell>
                   )}

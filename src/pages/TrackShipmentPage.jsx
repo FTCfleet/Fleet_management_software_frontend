@@ -294,7 +294,7 @@ const TrackShipmentPage = () => {
 
           <TableContainer
             component={Paper}
-            sx={{ backgroundColor: "#ffffff", borderRadius: "8px", width: "90%" }}
+            sx={{ backgroundColor: "#ffffff", borderRadius: "8px", width: "90%", marginTop:"20px"}}
           >
             <Typography variant="h6" sx={{ padding: "16px", ...cellStyle }}>
               Items in Package
@@ -304,7 +304,6 @@ const TrackShipmentPage = () => {
                 <TableRow>
                   <TableCell sx={cellStyle}>Item Name</TableCell>
                   <TableCell sx={cellStyle}>Quantity</TableCell>
-                  <TableCell sx={cellStyle}>Status</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -312,11 +311,6 @@ const TrackShipmentPage = () => {
                   <TableRow key={item.itemId}>
                     <TableCell sx={rowCellStyle}>{item.name}</TableCell>
                     <TableCell sx={rowCellStyle}>{item.quantity}</TableCell>
-                    <TableCell sx={rowCellStyle}>
-                      <span className={`table-status ${item.status}`}>
-                        {item.status}
-                      </span>
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

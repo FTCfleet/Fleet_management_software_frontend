@@ -17,7 +17,14 @@ import {
   Modal,
   Button,
 } from "@mui/material";
-import { FaCopy, FaSave, FaPlus, FaExclamationTriangle } from "react-icons/fa";
+import {
+  FaCopy,
+  FaSave,
+  FaPlus,
+  FaExclamationTriangle,
+  FaTrash,
+} from "react-icons/fa";
+import { Edit, Delete, Close, Warning } from "@mui/icons-material";
 import { useAuth } from "../routes/AuthContext";
 import "../css/main.css";
 
@@ -26,15 +33,19 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 export default function EditOrderPage() {
   const { id } = useParams();
   const [oldItems, setOldItems] = useState([]);
+  const [delItems, setDelItems] = useState([]);
   const [newItems, setNewItems] = useState([]);
   const [senderDetails, setSenderDetails] = useState({});
   const [receiverDetails, setReceiverDetails] = useState({});
   const [charges, setCharges] = useState(0);
+  const [status, setStatus] = useState("");
+  const [counter, setCounter] = useState(0);
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [error, setError] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
+
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
 
@@ -77,47 +88,50 @@ export default function EditOrderPage() {
     setReceiverDetails(data.receiver);
     setSourceWarehouse(data.sourceWarehouse.warehouseID);
     setDestinationWarehouse(data.destinationWarehouse.warehouseID);
-    setCharges(data.charges);
+    setCharges(data.charges || 0);
     setOldItems(data.items);
+    setStatus(data.status);
   };
 
-  const handleOldItemChange = (itemId, field, value) => {
-    setOldItems(oldItems.map(item =>
-      item.itemId === itemId ? { ...item, [field]: value } : item
-    ));
+  const handleDelete = (item) => {
+    delItems.push(item._id);
+    setDelItems(delItems);
+    setOldItems(oldItems.filter((element) => element._id !== item._id));
   };
-
 
   const handleAddRow = () => {
-    setNewItems([...newItems, { itemId: newItems.length + 1, name: "", quantity: "" }]);
+    setError(false);
+    setCounter(counter + 1);
+    setNewItems([...newItems, { itemId: counter + 1, name: "", quantity: 0 }]);
   };
 
   const handleRemoveRow = (itemId) => {
-    setNewItems(newItems.filter(item => item.itemId !== itemId));
+    setNewItems(newItems.filter((item) => item.itemId !== itemId));
   };
 
   const handleCopyRow = (itemId) => {
-    const itemToCopy = newItems.find(item => item.itemId === itemId);
+    const itemToCopy = newItems.find((item) => item.itemId === itemId);
     if (itemToCopy) {
-      setNewItems([...newItems, { ...itemToCopy, itemId: newItems.length + 1 }]);
+      setNewItems([
+        ...newItems,
+        { ...itemToCopy, itemId: newItems.length + 1 },
+      ]);
     }
   };
 
   const handleInputChange = (itemId, field, value) => {
-    setNewItems(newItems.map(item => (item.itemId === itemId ? { ...item, [field]: value } : item)));
-  };
-
-  const handleStatusChange = (itemId, status) => {
-    setOldItems(oldItems.map(item => (item.itemId === itemId ? { ...item, status } : item)));
+    setNewItems(
+      newItems.map((item) =>
+        item.itemId === itemId ? { ...item, [field]: value } : item
+      )
+    );
   };
 
   const validateOrder = () => {
-    if (!senderDetails.name || !senderDetails.phoneNo ||
-      !receiverDetails.name || !receiverDetails.phoneNo ||
-      !receiverDetails.address || !destinationWarehouse || (isAdmin && !sourceWarehouse) || charges === 0) {
+    if (!destinationWarehouse || (isAdmin && !sourceWarehouse)) {
       return false;
     }
-    if (newItems.some(item => !item.name || !item.quantity)) {
+    if (newItems.some((item) => !item.name)) {
       return false;
     }
     return true;
@@ -134,7 +148,7 @@ export default function EditOrderPage() {
   const confirmSave = async () => {
     const token = localStorage.getItem("token");
 
-    await fetch(`${BASE_URL}/api/parcel/update/${id}`, {
+    await fetch(`${BASE_URL}/api/parcel/edit/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -143,26 +157,29 @@ export default function EditOrderPage() {
       body: JSON.stringify({
         senderDetails,
         receiverDetails,
-        items: [...oldItems, ...newItems],
+        addItems: newItems,
+        delItems: delItems,
         charges,
         sourceWarehouse,
         destinationWarehouse,
+        ...(isAdmin ? { status } : {}),
       }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          alert("Error occurred");
-        } else {
-          alert("Order Updated Successfully");
-          navigate(`/user/view/order/${itemId}`);
-        }
-      });// Replace with actual save logic
+    }).then((response) => {
+      if (!response.ok) {
+        alert("Error occurred");
+        return response.json();
+      } else {
+        alert("Order Updated Successfully");
+        navigate(`/user/view/order/${id}`);
+      }
+    }).then((data) => console.log(data)); // Replace with actual save logic
     handleCloseSaveModal();
   };
 
   const handleSaveChanges = () => {
     if (!validateOrder()) {
       setError(true);
+      // console.log('Hello');
       return;
     }
 
@@ -170,63 +187,79 @@ export default function EditOrderPage() {
   };
 
   return (
-    <Box sx={{ padding: "20px", margin: "auto", backgroundColor: "#ffffff", color: "#1b3655" }}>
-      <Typography variant="h4" sx={{ marginBottom: "20px", textAlign: "center", color: "#1c3553" }}>
+    <Box
+      sx={{
+        padding: "20px",
+        margin: "auto",
+        backgroundColor: "#ffffff",
+        color: "#1b3655",
+      }}
+    >
+      <Typography
+        variant="h4"
+        sx={{ marginBottom: "20px", textAlign: "center", color: "#1c3553" }}
+      >
         Edit Order
       </Typography>
 
-      <Box sx={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(3, 1fr)" }}>
+      <Box
+        sx={{
+          display: "grid",
+          gap: "12px",
+          gridTemplateColumns: "repeat(3, 1fr)",
+        }}
+      >
         {/* Sender Details */}
         <TextField
           label="Sender's Name"
           value={senderDetails.name || ""}
-          onChange={(e) => setSenderDetails({ ...senderDetails, name: e.target.value })}
-          error={error && !senderDetails.name}
-          disabled={!isAdmin}
+          onChange={(e) =>
+            setSenderDetails({ ...senderDetails, name: e.target.value })
+          }
         />
         <TextField
           label="Sender's Phone No."
           value={senderDetails.phoneNo || ""}
-          onChange={(e) => setSenderDetails({ ...senderDetails, phoneNo: e.target.value })}
-          error={error && !senderDetails.phoneNo}
-          disabled={!isAdmin}
+          onChange={(e) =>
+            setSenderDetails({ ...senderDetails, phoneNo: e.target.value })
+          }
         />
         <TextField
           label="Sender's Address (Optional)"
           value={senderDetails.address || ""}
-          onChange={(e) => setSenderDetails({ ...senderDetails, address: e.target.value })}
-          disabled={!isAdmin}
+          onChange={(e) =>
+            setSenderDetails({ ...senderDetails, address: e.target.value })
+          }
         />
 
         {/* Receiver Details */}
         <TextField
           label="Receiver's Name"
           value={receiverDetails.name || ""}
-          onChange={(e) => setReceiverDetails({ ...receiverDetails, name: e.target.value })}
-          error={error && !receiverDetails.name}
-          disabled={!isAdmin}
+          onChange={(e) =>
+            setReceiverDetails({ ...receiverDetails, name: e.target.value })
+          }
         />
         <TextField
           label="Receiver's Phone No."
           value={receiverDetails.phoneNo || ""}
-          onChange={(e) => setReceiverDetails({ ...receiverDetails, phoneNo: e.target.value })}
-          error={error && !receiverDetails.phoneNo}
-          disabled={!isAdmin}
+          onChange={(e) =>
+            setReceiverDetails({ ...receiverDetails, phoneNo: e.target.value })
+          }
         />
         <TextField
           label="Receiver's Address"
           value={receiverDetails.address || ""}
-          onChange={(e) => setReceiverDetails({ ...receiverDetails, address: e.target.value })}
-          error={error && !receiverDetails.address}
-          disabled={!isAdmin}
+          onChange={(e) =>
+            setReceiverDetails({ ...receiverDetails, address: e.target.value })
+          }
         />
 
         <TextField
           label="Charges"
-          type="number"
+          type="text"
           value={charges}
           onChange={(e) => setCharges(parseInt(e.target.value) || 0)}
-          error={error && charges === 0}
         />
 
         {/* Warehouse Selection */}
@@ -234,12 +267,17 @@ export default function EditOrderPage() {
           <FormControl>
             <InputLabel>Source Warehouse</InputLabel>
             <Select
+              label="Source Warehouse"
               value={sourceWarehouse}
               onChange={(e) => setSourceWarehouse(e.target.value)}
             >
-              {allWarehouse.filter(w => w.isSource).map(w => (
-                <MenuItem key={w.warehouseID} value={w.warehouseID}>{w.name}</MenuItem>
-              ))}
+              {allWarehouse
+                .filter((w) => w.isSource)
+                .map((w) => (
+                  <MenuItem key={w.warehouseID} value={w.warehouseID}>
+                    {w.name}
+                  </MenuItem>
+                ))}
             </Select>
           </FormControl>
         )}
@@ -247,127 +285,159 @@ export default function EditOrderPage() {
         <FormControl>
           <InputLabel>Destination Warehouse</InputLabel>
           <Select
+            label="Destination Warehouse"
             value={destinationWarehouse}
             onChange={(e) => setDestinationWarehouse(e.target.value)}
-            disabled={!isAdmin}
           >
-            {allWarehouse.filter(w => !w.isSource).map(w => (
-              <MenuItem key={w.warehouseID} value={w.warehouseID}>{w.name}</MenuItem>
-            ))}
+            {allWarehouse
+              .filter((w) => !w.isSource)
+              .map((w) => (
+                <MenuItem key={w.warehouseID} value={w.warehouseID}>
+                  {w.name}
+                </MenuItem>
+              ))}
           </Select>
         </FormControl>
+        {isAdmin ? (
+          <FormControl>
+            <InputLabel>Status</InputLabel>
+            <Select
+              label="Status"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <MenuItem key="arrived" value="arrived">
+                Arrived
+              </MenuItem>
+              <MenuItem key="dispatched" value="dispatched">
+                Dispatched
+              </MenuItem>
+              <MenuItem key="delivered" value="delivered">
+                Delivered
+              </MenuItem>
+            </Select>
+          </FormControl>
+        ) : null}
       </Box>
 
       <Box sx={{ marginTop: "30px" }}>
-        <Typography variant="h6" sx={{ marginBottom: "10px", textAlign: "center", color: "#25344e", fontWeight: "bold" }}>
+        <Typography
+          variant="h6"
+          sx={{
+            marginBottom: "10px",
+            textAlign: "center",
+            color: "#25344e",
+            fontWeight: "bold",
+          }}
+        >
           Old Items
         </Typography>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>Item ID</TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>Item Name</TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>Quantity</TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>Status</TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Item No
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Item Name
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Quantity
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Action
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {oldItems.map((item) => (
-              <TableRow key={item.itemId}>
-                <TableCell>{item.itemId}</TableCell>
+            {oldItems.map((item, idx) => (
+              <TableRow key={idx}>
+                <TableCell>{idx + 1}</TableCell>
+                <TableCell>{item.name}</TableCell>
+                <TableCell>{item.quantity}</TableCell>
                 <TableCell>
-                  {isAdmin ? (
-                    <TextField
-                      value={item.name}
-                      onChange={(e) => handleOldItemChange(item.itemId, "name", e.target.value)}
-                      variant="outlined"
-                      size="small"
-                      sx={{ maxWidth: "150px" }}
-                    />
-                  ) : (
-                    item.name
-                  )}
-                </TableCell>
-                <TableCell>
-                  {isAdmin ? (
-                    <TextField
-                      type="number"
-                      value={item.quantity}
-                      onChange={(e) => handleOldItemChange(item.itemId, "quantity", e.target.value)}
-                      variant="outlined"
-                      size="small"
-                      sx={{ maxWidth: "80px" }}
-                    />
-                  ) : (
-                    item.quantity
-                  )}
-                </TableCell>
-                <TableCell sx={{ rowCellStyle }}>
-                  {isAdmin ? (
-                    <FormControl sx={{ minWidth: "130px", maxWidth: "150px" }}>
-                      <Select
-                        value={item.status}
-                        onChange={(e) => handleStatusChange(item.itemId, e.target.value)}
-                        size="small"
-                        displayEmpty
-                      >
-                        <MenuItem value="arrived">Arrived</MenuItem>
-                        <MenuItem value="dispatched">Shipped</MenuItem>
-                        <MenuItem value="delivered">Delivered</MenuItem>
-                      </Select>
-                    </FormControl>
-                  ) : (
-                    <span className={`table-status ${item.status}`}>
-                      {item.status}
-                    </span>
-                  )}
+                  <IconButton color="error" onClick={() => handleDelete(item)}>
+                    <Delete />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
 
-        <Typography variant="h6" sx={{ marginTop: "20px", marginBottom: "10px", textAlign: "center", color: "#25344e", fontWeight: "bold" }}>
+        <Typography
+          variant="h6"
+          sx={{
+            marginTop: "20px",
+            marginBottom: "10px",
+            textAlign: "center",
+            color: "#25344e",
+            fontWeight: "bold",
+          }}
+        >
           Add New Items
         </Typography>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>Sl. No.</TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>Item Name</TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>Quantity</TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>Actions</TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Sl. No.
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Item Name
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Quantity
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Actions
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {newItems.map((item) => (
+            {newItems.map((item, idx) => (
               <TableRow key={item.itemId}>
-                <TableCell>{item.itemId}</TableCell>
+                <TableCell>{idx + 1}</TableCell>
                 <TableCell>
                   <TextField
                     value={item.name}
-                    onChange={(e) => handleInputChange(item.itemId, "name", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange(item.itemId, "name", e.target.value)
+                    }
                     placeholder="Enter Item Name"
                     variant="outlined"
                     size="small"
+                    error={error && !item.name}
                     fullWidth
                   />
                 </TableCell>
                 <TableCell>
                   <TextField
-                    type="number"
+                    type="text"
                     value={item.quantity}
-                    onChange={(e) => handleInputChange(item.itemId, "quantity", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange(
+                        item.itemId,
+                        "quantity",
+                        parseInt(e.target.value) || 0
+                      )
+                    }
                     variant="outlined"
                     size="small"
                     fullWidth
                   />
                 </TableCell>
                 <TableCell>
-                  <IconButton color="primary" onClick={() => handleCopyRow(item.itemId)}>
+                  <IconButton
+                    color="primary"
+                    onClick={() => handleCopyRow(item.itemId)}
+                  >
                     <FaCopy />
                   </IconButton>
-                  <IconButton color="secondary" onClick={() => handleRemoveRow(item.itemId)}>
+                  <IconButton
+                    color="secondary"
+                    onClick={() => handleRemoveRow(item.itemId)}
+                  >
                     <FaTrash />
                   </IconButton>
                 </TableCell>
@@ -385,7 +455,8 @@ export default function EditOrderPage() {
 
       <Box sx={{ textAlign: "center", marginTop: "30px" }}>
         <button className="button button-large" onClick={handleSaveChanges}>
-          <FaSave style={{ marginRight: "8px" }} />Save Changes
+          <FaSave style={{ marginRight: "8px" }} />
+          Save Changes
         </button>
         <Modal open={saveModalOpen} onClose={handleCloseSaveModal}>
           <Box
@@ -403,18 +474,40 @@ export default function EditOrderPage() {
           >
             <Typography
               variant="h6"
-              sx={{ marginBottom: "16px", textAlign: "center", color: "#ffc107" }}
+              sx={{
+                marginBottom: "16px",
+                textAlign: "center",
+                color: "#ffc107",
+              }}
             >
-              <FaExclamationTriangle style={{marginRight: "8px"  }} /> Confirm Save
+              <FaExclamationTriangle style={{ marginRight: "8px" }} /> Confirm
+              Save
             </Typography>
-            <Typography sx={{ marginBottom: "16px", textAlign: "center", color: "#1E3A5F" }}>
+            <Typography
+              sx={{
+                marginBottom: "16px",
+                textAlign: "center",
+                color: "#1E3A5F",
+              }}
+            >
               Are you sure you want to save the changes?
             </Typography>
-            <Box sx={{ display: "flex", justifyContent: "center", gap: "16px" }}>
-              <Button variant="outlined" color="primary" onClick={handleCloseSaveModal}>
+            <Box
+              sx={{ display: "flex", justifyContent: "center", gap: "16px" }}
+            >
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={handleCloseSaveModal}
+              >
                 Cancel
               </Button>
-              <Button variant="contained" color="primary" startIcon={<FaSave style={{ marginRight: "8px" }} />} onClick={confirmSave}>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<FaSave style={{ marginRight: "8px" }} />}
+                onClick={confirmSave}
+              >
                 Confirm
               </Button>
             </Box>

@@ -61,11 +61,11 @@ const AllOrderPage = () => {
 
       const data = await response.json();
       console.log(data);
-      // if (!data.flag){
-      //   alert("Please login first");
-      //   return;
-      // }
-      setOrders(data);
+      if (!data.flag){
+        alert("Please login first");
+        return;
+      }
+      setOrders(data.body);
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
@@ -196,10 +196,10 @@ const AllOrderPage = () => {
                     {order.trackingId}
                   </TableCell>
                   <TableCell sx={{ color: "#25344E" }}>
-                    {order.sender.name}
+                    {order.sender.name? order.sender.name : "NA" }
                   </TableCell>
                   <TableCell sx={{ color: "#25344E" }}>
-                    {order.receiver.name}
+                    {order.receiver.name? order.receiver.name : "NA" }
                   </TableCell>
 
                   {isAdmin ? (<>

@@ -73,7 +73,7 @@ export default function AddOrderPage({ }) {
 
   const handleInputChange = (id, field, value) => {
     if (field === "quantity") {
-      value = parseInt(value);
+      value = parseInt(value) || 0;
     }
     const updatedItems = items.map((item) =>
       item.id === id ? { ...item, [field]: value } : item
@@ -83,9 +83,7 @@ export default function AddOrderPage({ }) {
 
 
   const validateOrder = () => {
-    if (!senderDetails.name || !senderDetails.phoneNo ||
-      !receiverDetails.name || !receiverDetails.phoneNo ||
-      !receiverDetails.address || !destinationWarehouse || (isAdmin && !sourceWarehouse) || charges === 0) {
+    if (!destinationWarehouse || (isAdmin && !sourceWarehouse)) {
       return false;
     }
     if (items.length === 0 || items.some(item => !item.name || !item.quantity)) {
@@ -112,7 +110,7 @@ export default function AddOrderPage({ }) {
         items: items,
         destinationWarehouse: destinationWarehouse,
         charges: charges,
-        sourceWarehouse: isAdmin ? sourceWarehouse : null
+        ...(isAdmin ? {sourceWarehouse} : {})
       }),
     })
       .then((response) => {
@@ -120,11 +118,15 @@ export default function AddOrderPage({ }) {
           alert("Error occurred");
         } else {
           alert("Order Added Successfully");
-          return response.json();
         }
+        return response.json();
       })
       .then((data) => {
-        navigate(`/user/view/order/${data.body.trackingId}`);
+        if (data.flag){
+          alert("Error occurred");
+        }
+        console.log(data);
+        navigate(`/user/view/order/${data.body}`);
       });
   };
 
@@ -172,7 +174,7 @@ export default function AddOrderPage({ }) {
         />
         <TextField
           label="Charges"
-          type="number"
+          type="text"
           value={charges}
           onChange={(e) => setCharges(parseInt(e.target.value) || 0)}
           error={error && charges === 0}
@@ -180,6 +182,7 @@ export default function AddOrderPage({ }) {
         <FormControl>
           <InputLabel>Destination Warehouse</InputLabel>
           <Select
+            label="Destination Warehouse"
             value={destinationWarehouse}
             onChange={(e) => setDestinationWarehouse(e.target.value)}
             error={error && !destinationWarehouse}
@@ -193,6 +196,7 @@ export default function AddOrderPage({ }) {
           <FormControl>
             <InputLabel>Source Warehouse</InputLabel>
             <Select
+            label="Source Warehouse"
               value={sourceWarehouse}
               onChange={(e) => setSourceWarehouse(e.target.value)}
               error={error && !sourceWarehouse}
@@ -260,7 +264,7 @@ export default function AddOrderPage({ }) {
                 </TableCell>
                 <TableCell>
                   <TextField
-                    type="number"
+                    type="text"
                     value={item.quantity}
                     onChange={(e) =>
                       handleInputChange(item.id, "quantity", e.target.value)

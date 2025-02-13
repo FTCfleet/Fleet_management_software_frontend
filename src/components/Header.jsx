@@ -89,7 +89,7 @@ const Header = () => {
           >
             <img src={logoImg} height="50px"></img>
           </Link>
-          <button onClick={checkAuthStatus}>Check</button>
+          <button style={{color:"red"}} onClick={checkAuthStatus}>Check</button>
         </Box>
         <HeaderTabs isDashboard={location.pathname.startsWith("/user/")} />
       </AppBar>

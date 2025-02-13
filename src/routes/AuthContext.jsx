@@ -19,11 +19,12 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = async () => {
     let user_data = {};
     const token = localStorage.getItem("token");
-    if (!token) {
-      setIsLoggedIn(false);
-      return { flag: false, user_data: user_data };
-    }
+    console.log(token);
     try {
+      if (!token) {
+        setIsLoggedIn(false);
+        throw new Error("Not Logged In");
+      }
       const response = await fetch(`${BASE_URL}/api/auth/status`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -53,7 +54,6 @@ export const AuthProvider = ({ children }) => {
 
   const resetAuth = () => {
     localStorage.removeItem("token");
-    // localStorage.removeItem('user');
     setIsLoggedIn(false);
     location.pathname = "/auth/login";
   };

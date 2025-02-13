@@ -39,8 +39,8 @@ const UserTemplate = () => {
           icon: <FaRegFileAlt />,
         },
         {
-          text: "Partial Orders",
-          path: "/user/order/partial",
+          text: "Dispatched Orders",
+          path: "/user/order/dispatched",
           icon: <FaRegFileAlt />,
         },
         {
