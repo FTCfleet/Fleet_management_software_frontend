@@ -15,8 +15,11 @@ import {
   TextField,
   ToggleButtonGroup,
   ToggleButton,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { Edit, Delete, Close, Warning } from "@mui/icons-material";
+import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
 import "../css/main.css";
 
 const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
@@ -60,9 +63,6 @@ export default function AllWarehousePage() {
   const applyFilter = () => {
     const filtered = warehouses.filter((warehouse) => {
       return (
-        (nameFilter
-          ? warehouse.name.toLowerCase().includes(nameFilter.toLowerCase())
-          : true) &&
         (warehouseFilter
           ? warehouse.warehouseID
             .toLowerCase()
@@ -176,20 +176,20 @@ export default function AllWarehousePage() {
 
       {/* Filters */}
       <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
-        <TextField
-          label="Search by Warehouse Name"
-          value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
-          variant="outlined"
-          size="small"
-        />
-        <TextField
-          label="Search by Warehouse Code"
+        <Select
           value={warehouseFilter}
           onChange={(e) => setWarehouseFilter(e.target.value)}
-          variant="outlined"
+          displayEmpty
           size="small"
-        />
+          sx={{ minWidth: "250px" }}
+        >
+          <MenuItem value="">All Warehouses</MenuItem>
+          {warehouses.map((warehouse) => (
+            <MenuItem key={warehouse.warehouseID} value={warehouse.warehouseID}>
+              {warehouse.name}
+            </MenuItem>
+          ))}
+        </Select>
         <Button variant="contained" color="primary" onClick={applyFilter}>
           Apply Filter
         </Button>
@@ -358,42 +358,55 @@ export default function AllWarehousePage() {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 300,
+            width: 350,
             bgcolor: "background.paper",
-            borderRadius: 2,
+            borderRadius: 3,
             boxShadow: 24,
             p: 4,
+            textAlign: "center",
           }}
         >
+          <FaExclamationTriangle
+            style={{
+              color: "#d32f2f",
+              fontSize: "36px",
+              marginBottom: "12px",
+            }}
+          />
           <Typography
             variant="h6"
-            sx={{ marginBottom: "14px", textAlign: "center", color: "#d32f2f" }}
+            sx={{
+              fontWeight: "bold",
+              marginBottom: "12px",
+              color: "#d32f2f",
+            }}
           >
-            <Warning
-              sx={{ marginRight: 1, marginBottom: -0.5, fontSize: "24px" }}
-            />
-            Confirm Deletion
+            Delete Warehouse
           </Typography>
           <Typography
-            sx={{ marginBottom: "16px", textAlign: "center", color: "#1E3A5F" }}
+            sx={{
+              marginBottom: "20px",
+              color: "#374151",
+              fontSize: "15px",
+            }}
           >
-            Are you sure you want to delete this warehouse?
+            This action cannot be undone. Are you sure you want to proceed?
           </Typography>
-          <Box sx={{ display: "flex", justifyContent: "center", gap: "16px" }}>
+          <Box sx={{ display: "flex", justifyContent: "center", gap: "12px" }}>
             <Button
               variant="outlined"
-              color="primary"
+              sx={{ borderColor: "#1E3A5F", color: "#1E3A5F" }}
               onClick={handleCloseDeleteModal}
             >
               Cancel
             </Button>
             <Button
               variant="contained"
-              color="error"
-              startIcon={<Delete />}
+              sx={{ backgroundColor: "#d32f2f" }}
+              startIcon={<FaTrash />}
               onClick={confirmDelete}
             >
-              Confirm
+              Delete
             </Button>
           </Box>
         </Box>

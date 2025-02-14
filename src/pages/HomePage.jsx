@@ -170,6 +170,12 @@ const HomePage = () => {
                 width: "clamp(200px, 30%, 400px)", // Responsive width
                 boxSizing: "border-box",
                 boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",  // Centers content vertically
+                alignItems: "center",      // Centers content horizontally
+                minHeight: "100px",  
               }}
             >
               <div

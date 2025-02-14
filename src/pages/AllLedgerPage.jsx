@@ -11,6 +11,8 @@ import {
   TableHead,
   TableRow,
   Paper,
+  MenuItem,
+  Select,
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import { FiSearch } from "react-icons/fi";
@@ -24,13 +26,16 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 const AllLedgerPage = () => {
   const { type } = useParams(); // Retrieve the type (all, outgoing, incoming, etc.) from the URL
   const [ledgerEntries, setLedgerEntries] = useState([]); // All ledger entries
-  const [filteredLedger, setFilteredLedger] = useState([]); // Filtered ledger entries
-  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredLedger, setFilteredLedger] = useState([]);
   const [selectedDate, setSelectedDate] = useState(
-    () => new Date().toISOString().split("T")[0]
-  ); // Default to today
+      () => new Date().toISOString().split("T")[0]
+    );
   const navigate = useNavigate();
   const { isAdmin, isSource } = useAuth();
+  const [phoneFilter, setPhoneFilter] = useState("");
+  const [warehouseFilter, setWarehouseFilter] = useState("");
+  const [warehouses, setWarehouses] = useState([]);
+
 
   useEffect(() => {
     fetchData();
@@ -60,6 +65,16 @@ const AllLedgerPage = () => {
 
       const data = await response.json();
       setLedgerEntries(data.body);
+      const res = await fetch(`${BASE_URL}/api/admin/get-all-warehouses`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data2 = await res.json();
+      console.log(data2);
+      setWarehouses(data2.body);
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
@@ -75,21 +90,41 @@ const AllLedgerPage = () => {
   };
 
   const handleDateChange = (event) => {
-    const date = event.target.value;
-    setSelectedDate(date);
-    filterLedgersByTypeAndDate(type);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    const newDate = new Date(event.target.value);
+    if (newDate <= today) {
+      const date = newDate.toISOString().split("T")[0];
+      setSelectedDate(date);
+      filterLedgersByTypeAndDate(type);
+    }
   };
 
-  const handleSearchChange = (event) => {
-    const term = event.target.value.toLowerCase();
-    setSearchTerm(term);
-    const filteredBySearch = filteredLedger.filter(
-      (entry) =>
-        entry.vehicleNo.toLowerCase().includes(term) ||
-        entry.destinationWarehouse.toLowerCase().includes(term) ||
-        entry.ledgerId.toString().includes(term)
-    );
-    setFilteredLedger(filteredBySearch);
+  const applyFilter = () => {
+    let filtered = ledgerEntries.filter((order) => order.status === type || type === "all");
+
+    if (phoneFilter) {
+      filtered = filtered.filter(
+        (order) =>
+          order.vehicleNo.toLowerCase().includes(phoneFilter.toLowerCase())
+      );
+    }
+    if (warehouseFilter) {
+      filtered = filtered.filter(
+        (order) =>
+          order.sourceWarehouse.warehouseID.toLowerCase().includes(warehouseFilter.toLowerCase()) ||
+          order.destinationWarehouse.warehouseID.toLowerCase().includes(warehouseFilter.toLowerCase())
+      );
+    }
+    console.log(filtered);
+    setFilteredLedger(filtered);
+  };
+
+  const clearFilter = () => {
+    setPhoneFilter("");
+    setWarehouseFilter("");
+    let filtered = orders.filter((order) => order.status === type || type === "all");
+    setFilteredLedger(filtered);
   };
 
   return (
@@ -116,46 +151,42 @@ const AllLedgerPage = () => {
           alignItems: "center",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <AiOutlineCalendar size={24} color="#82ACC2" />
-          <TextField
+        <Box className="calendar-input">
+          <input
             type="date"
+            onFocus={(e) => e.target.showPicker()}
+            onKeyDown={(e) => e.preventDefault()}
             value={selectedDate}
             onChange={handleDateChange}
-            sx={{
-              backgroundColor: "#ffffff",
-              borderRadius: "5px",
-              "& .MuiInputBase-input": {
-                color: "#25344E",
-              },
-            }}
           />
         </Box>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            flexGrow: 1,
-          }}
-        >
-          <FiSearch size={24} color="#82ACC2" />
+        <Box sx={{ display: "flex", gap: "10px" }}>
           <TextField
-            placeholder="Search ledger entries..."
-            fullWidth
-            value={searchTerm}
-            onChange={handleSearchChange}
-            sx={{
-              backgroundColor: "#ffffff",
-              borderRadius: "5px",
-              "& .MuiInputBase-input": {
-                color: "#25344E",
-              },
-              "& .MuiInputBase-input::placeholder": {
-                color: "#7D8695",
-              },
-            }}
+            label="Search by Vehicle No"
+            value={phoneFilter}
+            onChange={(e) => setPhoneFilter(e.target.value)}
+            variant="outlined"
+            size="small"
           />
+          <Select
+            value={warehouseFilter}
+            onChange={(e) => setWarehouseFilter(e.target.value)}
+            displayEmpty
+            size="small"
+          >
+            <MenuItem value="">All Warehouses</MenuItem>
+            {warehouses.map((warehouse) => (
+              <MenuItem key={warehouse.warehouseID} value={warehouse.warehouseID}>
+                {warehouse.name}
+              </MenuItem>
+            ))}
+          </Select>
+          <Button variant="contained" color="primary" onClick={applyFilter}>
+            Apply Filter
+          </Button>
+          <Button variant="outlined" color="secondary" onClick={clearFilter}>
+            Clear Filter
+          </Button>
         </Box>
       </Box>
 

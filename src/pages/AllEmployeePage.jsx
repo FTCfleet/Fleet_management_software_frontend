@@ -16,7 +16,8 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import { Edit, Delete, Close, Warning } from "@mui/icons-material";
+import { Edit, Delete, Close } from "@mui/icons-material";
+import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
 
 const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
 const rowStyle = { color: "#25344E" };
@@ -111,7 +112,7 @@ const AllEmployeePage = () => {
         username: employeeToDelete
       }),
     });
-  
+
     const data = await res.json();
     console.log(data);
     fetchData();
@@ -325,42 +326,55 @@ const AllEmployeePage = () => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 300,
+            width: 350,
             bgcolor: "background.paper",
-            borderRadius: 2,
+            borderRadius: 3,
             boxShadow: 24,
             p: 4,
+            textAlign: "center",
           }}
         >
+          <FaExclamationTriangle
+            style={{
+              color: "#d32f2f",
+              fontSize: "36px",
+              marginBottom: "12px",
+            }}
+          />
           <Typography
             variant="h6"
-            sx={{ marginBottom: "16px", textAlign: "center", color: "#d32f2f" }}
+            sx={{
+              fontWeight: "bold",
+              marginBottom: "12px",
+              color: "#d32f2f",
+            }}
           >
-            <Warning
-              sx={{ marginRight: 1, marginBottom: -0.5, fontSize: "24px" }}
-            />
-            Confirm Deletion
+            Delete Employee
           </Typography>
           <Typography
-            sx={{ marginBottom: "16px", textAlign: "center", color: "#1E3A5F" }}
+            sx={{
+              marginBottom: "20px",
+              color: "#374151",
+              fontSize: "15px",
+            }}
           >
-            Are you sure you want to delete this employee?
+            This action cannot be undone. Are you sure you want to proceed?
           </Typography>
-          <Box sx={{ display: "flex", justifyContent: "center", gap: "16px" }}>
+          <Box sx={{ display: "flex", justifyContent: "center", gap: "12px" }}>
             <Button
               variant="outlined"
-              color="primary"
+              sx={{ borderColor: "#1E3A5F", color: "#1E3A5F" }}
               onClick={handleCloseDeleteModal}
             >
               Cancel
             </Button>
             <Button
               variant="contained"
-              color="error"
-              startIcon={<Delete />}
+              sx={{ backgroundColor: "#d32f2f" }}
+              startIcon={<FaTrash />}
               onClick={confirmDelete}
             >
-              Confirm
+              Delete
             </Button>
           </Box>
         </Box>

@@ -14,6 +14,7 @@ import {
   Select,
   FormControl,
   InputLabel,
+  CircularProgress,
 } from "@mui/material";
 import { FaCopy, FaTrash, FaPlus } from "react-icons/fa";
 import "../css/main.css";
@@ -25,14 +26,15 @@ export default function AddOrderPage({ }) {
   const { id } = useParams();
   const [items, setItems] = useState([]);
   const [counter, setCounter] = useState(1);
-  const [senderDetails, setSenderDetails] = useState({ role: "sender" });
-  const [receiverDetails, setReceiverDetails] = useState({ role: "receiver" });
+  const [senderDetails, setSenderDetails] = useState({ name: "NA", phoneNo: "NA", address: "NA", role: "sender" });
+  const [receiverDetails, setReceiverDetails] = useState({ name: "NA", phoneNo: "NA", address: "NA", role: "receiver" });
   const [error, setError] = useState(false);
   const [charges, setCharges] = useState(0);
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const { isAdmin } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -83,6 +85,7 @@ export default function AddOrderPage({ }) {
 
 
   const validateOrder = () => {
+    console.log(senderDetails);
     if (!destinationWarehouse || (isAdmin && !sourceWarehouse)) {
       return false;
     }
@@ -97,37 +100,38 @@ export default function AddOrderPage({ }) {
       setError(true);
       return;
     }
-    const token = localStorage.getItem("token");
-    await fetch(`${BASE_URL}/api/parcel/new`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        senderDetails: senderDetails,
-        receiverDetails: receiverDetails,
-        items: items,
-        destinationWarehouse: destinationWarehouse,
-        charges: charges,
-        ...(isAdmin ? {sourceWarehouse} : {})
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          alert("Error occurred");
-        } else {
-          alert("Order Added Successfully");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (data.flag){
-          alert("Error occurred");
-        }
-        console.log(data);
-        navigate(`/user/view/order/${data.body}`);
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${BASE_URL}/api/parcel/new`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          senderDetails,
+          receiverDetails,
+          items,
+          destinationWarehouse,
+          charges,
+          ...(isAdmin ? { sourceWarehouse } : {}),
+        }),
       });
+
+      const data = await response.json();
+      if (!response.ok || data.flag) {
+        alert("Error occurred");
+      } else {
+        alert("Order Added Successfully");
+        navigate(`/user/view/order/${data.body}`);
+      }
+    } catch (error) {
+      console.error("Error adding order:", error);
+      alert("Network error occurred");
+    } finally {
+      setIsLoading(false); // Stop loading spinner
+    }
   };
 
   return (
@@ -141,13 +145,11 @@ export default function AddOrderPage({ }) {
           label="Sender's Name"
           name="name"
           onChange={(e) => setSenderDetails({ ...senderDetails, name: e.target.value })}
-          error={error && !senderDetails.name}
         />
         <TextField
           label="Sender's Phone No."
           name="phoneNo"
           onChange={(e) => setSenderDetails({ ...senderDetails, phoneNo: e.target.value })}
-          error={error && !senderDetails.phoneNo}
         />
         <TextField
           label="Sender's Address (Optional)"
@@ -158,26 +160,22 @@ export default function AddOrderPage({ }) {
           label="Receiver's Name"
           name="name"
           onChange={(e) => setReceiverDetails({ ...receiverDetails, name: e.target.value })}
-          error={error && !receiverDetails.name}
         />
         <TextField
           label="Receiver's Phone No."
           name="phoneNo"
           onChange={(e) => setReceiverDetails({ ...receiverDetails, phoneNo: e.target.value })}
-          error={error && !receiverDetails.phoneNo}
         />
         <TextField
           label="Receiver's Address"
           name="address"
           onChange={(e) => setReceiverDetails({ ...receiverDetails, address: e.target.value })}
-          error={error && !receiverDetails.address}
         />
         <TextField
           label="Charges"
           type="text"
           value={charges}
           onChange={(e) => setCharges(parseInt(e.target.value) || 0)}
-          error={error && charges === 0}
         />
         <FormControl>
           <InputLabel>Destination Warehouse</InputLabel>
@@ -196,7 +194,7 @@ export default function AddOrderPage({ }) {
           <FormControl>
             <InputLabel>Source Warehouse</InputLabel>
             <Select
-            label="Source Warehouse"
+              label="Source Warehouse"
               value={sourceWarehouse}
               onChange={(e) => setSourceWarehouse(e.target.value)}
               error={error && !sourceWarehouse}
@@ -307,11 +305,20 @@ export default function AddOrderPage({ }) {
         </Box>
       </Box>
 
-      <Box sx={{ textAlign: "center", marginTop: "30px" }}>
-        <button className="button button-large" onClick={handleAddOrder}>
+      <Box className="button-wrapper">
+        <button className="button button-large" onClick={handleAddOrder} disabled={isLoading}>
           Add Order
+          {isLoading && (
+            <CircularProgress
+              size={22}
+              className="spinner"
+              sx={{ color: "#fff", animation: "none !important" }}
+            />
+          )}
         </button>
       </Box>
+
+
     </Box>
   );
 }

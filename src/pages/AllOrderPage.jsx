@@ -11,10 +11,10 @@ import {
   TableHead,
   TableRow,
   Paper,
+  MenuItem,
+  Select,
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
-import { FiSearch } from "react-icons/fi";
-import { AiOutlineCalendar } from "react-icons/ai";
 import "../css/table.css"; // Import CSS
 import "../css/calendar.css"; // Import Calendar CSS
 import { IoArrowForwardCircleOutline } from "react-icons/io5"; // Icon for View Ledger
@@ -25,11 +25,11 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 const AllOrderPage = () => {
   const { type } = useParams(); // Retrieve the type (all, dispatched, etc.) from the URL
   const [orders, setOrders] = useState([]); // All orders
-  const [filteredOrders, setFilteredOrders] = useState([]); // Orders filtered by date or type
-  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredOrders, setFilteredOrders] = useState([]);
   const [selectedDate, setSelectedDate] = useState(
     () => new Date().toISOString().split("T")[0]
   );
+  const [warehouses, setWarehouses] = useState([]);
   const { isSource, isAdmin } = useAuth();
   const [nameFilter, setNameFilter] = useState("");
   const [warehouseFilter, setWarehouseFilter] = useState("");
@@ -70,6 +70,16 @@ const AllOrderPage = () => {
         return;
       }
       setOrders(data.body);
+      const res = await fetch(`${BASE_URL}/api/admin/get-all-warehouses`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data2 = await res.json();
+      console.log(data2);
+      setWarehouses(data2.body);
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
@@ -169,13 +179,20 @@ const AllOrderPage = () => {
             variant="outlined"
             size="small"
           />
-          <TextField
-            label="Search by Warehouse Code"
-            value={warehouseFilter}
-            onChange={(e) => setWarehouseFilter(e.target.value)}
-            variant="outlined"
-            size="small"
-          />
+          <Select
+          value={warehouseFilter}
+          onChange={(e) => setWarehouseFilter(e.target.value)}
+          displayEmpty
+          size="small"
+          sx={{ minWidth: "250px" }}
+        >
+          <MenuItem value="">All Warehouses</MenuItem>
+          {warehouses.map((warehouse) => (
+            <MenuItem key={warehouse.warehouseID} value={warehouse.warehouseID}>
+              {warehouse.name}
+            </MenuItem>
+          ))}
+        </Select>
           <Button variant="contained" color="primary" onClick={applyFilter}>
             Apply Filter
           </Button>

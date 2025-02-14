@@ -3,6 +3,7 @@ import styles from "../css/auth_card.module.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../routes/AuthContext";
+import { CircularProgress } from "@mui/material";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -10,6 +11,7 @@ const LoginPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [passwordVal, setpasswordVal] = useState("");
   const [userVal, setuserVal] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { resetForgetAuth } = useAuth();
   const navigate = useNavigate();
 
@@ -22,6 +24,7 @@ const LoginPage = () => {
   }, []);
 
   const handleLogin = async (event) => {
+    setIsLoading(true);
     event.preventDefault();
     try {
       const response = await fetch(`${BASE_URL}/api/auth/login`, {
@@ -49,12 +52,14 @@ const LoginPage = () => {
       }
     } catch (error) {
       alert("Login failed. Please try again. "+error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div>
-      <h1 className={styles.heading}>Welcome back! Glad to see you, Again!</h1>
+      <h1 className={styles.heading}>Welcome back! <br></br> Glad to see you, Again!</h1>
       <form className={styles.form}>
         <input
           type="text"
@@ -92,7 +97,13 @@ const LoginPage = () => {
           </a>
         </div>
         <button className={styles.loginButton} onClick={handleLogin}>
-          Login
+          Login  {isLoading && (
+                      <CircularProgress
+                        size={18}
+                        className="spinner"
+                        sx={{ color: "#fff", animation: "none !important" }}
+                      />
+                    )}
         </button>
       </form>
     </div>

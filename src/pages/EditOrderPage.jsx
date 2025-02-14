@@ -16,6 +16,7 @@ import {
   InputLabel,
   Modal,
   Button,
+  CircularProgress,
 } from "@mui/material";
 import {
   FaCopy,
@@ -45,6 +46,7 @@ export default function EditOrderPage() {
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [error, setError] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
@@ -146,6 +148,7 @@ export default function EditOrderPage() {
   };
 
   const confirmSave = async () => {
+    setIsLoading(true);
     const token = localStorage.getItem("token");
 
     await fetch(`${BASE_URL}/api/parcel/edit/${id}`, {
@@ -166,13 +169,16 @@ export default function EditOrderPage() {
       }),
     }).then((response) => {
       if (!response.ok) {
+        setIsLoading(false);
         alert("Error occurred");
         return response.json();
       } else {
+        setIsLoading(false);
         alert("Order Updated Successfully");
         navigate(`/user/view/order/${id}`);
       }
-    }).then((data) => console.log(data)); // Replace with actual save logic
+    }).then((data) => console.log(data));
+    setIsLoading(false);
     handleCloseSaveModal();
   };
 
@@ -508,7 +514,13 @@ export default function EditOrderPage() {
                 startIcon={<FaSave style={{ marginRight: "8px" }} />}
                 onClick={confirmSave}
               >
-                Confirm
+                Confirm  {isLoading && (
+                  <CircularProgress
+                    size={15}
+                    className="spinner"
+                    sx={{ color: "#fff", animation: "none !important" }}
+                  />
+                )}
               </Button>
             </Box>
           </Box>

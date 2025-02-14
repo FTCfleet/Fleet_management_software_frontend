@@ -13,8 +13,7 @@ import {
   Popover,
 } from "@mui/material";
 import { Link } from "react-router-dom";
-import { FaDownload } from "react-icons/fa";
-import { FaCalendarAlt } from "react-icons/fa";
+import { FaDownload, FaCalendarAlt } from "react-icons/fa";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -31,22 +30,45 @@ export default function GenReportPage() {
   const [calendarAnchor, setCalendarAnchor] = useState(null);
   const [activeField, setActiveField] = useState(null);
 
+  const handleMonthAndYearChange = (newMonth, newYear) => {
+    setMonth(newMonth);
+    setYear(newYear);
+    const start = `01${newMonth.toString().padStart(2, "0")}${newYear}`;
+    const lastDay = new Date(newYear, newMonth, 0).getDate();
+    const end = `${lastDay}${newMonth.toString().padStart(2, "0")}${newYear}`;
+    setStartDate(start);
+    setEndDate(end);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}${month}${year}`;
+  };
+  
+
   const handleDateRangeChange = (event, newRange) => {
     if (newRange !== null) {
       setDateRange(newRange);
       switch (newRange) {
         case "today":
-          const today = new Date().toISOString().split("T")[0];
-          setStartDate(today);
-          setEndDate(today);
+          const today = new Date();
+          const formattedToday = `${today.getDate().toString().padStart(2, "0")}${(today.getMonth() + 1).toString().padStart(2, "0")}${today.getFullYear()}`;
+          setStartDate(formattedToday);
+          setEndDate(formattedToday);
           break;
         case "weekly":
-          setStartDate("");
-          setEndDate("");
+          const end = new Date();
+          const start = new Date();
+          start.setDate(end.getDate() - 6);
+          setStartDate(`${start.getDate().toString().padStart(2, "0")}${(start.getMonth() + 1).toString().padStart(2, "0")}${start.getFullYear()}`);
+          setEndDate(`${end.getDate().toString().padStart(2, "0")}${(end.getMonth() + 1).toString().padStart(2, "0")}${end.getFullYear()}`);
           break;
         case "monthly":
-          setMonth(new Date().getMonth() + 1);
-          setYear(new Date().getFullYear());
+          handleMonthAndYearChange(new Date().getMonth() + 1, new Date().getFullYear());
           break;
         case "custom":
           setStartDate("");
@@ -58,238 +80,95 @@ export default function GenReportPage() {
     }
   };
 
-  const formatDate = (dateString) => {
-    const [year, month, day] = dateString.split("-");
-    return `${day}${month}${year}`;
-  };
-
-  const validateFields = () => {
-    if (dateRange === "weekly" || dateRange === "custom") {
-      return startDate && endDate;
-    } else if (dateRange === "monthly") {
-      return month && year;
-    }
-    return true;
-  };
-
-  const openCalendar = (event, field) => {
-    setActiveField(field);
-    setCalendarAnchor(event.currentTarget);
-  };
-
-  const closeCalendar = () => {
-    setCalendarAnchor(null);
-  };
-
-  const handleDateSelect = (date) => {
-    const correctedDate = new Date(
-      date.getTime() + date.getTimezoneOffset() * 60000
-    )
-      .toISOString()
-      .split("T")[0];
-    if (activeField === "startDate") {
-      setStartDate(correctedDate);
-      if (dateRange === "weekly") {
-        const endDateForWeek = new Date(correctedDate);
-        endDateForWeek.setDate(endDateForWeek.getDate() + 6);
-        setEndDate(
-          endDateForWeek > new Date()
-            ? new Date().toISOString().split("T")[0]
-            : endDateForWeek.toISOString().split("T")[0]
-        );
-      }
-    } else if (activeField === "endDate") {
-      setEndDate(correctedDate);
-    }
-    closeCalendar();
-  };
-
-  const isDateRangeCustom = dateRange === "custom";
-  const isDateRangeWeekly = dateRange === "weekly";
-  const isDateRangeMonthly = dateRange === "monthly";
-
   return (
-    <div>
-      <Box
-        sx={{
-          maxWidth: 600,
-          margin: "0 auto",
-          padding: 7,
-        }}
+    <Box sx={{ maxWidth: 600, margin: "0 auto", padding: 5 }}>
+      <Typography variant="h4" sx={{ color: "#1E3A5F", fontWeight: "bold", textAlign: "center" }}>
+        Ledger Generation
+      </Typography>
+      <TextField
+        label="Truck Number"
+        variant="outlined"
+        fullWidth
+        margin="normal"
+        value={truckNo}
+        placeholder="Enter truck no."
+        onChange={(e) => setTruckNo(e.target.value)}
+      />
+      <ToggleButtonGroup
+        value={dateRange}
+        exclusive
+        onChange={handleDateRangeChange}
+        aria-label="date range"
+        sx={{ display: "flex", justifyContent: "center", marginBottom: 2 }}
       >
-        <Typography
-          gutterBottom
-          variant="h4"
-          sx={{
-            marginBottom: "20px",
-            color: "#1E3A5F",
-            fontWeight: "bold",
-          }}
-        >
-          Ledger Generation
-        </Typography>
+        <ToggleButton value="today">Today</ToggleButton>
+        <ToggleButton value="weekly">Weekly</ToggleButton>
+        <ToggleButton value="monthly">Monthly</ToggleButton>
+        <ToggleButton value="custom">Custom</ToggleButton>
+      </ToggleButtonGroup>
 
-        <TextField
-          label="Truck Number"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          value={truckNo}
-          placeholder="Enter truck no."
-          onChange={(e) => setTruckNo(e.target.value)}
-        />
+      {dateRange === "monthly" && (
+        <Box display="flex" gap={2} marginTop={2}>
+          <FormControl fullWidth>
+            <InputLabel id="month-label">Month</InputLabel>
+            <Select
+              label="Month"
+              labelId="month-label"
+              value={month}
+              onChange={(e) => handleMonthAndYearChange(e.target.value, year)}
+            >
+              {Array.from({ length: 12 }, (_, i) => (
+                <MenuItem key={i + 1} value={i + 1}>
+                  {new Date(0, i).toLocaleString("default", { month: "long" })}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-        <ToggleButtonGroup
-          value={dateRange}
-          exclusive
-          onChange={handleDateRangeChange}
-          aria-label="date range"
-          sx={{ marginTop: 2 }}
-        >
-          <ToggleButton value="today" aria-label="Today">
-            Today
-          </ToggleButton>
-          <ToggleButton value="weekly" aria-label="Weekly">
-            Weekly
-          </ToggleButton>
-          <ToggleButton value="monthly" aria-label="Monthly">
-            Monthly
-          </ToggleButton>
-          <ToggleButton value="custom" aria-label="Custom">
-            Custom
-          </ToggleButton>
-        </ToggleButtonGroup>
+          <FormControl fullWidth>
+            <InputLabel id="year-label">Year</InputLabel>
+            <Select
+              label="Year"
+              labelId="year-label"
+              value={year}
+              onChange={(e) => handleMonthAndYearChange(month, e.target.value)}
+            >
+              {Array.from({ length: new Date().getFullYear() - 1999 + 1 }, (_, i) => (
+                <MenuItem key={1999 + i} value={1999 + i}>
+                  {1999 + i}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+      )}
 
-        {dateRange === "today" && (
-          <Typography variant="body2" sx={{ marginTop: 2 }}>
-            Start and End Date: {startDate}
-          </Typography>
-        )}
-
-        {isDateRangeWeekly && (
-          <Box marginTop={2} display="flex" gap={2}>
-            <TextField
-              label="Start Date"
-              value={startDate || "dd-mm-yyyy"}
-              onClick={(e) => openCalendar(e, "startDate")}
-              sx={{ flex: 1, cursor: "pointer" }}
+      {dateRange === "custom" && (
+        <Box display="flex" justifyContent="center" gap={2} marginTop={2}>
+          <Box className="calendar-input">
+            <input
+              type="date"
+              onChange={(e) => setStartDate(formatDate(e.target.value))}
             />
-            <Popover
-              open={Boolean(calendarAnchor && activeField === "startDate")}
-              anchorEl={calendarAnchor}
-              onClose={closeCalendar}
-              anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-            >
-              <Calendar
-                onChange={handleDateSelect}
-                maxDate={new Date()}
-                className="custom-calendar"
-              />
-            </Popover>
           </Box>
-        )}
-
-        {isDateRangeMonthly && (
-          <Box display="flex" gap={2} marginTop={2}>
-            <FormControl fullWidth>
-              <InputLabel id="month-label">Month</InputLabel>
-              <Select
-                label="Month"
-                labelId="month-label"
-                value={month}
-                onChange={(e) => setMonth(e.target.value)}
-              >
-                {Array.from({ length: 12 }, (_, i) => (
-                  <MenuItem key={i + 1} value={i + 1}>
-                    {new Date(0, i).toLocaleString("default", {
-                      month: "long",
-                    })}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth>
-              <InputLabel id="year-label">Year</InputLabel>
-              <Select
-                label="Year"
-                labelId="year-label"
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-              >
-                {Array.from(
-                  { length: new Date().getFullYear() - 1999 + 1 },
-                  (_, i) => (
-                    <MenuItem key={1999 + i} value={1999 + i}>
-                      {1999 + i}
-                    </MenuItem>
-                  )
-                )}
-              </Select>
-            </FormControl>
-          </Box>
-        )}
-
-        {isDateRangeCustom && (
-          <Box marginTop={2} display="flex" gap={2}>
-            <TextField
-              label="Start Date"
-              value={startDate || "dd-mm-yyyy"}
-              onClick={(e) => openCalendar(e, "startDate")}
-              sx={{ flex: 1, cursor: "pointer" }}
+          <Box className="calendar-input">
+            <input
+              type="date"
+              onChange={(e) => setEndDate(formatDate(e.target.value))}
             />
-            <Popover
-              open={Boolean(calendarAnchor && activeField === "startDate")}
-              anchorEl={calendarAnchor}
-              onClose={closeCalendar}
-              anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-            >
-              <Calendar
-                onChange={handleDateSelect}
-                maxDate={new Date()}
-                className="custom-calendar"
-              />
-            </Popover>
-            <TextField
-              label="End Date"
-              value={endDate || "dd-mm-yyyy"}
-              onClick={(e) => openCalendar(e, "endDate")}
-              sx={{ flex: 1, cursor: "pointer" }}
-            />
-            <Popover
-              open={Boolean(calendarAnchor && activeField === "endDate")}
-              anchorEl={calendarAnchor}
-              onClose={closeCalendar}
-              anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-            >
-              <Calendar
-                onChange={handleDateSelect}
-                maxDate={new Date()}
-                className="custom-calendar"
-              />
-            </Popover>
           </Box>
-        )}
+        </Box>
+      )}
 
-        <Link
-          to={
-            `${BASE_URL}/api/ledger/generate-report/${formatDate(
-              startDate
-            )}${formatDate(endDate)}` + (truckNo ? `?vehicleNo=${truckNo}` : "")
-          }
-        >
-          <div className="button-wrapper">
-            <button
-              className="button"
-              color="primary"
-              disabled={!validateFields()}
-            >
-              <FaDownload style={{ marginRight: "8px" }} />
-              Download
-            </button>
-          </div>
-        </Link>
-      </Box>
-    </div>
+      <Link
+        to={`${BASE_URL}/api/ledger/generate-report/${startDate}${endDate}${truckNo ? `?vehicleNo=${truckNo}` : ""
+          }`}
+        style={{ textDecoration: "none" }}
+      >
+        <button className="button button-large" disabled={!startDate || !endDate}>
+          <FaDownload /> Download
+        </button>
+      </Link>
+    </Box>
   );
 }

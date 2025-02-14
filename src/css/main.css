@@ -4,7 +4,6 @@
     justify-content: center;
     padding: 10px 20px;
     background-color: #1E3A5F;
-    /* Updated background color */
     color: #ffffff;
     font-size: 14px;
     font-weight: bold;
@@ -14,14 +13,25 @@
     text-transform: none;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.15), 0px 4px 10px rgba(0, 0, 0, 0.1);
+    gap: 8px; /* Proper spacing */
 }
 
 .button:hover {
     background-color: #25344e;
-    /* Updated hover background color */
     box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2), 0px 6px 14px rgba(0, 0, 0, 0.15);
-    /* Increased shadow on hover */
 }
+
+.button-large {
+    padding: 12px 24px;
+    font-size: 16px;
+}
+
+.button .spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 
 .button-wrapper {
     display: inline-block;
@@ -29,14 +39,6 @@
 
 .button svg {
     margin-right: 8px;
-    /* Ensure consistent spacing for icons */
-}
-
-.button-large {
-    padding: 12px 24px;
-    /* Larger padding for prominent buttons */
-    font-size: 16px;
-    /* Increased font size for better visibility */
 }
 
 /* Custom Toast Styles */

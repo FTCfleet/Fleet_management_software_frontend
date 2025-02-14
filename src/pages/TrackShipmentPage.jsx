@@ -10,6 +10,7 @@ import {
   TableRow,
   TableCell,
   Paper,
+  CircularProgress,
 } from "@mui/material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -25,6 +26,7 @@ const TrackShipmentPage = () => {
   const [service, setService] = useState("NA");
   const [currentStep, setCurrentStep] = useState(2);
   const [items, setItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const steps = ["Order Placed", "Shipment Dispatched", "Delivered"];
   const cellStyle = { color: "#1E3A5F", fontWeight: "bold" };
   const rowCellStyle = { color: "#25344E" };
@@ -36,26 +38,39 @@ const TrackShipmentPage = () => {
     return "#9da8bb"; // Grey for future steps
   };
   const handleTrack = async () => {
+    setIsLoading(true);
     fetch(`${BASE_URL}/api/parcel/track/${shipmentIdInput}`)
-      .then((response) => {
-        if (!response.ok) {
-          toast.error("Error occurred", { className: "custom-toast" , position: "bottom-right" });
-        }
-        if (response.status === 201) {
-          toast.warn("Invalid Tracking ID", {  className: "custom-toast" , position: "bottom-right" });
-          setShipmentIdInput("");
-        }
-        return response.json();
-      })
-      .then((data) => {
+    .then((response) => {
+      if (!response.ok) {
+        setIsLoading(false);
+        toast.error("Error occurred", { className: "custom-toast", position: "bottom-right" });
+      }
+      if (response.status === 201) {
+        setIsLoading(false);
+        toast.warn("Invalid Tracking ID", { className: "custom-toast", position: "bottom-right" });
+        setShipmentIdInput("");
+      }
+      return response.json();
+    })
+    .then((data) => {
+        setIsLoading(false);
         if (Object.keys(data.body).length) {
           data = data.body;
           if (data.completed) {
             setStatus(steps[2]);
             setCurrentStep(2);
           } else {
-            setStatus(steps[0]);
-            setCurrentStep(0);
+            if (data.status === "arrived") {
+              setStatus(steps[0]);
+              setCurrentStep(1);
+            }
+            else if (data.status === "dispatched") {
+              setStatus(steps[1]);
+              setCurrentStep(2);
+            } else {
+              setStatus(steps[2]);
+              setCurrentStep(3);
+            }
           }
           setShipper(data.sender.name);
           setConsignee(data.receiver.name);
@@ -112,9 +127,18 @@ const TrackShipmentPage = () => {
                 onChange={(e) => setShipmentIdInput(e.target.value.trim())}
                 sx={{ width: "300px", backgroundColor: "white" }}
               />
-              <button className="button button-large" onClick={handleTrack}>
-                Track
-              </button>
+              {/* <Box className="button-wrapper"> */}
+                <button className="button button-large" onClick={handleTrack} disabled={isLoading}>
+                  Track
+                  {isLoading && (
+                    <CircularProgress
+                      size={22}
+                      className="spinner"
+                      sx={{ color: "#fff", animation: "none !important" }}
+                    />
+                  )}
+                </button>
+              {/* </Box> */}
             </div>
           </div>
         </div>
@@ -220,7 +244,7 @@ const TrackShipmentPage = () => {
 
                 <div style={{ textAlign: "center", marginTop: "20px" }}>
                   <Typography sx={{ color: "#7d8695" }}>
-                    <b>Service</b>
+                    <b>Packages</b>
                   </Typography>
                   <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>
                     {service}
@@ -294,7 +318,7 @@ const TrackShipmentPage = () => {
 
           <TableContainer
             component={Paper}
-            sx={{ backgroundColor: "#ffffff", borderRadius: "8px", width: "90%", marginTop:"20px"}}
+            sx={{ backgroundColor: "#ffffff", borderRadius: "8px", width: "90%", marginTop: "20px" }}
           >
             <Typography variant="h6" sx={{ padding: "16px", ...cellStyle }}>
               Items in Package
@@ -308,7 +332,7 @@ const TrackShipmentPage = () => {
               </TableHead>
               <TableBody>
                 {items.map((item) => (
-                  <TableRow key={item.itemId}>
+                  <TableRow key={item._id}>
                     <TableCell sx={rowCellStyle}>{item.name}</TableCell>
                     <TableCell sx={rowCellStyle}>{item.quantity}</TableCell>
                   </TableRow>

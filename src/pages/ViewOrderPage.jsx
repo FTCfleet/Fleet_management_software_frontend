@@ -11,17 +11,16 @@ import {
   Paper,
   Button,
   Modal,
-  IconButton,
+  CircularProgress,
   TextField,
 } from "@mui/material";
-import { Close, QrCode2 } from "@mui/icons-material";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import {
-  FaPlus,
   FaEdit,
   FaTrash,
   FaPrint,
   FaExclamationTriangle,
+  FaQrcode,
 } from "react-icons/fa";
 import orders from "../assets/orders.png";
 import { useAuth } from "../routes/AuthContext";
@@ -42,7 +41,7 @@ export default function ViewOrderPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false);
   const navigate = useNavigate();
-
+  const [isLoading, setIsLoading] = useState(false);
   const { isAdmin } = useAuth();
   const cellStyle = { color: "#1E3A5F", fontWeight: "bold" };
   const rowCellStyle = { color: "#25344E" };
@@ -98,7 +97,7 @@ export default function ViewOrderPage() {
   };
 
   const confirmDelete = async () => {
-    console.log("Order deleted!"); // Replace with actual delete logic
+    setIsLoading(true);
     const token = localStorage.getItem("token");
     const res = await fetch(`${BASE_URL}/api/admin/manage/parcel`, {
       headers: {
@@ -114,9 +113,11 @@ export default function ViewOrderPage() {
     const data = await res.json();
     console.log(data);
     if (data.flag) {
+      setIsLoading(false);
       handleCloseDeleteModal();
       navigate("/user/order/all");
     } else {
+      setIsLoading(false);
       alert("Error occurred");
     }
   };
@@ -250,7 +251,7 @@ export default function ViewOrderPage() {
           <FaTrash style={{ marginRight: "8px" }} /> Delete Order
         </button>
         <button className="button" onClick={handleQrCodeModal}>
-          Print QR Code
+          <FaQrcode style={{ marginRight: "8px" }} /> Print QR Code
         </button>
 
         {/* Delete Confirmation Modal */}
@@ -261,54 +262,66 @@ export default function ViewOrderPage() {
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -50%)",
-              width: 300,
+              width: 350,
               bgcolor: "background.paper",
-              borderRadius: 2,
+              borderRadius: 3,
               boxShadow: 24,
               p: 4,
+              textAlign: "center",
             }}
           >
+            <FaExclamationTriangle
+              style={{
+                color: "#d32f2f",
+                fontSize: "36px",
+                marginBottom: "12px",
+              }}
+            />
             <Typography
               variant="h6"
               sx={{
-                marginBottom: "16px",
-                textAlign: "center",
+                fontWeight: "bold",
+                marginBottom: "12px",
                 color: "#d32f2f",
               }}
             >
-              <FaExclamationTriangle style={{ marginRight: "8px" }} /> Confirm
-              Deletion
+              Delete Order
             </Typography>
             <Typography
               sx={{
-                marginBottom: "16px",
-                textAlign: "center",
-                color: "#1E3A5F",
+                marginBottom: "20px",
+                color: "#374151",
+                fontSize: "15px",
               }}
             >
-              Are you sure you want to delete this order?
+              This action cannot be undone. Are you sure you want to proceed?
             </Typography>
-            <Box
-              sx={{ display: "flex", justifyContent: "center", gap: "16px" }}
-            >
+            <Box sx={{ display: "flex", justifyContent: "center", gap: "12px" }}>
               <Button
                 variant="outlined"
-                color="primary"
+                sx={{ borderColor: "#1E3A5F", color: "#1E3A5F" }}
                 onClick={handleCloseDeleteModal}
               >
                 Cancel
               </Button>
               <Button
                 variant="contained"
-                color="error"
+                sx={{ backgroundColor: "#d32f2f" }}
                 startIcon={<FaTrash />}
                 onClick={confirmDelete}
               >
-                Confirm
+                Delete  {isLoading && (
+                  <CircularProgress
+                    size={15}
+                    className="spinner"
+                    sx={{ color: "#fff", animation: "none !important" }}
+                  />
+                )}
               </Button>
             </Box>
           </Box>
         </Modal>
+
 
         {/* QR Code Modal */}
         <Modal open={qrCodeModalOpen} onClose={() => setQrCodeModalOpen(false)}>
@@ -318,54 +331,56 @@ export default function ViewOrderPage() {
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -50%)",
-              width: 300,
+              width: 320,
               bgcolor: "background.paper",
               borderRadius: 2,
               boxShadow: 24,
-              p: 4,
+              p: 3,
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
             }}
           >
             <Typography
               variant="h6"
               sx={{
-                marginBottom: "16px",
-                textAlign: "center",
-                color: "#d32f2f",
-              }}
-            >
-              Enter Count
-            </Typography>
-            <Typography
-              sx={{
-                marginBottom: "16px",
                 textAlign: "center",
                 color: "#1E3A5F",
+                fontWeight: "bold",
               }}
             >
-              Enter number of QR codes (default to no of packages)
+              QR Code Quantity
             </Typography>
+
+            <Typography
+              sx={{
+                textAlign: "center",
+                color: "#4A4A4A",
+                fontSize: 14,
+              }}
+            >
+              Specify the number of QR codes to generate. Default is set to package count.
+            </Typography>
+
             <TextField
-              label="Count"
+              label="Enter Quantity"
+              type="number"
               value={qrCount}
               onChange={(e) => setQrCount(parseInt(e.target.value) || 0)}
-            ></TextField>
-            <Box
-              sx={{ display: "flex", justifyContent: "center", gap: "16px" }}
-            >
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={() => setQrCodeModalOpen(false)}
-              >
+              fullWidth
+              variant="outlined"
+              size="small"
+            />
+
+            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+              <Button variant="outlined" color="error" onClick={() => setQrCodeModalOpen(false)}>
                 Cancel
               </Button>
-              <Link
-                to={`${BASE_URL}/api/parcel/generate-qr/${id}?count=${qrCount}`}
-              >
-                <Button variant="contained" color="error">
-                  Print
-                </Button>
-              </Link>
+              <Button variant="contained" color="primary" onClick={() => {
+                window.location.href = `${BASE_URL}/api/parcel/generate-qr/${id}?count=${qrCount}`;
+              }}>
+                Confirm
+              </Button>
             </Box>
           </Box>
         </Modal>

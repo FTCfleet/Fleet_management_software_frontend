@@ -2,7 +2,7 @@ import { React, useEffect, useState } from "react";
 import styles from "../css/auth_card.module.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { Select, MenuItem, TextField } from "@mui/material";
+import { Select, MenuItem, TextField, CircularProgress } from "@mui/material";
 import { useAuth } from "../routes/AuthContext";
 
 const CODE = import.meta.env.VITE_CODE;
@@ -176,7 +176,13 @@ const RegisterPage = () => {
               </a>
             </div>
             <button className={styles.loginButton} onClick={handleSection1}>
-              Proceed {isLoading ? "load" : ""}
+              Proceed  {isLoading && (
+                <CircularProgress
+                  size={20}
+                  className="spinner"
+                  sx={{ color: "#fff", animation: "none !important" }}
+                />
+              )}
             </button>
           </>
         ) : (
