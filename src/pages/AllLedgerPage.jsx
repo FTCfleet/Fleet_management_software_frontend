@@ -13,10 +13,9 @@ import {
   Paper,
   MenuItem,
   Select,
+  CircularProgress,
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
-import { FiSearch } from "react-icons/fi";
-import { AiOutlineCalendar } from "react-icons/ai";
 import { IoArrowForwardCircleOutline } from "react-icons/io5"; // Icon for View Ledger
 import { useAuth } from "../routes/AuthContext"
 import "../css/table.css"; // Import CSS
@@ -28,13 +27,14 @@ const AllLedgerPage = () => {
   const [ledgerEntries, setLedgerEntries] = useState([]); // All ledger entries
   const [filteredLedger, setFilteredLedger] = useState([]);
   const [selectedDate, setSelectedDate] = useState(
-      () => new Date().toISOString().split("T")[0]
-    );
+    () => new Date().toISOString().split("T")[0]
+  );
   const navigate = useNavigate();
   const { isAdmin, isSource } = useAuth();
   const [phoneFilter, setPhoneFilter] = useState("");
   const [warehouseFilter, setWarehouseFilter] = useState("");
   const [warehouses, setWarehouses] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
 
   useEffect(() => {
@@ -46,6 +46,7 @@ const AllLedgerPage = () => {
   }, [type, ledgerEntries]);
 
   const fetchData = async () => {
+    setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
@@ -77,6 +78,8 @@ const AllLedgerPage = () => {
       setWarehouses(data2.body);
     } catch (error) {
       console.error("Error fetching orders:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -222,58 +225,67 @@ const AllLedgerPage = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredLedger.length > 0 ? (
-              filteredLedger.map((entry) => (
-                <TableRow key={entry.ledgerId}>
-                  <TableCell sx={{ color: "#25344E" }}>{entry.ledgerId}</TableCell>
-                  <TableCell sx={{ color: "#25344E" }}>
-                    {entry.vehicleNo}
-                  </TableCell>
-                  {(isAdmin || !isSource) ?
+            {isLoading ? (<TableRow>
+              <TableCell colSpan={7} align="center">
+                <CircularProgress
+                  size={22}
+                  className="spinner"
+                  sx={{ color: "#1E3A5F", animation: "none !important" }}
+                />
+              </TableCell>
+            </TableRow>) :
+              filteredLedger.length > 0 ? (
+                filteredLedger.map((entry) => (
+                  <TableRow key={entry.ledgerId}>
+                    <TableCell sx={{ color: "#25344E" }}>{entry.ledgerId}</TableCell>
                     <TableCell sx={{ color: "#25344E" }}>
-                      {entry.sourceWarehouse ? entry.sourceWarehouse.warehouseID : "NA"}
-                    </TableCell> : null
-                  }
-
-                  {(isAdmin || isSource) ?
-                    <TableCell sx={{ color: "#25344E" }}>
-                      {entry.destinationWarehouse ? entry.destinationWarehouse.warehouseID : "NA"}
-                    </TableCell> : null}
-                  {type === "all" && (
-                    <TableCell>
-                      <span
-                        className={`table-status ${entry.status.toLowerCase()}`}
-                      >
-                        {entry.status}
-                      </span>
+                      {entry.vehicleNo}
                     </TableCell>
-                  )}
-                  <TableCell>
-                    <Button
-                      variant="outlined"
-                      sx={{
-                        textTransform: "none",
-                        color: "#1E3A5F",
-                        borderColor: "#1E3A5F",
-                      }}
-                      onClick={() => navigate(`/user/view/ledger/${entry.ledgerId}`)}
-                    >
-                      <IoArrowForwardCircleOutline size={24} />
-                    </Button>
+                    {(isAdmin || !isSource) ?
+                      <TableCell sx={{ color: "#25344E" }}>
+                        {entry.sourceWarehouse ? entry.sourceWarehouse.warehouseID : "NA"}
+                      </TableCell> : null
+                    }
+
+                    {(isAdmin || isSource) ?
+                      <TableCell sx={{ color: "#25344E" }}>
+                        {entry.destinationWarehouse ? entry.destinationWarehouse.warehouseID : "NA"}
+                      </TableCell> : null}
+                    {type === "all" && (
+                      <TableCell>
+                        <span
+                          className={`table-status ${entry.status.toLowerCase()}`}
+                        >
+                          {entry.status}
+                        </span>
+                      </TableCell>
+                    )}
+                    <TableCell>
+                      <Button
+                        variant="outlined"
+                        sx={{
+                          textTransform: "none",
+                          color: "#1E3A5F",
+                          borderColor: "#1E3A5F",
+                        }}
+                        onClick={() => navigate(`/user/view/ledger/${entry.ledgerId}`)}
+                      >
+                        <IoArrowForwardCircleOutline size={24} />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={type === "all" ? 5 : 4}
+                    align="center"
+                    sx={{ color: "#7D8695" }}
+                  >
+                    No ledger entries found for the selected date.
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={type === "all" ? 5 : 4}
-                  align="center"
-                  sx={{ color: "#7D8695" }}
-                >
-                  No ledger entries found for the selected date.
-                </TableCell>
-              </TableRow>
-            )}
+              )}
           </TableBody>
         </Table>
       </TableContainer>

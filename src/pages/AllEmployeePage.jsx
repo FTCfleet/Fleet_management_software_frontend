@@ -15,6 +15,7 @@ import {
   TextField,
   Select,
   MenuItem,
+  CircularProgress,
 } from "@mui/material";
 import { Edit, Delete, Close } from "@mui/icons-material";
 import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
@@ -33,7 +34,9 @@ const AllEmployeePage = () => {
   const [warehouseFilter, setWarehouseFilter] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState(null);
-
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading1, setIsLoading1] = useState(false);
+  const [isLoading2, setIsLoading2] = useState(false);
   const [warehouses, setWarehouses] = useState([]);
 
   useEffect(() => {
@@ -54,6 +57,7 @@ const AllEmployeePage = () => {
   };
 
   const fetchData = async () => {
+    setIsLoading(true);
     const token = localStorage.getItem("token");
 
     const res = await fetch(`${BASE_URL}/api/admin/get-all-employees`, {
@@ -66,6 +70,7 @@ const AllEmployeePage = () => {
     const data = await res.json();
     console.log(data.body);
     setEmployees(data.body);
+    setIsLoading(false);
   };
 
   // Filters
@@ -101,6 +106,7 @@ const AllEmployeePage = () => {
   };
 
   const confirmDelete = async () => {
+    setIsLoading2(true);
     const token = localStorage.getItem("token");
     const res = await fetch(`${BASE_URL}/api/admin/manage/employee`, {
       method: "DELETE",
@@ -116,6 +122,7 @@ const AllEmployeePage = () => {
     const data = await res.json();
     console.log(data);
     fetchData();
+    setIsLoading2(false);
     setDeleteModalOpen(false);
     setEmployeeToDelete(null);
   };
@@ -126,6 +133,7 @@ const AllEmployeePage = () => {
   };
 
   const handleSave = async () => {
+    setIsLoading1(true);
     const token = localStorage.getItem("token");
     const res = await fetch(`${BASE_URL}/api/admin/manage/employee`, {
       method: "PUT",
@@ -145,6 +153,7 @@ const AllEmployeePage = () => {
 
     const data = await res.json();
     console.log(data);
+    setIsLoading1(false);
     fetchData();
     setIsModalOpen(false);
   };
@@ -215,29 +224,38 @@ const AllEmployeePage = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredEmployees.length > 0 && filteredEmployees.map((employee, index) => (employee.role !== 'admin' &&
-              <TableRow key={index}>
-                <TableCell sx={rowStyle}>{employee.name}</TableCell>
-                <TableCell sx={rowStyle}>{employee.username}</TableCell>
-                <TableCell sx={rowStyle}>{employee.phoneNo}</TableCell>
-                <TableCell sx={rowStyle}>{employee.role}</TableCell>
-                <TableCell sx={rowStyle}>{employee.warehouseCode.warehouseID}</TableCell>
-                <TableCell>
-                  <IconButton
-                    color="primary"
-                    onClick={() => handleEdit(employee)}
-                  >
-                    <Edit />
-                  </IconButton>
-                  <IconButton
-                    color="error"
-                    onClick={() => handleDelete(employee.username)}
-                  >
-                    <Delete />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
+            {isLoading ? (<TableRow>
+              <TableCell colSpan={7} align="center">
+                <CircularProgress
+                  size={22}
+                  className="spinner"
+                  sx={{ color: "#1E3A5F", animation: "none !important" }}
+                />
+              </TableCell>
+            </TableRow>) :
+              filteredEmployees.length > 0 && filteredEmployees.map((employee, index) => (employee.role !== 'admin' &&
+                <TableRow key={index}>
+                  <TableCell sx={rowStyle}>{employee.name}</TableCell>
+                  <TableCell sx={rowStyle}>{employee.username}</TableCell>
+                  <TableCell sx={rowStyle}>{employee.phoneNo}</TableCell>
+                  <TableCell sx={rowStyle}>{employee.role}</TableCell>
+                  <TableCell sx={rowStyle}>{employee.warehouseCode.warehouseID}</TableCell>
+                  <TableCell>
+                    <IconButton
+                      color="primary"
+                      onClick={() => handleEdit(employee)}
+                    >
+                      <Edit />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      onClick={() => handleDelete(employee.username)}
+                    >
+                      <Delete />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </TableContainer>
@@ -311,7 +329,13 @@ const AllEmployeePage = () => {
                 }}
               >
                 <button className="button button-large" onClick={handleSave}>
-                  Save
+                  Save {isLoading1 && (
+                    <CircularProgress
+                      size={22}
+                      className="spinner"
+                      sx={{ color: "#fff", animation: "none !important" }}
+                    />
+                  )}
                 </button>
               </Box>
             </Box>
@@ -374,7 +398,13 @@ const AllEmployeePage = () => {
               startIcon={<FaTrash />}
               onClick={confirmDelete}
             >
-              Delete
+              Delete {isLoading2 && (
+                <CircularProgress
+                  size={22}
+                  className="spinner"
+                  sx={{ color: "#fff", animation: "none !important" }}
+                />
+              )}
             </Button>
           </Box>
         </Box>

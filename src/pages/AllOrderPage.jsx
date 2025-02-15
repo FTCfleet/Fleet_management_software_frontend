@@ -13,6 +13,7 @@ import {
   Paper,
   MenuItem,
   Select,
+  CircularProgress,
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import "../css/table.css"; // Import CSS
@@ -36,6 +37,7 @@ const AllOrderPage = () => {
   const navigate = useNavigate();
   const cellStyle = { color: "#1E3A5F", fontWeight: "bold", textAlign: "center" };
   const rowCellStyle = { color: "#25344E", textAlign: "center" };
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -46,6 +48,7 @@ const AllOrderPage = () => {
   }, [type, orders]);
 
   const fetchData = async () => {
+    setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${BASE_URL}/api/parcel/all`, {
@@ -83,6 +86,7 @@ const AllOrderPage = () => {
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
+    setIsLoading(false);
   };
 
   const filterOrdersByTypeAndDate = (type) => {
@@ -128,6 +132,7 @@ const AllOrderPage = () => {
   };
 
   const handleDateChange = (event) => {
+    setIsLoading(true);
     const today = new Date();
     today.setHours(23, 59, 59, 999);
     const newDate = new Date(event.target.value);
@@ -136,6 +141,7 @@ const AllOrderPage = () => {
       setSelectedDate(date);
       filterOrdersByTypeAndDate(type);
     }
+    setIsLoading(false);
   };
 
   return (
@@ -171,7 +177,7 @@ const AllOrderPage = () => {
             onChange={handleDateChange}
           />
         </Box>
-        <Box sx={{ display: "flex", gap: "10px"}}>
+        <Box sx={{ display: "flex", gap: "10px" }}>
           <TextField
             label="Search by Customer Name"
             value={nameFilter}
@@ -180,19 +186,19 @@ const AllOrderPage = () => {
             size="small"
           />
           <Select
-          value={warehouseFilter}
-          onChange={(e) => setWarehouseFilter(e.target.value)}
-          displayEmpty
-          size="small"
-          sx={{ minWidth: "250px" }}
-        >
-          <MenuItem value="">All Warehouses</MenuItem>
-          {warehouses.map((warehouse) => (
-            <MenuItem key={warehouse.warehouseID} value={warehouse.warehouseID}>
-              {warehouse.name}
-            </MenuItem>
-          ))}
-        </Select>
+            value={warehouseFilter}
+            onChange={(e) => setWarehouseFilter(e.target.value)}
+            displayEmpty
+            size="small"
+            sx={{ minWidth: "250px" }}
+          >
+            <MenuItem value="">All Warehouses</MenuItem>
+            {warehouses.map((warehouse) => (
+              <MenuItem key={warehouse.warehouseID} value={warehouse.warehouseID}>
+                {warehouse.name}
+              </MenuItem>
+            ))}
+          </Select>
           <Button variant="contained" color="primary" onClick={applyFilter}>
             Apply Filter
           </Button>
@@ -229,59 +235,69 @@ const AllOrderPage = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredOrders.length > 0 ? (
-              filteredOrders.map((order) => (
-                <TableRow key={order.trackingId}>
-                  <TableCell sx={rowCellStyle}>
-                    {order.trackingId}
-                  </TableCell>
-                  <TableCell sx={rowCellStyle}>
-                    {order.sender.name ? order.sender.name : "NA"}
-                  </TableCell>
-                  <TableCell sx={rowCellStyle}>
-                    {order.receiver.name ? order.receiver.name : "NA"}
-                  </TableCell>
+            {isLoading ? (<TableRow>
+              <TableCell colSpan={7} align="center">
+                <CircularProgress
+                  size={22}
+                  className="spinner"
+                  sx={{ color: "#1E3A5F", animation: "none !important" }}
+                />
+              </TableCell>
+            </TableRow>) :
+              filteredOrders.length > 0 ? (
+                filteredOrders.map((order) => (
+                  <TableRow key={order.trackingId}>
+                    <TableCell sx={rowCellStyle}>
+                      {order.trackingId}
+                    </TableCell>
+                    <TableCell sx={rowCellStyle}>
+                      {order.sender.name ? order.sender.name : "NA"}
+                    </TableCell>
+                    <TableCell sx={rowCellStyle}>
+                      {order.receiver.name ? order.receiver.name : "NA"}
+                    </TableCell>
 
-                  {isAdmin ? (<>
-                    <TableCell sx={rowCellStyle}>
-                      {order.sourceWarehouse.warehouseID}
+                    {isAdmin ? (<>
+                      <TableCell sx={rowCellStyle}>
+                        {order.sourceWarehouse.warehouseID}
+                      </TableCell>
+                      <TableCell sx={rowCellStyle}>
+                        {order.destinationWarehouse.warehouseID}
+                      </TableCell>
+                    </>)
+                      : (<TableCell sx={rowCellStyle}>
+                        {isSource ? order.destinationWarehouse.warehouseID : order.sourceWarehouse.warehouseID}
+                      </TableCell>)}
+                    <TableCell>
+                      <span className={`table-status ${order.status}`}>
+                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      </span>
                     </TableCell>
-                    <TableCell sx={rowCellStyle}>
-                      {order.destinationWarehouse.warehouseID}
+                    <TableCell>
+                      <Button
+                        variant="outlined"
+                        sx={{
+                          textTransform: "none",
+                          color: "#1E3A5F",
+                          borderColor: "#1E3A5F",
+                        }}
+                        onClick={() =>
+                          navigate(`/user/view/order/${order.trackingId}`)
+                        }
+                      >
+                        <IoArrowForwardCircleOutline size={24} />
+                      </Button>
                     </TableCell>
-                  </>)
-                    : (<TableCell sx={rowCellStyle}>
-                      {isSource ? order.destinationWarehouse.warehouseID : order.sourceWarehouse.warehouseID}
-                    </TableCell>)}
-                  <TableCell>
-                    <span className={`table-status ${order.status}`}>
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outlined"
-                      sx={{
-                        textTransform: "none",
-                        color: "#1E3A5F",
-                        borderColor: "#1E3A5F",
-                      }}
-                      onClick={() =>
-                        navigate(`/user/view/order/${order.trackingId}`)
-                      }
-                    >
-                      <IoArrowForwardCircleOutline size={24} />
-                    </Button>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} align="center" sx={{ color: "#7D8695" }}>
+                    No orders found for the selected date.
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ color: "#7D8695" }}>
-                  No orders found for the selected date.
-                </TableCell>
-              </TableRow>
-            )}
+              )
+            }
           </TableBody>
         </Table>
       </TableContainer>

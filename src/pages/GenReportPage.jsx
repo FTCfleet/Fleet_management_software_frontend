@@ -10,11 +10,11 @@ import {
   Select,
   FormControl,
   InputLabel,
-  Popover,
+  Modal,
+  IconButton,
 } from "@mui/material";
-import { Link } from "react-router-dom";
-import { FaDownload, FaCalendarAlt } from "react-icons/fa";
-import Calendar from "react-calendar";
+import { FaDownload, FaTimesCircle, FaTruck } from "react-icons/fa";
+import { Close } from "@mui/icons-material";
 import "react-calendar/dist/Calendar.css";
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 import "../css/main.css";
@@ -25,16 +25,32 @@ export default function GenReportPage() {
   const [truckNo, setTruckNo] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [year, setYear] = useState(new Date().getFullYear());
-  const [calendarAnchor, setCalendarAnchor] = useState(null);
-  const [activeField, setActiveField] = useState(null);
+  const [monthly, setMonthly] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [sDate, setSDate] = useState("");
+  const [eDate, setEDate] = useState("");
 
-  const handleMonthAndYearChange = (newMonth, newYear) => {
-    setMonth(newMonth);
-    setYear(newYear);
+  const handleOpenModal = () => setModalOpen(true);
+  const handleCloseModal = () => setModalOpen(false);
+
+  const handleMonthAndYearChange = (newVal) => {
+    const newMonth = newVal.split("-")[0];
+    const newYear = newVal.split("-")[1];
+    const today = new Date();
+    setMonthly(newVal);
     const start = `01${newMonth.toString().padStart(2, "0")}${newYear}`;
-    const lastDay = new Date(newYear, newMonth, 0).getDate();
+    today.setHours(23, 59, 59, 999);
+    let lastDay = new Date(newYear, newMonth, 0);
+    console.log(today);
+    console.log(lastDay);
+    console.log(lastDay.getMonth(), today.getMonth());
+    let t = today.getDate();
+    if (lastDay.getMonth() === today.getMonth() && t < lastDay.getDate()) {
+      lastDay = t;
+    } else {
+      lastDay = lastDay.getDate();
+    }
+
     const end = `${lastDay}${newMonth.toString().padStart(2, "0")}${newYear}`;
     setStartDate(start);
     setEndDate(end);
@@ -48,7 +64,66 @@ export default function GenReportPage() {
     const year = date.getFullYear();
     return `${day}${month}${year}`;
   };
-  
+
+  const getLastFourMonths = () => {
+    const today = new Date();
+    const months = [];
+
+    for (let i = 3; i >= 0; i--) {
+      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      months.push({
+        label: date.toLocaleString("default", { month: "long", year: "numeric" }),
+        value: `${date.getMonth() + 1}-${date.getFullYear()}`,
+      });
+    }
+
+    return months;
+  };
+
+  const lastFourMonths = getLastFourMonths();
+
+  const handleDateChange = (type, value) => {
+    if (!value) return;
+
+    const selectedDate = new Date(value);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    const earlyDate = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+    earlyDate.setHours(0, 0, 0, 0);
+    console.log(earlyDate);
+    if (type === "start") {
+      if (selectedDate < earlyDate) {
+        alert("Start date cannot be earlier than the last 4 months.");
+        return;
+      }
+      if (selectedDate > today) {
+        alert("Start date cannot be in the future.");
+        return;
+      }
+      if (eDate && selectedDate > new Date(eDate)) {
+        alert("Start date cannot be later than the selected end date.");
+        return;
+      }
+      setSDate(value);
+      setStartDate(formatDate(value));
+    } else if (type === "end") {
+      if (selectedDate < earlyDate) {
+        alert("End date cannot be earlier than the last 4 months.");
+        return;
+      }
+      if (selectedDate > today) {
+        alert("End date cannot be in the future.");
+        return;
+      }
+      if (sDate && selectedDate < new Date(sDate)) {
+        alert("End date cannot be earlier than the selected start date.");
+        return;
+      }
+      setEDate(value);
+      setEndDate(formatDate(value));
+    }
+  };
+
 
   const handleDateRangeChange = (event, newRange) => {
     if (newRange !== null) {
@@ -68,9 +143,11 @@ export default function GenReportPage() {
           setEndDate(`${end.getDate().toString().padStart(2, "0")}${(end.getMonth() + 1).toString().padStart(2, "0")}${end.getFullYear()}`);
           break;
         case "monthly":
-          handleMonthAndYearChange(new Date().getMonth() + 1, new Date().getFullYear());
+          handleMonthAndYearChange(lastFourMonths[3].value);
           break;
         case "custom":
+          setSDate("");
+          setEDate("");
           setStartDate("");
           setEndDate("");
           break;
@@ -110,32 +187,15 @@ export default function GenReportPage() {
       {dateRange === "monthly" && (
         <Box display="flex" gap={2} marginTop={2}>
           <FormControl fullWidth>
-            <InputLabel id="month-label">Month</InputLabel>
+            <InputLabel id="month-year-label">Month & Year</InputLabel>
             <Select
-              label="Month"
-              labelId="month-label"
-              value={month}
-              onChange={(e) => handleMonthAndYearChange(e.target.value, year)}
+              labelId="month-year-label"
+              value={monthly}
+              onChange={(e) => handleMonthAndYearChange(e.target.value)}
             >
-              {Array.from({ length: 12 }, (_, i) => (
-                <MenuItem key={i + 1} value={i + 1}>
-                  {new Date(0, i).toLocaleString("default", { month: "long" })}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <FormControl fullWidth>
-            <InputLabel id="year-label">Year</InputLabel>
-            <Select
-              label="Year"
-              labelId="year-label"
-              value={year}
-              onChange={(e) => handleMonthAndYearChange(month, e.target.value)}
-            >
-              {Array.from({ length: new Date().getFullYear() - 1999 + 1 }, (_, i) => (
-                <MenuItem key={1999 + i} value={1999 + i}>
-                  {1999 + i}
+              {lastFourMonths.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
                 </MenuItem>
               ))}
             </Select>
@@ -148,27 +208,118 @@ export default function GenReportPage() {
           <Box className="calendar-input">
             <input
               type="date"
-              onChange={(e) => setStartDate(formatDate(e.target.value))}
+              onFocus={(e) => e.target.showPicker()}
+              onKeyDown={(e) => e.preventDefault()}
+              value = {sDate}
+              onChange={(e) => handleDateChange("start", e.target.value)}
             />
           </Box>
           <Box className="calendar-input">
             <input
               type="date"
-              onChange={(e) => setEndDate(formatDate(e.target.value))}
+              onFocus={(e) => e.target.showPicker()}
+              onKeyDown={(e) => e.preventDefault()}
+              value ={eDate}
+              onChange={(e) => handleDateChange("end", e.target.value)}
             />
           </Box>
         </Box>
       )}
 
-      <Link
-        to={`${BASE_URL}/api/ledger/generate-report/${startDate}${endDate}${truckNo ? `?vehicleNo=${truckNo}` : ""
-          }`}
-        style={{ textDecoration: "none" }}
-      >
-        <button className="button button-large" disabled={!startDate || !endDate}>
-          <FaDownload /> Download
-        </button>
-      </Link>
+
+      <button className="button button-large"
+        style={{
+          backgroundColor: !startDate || !endDate ? "#B0B0B0" : "",
+          cursor: !startDate || !endDate ? "not-allowed" : "pointer",
+          color: "white",
+        }}
+        disabled={!startDate || !endDate}
+        onClick={handleOpenModal}>
+        <FaDownload /> Download
+      </button>
+
+      <Modal open={modalOpen} onClose={handleCloseModal}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 350,
+            bgcolor: "background.paper",
+            borderRadius: 3,
+            boxShadow: 24,
+            p: 4,
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          {/* Close Button (Top Right) */}
+          <IconButton
+            color="error"
+            onClick={handleCloseModal}
+            sx={{ position: "absolute", top: 8, right: 8 }}
+          >
+            <Close />
+          </IconButton>
+
+          {/* Truck Icon */}
+          <FaTruck
+            style={{
+              color: "#1976D2",
+              fontSize: "36px",
+              marginBottom: "12px",
+            }}
+          />
+
+          {/* Perform calculations inside the modal */}
+          {(() => {
+            const formatDate = (date) => {
+              return date ? `${date.substring(0, 2)}-${date.substring(2, 4)}-${date.substring(4)}` : "";
+            };
+
+            const formattedStartDate = formatDate(startDate);
+            const formattedEndDate = formatDate(endDate);
+            const truckLabel = truckNo ? `Vehicle No: ${truckNo}` : "All Trucks";
+
+            const downloadUrl = `${BASE_URL}/api/ledger/generate-report/${startDate}${endDate}${truckNo ? `?vehicleNo=${truckNo}` : ""}`;
+
+            return (
+              <>
+                {/* Modal Title */}
+                <Typography variant="h6" sx={{ fontWeight: "bold", marginBottom: "12px", color: "#374151" }}>
+                  Download Ledger Report
+                </Typography>
+
+                {/* Report Info */}
+                <Typography sx={{ marginBottom: "12px", color: "#374151", fontSize: "15px" }}>
+                  <strong>Start Date:</strong> {formattedStartDate}
+                </Typography>
+                <Typography sx={{ marginBottom: "12px", color: "#374151", fontSize: "15px" }}>
+                  <strong>End Date:</strong> {formattedEndDate}
+                </Typography>
+                <Typography sx={{ marginBottom: "20px", color: "#374151", fontSize: "15px" }}>
+                  <strong>{truckLabel}</strong>
+                </Typography>
+
+                <Box sx={{ display: "flex", justifyContent: "center", gap: "12px" }}>
+                  <Button
+                    variant="contained"
+                    sx={{ backgroundColor: "#1976D2" }}
+                    startIcon={<FaDownload />}
+                    onClick={() => window.open(downloadUrl, "_blank")}
+                  >
+                    Confirm Download
+                  </Button>
+                </Box>
+              </>
+            );
+          })()}
+        </Box>
+      </Modal>
+
     </Box>
   );
 }

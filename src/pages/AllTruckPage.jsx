@@ -13,6 +13,7 @@ import {
   IconButton,
   Modal,
   TextField,
+  CircularProgress,
 } from "@mui/material";
 import { Edit, Delete, Close } from "@mui/icons-material";
 import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
@@ -32,6 +33,9 @@ export default function AllTruckPage() {
   const [truckNoFilter, setTruckNoFilter] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [truckToDelete, setTruckToDelete] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading1, setIsLoading1] = useState(false);
+  const [isLoading2, setIsLoading2] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -42,6 +46,7 @@ export default function AllTruckPage() {
   }, [trucks]);
 
   const fetchData = async () => {
+    setIsLoading(true);
     const token = localStorage.getItem("token");
     const res = await fetch(`${BASE_URL}/api/admin/get-all-drivers`, {
       method: "GET",
@@ -53,6 +58,7 @@ export default function AllTruckPage() {
     const data = await res.json();
     console.log(data);
     setTrucks(data.body);
+    setIsLoading(false);
   };
 
   // Filters
@@ -88,6 +94,7 @@ export default function AllTruckPage() {
   };
 
   const confirmDelete = async () => {
+    setIsLoading2(true);
     const token = localStorage.getItem("token");
     const res = await fetch(`${BASE_URL}/api/admin/manage/driver`, {
       method: "DELETE",
@@ -102,6 +109,7 @@ export default function AllTruckPage() {
 
     const data = await res.json();
     fetchData();
+    setIsLoading2(false);
     setDeleteModalOpen(false);
     setTruckToDelete(null);
     return;
@@ -119,6 +127,7 @@ export default function AllTruckPage() {
   };
 
   const handleSaveOrAdd = async () => {
+    setIsLoading1(true);
     const token = localStorage.getItem("token");
     let method, body;
     if (isAdding) {
@@ -138,7 +147,6 @@ export default function AllTruckPage() {
         },
       };
     }
-    setIsModalOpen(false);
     const res = await fetch(`${BASE_URL}/api/admin/manage/driver`, {
       method: method,
       headers: {
@@ -151,6 +159,8 @@ export default function AllTruckPage() {
     const data = await res.json();
     console.log(data);
     fetchData();
+    setIsLoading1(false);
+    setIsModalOpen(false);
   };
 
   const handleClose = () => {
@@ -207,24 +217,33 @@ export default function AllTruckPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredTrucks.map((truck) => (
-              <TableRow key={truck.vehicleNo}>
-                <TableCell sx={rowStyle}>{truck.name}</TableCell>
-                <TableCell sx={rowStyle}>{truck.phoneNo}</TableCell>
-                <TableCell sx={rowStyle}>{truck.vehicleNo}</TableCell>
-                <TableCell>
-                  <IconButton color="primary" onClick={() => handleEdit(truck)}>
-                    <Edit />
-                  </IconButton>
-                  <IconButton
-                    color="error"
-                    onClick={() => handleDelete(truck.vehicleNo)}
-                  >
-                    <Delete />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
+            {isLoading ? (<TableRow>
+              <TableCell colSpan={7} align="center">
+                <CircularProgress
+                  size={22}
+                  className="spinner"
+                  sx={{ color: "#1E3A5F", animation: "none !important" }}
+                />
+              </TableCell>
+            </TableRow>) :
+              filteredTrucks.map((truck) => (
+                <TableRow key={truck.vehicleNo}>
+                  <TableCell sx={rowStyle}>{truck.name}</TableCell>
+                  <TableCell sx={rowStyle}>{truck.phoneNo}</TableCell>
+                  <TableCell sx={rowStyle}>{truck.vehicleNo}</TableCell>
+                  <TableCell>
+                    <IconButton color="primary" onClick={() => handleEdit(truck)}>
+                      <Edit />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      onClick={() => handleDelete(truck.vehicleNo)}
+                    >
+                      <Delete />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </TableContainer>
@@ -297,7 +316,13 @@ export default function AllTruckPage() {
                   className="button button-large"
                   onClick={handleSaveOrAdd}
                 >
-                  {isAdding ? "Add" : "Save"}
+                  {isAdding ? "Add" : "Save"} {isLoading1 && (
+                    <CircularProgress
+                      size={22}
+                      className="spinner"
+                      sx={{ color: "#fff", animation: "none !important" }}
+                    />
+                  )}
                 </button>
               </Box>
             </Box>
@@ -360,7 +385,13 @@ export default function AllTruckPage() {
               startIcon={<FaTrash />}
               onClick={confirmDelete}
             >
-              Delete
+              Delete {isLoading2 && (
+                <CircularProgress
+                  size={22}
+                  className="spinner"
+                  sx={{ color: "#fff", animation: "none !important" }}
+                />
+              )}
             </Button>
           </Box>
         </Box>

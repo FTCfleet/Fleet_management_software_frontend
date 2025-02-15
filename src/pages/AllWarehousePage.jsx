@@ -17,8 +17,9 @@ import {
   ToggleButton,
   Select,
   MenuItem,
+  CircularProgress,
 } from "@mui/material";
-import { Edit, Delete, Close, Warning } from "@mui/icons-material";
+import { Edit, Delete, Close } from "@mui/icons-material";
 import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
 import "../css/main.css";
 
@@ -36,6 +37,9 @@ export default function AllWarehousePage() {
   const [warehouseFilter, setWarehouseFilter] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [warehouseToDelete, setWarehouseToDelete] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading1, setIsLoading1] = useState(false);
+  const [isLoading2, setIsLoading2] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -46,6 +50,7 @@ export default function AllWarehousePage() {
   }, [warehouses]);
 
   const fetchData = async () => {
+    setIsLoading(true);
     const token = localStorage.getItem("token");
     const res = await fetch(`${BASE_URL}/api/admin/get-all-warehouses`, {
       method: "GET",
@@ -57,6 +62,7 @@ export default function AllWarehousePage() {
     const data = await res.json();
     console.log(data);
     setWarehouses(data.body);
+    setIsLoading(false);
   };
 
   // Filters
@@ -91,6 +97,7 @@ export default function AllWarehousePage() {
   };
 
   const confirmDelete = async () => {
+    setIsLoading2(true);
     const token = localStorage.getItem("token");
     const res = await fetch(`${BASE_URL}/api/admin/manage/warehouse`, {
       method: "DELETE",
@@ -105,6 +112,7 @@ export default function AllWarehousePage() {
 
     const data = await res.json();
     fetchData();
+    setIsLoading2(false);
     setDeleteModalOpen(false);
     setWarehouseToDelete(null);
     return;
@@ -122,6 +130,7 @@ export default function AllWarehousePage() {
   };
 
   const handleSaveOrAdd = async () => {
+    setIsLoading1(true);
     const token = localStorage.getItem("token");
     let method, body;
     if (isAdding) {
@@ -144,7 +153,6 @@ export default function AllWarehousePage() {
         },
       };
     }
-    setIsModalOpen(false);
     const res = await fetch(`${BASE_URL}/api/admin/manage/warehouse`, {
       method: method,
       headers: {
@@ -157,6 +165,8 @@ export default function AllWarehousePage() {
     const data = await res.json();
     console.log(data);
     fetchData();
+    setIsLoading1(false);
+    setIsModalOpen(false);
   };
 
   const handleClose = () => {
@@ -215,29 +225,38 @@ export default function AllWarehousePage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredWarehouses.map((warehouse) => (
-              <TableRow key={warehouse.warehouseID}>
-                <TableCell sx={rowStyle}>{warehouse.name}</TableCell>
-                <TableCell sx={rowStyle}>{warehouse.contactNo}</TableCell>
-                <TableCell sx={rowStyle}>{warehouse.address}</TableCell>
-                <TableCell sx={rowStyle}>{warehouse.warehouseID}</TableCell>
-                <TableCell sx={rowStyle}>{warehouse.isSource ? "Source" : "Destination"}</TableCell>
-                <TableCell>
-                  <IconButton
-                    color="primary"
-                    onClick={() => handleEdit(warehouse)}
-                  >
-                    <Edit />
-                  </IconButton>
-                  <IconButton
-                    color="error"
-                    onClick={() => handleDelete(warehouse.warehouseID)}
-                  >
-                    <Delete />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
+            {isLoading ? (<TableRow>
+              <TableCell colSpan={7} align="center">
+                <CircularProgress
+                  size={22}
+                  className="spinner"
+                  sx={{ color: "#1E3A5F", animation: "none !important" }}
+                />
+              </TableCell>
+            </TableRow>) :
+              filteredWarehouses.map((warehouse) => (
+                <TableRow key={warehouse.warehouseID}>
+                  <TableCell sx={rowStyle}>{warehouse.name}</TableCell>
+                  <TableCell sx={rowStyle}>{warehouse.contactNo}</TableCell>
+                  <TableCell sx={rowStyle}>{warehouse.address}</TableCell>
+                  <TableCell sx={rowStyle}>{warehouse.warehouseID}</TableCell>
+                  <TableCell sx={rowStyle}>{warehouse.isSource ? "Source" : "Destination"}</TableCell>
+                  <TableCell>
+                    <IconButton
+                      color="primary"
+                      onClick={() => handleEdit(warehouse)}
+                    >
+                      <Edit />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      onClick={() => handleDelete(warehouse.warehouseID)}
+                    >
+                      <Delete />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </TableContainer>
@@ -343,7 +362,13 @@ export default function AllWarehousePage() {
                   className="button button-large"
                   onClick={handleSaveOrAdd}
                 >
-                  {isAdding ? "Add" : "Save"}
+                  {isAdding ? "Add" : "Save"}  {isLoading1 && (
+                    <CircularProgress
+                      size={22}
+                      className="spinner"
+                      sx={{ color: "#fff", animation: "none !important" }}
+                    />
+                  )}
                 </button>
               </Box>
             </Box>
@@ -406,7 +431,13 @@ export default function AllWarehousePage() {
               startIcon={<FaTrash />}
               onClick={confirmDelete}
             >
-              Delete
+              Delete {isLoading2 && (
+                <CircularProgress
+                  size={22}
+                  className="spinner"
+                  sx={{ color: "#fff", animation: "none !important" }}
+                />
+              )}
             </Button>
           </Box>
         </Box>
