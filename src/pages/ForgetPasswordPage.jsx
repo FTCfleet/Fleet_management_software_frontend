@@ -20,11 +20,14 @@ const ForgetPasswordPage = () => {
   
   const handleLogin = async (event) => {
     event.preventDefault();
-
+    console.log(forgetUsername);
     const res = await fetch(`${BASE_URL}/api/auth/get-otp`, {
       method:"POST",
+      headers:{
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
-        username: forgetUsername
+        username: forgetUsername,
       })
     });
     if (res.ok){

@@ -14,17 +14,18 @@ import {
   IconButton,
   Select,
   MenuItem,
-  FormControl, InputLabel
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import { CheckCircle, Cancel } from "@mui/icons-material";
-import { useParams } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import ledger from "../assets/ledger.jpg";
 import { useAuth } from "../routes/AuthContext";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 let delOrders = [];
 
-export default function ViewLedgerPage({ admin }) {
+export default function ViewLedgerPage() {
   const { id } = useParams();
   const [ledgerData, setLedgerData] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -32,8 +33,11 @@ export default function ViewLedgerPage({ admin }) {
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [allWarehouse, setAllWarehouse] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const { isAdmin, isSource } = useAuth();
 
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchWarehouse();
@@ -43,14 +47,14 @@ export default function ViewLedgerPage({ admin }) {
   useEffect(() => {
     let totalfreight = 0;
     let totalhamali = 0;
-    orders.forEach(element => {
+    orders.forEach((element) => {
       totalfreight += element.freight;
       totalhamali += element.hamali;
     });
 
     setTotals({
       freight: totalfreight,
-      hamali: totalhamali
+      hamali: totalhamali,
     });
   }, [orders]);
 
@@ -74,8 +78,11 @@ export default function ViewLedgerPage({ admin }) {
     }
     const data = (await response.json()).body;
     setLedgerData(data);
+    if (data.sourceWarehouse)
+      setSourceWarehouse(data.sourceWarehouse.warehouseID);
+    if (data.destinationWarehouse)
+      setDestinationWarehouse(data.destinationWarehouse.warehouseID);
     setOrders(data.parcels);
-
   };
 
   const fetchWarehouse = async () => {
@@ -88,10 +95,8 @@ export default function ViewLedgerPage({ admin }) {
 
   const handleUpdate = (value, index, type) => {
     value = parseInt(value) || 0;
-    if (type === 'freight')
-      orders[index].freight = value;
-    else
-      orders[index].hamali = value;
+    if (type === "freight") orders[index].freight = value;
+    else orders[index].hamali = value;
     const updated = [...orders];
     setOrders(updated);
   };
@@ -108,11 +113,18 @@ export default function ViewLedgerPage({ admin }) {
   };
 
   const handleDispatch = async () => {
-    // alert('Implement Save');
-    // return;
-    let hamali_freight = orders.map((item) => { return { trackingId: item.trackingId, hamali: item.hamali, freight: item.freight } });
-    // console.log(hamali_freight);
-    // let hamali_freight = [];
+    let hamali_freight = orders.map((item) => {
+      return {
+        trackingId: item.trackingId,
+        hamali: item.hamali,
+        freight: item.freight,
+      };
+    });
+
+    if (!destinationWarehouse || (isAdmin && !sourceWarehouse)) {
+      alert("Select Destination");
+      return;
+    }
     const token = localStorage.getItem("token");
     const response = await fetch(`${BASE_URL}/api/ledger/edit/${id}`, {
       method: "PUT",
@@ -124,23 +136,67 @@ export default function ViewLedgerPage({ admin }) {
       body: JSON.stringify({
         parcels: { del: delOrders },
         destinationWarehouse: destinationWarehouse,
-        // freight: freightLst,
-        // hamali: hamaliLst,
         hamali_freight: hamali_freight,
-        ...(isAdmin ? { sourceWarehouse: sourceWarehouse } : {})
+        status: "dispatched",
+        ...(isAdmin ? { sourceWarehouse: sourceWarehouse } : {}),
       }),
     });
     if (response.ok) {
       alert("orders dispatched successfully");
+      navigate("/user/ledgers/all");
     } else {
       alert("Error occurred");
     }
     console.log(await response.json());
   };
 
-  // const handleDispatch = async () => {
-  //   alert('Implement Dispatch');
-  // };
+  const handleVerify = async () => {
+    alert("Implement Verify");
+    const token = localStorage.getItem("token");
+    const response = await fetch(
+      `${BASE_URL}/api/ledger/verify-deliver/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      alert("Error occurred");
+    }
+    const data = await response.json();
+    console.log(data);
+    navigate("/user/ledgers/all");
+  };
+
+  const handleDeleteLedger = async () => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${BASE_URL}/api/admin/manage/ledger`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      method: "DELETE",
+      body: JSON.stringify({
+        ledgerId: id,
+      }),
+    });
+
+    const data = await res.json();
+    console.log(data);
+    if (data.flag) {
+      // setIsLoading(false);
+      // handleCloseDeleteModal();
+      navigate("/user/ledgers/all");
+    } else {
+      // setIsLoading(false);
+      alert("Error occurred");
+    }
+  };
+
+
 
   return (
     <Box
@@ -175,12 +231,18 @@ export default function ViewLedgerPage({ admin }) {
           <Typography sx={rowStyle}>
             <strong>Truck No:</strong> {ledgerData.vehicleNo}
           </Typography>
-          <div style={{ display: "flex", flexDirection: "row", gap: "20px", alignorders: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              gap: "20px",
+              alignorders: "center",
+            }}
+          >
             <Typography sx={rowStyle}>
               <strong>Source Station:</strong>{" "}
             </Typography>
             {ledgerData.sourceWarehouse ? (
-
               <Typography sx={rowStyle}>
                 {ledgerData.sourceWarehouse.name}
               </Typography>
@@ -191,16 +253,27 @@ export default function ViewLedgerPage({ admin }) {
                   label="Source Warehouse"
                   value={sourceWarehouse}
                   onChange={(e) => setSourceWarehouse(e.target.value)}
-                // error={error && !sourceWarehouse}
+                  // error={error && !sourceWarehouse}
                 >
-                  {allWarehouse.filter(w => !w.isSource).map(w => (
-                    <MenuItem key={w.warehouseID} value={w.warehouseID}>{w.name}</MenuItem>
-                  ))}
+                  {allWarehouse
+                    .filter((w) => !w.isSource)
+                    .map((w) => (
+                      <MenuItem key={w.warehouseID} value={w.warehouseID}>
+                        {w.name}
+                      </MenuItem>
+                    ))}
                 </Select>
               </FormControl>
             )}
           </div>
-          <div style={{ display: "flex", flexDirection: "row", gap: "20px", alignorders: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              gap: "20px",
+              alignorders: "center",
+            }}
+          >
             <Typography sx={rowStyle}>
               <strong>Delivery Station:</strong>{" "}
             </Typography>
@@ -208,7 +281,6 @@ export default function ViewLedgerPage({ admin }) {
               <Typography sx={rowStyle}>
                 {ledgerData.destinationWarehouse.name}
               </Typography>
-              // ledgerData.destinationWarehouse
             ) : (
               <FormControl>
                 <InputLabel>Destination Warehouse</InputLabel>
@@ -217,11 +289,15 @@ export default function ViewLedgerPage({ admin }) {
                   label="Destination Warehouse"
                   value={destinationWarehouse}
                   onChange={(e) => setDestinationWarehouse(e.target.value)}
-                // error={error && !destinationWarehouse}
+                  // error={error && !destinationWarehouse}
                 >
-                  {allWarehouse.filter(w => !w.isSource).map(w => (
-                    <MenuItem key={w.warehouseID} value={w.warehouseID}>{w.name}</MenuItem>
-                  ))}
+                  {allWarehouse
+                    .filter((w) => !w.isSource)
+                    .map((w) => (
+                      <MenuItem key={w.warehouseID} value={w.warehouseID}>
+                        {w.name}
+                      </MenuItem>
+                    ))}
                 </Select>
               </FormControl>
             )}
@@ -254,44 +330,63 @@ export default function ViewLedgerPage({ admin }) {
               <TableCell sx={headerStyle}>Receiver</TableCell>
               <TableCell sx={headerStyle}>Freight</TableCell>
               <TableCell sx={headerStyle}>Hamali</TableCell>
-              <TableCell sx={headerStyle}>Actions</TableCell>
+              {ledgerData.status === "pending" && (
+                <TableCell sx={headerStyle}>Actions</TableCell>
+              )}
               <TableCell sx={headerStyle}>View</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {orders.length !== 0 && orders.map((order, index) => (
-              <TableRow key={order.trackingId}>
-                <TableCell sx={rowStyle}>{index + 1}</TableCell>
-                <TableCell sx={rowStyle}>{order.trackingId}</TableCell>
-                <TableCell sx={rowStyle}>{order.items.length}</TableCell>
-                <TableCell sx={rowStyle}>{order.sender.name ? order.sender.name : "NA"}</TableCell>
-                <TableCell sx={rowStyle}>{order.receiver.name ? order.receiver.name : "NA"}</TableCell>
-                <TableCell sx={rowStyle}>
-                  <TextField
-                    type="text"
-                    size="small"
-                    value={order.freight}
-                    onChange={(e) => handleUpdate(e.target.value, index, 'freight')}
-                  />
-                </TableCell>
-                <TableCell sx={rowStyle}>
-                  <TextField
-                    type="text"
-                    size="small"
-                    value={order.hamali}
-                    onChange={(e) => handleUpdate(e.target.value, index, 'hamali')}
-                  />
-                </TableCell>
-                <TableCell>
-                  <IconButton color="error" onClick={(e) => handleDelete(index)}>
-                    <Cancel />
-                  </IconButton>
-                </TableCell>
-                <TableCell>
-                  <Button>View</Button>
-                </TableCell>
-              </TableRow>
-            ))}
+            {orders.length !== 0 &&
+              orders.map((order, index) => (
+                <TableRow key={order.trackingId}>
+                  <TableCell sx={rowStyle}>{index + 1}</TableCell>
+                  <TableCell sx={rowStyle}>{order.trackingId}</TableCell>
+                  <TableCell sx={rowStyle}>{order.items.length}</TableCell>
+                  <TableCell sx={rowStyle}>{order.sender.name}</TableCell>
+                  <TableCell sx={rowStyle}>{order.receiver.name}</TableCell>
+                  <TableCell sx={rowStyle}>
+                    <TextField
+                      type="text"
+                      size="small"
+                      value={order.freight}
+                      disabled={ledgerData.status !== "pending"}
+                      onChange={(e) =>
+                        handleUpdate(e.target.value, index, "freight")
+                      }
+                    />
+                  </TableCell>
+                  <TableCell sx={rowStyle}>
+                    <TextField
+                      type="text"
+                      size="small"
+                      value={order.hamali}
+                      disabled={ledgerData.status !== "pending"}
+                      onChange={(e) =>
+                        handleUpdate(e.target.value, index, "hamali")
+                      }
+                    />
+                  </TableCell>
+                  {ledgerData.status === "pending" && (
+                    <TableCell>
+                      <IconButton
+                        color="error"
+                        onClick={(e) => handleDelete(index)}
+                      >
+                        <Cancel />
+                      </IconButton>
+                    </TableCell>
+                  )}
+                  <TableCell>
+                    <Link
+                      to={`/user/view/order/${order.trackingId}`}
+                      target="_blank"
+                    >
+                      <Button>View</Button>
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
             {/* Totals Row */}
             <TableRow>
               <TableCell colSpan={2} sx={{ ...headerStyle }}>
@@ -313,9 +408,91 @@ export default function ViewLedgerPage({ admin }) {
           </TableBody>
         </Table>
       </TableContainer>
-      <button className="button button-large" onClick={handleDispatch}>
-        Dispatch Truck
-      </button>
+      {(isSource || isAdmin) && ledgerData.status === "pending" && (
+        <button className="button button-large" onClick={handleDispatch}>
+          Dispatch Truck
+        </button>
+      )}
+      {(!isSource || isAdmin) && ledgerData.status === "dispatched" && (
+        <button className="button button-large" onClick={handleVerify}>
+          Verify Truck
+        </button>
+      )}
+      {isAdmin && (
+        <button className="button button-large" onClick={handleDeleteLedger}>
+          Delete Ledger
+        </button>
+      )}
+
+      {/* Delete Confirmation Modal 
+      <Modal open={deleteModalOpen} onClose={handleCloseDeleteModal}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 350,
+            bgcolor: "background.paper",
+            borderRadius: 3,
+            boxShadow: 24,
+            p: 4,
+            textAlign: "center",
+          }}
+        >
+          <FaExclamationTriangle
+            style={{
+              color: "#d32f2f",
+              fontSize: "36px",
+              marginBottom: "12px",
+            }}
+          />
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: "bold",
+              marginBottom: "12px",
+              color: "#d32f2f",
+            }}
+          >
+            Delete Ledger
+          </Typography>
+          <Typography
+            sx={{
+              marginBottom: "20px",
+              color: "#374151",
+              fontSize: "15px",
+            }}
+          >
+            This action cannot be undone. Are you sure you want to proceed?
+          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "center", gap: "12px" }}>
+            <Button
+              variant="outlined"
+              sx={{ borderColor: "#1E3A5F", color: "#1E3A5F" }}
+              onClick={handleCloseDeleteModal}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              sx={{ backgroundColor: "#d32f2f" }}
+              startIcon={<FaTrash />}
+              onClick={confirmDelete}
+            >
+              Delete{" "}
+              {isLoading && (
+                <CircularProgress
+                  size={15}
+                  className="spinner"
+                  sx={{ color: "#fff", animation: "none !important" }}
+                />
+              )}
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+                */}
     </Box>
   );
 }

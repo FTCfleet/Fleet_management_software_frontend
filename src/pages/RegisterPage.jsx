@@ -176,13 +176,7 @@ const RegisterPage = () => {
               </a>
             </div>
             <button className={styles.loginButton} onClick={handleSection1}>
-              Proceed  {isLoading && (
-                <CircularProgress
-                  size={20}
-                  className="spinner"
-                  sx={{ color: "#fff", animation: "none !important" }}
-                />
-              )}
+              Proceed
             </button>
           </>
         ) : (
@@ -236,7 +230,13 @@ const RegisterPage = () => {
                 Back
               </button>
               <button className={styles.loginButton} onClick={handleRegister}>
-                Create {isLoading ? "load" : ""}
+                Create {isLoading && (
+                <CircularProgress
+                  size={20}
+                  className="spinner"
+                  sx={{ color: "#fff", animation: "none !important" }}
+                />
+              )}
               </button>
             </div>
           </>

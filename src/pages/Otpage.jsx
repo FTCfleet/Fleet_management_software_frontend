@@ -11,7 +11,9 @@ const OtpPage = () => {
   const [otp, setOtp] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    console.log(userData);
     const res = await fetch(`${BASE_URL}/api/auth/verify-otp`, {
       method: "POST",
       body:JSON.stringify({
@@ -20,11 +22,14 @@ const OtpPage = () => {
       })
     });
 
+    const data = await res.json();
+    console.log(data);
+    console.log(otp);
+
     if (res.ok){
-      const data = await res.json();
       if (data.flag){
         setIsOtpVerified(true);
-        navigate("/auth/reset", {state: {token : data.token, username: data.username}});
+        navigate("/auth/reset", {state: {token : data.token, username: userData.username}});
       }
       else{
         alert('Invalid OTP');

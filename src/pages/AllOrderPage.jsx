@@ -82,7 +82,7 @@ const AllOrderPage = () => {
       });
       const data2 = await res.json();
       console.log(data2);
-      setWarehouses(data2.body);
+      setWarehouses((data2.body).filter((warehouse) => (warehouse.isSource !== isSource || isAdmin) ));
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
@@ -116,8 +116,8 @@ const AllOrderPage = () => {
     if (warehouseFilter) {
       filtered = filtered.filter(
         (order) =>
-          order.sourceWarehouse.warehouseID.toLowerCase().includes(warehouseFilter.toLowerCase()) ||
-          order.destinationWarehouse.warehouseID.toLowerCase().includes(warehouseFilter.toLowerCase())
+          order.sourceWarehouse.name === warehouseFilter ||
+          order.destinationWarehouse.name === warehouseFilter
       );
     }
     console.log(filtered);
@@ -194,7 +194,7 @@ const AllOrderPage = () => {
           >
             <MenuItem value="">All Warehouses</MenuItem>
             {warehouses.map((warehouse) => (
-              <MenuItem key={warehouse.warehouseID} value={warehouse.warehouseID}>
+              <MenuItem key={warehouse.name} value={warehouse.name}>
                 {warehouse.name}
               </MenuItem>
             ))}
@@ -251,22 +251,22 @@ const AllOrderPage = () => {
                       {order.trackingId}
                     </TableCell>
                     <TableCell sx={rowCellStyle}>
-                      {order.sender.name ? order.sender.name : "NA"}
+                      {order.sender.name}
                     </TableCell>
                     <TableCell sx={rowCellStyle}>
-                      {order.receiver.name ? order.receiver.name : "NA"}
+                      {order.receiver.name}
                     </TableCell>
 
                     {isAdmin ? (<>
                       <TableCell sx={rowCellStyle}>
-                        {order.sourceWarehouse.warehouseID}
+                        {order.sourceWarehouse.name}
                       </TableCell>
                       <TableCell sx={rowCellStyle}>
-                        {order.destinationWarehouse.warehouseID}
+                        {order.destinationWarehouse.name}
                       </TableCell>
                     </>)
                       : (<TableCell sx={rowCellStyle}>
-                        {isSource ? order.destinationWarehouse.warehouseID : order.sourceWarehouse.warehouseID}
+                        {isSource ? order.destinationWarehouse.name : order.sourceWarehouse.name}
                       </TableCell>)}
                     <TableCell>
                       <span className={`table-status ${order.status}`}>

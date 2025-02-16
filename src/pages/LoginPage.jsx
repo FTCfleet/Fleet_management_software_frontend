@@ -13,7 +13,6 @@ const LoginPage = () => {
   const [userVal, setuserVal] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { resetForgetAuth } = useAuth();
-  const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setPasswordVisible((prevState) => !prevState);

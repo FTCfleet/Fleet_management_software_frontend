@@ -36,6 +36,7 @@ export default function ViewOrderPage() {
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [destWarehouse, setDestWarehouse] = useState("");
   const [qrCount, setQrCount] = useState(0);
+  const [charges, setCharges] = useState(0);
   const [items, setItems] = useState([]);
   const [qrCode, setQrCode] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -70,9 +71,10 @@ export default function ViewOrderPage() {
     console.log(data);
     setSenderDetails(data.body.sender);
     setReceiverDetails(data.body.receiver);
-    setSourceWarehouse(data.body.sourceWarehouse.warehouseID);
-    setDestWarehouse(data.body.destinationWarehouse.warehouseID);
+    setSourceWarehouse(data.body.sourceWarehouse.name);
+    setDestWarehouse(data.body.destinationWarehouse.name);
     setItems(data.body.items);
+    setCharges(data.body.charges);
     setQrCode(data.qrCode);
     // console.log(data)
   };
@@ -155,15 +157,15 @@ export default function ViewOrderPage() {
             <Box sx={{ flex: 1 }}>
               <Typography sx={rowCellStyle}>
                 <strong>Sender's Name:</strong>{" "}
-                {senderDetails.name ? senderDetails.name : "NA"}
+                {senderDetails.name}
               </Typography>
               <Typography sx={rowCellStyle}>
                 <strong>Sender's Phone:</strong>{" "}
-                {senderDetails.phoneNo ? senderDetails.phoneNo : "NA"}
+                {senderDetails.phoneNo}
               </Typography>
               <Typography sx={rowCellStyle}>
                 <strong>Sender's Address:</strong>{" "}
-                {senderDetails.address ? senderDetails.address : "NA"}
+                {senderDetails.address}
               </Typography>
               <Typography sx={rowCellStyle}>
                 <strong>Source Warehouse:</strong> {sourceWarehouse}
@@ -176,18 +178,21 @@ export default function ViewOrderPage() {
             <Box sx={{ flex: 1 }}>
               <Typography sx={rowCellStyle}>
                 <strong>Receiver's Name:</strong>{" "}
-                {receiverDetails.name ? receiverDetails.name : "NA"}
+                {receiverDetails.name}
               </Typography>
               <Typography sx={rowCellStyle}>
                 <strong>Receiver's Phone:</strong>{" "}
-                {receiverDetails.phoneNo ? receiverDetails.phoneNo : "NA"}
+                {receiverDetails.phoneNo}
               </Typography>
               <Typography sx={rowCellStyle}>
                 <strong>Receiver's Address:</strong>{" "}
-                {receiverDetails.address ? receiverDetails.address : "NA"}
+                {receiverDetails.address}
               </Typography>
               <Typography sx={rowCellStyle}>
                 <strong>Destination Warehouse:</strong> {destWarehouse}
+              </Typography>
+              <Typography sx={rowCellStyle}>
+                <strong>Charges:</strong> {charges}
               </Typography>
             </Box>
           </Box>
@@ -364,7 +369,7 @@ export default function ViewOrderPage() {
 
             <TextField
               label="Enter Quantity"
-              type="number"
+              type="text"
               value={qrCount}
               onChange={(e) => setQrCount(parseInt(e.target.value) || 0)}
               fullWidth

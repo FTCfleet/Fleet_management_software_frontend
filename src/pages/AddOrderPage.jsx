@@ -26,8 +26,8 @@ export default function AddOrderPage({ }) {
   const { id } = useParams();
   const [items, setItems] = useState([]);
   const [counter, setCounter] = useState(1);
-  const [senderDetails, setSenderDetails] = useState({ name: "NA", phoneNo: "NA", address: "NA", role: "sender" });
-  const [receiverDetails, setReceiverDetails] = useState({ name: "NA", phoneNo: "NA", address: "NA", role: "receiver" });
+  const [senderDetails, setSenderDetails] = useState({role: "sender" });
+  const [receiverDetails, setReceiverDetails] = useState({role: "receiver" });
   const [error, setError] = useState(false);
   const [charges, setCharges] = useState(0);
   const [allWarehouse, setAllWarehouse] = useState([]);
@@ -95,6 +95,14 @@ export default function AddOrderPage({ }) {
     return true;
   };
 
+  const handleEmptyDetails = (details) => {
+    console.log(details);
+    if (!details.name || details.name == "") details.name = "NA";
+    if (!details.phoneNo || details.phoneNo == "") details.phoneNo = "NA";
+    if (!details.address || details.address == "") details.address = "NA";
+    return details;
+  };
+
   const handleAddOrder = async () => {
     if (!validateOrder()) {
       setError(true);
@@ -102,6 +110,8 @@ export default function AddOrderPage({ }) {
     }
     setIsLoading(true);
     try {
+      console.log(handleEmptyDetails(senderDetails));
+      console.log(handleEmptyDetails(receiverDetails));
       const token = localStorage.getItem("token");
       const response = await fetch(`${BASE_URL}/api/parcel/new`, {
         method: "POST",
@@ -110,8 +120,8 @@ export default function AddOrderPage({ }) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          senderDetails,
-          receiverDetails,
+          senderDetails: handleEmptyDetails(senderDetails),
+          receiverDetails: handleEmptyDetails(receiverDetails),
           items,
           destinationWarehouse,
           charges,

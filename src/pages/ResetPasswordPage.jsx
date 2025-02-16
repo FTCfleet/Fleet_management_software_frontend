@@ -11,6 +11,8 @@ const ResetPasswordPage = () => {
   const [isMatch, setIsMatch] = useState(true);
   const location = useLocation();
   const userData = location.state;
+  console.log('reset ');
+  console.log(userData);
   const navigate = useNavigate();
   const style = {
     borderColor: "red",

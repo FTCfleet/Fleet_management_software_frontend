@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import { IoArrowForwardCircleOutline } from "react-icons/io5"; // Icon for View Ledger
-import { useAuth } from "../routes/AuthContext"
+import { useAuth } from "../routes/AuthContext";
 import "../css/table.css"; // Import CSS
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -36,7 +36,6 @@ const AllLedgerPage = () => {
   const [warehouses, setWarehouses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-
   useEffect(() => {
     fetchData();
   }, [selectedDate]);
@@ -50,13 +49,13 @@ const AllLedgerPage = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `${BASE_URL}/api/ledger/track-all/${selectedDate}`,
+        `${BASE_URL}/api/ledger/track-all/${selectedDate.replaceAll("-", "")}`,
         {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
-          }
+          },
         }
       );
 
@@ -75,7 +74,11 @@ const AllLedgerPage = () => {
       });
       const data2 = await res.json();
       console.log(data2);
-      setWarehouses(data2.body);
+      setWarehouses(
+        data2.body.filter(
+          (warehouse) => warehouse.isSource !== isSource || isAdmin
+        )
+      );
     } catch (error) {
       console.error("Error fetching orders:", error);
     } finally {
@@ -104,19 +107,20 @@ const AllLedgerPage = () => {
   };
 
   const applyFilter = () => {
-    let filtered = ledgerEntries.filter((order) => order.status === type || type === "all");
+    let filtered = ledgerEntries.filter(
+      (order) => order.status === type || type === "all"
+    );
 
     if (phoneFilter) {
-      filtered = filtered.filter(
-        (order) =>
-          order.vehicleNo.toLowerCase().includes(phoneFilter.toLowerCase())
+      filtered = filtered.filter((order) =>
+        order.vehicleNo.toLowerCase().includes(phoneFilter.toLowerCase())
       );
     }
     if (warehouseFilter) {
       filtered = filtered.filter(
         (order) =>
-          order.sourceWarehouse.warehouseID.toLowerCase().includes(warehouseFilter.toLowerCase()) ||
-          order.destinationWarehouse.warehouseID.toLowerCase().includes(warehouseFilter.toLowerCase())
+          order.sourceWarehouse.name === warehouseFilter ||
+          order.destinationWarehouse.name === warehouseFilter
       );
     }
     console.log(filtered);
@@ -126,7 +130,9 @@ const AllLedgerPage = () => {
   const clearFilter = () => {
     setPhoneFilter("");
     setWarehouseFilter("");
-    let filtered = orders.filter((order) => order.status === type || type === "all");
+    let filtered = orders.filter(
+      (order) => order.status === type || type === "all"
+    );
     setFilteredLedger(filtered);
   };
 
@@ -179,7 +185,7 @@ const AllLedgerPage = () => {
           >
             <MenuItem value="">All Warehouses</MenuItem>
             {warehouses.map((warehouse) => (
-              <MenuItem key={warehouse.warehouseID} value={warehouse.warehouseID}>
+              <MenuItem key={warehouse.warehouseID} value={warehouse.name}>
                 {warehouse.name}
               </MenuItem>
             ))}
@@ -204,88 +210,95 @@ const AllLedgerPage = () => {
               <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
                 Vehicle No
               </TableCell>
-              {isAdmin || !isSource ?
+              {isAdmin || !isSource ? (
                 <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
                   Source Warehouse
-                </TableCell> : null
-              }
-              {isAdmin || isSource ?
+                </TableCell>
+              ) : null}
+              {isAdmin || isSource ? (
                 <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
                   Destination Warehouse
-                </TableCell> : null
-              }
-              {type === "all" && (
-                <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
-                  Status
                 </TableCell>
-              )}
+              ) : null}
+
+              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+                Status
+              </TableCell>
               <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
                 View Ledger
               </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {isLoading ? (<TableRow>
-              <TableCell colSpan={7} align="center">
-                <CircularProgress
-                  size={22}
-                  className="spinner"
-                  sx={{ color: "#1E3A5F", animation: "none !important" }}
-                />
-              </TableCell>
-            </TableRow>) :
-              filteredLedger.length > 0 ? (
-                filteredLedger.map((entry) => (
-                  <TableRow key={entry.ledgerId}>
-                    <TableCell sx={{ color: "#25344E" }}>{entry.ledgerId}</TableCell>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  <CircularProgress
+                    size={22}
+                    className="spinner"
+                    sx={{ color: "#1E3A5F", animation: "none !important" }}
+                  />
+                </TableCell>
+              </TableRow>
+            ) : filteredLedger.length > 0 ? (
+              filteredLedger.map((entry) => (
+                <TableRow key={entry.ledgerId}>
+                  <TableCell sx={{ color: "#25344E" }}>
+                    {entry.ledgerId}
+                  </TableCell>
+                  <TableCell sx={{ color: "#25344E" }}>
+                    {entry.vehicleNo}
+                  </TableCell>
+                  {isAdmin || !isSource ? (
                     <TableCell sx={{ color: "#25344E" }}>
-                      {entry.vehicleNo}
+                      {entry.sourceWarehouse
+                        ? entry.sourceWarehouse.name
+                        : "NA"}
                     </TableCell>
-                    {(isAdmin || !isSource) ?
-                      <TableCell sx={{ color: "#25344E" }}>
-                        {entry.sourceWarehouse ? entry.sourceWarehouse.warehouseID : "NA"}
-                      </TableCell> : null
-                    }
+                  ) : null}
 
-                    {(isAdmin || isSource) ?
-                      <TableCell sx={{ color: "#25344E" }}>
-                        {entry.destinationWarehouse ? entry.destinationWarehouse.warehouseID : "NA"}
-                      </TableCell> : null}
-                    {type === "all" && (
-                      <TableCell>
-                        <span
-                          className={`table-status ${entry.status.toLowerCase()}`}
-                        >
-                          {entry.status}
-                        </span>
-                      </TableCell>
-                    )}
-                    <TableCell>
-                      <Button
-                        variant="outlined"
-                        sx={{
-                          textTransform: "none",
-                          color: "#1E3A5F",
-                          borderColor: "#1E3A5F",
-                        }}
-                        onClick={() => navigate(`/user/view/ledger/${entry.ledgerId}`)}
-                      >
-                        <IoArrowForwardCircleOutline size={24} />
-                      </Button>
+                  {isAdmin || isSource ? (
+                    <TableCell sx={{ color: "#25344E" }}>
+                      {entry.destinationWarehouse
+                        ? entry.destinationWarehouse.name
+                        : "NA"}
                     </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={type === "all" ? 5 : 4}
-                    align="center"
-                    sx={{ color: "#7D8695" }}
-                  >
-                    No ledger entries found for the selected date.
+                  ) : null}
+                  <TableCell>
+                    <span
+                      className={`table-status ${entry.status.toLowerCase()}`}
+                    >
+                      {entry.status}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outlined"
+                      sx={{
+                        textTransform: "none",
+                        color: "#1E3A5F",
+                        borderColor: "#1E3A5F",
+                      }}
+                      onClick={() =>
+                        navigate(`/user/view/ledger/${entry.ledgerId}`)
+                      }
+                    >
+                      <IoArrowForwardCircleOutline size={24} />
+                    </Button>
                   </TableCell>
                 </TableRow>
-              )}
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={type === "all" ? 5 : 4}
+                  align="center"
+                  sx={{ color: "#7D8695" }}
+                >
+                  No ledger entries found for the selected date.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>

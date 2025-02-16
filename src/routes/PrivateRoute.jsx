@@ -9,7 +9,6 @@ const PrivateRoute = ({ element, requiredStep, redirectTo }) => {
   const isAllowed =
     (requiredStep === "otp" && isForgetUsernameSubmitted) ||
     (requiredStep === "reset" && isOtpVerified);
-
   return isAllowed ? element : <Navigate to={redirectTo} replace />;
 };
 
