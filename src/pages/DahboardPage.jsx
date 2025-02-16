@@ -15,8 +15,12 @@ const DashboardPage = () => {
   const { checkAuthStatus } = useAuth();
 
   useEffect(() => {
-    checkAuthStatus().then((data) => setUser(data.user_data));
+    checkAuthStatus().then((data) => {
+      setUser(data.user_data);
+      console.log(data);
+    });
   }, []);
+
   return user ? (
     <Box
       sx={{
@@ -55,6 +59,9 @@ const DashboardPage = () => {
           {/* User Details */}
           <Typography variant="body1" sx={{ mt: 1 }}>
             <strong>Code:</strong> {user.warehouseCode}
+          </Typography>
+          <Typography variant="body1" sx={{ mt: 1 }}>
+            <strong>Warehouse:</strong> {user.warehouseName}
           </Typography>
           <Typography variant="body1" sx={{ mt: 1 }}>
             <strong>Phone:</strong> {user.phoneNo}

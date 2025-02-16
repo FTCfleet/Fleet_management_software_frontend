@@ -96,7 +96,7 @@ const AllEmployeePage = () => {
   };
 
   const handleEdit = (employee) => {
-    setCurrentEmployee({ ...employee });
+    setCurrentEmployee({ ...employee, warehouseCode: employee.warehouseCode.warehouseID });
     setIsModalOpen(true);
   };
 
@@ -146,7 +146,7 @@ const AllEmployeePage = () => {
         updates: {
           name: currentEmployee.name,
           phoneNo: currentEmployee.phoneNo,
-          warehouseID: currentEmployee.warehouseID,
+          warehouseCode: currentEmployee.warehouseID,
         },
       }),
     });
@@ -220,6 +220,7 @@ const AllEmployeePage = () => {
               <TableCell sx={headerStyle}>Phone No</TableCell>
               <TableCell sx={headerStyle}>Role</TableCell>
               <TableCell sx={headerStyle}>Warehouse</TableCell>
+              <TableCell sx={headerStyle}>Warehouse Code</TableCell>
               <TableCell sx={headerStyle}>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -239,6 +240,7 @@ const AllEmployeePage = () => {
                   <TableCell sx={rowStyle}>{employee.username}</TableCell>
                   <TableCell sx={rowStyle}>{employee.phoneNo}</TableCell>
                   <TableCell sx={rowStyle}>{employee.role}</TableCell>
+                  <TableCell sx={rowStyle}>{employee.warehouseCode.name}</TableCell>
                   <TableCell sx={rowStyle}>{employee.warehouseCode.warehouseID}</TableCell>
                   <TableCell>
                     <IconButton

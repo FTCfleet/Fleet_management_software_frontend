@@ -189,6 +189,7 @@ export default function GenReportPage() {
           <FormControl fullWidth>
             <InputLabel id="month-year-label">Month & Year</InputLabel>
             <Select
+              label="Month & Year"
               labelId="month-year-label"
               value={monthly}
               onChange={(e) => handleMonthAndYearChange(e.target.value)}
@@ -208,7 +209,7 @@ export default function GenReportPage() {
           <Box className="calendar-input">
             <input
               type="date"
-              onFocus={(e) => e.target.showPicker()}
+              onClick={(e) => e.target.showPicker()}
               onKeyDown={(e) => e.preventDefault()}
               value = {sDate}
               onChange={(e) => handleDateChange("start", e.target.value)}
@@ -217,7 +218,7 @@ export default function GenReportPage() {
           <Box className="calendar-input">
             <input
               type="date"
-              onFocus={(e) => e.target.showPicker()}
+              onClick={(e) => e.target.showPicker()}
               onKeyDown={(e) => e.preventDefault()}
               value ={eDate}
               onChange={(e) => handleDateChange("end", e.target.value)}

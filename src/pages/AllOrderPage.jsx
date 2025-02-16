@@ -171,7 +171,7 @@ const AllOrderPage = () => {
         <Box className="calendar-input">
           <input
             type="date"
-            onFocus={(e) => e.target.showPicker()}
+            onClick={(e) => e.target.showPicker()}
             onKeyDown={(e) => e.preventDefault()}
             value={selectedDate}
             onChange={handleDateChange}
@@ -292,7 +292,7 @@ const AllOrderPage = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ color: "#7D8695" }}>
+                  <TableCell colSpan={7} align="center" sx={{ color: "#7D8695" }}>
                     No orders found for the selected date.
                   </TableCell>
                 </TableRow>

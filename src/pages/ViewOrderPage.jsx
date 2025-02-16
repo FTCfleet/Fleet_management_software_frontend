@@ -35,6 +35,7 @@ export default function ViewOrderPage() {
   const [receiverDetails, setReceiverDetails] = useState({});
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [destWarehouse, setDestWarehouse] = useState("");
+  const [status, setStatus] = useState("");
   const [qrCount, setQrCount] = useState(0);
   const [charges, setCharges] = useState(0);
   const [items, setItems] = useState([]);
@@ -76,14 +77,8 @@ export default function ViewOrderPage() {
     setItems(data.body.items);
     setCharges(data.body.charges);
     setQrCode(data.qrCode);
-    // console.log(data)
+    setStatus(data.body.status);
   };
-
-  // const printQR = async () => {
-  //   const response = await fetch(`${BASE_URL}/api/parcel/qr/${id}`);
-  //   console.log(response);
-  //   console.log(await response.json());
-  // };
 
   const handleOpenDeleteModal = () => {
     setDeleteModalOpen(true);
@@ -143,18 +138,18 @@ export default function ViewOrderPage() {
           marginBottom: "20px",
         }}
       >
-        <Box sx={{ flex: 1, textAlign: "left" }}>
+        <Box sx={{ flex: 1, textAlign: "left", marginRight: "20px" }}>
           <Typography variant="h5" sx={{ marginBottom: "10px", ...cellStyle }}>
             Order Details
           </Typography>
 
           {/* Order ID */}
-          <Typography sx={rowCellStyle}>
-            <strong>Order ID:</strong> {id}
-          </Typography>
 
           <Box sx={{ display: "flex", marginBottom: "10px" }}>
             <Box sx={{ flex: 1 }}>
+              <Typography sx={rowCellStyle}>
+                <strong>Order ID:</strong> {id}
+              </Typography>
               <Typography sx={rowCellStyle}>
                 <strong>Sender's Name:</strong>{" "}
                 {senderDetails.name}
@@ -175,7 +170,10 @@ export default function ViewOrderPage() {
               </Typography>
             </Box>
 
-            <Box sx={{ flex: 1 }}>
+            <Box sx={{ flex: 1, marginLeft: "20px" }}>
+              <Typography sx={rowCellStyle}>
+                <strong>Status:</strong> {status.charAt(0).toUpperCase() + status.slice(1)}
+              </Typography>
               <Typography sx={rowCellStyle}>
                 <strong>Receiver's Name:</strong>{" "}
                 {receiverDetails.name}
@@ -198,7 +196,7 @@ export default function ViewOrderPage() {
           </Box>
         </Box>
 
-        <Box sx={{ flex: "0 0 150px", marginLeft: "20px" }}>
+        <Box sx={{ flex: "0 0 150px"}}>
           <img
             src={qrCode ? qrCode : orders}
             alt="Orders"
@@ -377,7 +375,7 @@ export default function ViewOrderPage() {
               size="small"
             />
 
-            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+            <Box sx={{ display: "flex", justifyContent:"center", mt: 2, gap:"20px" }}>
               <Button variant="outlined" color="error" onClick={() => setQrCodeModalOpen(false)}>
                 Cancel
               </Button>

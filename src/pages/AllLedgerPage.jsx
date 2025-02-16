@@ -31,7 +31,7 @@ const AllLedgerPage = () => {
   );
   const navigate = useNavigate();
   const { isAdmin, isSource } = useAuth();
-  const [phoneFilter, setPhoneFilter] = useState("");
+  const [vehicleFilter, setVehicleFilter] = useState("");
   const [warehouseFilter, setWarehouseFilter] = useState("");
   const [warehouses, setWarehouses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -111,9 +111,9 @@ const AllLedgerPage = () => {
       (order) => order.status === type || type === "all"
     );
 
-    if (phoneFilter) {
+    if (vehicleFilter) {
       filtered = filtered.filter((order) =>
-        order.vehicleNo.toLowerCase().includes(phoneFilter.toLowerCase())
+        order.vehicleNo.toLowerCase().includes(vehicleFilter.toLowerCase())
       );
     }
     if (warehouseFilter) {
@@ -128,9 +128,9 @@ const AllLedgerPage = () => {
   };
 
   const clearFilter = () => {
-    setPhoneFilter("");
+    setVehicleFilter("");
     setWarehouseFilter("");
-    let filtered = orders.filter(
+    let filtered = ledgerEntries.filter(
       (order) => order.status === type || type === "all"
     );
     setFilteredLedger(filtered);
@@ -163,7 +163,7 @@ const AllLedgerPage = () => {
         <Box className="calendar-input">
           <input
             type="date"
-            onFocus={(e) => e.target.showPicker()}
+            onClick={(e) => e.target.showPicker()}
             onKeyDown={(e) => e.preventDefault()}
             value={selectedDate}
             onChange={handleDateChange}
@@ -172,8 +172,8 @@ const AllLedgerPage = () => {
         <Box sx={{ display: "flex", gap: "10px" }}>
           <TextField
             label="Search by Vehicle No"
-            value={phoneFilter}
-            onChange={(e) => setPhoneFilter(e.target.value)}
+            value={vehicleFilter}
+            onChange={(e) => setVehicleFilter(e.target.value)}
             variant="outlined"
             size="small"
           />
@@ -222,6 +222,9 @@ const AllLedgerPage = () => {
               ) : null}
 
               <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+                Package Count
+              </TableCell>
+              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
                 Status
               </TableCell>
               <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
@@ -243,7 +246,7 @@ const AllLedgerPage = () => {
             ) : filteredLedger.length > 0 ? (
               filteredLedger.map((entry) => (
                 <TableRow key={entry.ledgerId}>
-                  <TableCell sx={{ color: "#25344E" }}>
+                  <TableCell sx={{ color: "#25344E"}}>
                     {entry.ledgerId}
                   </TableCell>
                   <TableCell sx={{ color: "#25344E" }}>
@@ -264,6 +267,9 @@ const AllLedgerPage = () => {
                         : "NA"}
                     </TableCell>
                   ) : null}
+                  <TableCell>
+                      {entry.parcels.length}
+                  </TableCell>
                   <TableCell>
                     <span
                       className={`table-status ${entry.status.toLowerCase()}`}
@@ -291,7 +297,7 @@ const AllLedgerPage = () => {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={type === "all" ? 5 : 4}
+                  colSpan="7"
                   align="center"
                   sx={{ color: "#7D8695" }}
                 >

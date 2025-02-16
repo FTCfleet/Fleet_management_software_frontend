@@ -16,11 +16,14 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Modal,
+  CircularProgress,
 } from "@mui/material";
 import { CheckCircle, Cancel } from "@mui/icons-material";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import ledger from "../assets/ledger.jpg";
 import { useAuth } from "../routes/AuthContext";
+import { FaTrash, FaExclamationTriangle } from "react-icons/fa";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 let delOrders = [];
@@ -33,11 +36,13 @@ export default function ViewLedgerPage() {
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [allWarehouse, setAllWarehouse] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const { isAdmin, isSource } = useAuth();
-
   const navigate = useNavigate();
+
+  const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
+  const rowStyle = { color: "#25344E" };
 
   useEffect(() => {
     fetchWarehouse();
@@ -100,9 +105,6 @@ export default function ViewLedgerPage() {
     const updated = [...orders];
     setOrders(updated);
   };
-
-  const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
-  const rowStyle = { color: "#25344E" };
 
   const handleDelete = (index) => {
     delOrders.push(orders[index]._id);
@@ -186,17 +188,14 @@ export default function ViewLedgerPage() {
 
     const data = await res.json();
     console.log(data);
+    setIsLoading(false);
+    setDeleteModalOpen(false);
     if (data.flag) {
-      // setIsLoading(false);
-      // handleCloseDeleteModal();
       navigate("/user/ledgers/all");
     } else {
-      // setIsLoading(false);
       alert("Error occurred");
     }
   };
-
-
 
   return (
     <Box
@@ -253,7 +252,6 @@ export default function ViewLedgerPage() {
                   label="Source Warehouse"
                   value={sourceWarehouse}
                   onChange={(e) => setSourceWarehouse(e.target.value)}
-                  // error={error && !sourceWarehouse}
                 >
                   {allWarehouse
                     .filter((w) => !w.isSource)
@@ -289,7 +287,6 @@ export default function ViewLedgerPage() {
                   label="Destination Warehouse"
                   value={destinationWarehouse}
                   onChange={(e) => setDestinationWarehouse(e.target.value)}
-                  // error={error && !destinationWarehouse}
                 >
                   {allWarehouse
                     .filter((w) => !w.isSource)
@@ -302,6 +299,11 @@ export default function ViewLedgerPage() {
               </FormControl>
             )}
           </div>
+          <Typography sx={rowStyle}>
+            <strong>Status:</strong>{" "}
+            {ledgerData.status?.charAt(0).toUpperCase() +
+              ledgerData.status?.slice(1)}
+          </Typography>
         </Box>
         <Box sx={{ flex: "0 0 150px", marginLeft: "20px" }}>
           <img
@@ -387,6 +389,7 @@ export default function ViewLedgerPage() {
                   </TableCell>
                 </TableRow>
               ))}
+
             {/* Totals Row */}
             <TableRow>
               <TableCell colSpan={2} sx={{ ...headerStyle }}>
@@ -413,19 +416,20 @@ export default function ViewLedgerPage() {
           Dispatch Truck
         </button>
       )}
-      {(!isSource || isAdmin) && ledgerData.status === "dispatched" && (
+      {(!isSource || isAdmin) && ledgerData.status === "verified" && (
         <button className="button button-large" onClick={handleVerify}>
-          Verify Truck
+          Deliver Truck
         </button>
       )}
-      {isAdmin && (
-        <button className="button button-large" onClick={handleDeleteLedger}>
-          Delete Ledger
-        </button>
-      )}
+      <button
+        className="button button-large"
+        onClick={() => setDeleteModalOpen(true)}
+      >
+        <FaTrash style={{ marginRight: "8px" }} /> Delete Ledger
+      </button>
 
-      {/* Delete Confirmation Modal 
-      <Modal open={deleteModalOpen} onClose={handleCloseDeleteModal}>
+      {/* Delete Confirmation Modal */}
+      <Modal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)}>
         <Box
           sx={{
             position: "absolute",
@@ -470,7 +474,7 @@ export default function ViewLedgerPage() {
             <Button
               variant="outlined"
               sx={{ borderColor: "#1E3A5F", color: "#1E3A5F" }}
-              onClick={handleCloseDeleteModal}
+              onClick={() => setDeleteModalOpen(false)}
             >
               Cancel
             </Button>
@@ -478,7 +482,7 @@ export default function ViewLedgerPage() {
               variant="contained"
               sx={{ backgroundColor: "#d32f2f" }}
               startIcon={<FaTrash />}
-              onClick={confirmDelete}
+              onClick={handleDeleteLedger}
             >
               Delete{" "}
               {isLoading && (
@@ -492,7 +496,6 @@ export default function ViewLedgerPage() {
           </Box>
         </Box>
       </Modal>
-                */}
     </Box>
   );
 }

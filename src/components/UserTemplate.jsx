@@ -27,7 +27,8 @@ const UserTemplate = () => {
   const location = useLocation();
   const isAddOrderPage =
     location.pathname.startsWith("/user/add/order/") ||
-    location.pathname.startsWith("/user/edit/order/") || !isSource;
+    location.pathname.startsWith("/user/edit/order/") ||
+    !isSource;
   const menuSections = [
     {
       heading: "Orders",
@@ -62,24 +63,22 @@ const UserTemplate = () => {
           path: "/user/ledgers/all",
           icon: <FaTruckMoving />,
         },
-        ...(isAdmin || isSource)
-          ? [{
-              text: "Pending Ledgers",
-              path: "/user/ledgers/pending",
-              icon: <FaTruckMoving />,
-            }]
-          : [],
-        isAdmin
-          ? {
-              text: "Dispatched Ledgers",
-              path: `/user/ledgers/dispatched`,
-              icon: <FaTruckMoving />,
-            }
-          : {
-              text: isSource ? "Outgoing Ledgers" : "Incoming Ledgers",
-              path: `/user/ledgers/${isSource ? "outgoing" : "incoming"}`,
-              icon: <FaTruckMoving />,
-            },
+        ...(isAdmin || isSource
+          ? [
+              {
+                text: "Pending Ledgers",
+                path: "/user/ledgers/pending",
+                icon: <FaTruckMoving />,
+              },
+            ]
+          : []),
+        {
+          text: `${
+            isAdmin ? "Dispatched" : isSource ? "Outgoing" : "Incoming"
+          } Ledgers`,
+          path: `/user/ledgers/dispatched`,
+          icon: <FaTruckMoving />,
+        },
         {
           text: "Completed Ledgers",
           path: "/user/ledgers/completed",
