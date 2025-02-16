@@ -30,8 +30,9 @@ const ForgetPasswordPage = () => {
         username: forgetUsername,
       })
     });
+    const data = await res.json();
+    console.log(data);
     if (res.ok){
-      const data = await res.json();
       if (data.flag){
         alert("Sent OTP to Mobile Number: xxxx"+data.phoneNo.slice(7));
         setIsForgetUsernameSubmitted(true);

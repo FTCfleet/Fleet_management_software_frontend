@@ -32,6 +32,7 @@ const ResetPasswordPage = () => {
       alert("Enter same password");
       return;
     }
+    console.log(userData);
     const res = await fetch(`${BASE_URL}/api/auth/reset-password`, {
       method: "POST",
       headers: {
