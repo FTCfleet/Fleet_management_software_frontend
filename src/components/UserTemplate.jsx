@@ -80,6 +80,11 @@ const UserTemplate = () => {
           icon: <FaTruckMoving />,
         },
         {
+          text: "Verified Ledgers",
+          path: "/user/ledgers/verified",
+          icon: <FaTruckMoving />,
+        },
+        {
           text: "Completed Ledgers",
           path: "/user/ledgers/completed",
           icon: <FaTruckMoving />,

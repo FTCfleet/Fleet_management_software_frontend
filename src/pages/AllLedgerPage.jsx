@@ -148,7 +148,7 @@ const AllLedgerPage = () => {
           fontWeight: "bold",
         }}
       >
-        {type.charAt(0).toUpperCase() + type.slice(1)} Ledger
+        {type.charAt(0).toUpperCase() + type.slice(1)} Ledgers
       </Typography>
 
       {/* Filters: Date and Search */}
@@ -274,7 +274,7 @@ const AllLedgerPage = () => {
                     <span
                       className={`table-status ${entry.status.toLowerCase()}`}
                     >
-                      {entry.status}
+                      {entry.status.toUpperCase().charAt(0) + entry.status.slice(1)}
                     </span>
                   </TableCell>
                   <TableCell>

@@ -19,11 +19,12 @@ import {
   Modal,
   CircularProgress,
 } from "@mui/material";
-import { CheckCircle, Cancel } from "@mui/icons-material";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { Cancel } from "@mui/icons-material";
+import { useParams, useNavigate } from "react-router-dom";
 import ledger from "../assets/ledger.jpg";
 import { useAuth } from "../routes/AuthContext";
 import { FaTrash, FaExclamationTriangle } from "react-icons/fa";
+import { IoArrowForwardCircleOutline } from "react-icons/io5";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 let delOrders = [];
@@ -37,6 +38,7 @@ export default function ViewLedgerPage() {
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoading1, setIsLoading1] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const { isAdmin, isSource } = useAuth();
   const navigate = useNavigate();
@@ -66,6 +68,7 @@ export default function ViewLedgerPage() {
   // console.log(orders);
 
   const fetchData = async () => {
+    setIsLoading1(true);
     const token = localStorage.getItem("token");
     const response = await fetch(`${BASE_URL}/api/ledger/track/${id}`, {
       headers: {
@@ -75,10 +78,12 @@ export default function ViewLedgerPage() {
     });
     if (!response.ok) {
       alert("Error occurred");
+      setIsLoading1(false);
       return;
     }
     if (response.status === 201) {
       alert("No such Ledger found");
+      setIsLoading1(false);
       return;
     }
     const data = (await response.json()).body;
@@ -88,6 +93,7 @@ export default function ViewLedgerPage() {
     if (data.destinationWarehouse)
       setDestinationWarehouse(data.destinationWarehouse.warehouseID);
     setOrders(data.parcels);
+    setIsLoading1(false);
   };
 
   const fetchWarehouse = async () => {
@@ -210,107 +216,101 @@ export default function ViewLedgerPage() {
         sx={{
           display: "flex",
           justifyContent: "flex-start",
-          alignorders: "flex-start",
+          alignItems: "flex-start",
           backgroundColor: "#ffffff",
           padding: "20px",
           borderRadius: "8px",
           marginBottom: "20px",
+          minHeight: "150px", // Keeps structure stable
         }}
       >
+        {/* Left Section - Text Content */}
         <Box sx={{ flex: 1, textAlign: "left" }}>
-          <Typography
-            variant="h5"
-            sx={{ marginBottom: "10px", ...headerStyle }}
-          >
+          <Typography variant="h5" sx={{ marginBottom: "10px", ...headerStyle }}>
             Ledger Details
           </Typography>
-          <Typography sx={rowStyle}>
-            <strong>Ledger No:</strong> {ledgerData.ledgerId}
-          </Typography>
-          <Typography sx={rowStyle}>
-            <strong>Truck No:</strong> {ledgerData.vehicleNo}
-          </Typography>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              gap: "20px",
-              alignorders: "center",
-            }}
-          >
-            <Typography sx={rowStyle}>
-              <strong>Source Station:</strong>{" "}
-            </Typography>
-            {ledgerData.sourceWarehouse ? (
+
+          {/* Conditional Loader for Data */}
+          {isLoading1 ? (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100px",
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          ) : (
+            <>
               <Typography sx={rowStyle}>
-                {ledgerData.sourceWarehouse.name}
+                <strong>Ledger No:</strong> {ledgerData.ledgerId}
               </Typography>
-            ) : (
-              <FormControl>
-                <InputLabel>Source Warehouse</InputLabel>
-                <Select
-                  label="Source Warehouse"
-                  value={sourceWarehouse}
-                  onChange={(e) => setSourceWarehouse(e.target.value)}
-                >
-                  {allWarehouse
-                    .filter((w) => !w.isSource)
-                    .map((w) => (
-                      <MenuItem key={w.warehouseID} value={w.warehouseID}>
-                        {w.name}
-                      </MenuItem>
-                    ))}
-                </Select>
-              </FormControl>
-            )}
-          </div>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              gap: "20px",
-              alignorders: "center",
-            }}
-          >
-            <Typography sx={rowStyle}>
-              <strong>Delivery Station:</strong>{" "}
-            </Typography>
-            {ledgerData.destinationWarehouse ? (
               <Typography sx={rowStyle}>
-                {ledgerData.destinationWarehouse.name}
+                <strong>Truck No:</strong> {ledgerData.vehicleNo}
               </Typography>
-            ) : (
-              <FormControl>
-                <InputLabel>Destination Warehouse</InputLabel>
-                <Select
-                  // width
-                  label="Destination Warehouse"
-                  value={destinationWarehouse}
-                  onChange={(e) => setDestinationWarehouse(e.target.value)}
-                >
-                  {allWarehouse
-                    .filter((w) => !w.isSource)
-                    .map((w) => (
-                      <MenuItem key={w.warehouseID} value={w.warehouseID}>
-                        {w.name}
-                      </MenuItem>
-                    ))}
-                </Select>
-              </FormControl>
-            )}
-          </div>
-          <Typography sx={rowStyle}>
-            <strong>Status:</strong>{" "}
-            {ledgerData.status?.charAt(0).toUpperCase() +
-              ledgerData.status?.slice(1)}
-          </Typography>
+              <div style={{ display: "flex", flexDirection: "row", gap: "20px", alignItems: "center" }}>
+                <Typography sx={rowStyle}>
+                  <strong>Source Warehouse:</strong>{" "}
+                </Typography>
+                {ledgerData.sourceWarehouse ? (
+                  <Typography sx={rowStyle}>{ledgerData.sourceWarehouse.name}</Typography>
+                ) : (
+                  <FormControl>
+                    <InputLabel>Source Warehouse</InputLabel>
+                    <Select
+                      label="Source Warehouse"
+                      value={sourceWarehouse}
+                      onChange={(e) => setSourceWarehouse(e.target.value)}
+                      sx={{ minWidth: "250px" }}>
+                      {allWarehouse
+                        .filter((w) => !w.isSource)
+                        .map((w) => (
+                          <MenuItem key={w.warehouseID} value={w.warehouseID}>
+                            {w.name}
+                          </MenuItem>
+                        ))}
+                    </Select>
+                  </FormControl>
+                )}
+              </div>
+              <div style={{ display: "flex", flexDirection: "row", gap: "20px", alignItems: "center" }}>
+                <Typography sx={rowStyle}>
+                  <strong>Destination Warehouse:</strong>{" "}
+                </Typography>
+                {ledgerData.destinationWarehouse ? (
+                  <Typography sx={rowStyle}>{ledgerData.destinationWarehouse.name}</Typography>
+                ) : (
+                  <FormControl>
+                    <InputLabel>Destination Warehouse</InputLabel>
+                    <Select
+                      label="Destination Warehouse"
+                      value={destinationWarehouse}
+                      onChange={(e) => setDestinationWarehouse(e.target.value)}
+                      sx={{ minWidth: "250px" }}>
+                      {allWarehouse
+                        .filter((w) => !w.isSource)
+                        .map((w) => (
+                          <MenuItem key={w.warehouseID} value={w.warehouseID}>
+                            {w.name}
+                          </MenuItem>
+                        ))}
+                    </Select>
+                  </FormControl>
+                )}
+              </div>
+              <Typography sx={rowStyle}>
+                <strong>Status:</strong>{" "}
+                {ledgerData.status?.charAt(0).toUpperCase() + ledgerData.status?.slice(1)}
+              </Typography>
+            </>
+          )}
         </Box>
+
+        {/* Right Section - Image */}
         <Box sx={{ flex: "0 0 150px", marginLeft: "20px" }}>
-          <img
-            src={ledger}
-            alt="Ledger"
-            style={{ width: "100%", height: "auto", borderRadius: "8px" }}
-          />
+          <img src={ledger} alt="Ledger" style={{ width: "100%", height: "auto", borderRadius: "8px" }} />
         </Box>
       </Box>
 
@@ -339,56 +339,71 @@ export default function ViewLedgerPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {orders.length !== 0 &&
-              orders.map((order, index) => (
-                <TableRow key={order.trackingId}>
-                  <TableCell sx={rowStyle}>{index + 1}</TableCell>
-                  <TableCell sx={rowStyle}>{order.trackingId}</TableCell>
-                  <TableCell sx={rowStyle}>{order.items.length}</TableCell>
-                  <TableCell sx={rowStyle}>{order.sender.name}</TableCell>
-                  <TableCell sx={rowStyle}>{order.receiver.name}</TableCell>
-                  <TableCell sx={rowStyle}>
-                    <TextField
-                      type="text"
-                      size="small"
-                      value={order.freight}
-                      disabled={ledgerData.status !== "pending"}
-                      onChange={(e) =>
-                        handleUpdate(e.target.value, index, "freight")
-                      }
-                    />
-                  </TableCell>
-                  <TableCell sx={rowStyle}>
-                    <TextField
-                      type="text"
-                      size="small"
-                      value={order.hamali}
-                      disabled={ledgerData.status !== "pending"}
-                      onChange={(e) =>
-                        handleUpdate(e.target.value, index, "hamali")
-                      }
-                    />
-                  </TableCell>
-                  {ledgerData.status === "pending" && (
-                    <TableCell>
-                      <IconButton
-                        color="error"
-                        onClick={(e) => handleDelete(index)}
-                      >
-                        <Cancel />
-                      </IconButton>
-                    </TableCell>
-                  )}
+            {isLoading1 ? (<TableRow>
+              <TableCell colSpan={7} align="center">
+                <CircularProgress
+                  size={22}
+                  className="spinner"
+                  sx={{ color: "#1E3A5F", animation: "none !important" }}
+                />
+              </TableCell>
+            </TableRow>) : orders.length !== 0 &&
+            orders.map((order, index) => (
+              <TableRow key={order.trackingId}>
+                <TableCell sx={rowStyle}>{index + 1}</TableCell>
+                <TableCell sx={rowStyle}>{order.trackingId}</TableCell>
+                <TableCell sx={rowStyle}>{order.items.length}</TableCell>
+                <TableCell sx={rowStyle}>{order.sender.name}</TableCell>
+                <TableCell sx={rowStyle}>{order.receiver.name}</TableCell>
+                <TableCell sx={rowStyle}>
+                  <TextField
+                    type="text"
+                    size="small"
+                    value={order.freight}
+                    disabled={ledgerData.status !== "pending"}
+                    onChange={(e) =>
+                      handleUpdate(e.target.value, index, "freight")
+                    }
+                  />
+                </TableCell>
+                <TableCell sx={rowStyle}>
+                  <TextField
+                    type="text"
+                    size="small"
+                    value={order.hamali}
+                    disabled={ledgerData.status !== "pending"}
+                    onChange={(e) =>
+                      handleUpdate(e.target.value, index, "hamali")
+                    }
+                  />
+                </TableCell>
+                {ledgerData.status === "pending" && (
                   <TableCell>
-                    <Link
-                      to={`/user/view/order/${order.trackingId}`}
-                      target="_blank"
+                    <IconButton
+                      color="error"
+                      onClick={(e) => handleDelete(index)}
                     >
-                      <Button>View</Button>
-                    </Link>
+                      <Cancel />
+                    </IconButton>
                   </TableCell>
-                </TableRow>
-              ))}
+                )}
+                <TableCell>
+                  <Button
+                    variant="outlined"
+                    sx={{
+                      textTransform: "none",
+                      color: "#1E3A5F",
+                      borderColor: "#1E3A5F",
+                    }}
+                    onClick={() =>
+                      window.open(`/user/view/order/${order.trackingId}`, "_blank")
+                    }
+                  >
+                    <IoArrowForwardCircleOutline size={24} />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
 
             {/* Totals Row */}
             <TableRow>
