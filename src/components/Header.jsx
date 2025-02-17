@@ -125,7 +125,7 @@ const HeaderTabs = ({ isDashboard }) => {
 
 const Header = () => {
   const theme = useTheme();
-  const mobileView = useMediaQuery(theme.breakpoints.down(800));
+  const mobileView = useMediaQuery(theme.breakpoints.down(470));
   const { checkAuthStatus } = useAuth();
   const location = useLocation();
   return (

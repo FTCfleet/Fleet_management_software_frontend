@@ -20,6 +20,11 @@ import {
   FaArrowRight,
 } from "react-icons/fa";
 import { FaArrowRightLong } from "react-icons/fa6";
+import { useTheme, useMediaQuery } from "@mui/material";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
 // import { FaArrowRightLong } from "react-icons/fa";
 import "../css/main.css";
 
@@ -92,6 +97,9 @@ const HomePage = () => {
     },
   ];
 
+  const theme = useTheme();
+  const mobileView = useMediaQuery(theme.breakpoints.down(470));
+
   return (
     <div className="app">
       <div
@@ -147,63 +155,125 @@ const HomePage = () => {
         <h1 style={{ textAlign: "center", fontSize: "clamp(20px, 4vw, 40px)" }}>
           Our Services
         </h1>
-
-        <div
-          className="card-container"
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "center",
-            gap: "3vw", // Responsive gap
-          }}
-        >
-          {services.map((service, index) => (
-            <div
-              key={index}
-              className="card"
-              style={{
-                backgroundColor: service.bgColor,
-                color: service.textColor,
-                padding: "2vw",
-                borderRadius: "10px",
-                textAlign: "center",
-                width: "clamp(200px, 30%, 400px)", // Responsive width
-                boxSizing: "border-box",
-                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",  // Centers content vertically
-                alignItems: "center",      // Centers content horizontally
-                minHeight: "100px",  
-              }}
-            >
+        {mobileView ? (
+          // Swiper.js for mobile horizontal scrolling
+          <Swiper
+            modules={[Navigation]}
+            // navigation={{ nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" }}
+            navigation
+            spaceBetween={20}
+            slidesPerView={1}
+            style={{ padding: "20px 0", width: "90%", margin: "auto" }}
+          >
+            {services.map((service, index) => (
+              <SwiperSlide key={index}>
+                <div
+                  className="card"
+                  style={{
+                    backgroundColor: service.bgColor,
+                    color: service.textColor,
+                    padding: "2vw",
+                    borderRadius: "10px",
+                    textAlign: "center",
+                    width: "60%",
+                    height: "auto",
+                    margin: "auto",
+                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    minHeight: "200px",
+                  }}
+                >
+                  <div
+                    style={{
+                      backgroundColor:
+                        service.bgColor === "#ffffff" ? "#003366" : "#ffffff",
+                      borderRadius: "50%",
+                      width: "clamp(50px, 6vw, 80px)",
+                      height: "clamp(50px, 6vw, 80px)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      margin: "0 auto 10px",
+                    }}
+                  >
+                    {service.icon}
+                  </div>
+                  <h2
+                    style={{
+                      fontSize: "clamp(16px, 2vw, 24px)",
+                      margin: "10px 0",
+                    }}
+                  >
+                    {service.title}
+                  </h2>
+                  <p style={{ fontSize: "clamp(12px, 1.5vw, 16px)" }}>
+                    {service.description}
+                  </p>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        ) : (
+          <div
+            className="card-container"
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: "3vw", // Responsive gap
+            }}
+          >
+            {services.map((service, index) => (
               <div
+                key={index}
+                className="card"
                 style={{
-                  backgroundColor:
-                    service.bgColor === "#ffffff" ? "#003366" : "#ffffff",
-                  borderRadius: "50%",
-                  width: "clamp(50px, 6vw, 80px)",
-                  height: "clamp(50px, 6vw, 80px)",
+                  backgroundColor: service.bgColor,
+                  color: service.textColor,
+                  padding: "2vw",
+                  borderRadius: "10px",
+                  textAlign: "center",
+                  width: "clamp(200px, 30%, 400px)", // Responsive width
+                  boxSizing: "border-box",
+                  boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+
                   display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 10px",
+                  flexDirection: "column",
+                  justifyContent: "center",  // Centers content vertically
+                  alignItems: "center",      // Centers content horizontally
+                  minHeight: "10px",
                 }}
               >
-                {service.icon}
+                <div
+                  style={{
+                    backgroundColor:
+                      service.bgColor === "#ffffff" ? "#003366" : "#ffffff",
+                    borderRadius: "50%",
+                    width: "clamp(50px, 6vw, 80px)",
+                    height: "clamp(50px, 6vw, 80px)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 10px",
+                  }}
+                >
+                  {service.icon}
+                </div>
+                <h2
+                  style={{ fontSize: "clamp(16px, 2vw, 24px)", margin: "10px 0" }}
+                >
+                  {service.title}
+                </h2>
+                <p style={{ fontSize: "clamp(12px, 1.5vw, 16px)" }}>
+                  {service.description}
+                </p>
               </div>
-              <h2
-                style={{ fontSize: "clamp(16px, 2vw, 24px)", margin: "10px 0" }}
-              >
-                {service.title}
-              </h2>
-              <p style={{ fontSize: "clamp(12px, 1.5vw, 16px)" }}>
-                {service.description}
-              </p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* How It Works Section */}
