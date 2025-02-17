@@ -325,25 +325,6 @@ const HomePage = () => {
                 >
                   {step.icon}
                 </div>
-
-                {index < steps.length - 1 && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "50%",
-                      left: "110%",
-                      transform: "translateY(-50%)",
-                    }}
-                  >
-                    <FaArrowRightLong
-                      size={Math.min(
-                        Math.max(10, window.innerWidth * 0.02),
-                        20
-                      )}
-                      style={{ color: "#003366" }}
-                    />
-                  </div>
-                )}
               </div>
 
               <p

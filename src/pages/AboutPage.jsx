@@ -15,7 +15,7 @@ export default function AboutPage() {
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const theme = useTheme();
-  const mobileView = useMediaQuery(theme.breakpoints.down(800));
+  const mobileView = useMediaQuery(theme.breakpoints.down(470));
   useEffect(() => {
     fetchWarehouse();
   }, []);
@@ -32,11 +32,7 @@ export default function AboutPage() {
   return isLoading ? (
     <Loading />
   ) : (
-    <div
-      className="app"
-      style={{ backgroundColor: "#f5f5f5", padding: "20px" }}
-    >
-      {/* Top Section */}
+    <div className="app" style={{ backgroundColor: "#f5f5f5", padding: "20px" }}>
       <Paper
         elevation={3}
         style={{
@@ -47,24 +43,24 @@ export default function AboutPage() {
           display: "flex",
           alignItems: "center",
           gap: "20px",
+          flexDirection: mobileView ? "column" : "row",
         }}
       >
-        {/* Image Section */}
-        <img
-          src={about}
-          alt="About Us"
-          style={{
-            width: "25%",
-            height: "auto",
-            borderRadius: "20px",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-          }}
-        />
-
-        {/* Text Section */}
+        {!mobileView && (
+          <img
+            src={about}
+            alt="About Us"
+            style={{
+              width: "25%",
+              height: "auto",
+              borderRadius: "20px",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+            }}
+          />
+        )}
         <Box style={{ textAlign: "center", flex: 1 }}>
           <Typography
-            variant="h4"
+            variant={mobileView ? "h5" : "h4"}
             style={{
               color: "#1565c0",
               fontWeight: "bold",
@@ -82,13 +78,10 @@ export default function AboutPage() {
             }}
           ></div>
           <Typography
-            variant="body1"
+            variant={mobileView ? "body2" : "body1"}
             style={{ color: "#5f6368", maxWidth: "400px", margin: "0 auto" }}
           >
-            We offer daily parcel delivery services to key locations, ensuring
-            that your packages reach their destinations on time. Our dedicated
-            team ensures every parcel is handled with care and reaches its
-            destination securely.
+            We offer daily parcel delivery services to key locations, ensuring that your packages reach their destinations on time. Our dedicated team ensures every parcel is handled with care and reaches its destination securely.
           </Typography>
         </Box>
       </Paper>
@@ -128,8 +121,10 @@ export default function AboutPage() {
                   <Box
                     key={warehouse.warehouseID}
                     display="flex"
+                    flexDirection={mobileView ? "column" : "row"}
                     justifyContent="space-between"
-                    alignItems="center"
+                    alignItems={mobileView ? "flex-start" : "center"}
+                    gap={mobileView ? 1 : 0}
                   >
                     <Box
                       display="flex"
@@ -179,8 +174,10 @@ export default function AboutPage() {
                   <Box
                     key={warehouse.warehouseID}
                     display="flex"
+                    flexDirection={mobileView ? "column" : "row"}
                     justifyContent="space-between"
-                    alignItems="center"
+                    alignItems={mobileView ? "flex-start" : "center"}
+                    gap={mobileView ? 1 : 0}
                   >
                     <Box
                       display="flex"
@@ -195,7 +192,7 @@ export default function AboutPage() {
                       <br />
                       {warehouse.address}
                     </Box>
-                    <Box display="flex" alignItems="center" gap={1}>
+                    <Box display="flex" alignItems={mobileView ? "flex-start" : "center"} gap={1}>
                       {warehouse.contactNo}{" "}
                       <FaPhone style={{ color: "#1976d2" }} />
                     </Box>

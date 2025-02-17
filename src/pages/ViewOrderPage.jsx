@@ -44,6 +44,7 @@ export default function ViewOrderPage() {
   const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoading1, setIsLoading1] = useState(false);
   const { isAdmin } = useAuth();
   const cellStyle = { color: "#1E3A5F", fontWeight: "bold" };
   const rowCellStyle = { color: "#25344E" };
@@ -53,6 +54,7 @@ export default function ViewOrderPage() {
   }, []);
 
   const fetchData = async () => {
+    setIsLoading1(true);
     const token = localStorage.getItem("token");
     const response = await fetch(`${BASE_URL}/api/parcel/track/${id}`, {
       headers: {
@@ -62,10 +64,12 @@ export default function ViewOrderPage() {
     });
     if (!response.ok) {
       alert("Error occurred");
+      setIsLoading1(false);
       return;
     }
     if (response.status === 201) {
       alert("No such Order");
+      setIsLoading1(false);
       return;
     }
     const data = await response.json();
@@ -78,6 +82,7 @@ export default function ViewOrderPage() {
     setCharges(data.body.charges);
     setQrCode(data.qrCode);
     setStatus(data.body.status);
+    setIsLoading1(false);
   };
 
   const handleOpenDeleteModal = () => {
@@ -144,59 +149,72 @@ export default function ViewOrderPage() {
           </Typography>
 
           {/* Order ID */}
-
-          <Box sx={{ display: "flex", marginBottom: "10px" }}>
-            <Box sx={{ flex: 1 }}>
-              <Typography sx={rowCellStyle}>
-                <strong>Order ID:</strong> {id}
-              </Typography>
-              <Typography sx={rowCellStyle}>
-                <strong>Sender's Name:</strong>{" "}
-                {senderDetails.name}
-              </Typography>
-              <Typography sx={rowCellStyle}>
-                <strong>Sender's Phone:</strong>{" "}
-                {senderDetails.phoneNo}
-              </Typography>
-              <Typography sx={rowCellStyle}>
-                <strong>Sender's Address:</strong>{" "}
-                {senderDetails.address}
-              </Typography>
-              <Typography sx={rowCellStyle}>
-                <strong>Source Warehouse:</strong> {sourceWarehouse}
-              </Typography>
-              <Typography sx={rowCellStyle}>
-                <strong>Package:</strong> {items.length}
-              </Typography>
+          {isLoading1 ? (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100px",
+              }}
+            >
+              <CircularProgress />
             </Box>
-
-            <Box sx={{ flex: 1, marginLeft: "20px" }}>
-              <Typography sx={rowCellStyle}>
-                <strong>Status:</strong> {status.charAt(0).toUpperCase() + status.slice(1)}
-              </Typography>
-              <Typography sx={rowCellStyle}>
-                <strong>Receiver's Name:</strong>{" "}
-                {receiverDetails.name}
-              </Typography>
-              <Typography sx={rowCellStyle}>
-                <strong>Receiver's Phone:</strong>{" "}
-                {receiverDetails.phoneNo}
-              </Typography>
-              <Typography sx={rowCellStyle}>
-                <strong>Receiver's Address:</strong>{" "}
-                {receiverDetails.address}
-              </Typography>
-              <Typography sx={rowCellStyle}>
-                <strong>Destination Warehouse:</strong> {destWarehouse}
-              </Typography>
-              <Typography sx={rowCellStyle}>
-                <strong>Charges:</strong> {charges}
-              </Typography>
-            </Box>
-          </Box>
+          ) : (
+            <>
+              <Box sx={{ display: "flex", marginBottom: "10px" }}>
+                <Box sx={{ flex: 1 }}>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Order ID:</strong> {id}
+                  </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Sender's Name:</strong>{" "}
+                    {senderDetails.name}
+                  </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Sender's Phone:</strong>{" "}
+                    {senderDetails.phoneNo}
+                  </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Sender's Address:</strong>{" "}
+                    {senderDetails.address}
+                  </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Source Warehouse:</strong> {sourceWarehouse}
+                  </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Package:</strong> {items.length}
+                  </Typography>
+                </Box>
+                <Box sx={{ flex: 1, marginLeft: "20px" }}>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Status:</strong> {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Receiver's Name:</strong>{" "}
+                    {receiverDetails.name}
+                  </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Receiver's Phone:</strong>{" "}
+                    {receiverDetails.phoneNo}
+                  </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Receiver's Address:</strong>{" "}
+                    {receiverDetails.address}
+                  </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Destination Warehouse:</strong> {destWarehouse}
+                  </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Charges:</strong> {charges}
+                  </Typography>
+                </Box>
+              </Box>
+            </>
+          )}
         </Box>
 
-        <Box sx={{ flex: "0 0 150px"}}>
+        <Box sx={{ flex: "0 0 150px" }}>
           <img
             src={qrCode ? qrCode : orders}
             alt="Orders"
@@ -222,13 +240,22 @@ export default function ViewOrderPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {items.map((item, idx) => (
-              <TableRow key={idx}>
-                <TableCell sx={rowCellStyle}>{idx + 1}</TableCell>
-                <TableCell sx={rowCellStyle}>{item.name}</TableCell>
-                <TableCell sx={rowCellStyle}>{item.quantity}</TableCell>
-              </TableRow>
-            ))}
+            {isLoading1 ? (<TableRow>
+              <TableCell colSpan={7} align="center">
+                <CircularProgress
+                  size={22}
+                  className="spinner"
+                  sx={{ color: "#1E3A5F", animation: "none !important" }}
+                />
+              </TableCell>
+            </TableRow>) :
+              (orders.length !== 0 && items.map((item, idx) => (
+                <TableRow key={idx}>
+                  <TableCell sx={rowCellStyle}>{idx + 1}</TableCell>
+                  <TableCell sx={rowCellStyle}>{item.name}</TableCell>
+                  <TableCell sx={rowCellStyle}>{item.quantity}</TableCell>
+                </TableRow>
+              )))}
           </TableBody>
         </Table>
       </TableContainer>
@@ -375,7 +402,7 @@ export default function ViewOrderPage() {
               size="small"
             />
 
-            <Box sx={{ display: "flex", justifyContent:"center", mt: 2, gap:"20px" }}>
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 2, gap: "20px" }}>
               <Button variant="outlined" color="error" onClick={() => setQrCodeModalOpen(false)}>
                 Cancel
               </Button>

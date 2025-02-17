@@ -25,6 +25,8 @@ import ledger from "../assets/ledger.jpg";
 import { useAuth } from "../routes/AuthContext";
 import { FaTrash, FaExclamationTriangle } from "react-icons/fa";
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
+import { CiDeliveryTruck } from "react-icons/ci";
+import { TbCubeSend } from "react-icons/tb";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 let delOrders = [];
@@ -39,6 +41,7 @@ export default function ViewLedgerPage() {
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
+  const [isLoading2, setIsLoading2] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const { isAdmin, isSource } = useAuth();
   const navigate = useNavigate();
@@ -180,6 +183,7 @@ export default function ViewLedgerPage() {
   };
 
   const handleDeleteLedger = async () => {
+    setIsLoading(true);
     const token = localStorage.getItem("token");
     const res = await fetch(`${BASE_URL}/api/admin/manage/ledger`, {
       headers: {
@@ -428,12 +432,12 @@ export default function ViewLedgerPage() {
       </TableContainer>
       {(isSource || isAdmin) && ledgerData.status === "pending" && (
         <button className="button button-large" onClick={handleDispatch}>
-          Dispatch Truck
+          <TbCubeSend style={{ marginRight: "8px" }} />Dispatch Truck
         </button>
       )}
       {(!isSource || isAdmin) && ledgerData.status === "verified" && (
         <button className="button button-large" onClick={handleVerify}>
-          Deliver Truck
+          <CiDeliveryTruck style={{ marginRight: "8px" }} />Deliver Truck
         </button>
       )}
       <button

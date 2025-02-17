@@ -26,9 +26,9 @@ const UserTemplate = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAddOrderPage =
-    location.pathname.startsWith("/user/add/order/") ||
-    location.pathname.startsWith("/user/edit/order/") ||
-    !isSource;
+  location.pathname.startsWith("/user/add/order/") ||
+  location.pathname.startsWith("/user/edit/order/") ||
+  !isSource;
   const menuSections = [
     {
       heading: "Orders",
@@ -65,73 +65,76 @@ const UserTemplate = () => {
         },
         ...(isAdmin || isSource
           ? [
-              {
-                text: "Pending Ledgers",
-                path: "/user/ledgers/pending",
-                icon: <FaTruckMoving />,
-              },
-            ]
+            {
+              text: "Pending Ledgers",
+              path: "/user/ledgers/pending",
+              icon: <FaTruckMoving />,
+            },
+          ]
           : []),
-        {
-          text: `${
-            isAdmin ? "Dispatched" : isSource ? "Outgoing" : "Incoming"
-          } Ledgers`,
-          path: `/user/ledgers/dispatched`,
-          icon: <FaTruckMoving />,
-        },
-        {
-          text: "Verified Ledgers",
-          path: "/user/ledgers/verified",
-          icon: <FaTruckMoving />,
-        },
-        {
-          text: "Completed Ledgers",
-          path: "/user/ledgers/completed",
-          icon: <FaTruckMoving />,
-        },
-      ],
-    },
-    {
-      heading: "Report Generation",
-      path: "/user/gen-report",
-      headingIcon: <FaMoneyCheckAlt style={{ marginRight: "8px" }} />,
-      items: [
-        {
-          text: "Ledger Generation",
-          path: "/user/gen-report/",
-          icon: <FaMoneyCheckAlt />,
-        },
-      ],
-    },
-    isAdmin
+          {
+            text: `${isAdmin ? "Dispatched" : isSource ? "Outgoing" : "Incoming"
+            } Ledgers`,
+            path: `/user/ledgers/dispatched`,
+            icon: <FaTruckMoving />,
+          },
+          {
+            text: "Verified Ledgers",
+            path: "/user/ledgers/verified",
+            icon: <FaTruckMoving />,
+          },
+          {
+            text: "Completed Ledgers",
+            path: "/user/ledgers/completed",
+            icon: <FaTruckMoving />,
+          },
+        ],
+      },
+      {
+        heading: "Report Generation",
+        path: "/user/gen-report",
+        headingIcon: <FaMoneyCheckAlt style={{ marginRight: "8px" }} />,
+        items: [
+          {
+            text: "Ledger Generation",
+            path: "/user/gen-report/",
+            icon: <FaMoneyCheckAlt />,
+          },
+        ],
+      },
+      isAdmin
       ? {
-          heading: "Admin",
-          path: "/user",
-          headingIcon: <FaMoneyCheckAlt style={{ marginRight: "8px" }} />,
-          items: [
-            {
-              text: "Truck Drivers List",
-              path: "/user/trucks",
-              icon: <FaMoneyCheckAlt />,
-            },
-            {
-              text: "Employees List",
-              path: "/user/employees",
-              icon: <FaMoneyCheckAlt />,
-            },
-            {
-              text: "Warehouse List",
-              path: "/user/warehouses",
-              icon: <FaMoneyCheckAlt />,
-            },
-          ],
-        }
+        heading: "Admin",
+        path: "/user",
+        headingIcon: <FaMoneyCheckAlt style={{ marginRight: "8px" }} />,
+        items: [
+          {
+            text: "Truck Drivers List",
+            path: "/user/trucks",
+            icon: <FaMoneyCheckAlt />,
+          },
+          {
+            text: "Employees List",
+            path: "/user/employees",
+            icon: <FaMoneyCheckAlt />,
+          },
+          {
+            text: "Warehouse List",
+            path: "/user/warehouses",
+            icon: <FaMoneyCheckAlt />,
+          },
+        ],
+      }
       : {},
-  ];
-
-  useEffect(() => {
-    if (!isLoggedIn) navigate("/auth/login");
-  }, []);
+    ];
+    
+    useEffect(() => {
+      if (!isLoggedIn) navigate("/auth/login");
+    }, []);
+    
+    useEffect(() => {
+      localStorage.setItem("lastUserPage", location.pathname);
+    }, [location.pathname]);
 
   return (
     <div style={{ display: "flex" }}>

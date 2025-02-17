@@ -27,10 +27,13 @@ const Menubutton = () => {
     handleClose();
   };
 
+  const lastUserPage = localStorage.getItem("lastUserPage") || "/user/dashboard";
+    
+
   return (
     <Box sx={{ paddingRight: 1 }}>
       <IconButton onClick={handleClick} className="icon-button" aria-label="delete" size="large">
-        <Menuicon cls={"icon-buttons"} color={"#fff"} />
+        <Menuicon cls={"icon-buttons"} sx= {{color: "#fff"}} />
       </IconButton>
       <Menu anchorEl={anchorElm} open={open} onClose={handleClose}>
         <NavLink style={{ textDecoration: "none" }} to="/">
@@ -50,7 +53,7 @@ const Menubutton = () => {
         </NavLink>
         {isLoggedIn ?
           <div>
-            <NavLink style={{ textDecoration: "none" }} to="/user/dashboard">
+            <NavLink style={{ textDecoration: "none" }} to={lastUserPage}>
               <MenuItem sx={{ textDecoration: "none", color: "black" }} onClick={handleClose}>
                 DashBoard
               </MenuItem>
@@ -79,6 +82,8 @@ const HeaderTabs = ({ isDashboard }) => {
     { url: "/track", text: "Track Shipment" },
     { url: "/about", text: "About Us" },
   ];
+  const lastUserPage = localStorage.getItem("lastUserPage") || "/user/dashboard";
+
   return (
     <ButtonGroup sx={{ textDecoration: "none", marginRight: 1 }}>
       {tabs.map((item, index) => (
@@ -94,7 +99,7 @@ const HeaderTabs = ({ isDashboard }) => {
       ))}
       <NavLink
         className="navlink"
-        to={isLoggedIn ? "/user/dashboard" : "/auth/login"}
+        to={isLoggedIn ? lastUserPage : "/auth/login"}
       >
         <Button
           className="header-button"

@@ -121,9 +121,9 @@ const AllEmployeePage = () => {
 
     const data = await res.json();
     console.log(data);
-    fetchData();
     setIsLoading2(false);
     setDeleteModalOpen(false);
+    fetchData();
     setEmployeeToDelete(null);
   };
 
@@ -164,7 +164,13 @@ const AllEmployeePage = () => {
   };
 
   const handleFieldChange = (field, value) => {
+    if(field === 'warehouseCode') {
+      console.log(currentEmployee.warehouseCode);
+    }
     setCurrentEmployee({ ...currentEmployee, [field]: value });
+    if(field === 'warehouseCode') {
+      console.log(currentEmployee.warehouseCode);
+    }
   };
 
   return (
