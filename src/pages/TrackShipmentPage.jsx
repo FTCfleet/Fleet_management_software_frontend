@@ -11,6 +11,8 @@ import {
   TableCell,
   Paper,
   CircularProgress,
+  useTheme,
+  useMediaQuery
 } from "@mui/material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -30,6 +32,9 @@ const TrackShipmentPage = () => {
   const steps = ["Order Placed", "Shipment Dispatched", "Delivered"];
   const cellStyle = { color: "#1E3A5F", fontWeight: "bold" };
   const rowCellStyle = { color: "#25344E" };
+  const theme = useTheme();
+  const mobileView = useMediaQuery(theme.breakpoints.down(800));
+
 
   const getStepColor = (index) => {
     if (currentStep >= index + 1) {
@@ -40,19 +45,19 @@ const TrackShipmentPage = () => {
   const handleTrack = async () => {
     setIsLoading(true);
     fetch(`${BASE_URL}/api/parcel/track/${shipmentIdInput}`)
-    .then((response) => {
-      if (!response.ok) {
-        setIsLoading(false);
-        toast.error("Error occurred", { className: "custom-toast", position: "bottom-right" });
-      }
-      if (response.status === 201) {
-        setIsLoading(false);
-        toast.warn("Invalid Tracking ID", { className: "custom-toast", position: "bottom-right" });
-        setShipmentIdInput("");
-      }
-      return response.json();
-    })
-    .then((data) => {
+      .then((response) => {
+        if (!response.ok) {
+          setIsLoading(false);
+          toast.error("Error occurred", { className: "custom-toast", position: "bottom-right" });
+        }
+        if (response.status === 201) {
+          setIsLoading(false);
+          toast.warn("Invalid Tracking ID", { className: "custom-toast", position: "bottom-right" });
+          setShipmentIdInput("");
+        }
+        return response.json();
+      })
+      .then((data) => {
         setIsLoading(false);
         if (Object.keys(data.body).length) {
           data = data.body;
@@ -128,33 +133,34 @@ const TrackShipmentPage = () => {
                 sx={{ width: "300px", backgroundColor: "white" }}
               />
               {/* <Box className="button-wrapper"> */}
-                <button className="button button-large" onClick={handleTrack} disabled={isLoading}>
-                  Track
-                  {isLoading && (
-                    <CircularProgress
-                      size={22}
-                      className="spinner"
-                      sx={{ color: "#fff", animation: "none !important" }}
-                    />
-                  )}
-                </button>
+              <button className="button button-large" onClick={handleTrack} disabled={isLoading}>
+                Track
+                {isLoading && (
+                  <CircularProgress
+                    size={22}
+                    className="spinner"
+                    sx={{ color: "#fff", animation: "none !important" }}
+                  />
+                )}
+              </button>
               {/* </Box> */}
             </div>
           </div>
         </div>
-
-        <div style={{ flex: "40%" }}>
-          <img
-            src={backImg}
-            alt="Tracking Illustration"
-            style={{
-              width: "100%",
-              height: "auto",
-              borderRadius: "10px",
-              boxShadow: "0 6px 15px rgba(0,0,0,0.3)",
-            }}
-          />
-        </div>
+        {mobileView ? null : (
+          <div style={{ flex: "40%" }}>
+            <img
+              src={backImg}
+              alt="Tracking Illustration"
+              style={{
+                width: "100%",
+                height: "auto",
+                borderRadius: "10px",
+                boxShadow: "0 6px 15px rgba(0,0,0,0.3)",
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Main Content Section */}

@@ -1,10 +1,76 @@
-import { AppBar, Box, Typography, Button, ButtonGroup } from "@mui/material";
-import { Link, NavLink, useParams } from "react-router-dom";
+import { AppBar, Box, Button, ButtonGroup } from "@mui/material";
+import { Link, NavLink } from "react-router-dom";
 import logoImg from "../assets/logo.jpg";
 import "../css/header.css";
 import { useAuth } from "../routes/AuthContext";
 import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useState } from "react";
+import { IconButton, Menu, MenuItem , useTheme , useMediaQuery } from "@mui/material";
+import Menuicon from "@mui/icons-material/Menu";
+
+const Menubutton = () => {
+  const { isLoggedIn, resetAuth } = useAuth();
+  const [anchorElm, setAnchorElm] = useState(null);
+  const [open, setOpen] = useState(false);
+
+  const handleClose = () => {
+    setAnchorElm(null);
+    setOpen(false);
+  };
+  const handleClick = (e) => {
+    setAnchorElm(e.currentTarget);
+    setOpen(true);
+  };
+
+  const logout = () => {
+    resetAuth();
+    handleClose();
+  };
+
+  return (
+    <Box sx={{ paddingRight: 1 }}>
+      <IconButton onClick={handleClick} className="icon-button" aria-label="delete" size="large">
+        <Menuicon cls={"icon-buttons"} color={"#fff"} />
+      </IconButton>
+      <Menu anchorEl={anchorElm} open={open} onClose={handleClose}>
+        <NavLink style={{ textDecoration: "none" }} to="/">
+          <MenuItem sx={{ textDecoration: "none", color: "black" }} onClick={handleClose}>
+            Home
+          </MenuItem>
+        </NavLink>
+        <NavLink style={{ textDecoration: "none" }} to="/track">
+          <MenuItem sx={{ textDecoration: "none", color: "black" }} onClick={handleClose}>
+            Track Order
+          </MenuItem>
+        </NavLink>
+        <NavLink style={{ textDecoration: "none" }} to="/about">
+          <MenuItem sx={{ textDecoration: "none", color: "black" }} onClick={handleClose}>
+            About Us
+          </MenuItem>
+        </NavLink>
+        {isLoggedIn ?
+          <div>
+            <NavLink style={{ textDecoration: "none" }} to="/user/dashboard">
+              <MenuItem sx={{ textDecoration: "none", color: "black" }} onClick={handleClose}>
+                DashBoard
+              </MenuItem>
+            </NavLink>
+            <NavLink style={{ textDecoration: "none" }} to="/auth/login">
+              <MenuItem sx={{ textDecoration: "none", color: "black" }} onClick={logout}>
+                Logout
+              </MenuItem>
+            </NavLink>
+          </div> :
+          <NavLink style={{ textDecoration: "none" }} to="/auth/login">
+            <MenuItem sx={{ textDecoration: "none", color: "black" }} onClick={handleClose}>
+              Login
+            </MenuItem>
+          </NavLink>
+        }
+      </Menu>
+    </Box>
+  );
+};
 
 const HeaderTabs = ({ isDashboard }) => {
   const { isLoggedIn, resetAuth } = useAuth();
@@ -58,6 +124,8 @@ const HeaderTabs = ({ isDashboard }) => {
 };
 
 const Header = () => {
+  const theme = useTheme();
+  const mobileView = useMediaQuery(theme.breakpoints.down(800));
   const { checkAuthStatus } = useAuth();
   const location = useLocation();
   return (
@@ -89,9 +157,9 @@ const Header = () => {
           >
             <img src={logoImg} height="50px"></img>
           </Link>
-          <button style={{color:"red"}} onClick={checkAuthStatus}>Check</button>
+          <button style={{ color: "red" }} onClick={checkAuthStatus}>Check</button>
         </Box>
-        <HeaderTabs isDashboard={location.pathname.startsWith("/user/")} />
+        {mobileView ? <Menubutton /> : <HeaderTabs />}
       </AppBar>
     </div>
   );

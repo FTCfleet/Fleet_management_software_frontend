@@ -1,14 +1,83 @@
-.footer-row{
-	z-index: 1;
-	position: relative;
-	top: 0%;
-	left: 0%;
-	color: red;
-	display: flex;
-	width: 100%
+.footer-container {
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+    text-align: left;
+    background: linear-gradient(135deg, #1D3557 23%, #10223C 100%);
+    padding: clamp(2rem, 5vw, 5rem);
 }
 
-.footer-links{
-	font-weight: 400;
-	font-size: 1.2rem;
+.footer-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    width: 100%;
+    height: auto;
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1rem, 3vw, 2rem);
+}
+
+.footer-title {
+    font-size: clamp(2rem, 5vw, 4rem);
+    font-weight: bold;
+    text-decoration: none;
+    color: white;
+}
+
+.footer-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    /* gap: clamp(1rem, 3vw, 2rem); */
+	justify-content: space-between;
+}
+
+.footer-row h3 {
+    font-size: clamp(1.2rem, 3vw, 1.5rem);
+    margin-bottom: 0.5rem;
+}
+
+.footer-links {
+    font-weight: 400;
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    text-decoration: none;
+}
+
+.footer-links:hover {
+	color: #a8d0e6;
+}
+
+.footer-icons {
+    display: flex;
+    gap: clamp(0.5rem, 1vw, 1rem);
+    align-items: center;
+}
+
+.social-icon {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    cursor: pointer;
+}
+
+
+.footer-divider {
+    border-top: 3px solid #5fa6d4;
+    margin: clamp(1rem, 2vw, 2rem) 0;
+}
+
+.footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: clamp(0.8rem, 2vw, 1rem);
+}
+
+@media (max-width: 600px) {
+    .footer-bottom {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
 }

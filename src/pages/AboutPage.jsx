@@ -7,13 +7,15 @@ import {
 } from "react-icons/fa";
 import about from "../assets/about-us.jpg";
 import Loading from "../components/Loading";
+import { useTheme, useMediaQuery } from "@mui/material";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function AboutPage() {
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  const theme = useTheme();
+  const mobileView = useMediaQuery(theme.breakpoints.down(800));
   useEffect(() => {
     fetchWarehouse();
   }, []);
@@ -98,6 +100,7 @@ export default function AboutPage() {
           gap: "20px",
           width: "80%",
           margin: "30px auto 0",
+          flexDirection: mobileView ? "column" : "row",
           position: "relative",
         }}
       >
