@@ -104,27 +104,37 @@ const UserTemplate = () => {
       },
       isAdmin
       ? {
-        heading: "Admin",
-        path: "/user",
-        headingIcon: <FaMoneyCheckAlt style={{ marginRight: "8px" }} />,
-        items: [
-          {
-            text: "Truck Drivers List",
-            path: "/user/trucks",
-            icon: <FaMoneyCheckAlt />,
-          },
-          {
-            text: "Employees List",
-            path: "/user/employees",
-            icon: <FaMoneyCheckAlt />,
-          },
-          {
-            text: "Warehouse List",
-            path: "/user/warehouses",
-            icon: <FaMoneyCheckAlt />,
-          },
-        ],
-      }
+          heading: "Admin",
+          path: "/user",
+          headingIcon: <FaMoneyCheckAlt style={{ marginRight: "8px" }} />,
+          items: [
+            {
+              text: "Truck Drivers List",
+              path: "/user/trucks",
+              icon: <FaMoneyCheckAlt />,
+            },
+            {
+              text: "Employees List",
+              path: "/user/employees",
+              icon: <FaMoneyCheckAlt />,
+            },
+            {
+              text: "Warehouse List",
+              path: "/user/warehouses",
+              icon: <FaMoneyCheckAlt />,
+            },
+            {
+              text: "Client List",
+              path: "/user/clients",
+              icon: <FaMoneyCheckAlt />,
+            },
+            {
+              text: "Items List",
+              path: "/user/items",
+              icon: <FaMoneyCheckAlt />,
+            },
+          ],
+        }
       : {},
     ];
     

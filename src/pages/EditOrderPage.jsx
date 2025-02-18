@@ -39,6 +39,8 @@ export default function EditOrderPage() {
   const [senderDetails, setSenderDetails] = useState({});
   const [receiverDetails, setReceiverDetails] = useState({});
   const [charges, setCharges] = useState(0);
+  const [freight, setFreight] = useState(0);
+  const [hamali, setHamali] = useState(0);
   const [status, setStatus] = useState("");
   const [counter, setCounter] = useState(0);
   const [sourceWarehouse, setSourceWarehouse] = useState("");
@@ -91,6 +93,8 @@ export default function EditOrderPage() {
     setSourceWarehouse(data.sourceWarehouse.warehouseID);
     setDestinationWarehouse(data.destinationWarehouse.warehouseID);
     setCharges(data.charges || 0);
+    setFreight(data.freight || 0);
+    setHamali(data.hamali || 0);
     setOldItems(data.items);
     setStatus(data.status);
   };
@@ -163,21 +167,25 @@ export default function EditOrderPage() {
         addItems: newItems,
         delItems: delItems,
         charges,
+        hamali,
+        freight,
         sourceWarehouse,
         destinationWarehouse,
         ...(isAdmin ? { status } : {}),
       }),
-    }).then((response) => {
-      if (!response.ok) {
-        setIsLoading(false);
-        alert("Error occurred");
-        return response.json();
-      } else {
-        setIsLoading(false);
-        alert("Order Updated Successfully");
-        navigate(`/user/view/order/${id}`);
-      }
-    }).then((data) => console.log(data));
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        if (!data.flag) {
+          setIsLoading(false);
+          alert("Error occurred");
+        } else {
+          setIsLoading(false);
+          alert("Order Updated Successfully");
+          navigate(`/user/view/order/${id}`);
+        }
+      });
     setIsLoading(false);
     handleCloseSaveModal();
   };
@@ -185,7 +193,6 @@ export default function EditOrderPage() {
   const handleSaveChanges = () => {
     if (!validateOrder()) {
       setError(true);
-      // console.log('Hello');
       return;
     }
 
@@ -514,7 +521,8 @@ export default function EditOrderPage() {
                 startIcon={<FaSave style={{ marginRight: "8px" }} />}
                 onClick={confirmSave}
               >
-                Confirm  {isLoading && (
+                Confirm{" "}
+                {isLoading && (
                   <CircularProgress
                     size={15}
                     className="spinner"

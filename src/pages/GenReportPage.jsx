@@ -14,7 +14,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { FaDownload, FaTimesCircle, FaTruck } from "react-icons/fa";
-import { Close } from "@mui/icons-material";
+import { Close, ConstructionOutlined } from "@mui/icons-material";
 import "react-calendar/dist/Calendar.css";
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 import "../css/main.css";
@@ -280,12 +280,14 @@ export default function GenReportPage() {
             const formatDate = (date) => {
               return date ? `${date.substring(0, 2)}-${date.substring(2, 4)}-${date.substring(4)}` : "";
             };
+            const formatDateUrl = (date) => {
+              return date ? `${date.substring(4)}${date.substring(2, 4)}${date.substring(0,2)}` : "";
+            };
 
             const formattedStartDate = formatDate(startDate);
             const formattedEndDate = formatDate(endDate);
             const truckLabel = truckNo ? `Vehicle No: ${truckNo}` : "All Trucks";
-
-            const downloadUrl = `${BASE_URL}/api/ledger/generate-report/${startDate}${endDate}${truckNo ? `?vehicleNo=${truckNo}` : ""}`;
+            const downloadUrl = `${BASE_URL}/api/ledger/generate-excel/${formatDateUrl(startDate)}${formatDateUrl(endDate)}${truckNo ? `?vehicleNo=${truckNo}` : ""}`;
 
             return (
               <>
@@ -305,12 +307,14 @@ export default function GenReportPage() {
                   <strong>{truckLabel}</strong>
                 </Typography>
 
+
+
                 <Box sx={{ display: "flex", justifyContent: "center", gap: "12px" }}>
                   <Button
                     variant="contained"
                     sx={{ backgroundColor: "#1976D2" }}
                     startIcon={<FaDownload />}
-                    onClick={() => window.open(downloadUrl, "_blank")}
+                    href={downloadUrl}
                   >
                     Confirm Download
                   </Button>

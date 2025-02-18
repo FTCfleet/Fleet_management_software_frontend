@@ -30,6 +30,8 @@ export default function AddOrderPage({ }) {
   const [receiverDetails, setReceiverDetails] = useState({role: "receiver" });
   const [error, setError] = useState(false);
   const [charges, setCharges] = useState(0);
+  const [freight, setFreight] = useState(0);
+  const [hamali, setHamali] = useState(0);
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [sourceWarehouse, setSourceWarehouse] = useState("");
@@ -125,12 +127,14 @@ export default function AddOrderPage({ }) {
           items,
           destinationWarehouse,
           charges,
+          hamali,
+          freight,
           ...(isAdmin ? { sourceWarehouse } : {}),
         }),
       });
 
       const data = await response.json();
-      if (!response.ok || data.flag) {
+      if (!response.ok || !data.flag) {
         alert("Error occurred");
       } else {
         alert("Order Added Successfully");
@@ -182,7 +186,19 @@ export default function AddOrderPage({ }) {
           onChange={(e) => setReceiverDetails({ ...receiverDetails, address: e.target.value })}
         />
         <TextField
-          label="Charges"
+          label="Freight"
+          type="text"
+          value={freight}
+          onChange={(e) => setFreight(parseInt(e.target.value) || 0)}
+        />
+        <TextField
+          label="Hamali"
+          type="text"
+          value={hamali}
+          onChange={(e) => setHamali(parseInt(e.target.value) || 0)}
+        />
+        <TextField
+          label="Statistical Charges"
           type="text"
           value={charges}
           onChange={(e) => setCharges(parseInt(e.target.value) || 0)}

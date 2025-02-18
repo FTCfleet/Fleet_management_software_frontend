@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   Box,
+  Button,
   Typography,
   Table,
   TableBody,
@@ -9,58 +10,45 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Button,
   IconButton,
   Modal,
   TextField,
-  Select,
-  MenuItem,
   CircularProgress,
 } from "@mui/material";
 import { Edit, Delete, Close } from "@mui/icons-material";
 import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
+import "../css/main.css";
 
 const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
 const rowStyle = { color: "#25344E" };
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-const AllEmployeePage = () => {
-  const [employees, setEmployees] = useState([]);
-  const [filteredEmployees, setFilteredEmployees] = useState([]);
+export default function AllItemPage() {
+  const [items, setItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentEmployee, setCurrentEmployee] = useState(null);
+  const [currentItem, setCurrentItem] = useState(null);
+  const [isAdding, setIsAdding] = useState(false);
   const [nameFilter, setNameFilter] = useState("");
-  const [phoneFilter, setPhoneFilter] = useState("");
-  const [warehouseFilter, setWarehouseFilter] = useState("");
+  const [itemNoFilter, setItemNoFilter] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [employeeToDelete, setEmployeeToDelete] = useState(null);
+  const [itemToDelete, setItemToDelete] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
   const [isLoading2, setIsLoading2] = useState(false);
-  const [warehouses, setWarehouses] = useState([]);
 
   useEffect(() => {
     fetchData();
-    fetchWarehouses();
   }, []);
 
   useEffect(() => {
-    setFilteredEmployees(employees);
-    // console.log(employees[0]);
-  }, [employees]);
-
-  const fetchWarehouses = async () => {
-    const res = await fetch(`${BASE_URL}/api/warehouse/get-all`);
-    const data = await res.json();
-    console.log(data);
-    setWarehouses(data.body);
-  };
+    setFilteredItems(items);
+  }, [items]);
 
   const fetchData = async () => {
     setIsLoading(true);
     const token = localStorage.getItem("token");
-
-    const res = await fetch(`${BASE_URL}/api/admin/get-all-employees`, {
+    const res = await fetch(`${BASE_URL}/api/admin/get-all-drivers`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -68,230 +56,204 @@ const AllEmployeePage = () => {
       },
     });
     const data = await res.json();
-    console.log(data.body);
-    setEmployees(data.body);
+    console.log(data);
+    setItems(data.body);
     setIsLoading(false);
   };
 
   // Filters
   const applyFilter = () => {
-    const filtered = employees.filter((emp) => {
+    const filtered = items.filter((item) => {
       return (
         (nameFilter
-          ? emp.name.toLowerCase().includes(nameFilter.toLowerCase())
+          ? item.name.toLowerCase().includes(nameFilter.toLowerCase())
           : true) &&
-        (phoneFilter ? emp.phoneNo.includes(phoneFilter) : true) &&
-        (warehouseFilter
-          ? emp.warehouseCode.warehouseID === warehouseFilter
+        (itemNoFilter
+          ? item.vehicleNo.toLowerCase().includes(itemNoFilter.toLowerCase())
           : true)
       );
     });
-
-    setFilteredEmployees(filtered);
+    setFilteredItems(filtered);
   };
 
   const clearFilter = () => {
     setNameFilter("");
-    setPhoneFilter("");
-    setWarehouseFilter("");
-    setFilteredEmployees(employees);
+    setItemNoFilter("");
+    setFilteredItems(items);
   };
 
-  const handleEdit = (employee) => {
-    setCurrentEmployee({
-      ...employee,
-      warehouseCode: employee.warehouseCode.warehouseID,
-    });
+  const handleEdit = (item) => {
+    setCurrentItem({ ...item });
     setIsModalOpen(true);
+    setIsAdding(false);
   };
 
-  const handleDelete = (username) => {
-    setEmployeeToDelete(username);
+  const handleDelete = (id) => {
+    setItemToDelete(id);
     setDeleteModalOpen(true);
   };
 
   const confirmDelete = async () => {
     setIsLoading2(true);
     const token = localStorage.getItem("token");
-    const res = await fetch(`${BASE_URL}/api/admin/manage/employee`, {
+    const res = await fetch(`${BASE_URL}/api/admin/manage/driver`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        username: employeeToDelete,
+        vehicleNo: itemToDelete,
       }),
     });
 
     const data = await res.json();
-    console.log(data);
+    fetchData();
     setIsLoading2(false);
     setDeleteModalOpen(false);
-    fetchData();
-    setEmployeeToDelete(null);
+    setItemToDelete(null);
+    return;
   };
 
   const handleCloseDeleteModal = () => {
     setDeleteModalOpen(false);
-    setEmployeeToDelete(null);
+    setItemToDelete(null);
   };
 
-  const handleSave = async () => {
+  const handleAdd = () => {
+    setCurrentItem({ name: "", phoneNo: "", vehicleNo: "" });
+    setIsModalOpen(true);
+    setIsAdding(true);
+  };
+
+  const handleSaveOrAdd = async () => {
     setIsLoading1(true);
-    console.log(currentEmployee);
-    // return;
     const token = localStorage.getItem("token");
-    const res = await fetch(`${BASE_URL}/api/admin/manage/employee`, {
-      method: "PUT",
+    let method, body;
+    if (isAdding) {
+      method = "POST";
+      body = {
+        vehicleNo: currentItem.vehicleNo,
+        name: currentItem.name,
+        phoneNo: currentItem.phoneNo,
+      };
+    } else {
+      method = "PUT";
+      body = {
+        vehicleNo: currentItem.vehicleNo,
+        updates: {
+          name: currentItem.name,
+          phoneNo: currentItem.phoneNo,
+        },
+      };
+    }
+    const res = await fetch(`${BASE_URL}/api/admin/manage/driver`, {
+      method: method,
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        username: currentEmployee.username,
-        updates: {
-          name: currentEmployee.name,
-          phoneNo: currentEmployee.phoneNo,
-          warehouseCode: currentEmployee.warehouseCode,
-        },
-      }),
+      body: JSON.stringify(body),
     });
 
     const data = await res.json();
     console.log(data);
-    setIsLoading1(false);
     fetchData();
+    setIsLoading1(false);
     setIsModalOpen(false);
   };
 
   const handleClose = () => {
     setIsModalOpen(false);
-    setCurrentEmployee(null);
+    setCurrentItem(null);
   };
 
   const handleFieldChange = (field, value) => {
-    if(field === 'warehouseCode') {
-      console.log(currentEmployee.warehouseCode);
-    }
-    setCurrentEmployee({ ...currentEmployee, [field]: value });
-    if(field === 'warehouseCode') {
-      console.log(currentEmployee.warehouseCode);
-    }
+    setCurrentItem({ ...currentItem, [field]: value });
   };
 
   return (
     <Box sx={{ padding: "20px" }}>
       <Typography variant="h4" sx={{ marginBottom: "20px", ...headerStyle }}>
-        Employee List
+        Item Details
       </Typography>
 
       {/* Filters */}
       <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
         <TextField
-          label="Search by Name"
+          label="Search by Driver Name"
           value={nameFilter}
           onChange={(e) => setNameFilter(e.target.value)}
           variant="outlined"
           size="small"
         />
         <TextField
-          label="Search by Phone"
-          value={phoneFilter}
-          onChange={(e) => setPhoneFilter(e.target.value)}
+          label="Search by Item Number"
+          value={itemNoFilter}
+          onChange={(e) => setItemNoFilter(e.target.value)}
           variant="outlined"
           size="small"
         />
-        <Select
-          value={warehouseFilter}
-          onChange={(e) => setWarehouseFilter(e.target.value)}
-          displayEmpty
-          size="small"
-        >
-          <MenuItem value="">All Warehouses</MenuItem>
-          {warehouses.map((warehouse) => (
-            <MenuItem key={warehouse.warehouseID} value={warehouse.warehouseID}>
-              {warehouse.name}
-            </MenuItem>
-          ))}
-        </Select>
         <Button variant="contained" color="primary" onClick={applyFilter}>
           Apply Filter
         </Button>
         <Button variant="outlined" color="secondary" onClick={clearFilter}>
           Clear Filter
         </Button>
+        <button className="button " onClick={handleAdd} style={{ margin: 0 }}>
+          Add Item
+        </button>
       </Box>
 
-      {/* Employee Table */}
+      {/* Item Table */}
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={headerStyle}>Name</TableCell>
-              <TableCell sx={headerStyle}>Username</TableCell>
-              <TableCell sx={headerStyle}>Phone No</TableCell>
-              <TableCell sx={headerStyle}>Role</TableCell>
-              <TableCell sx={headerStyle}>Warehouse</TableCell>
-              <TableCell sx={headerStyle}>Warehouse Code</TableCell>
+              <TableCell sx={headerStyle}>Driver Name</TableCell>
+              <TableCell sx={headerStyle}>Phone Number</TableCell>
+              <TableCell sx={headerStyle}>Item Number</TableCell>
               <TableCell sx={headerStyle}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={7} align="center">
-                  <CircularProgress
-                    size={22}
-                    className="spinner"
-                    sx={{ color: "#1E3A5F", animation: "none !important" }}
-                  />
-                </TableCell>
-              </TableRow>
-            ) : filteredEmployees.length > 0 ? (
-              filteredEmployees.map(
-                (employee, index) =>
-                  employee.role !== "admin" && (
-                    <TableRow key={index}>
-                      <TableCell sx={rowStyle}>{employee.name}</TableCell>
-                      <TableCell sx={rowStyle}>{employee.username}</TableCell>
-                      <TableCell sx={rowStyle}>{employee.phoneNo}</TableCell>
-                      <TableCell sx={rowStyle}>{employee.role}</TableCell>
-                      <TableCell sx={rowStyle}>
-                        {employee.warehouseCode.name}
-                      </TableCell>
-                      <TableCell sx={rowStyle}>
-                        {employee.warehouseCode.warehouseID}
-                      </TableCell>
-                      <TableCell>
-                        <IconButton
-                          color="primary"
-                          onClick={() => handleEdit(employee)}
-                        >
-                          <Edit />
-                        </IconButton>
-                        <IconButton
-                          color="error"
-                          onClick={() => handleDelete(employee.username)}
-                        >
-                          <Delete />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  )
-              )
-            ) : (
-              <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ color: "#7D8695" }}>
-                  No employees found for the selected filter.
-                </TableCell>
-              </TableRow>
-            )}
+            {isLoading ? (<TableRow>
+              <TableCell colSpan={7} align="center">
+                <CircularProgress
+                  size={22}
+                  className="spinner"
+                  sx={{ color: "#1E3A5F", animation: "none !important" }}
+                />
+              </TableCell>
+            </TableRow>) :
+              filteredItems.map((item) => (
+                <TableRow key={item.vehicleNo}>
+                  <TableCell sx={rowStyle}>{item.name}</TableCell>
+                  <TableCell sx={rowStyle}>{item.phoneNo}</TableCell>
+                  <TableCell sx={rowStyle}>{item.vehicleNo}</TableCell>
+                  <TableCell>
+                    <IconButton color="primary" onClick={() => handleEdit(item)}>
+                      <Edit />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      onClick={() => handleDelete(item.vehicleNo)}
+                    >
+                      <Delete />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </TableContainer>
 
-      {/* Edit Modal */}
+      {/* Add Item Button */}
+      {/* <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: "20px" }}>
+                
+            </Box> */}
+
+      {/* Modal for Add/Edit Item */}
       <Modal open={isModalOpen} onClose={handleClose}>
         <Box
           sx={{
@@ -317,41 +279,32 @@ const AllEmployeePage = () => {
             variant="h6"
             sx={{ marginBottom: "16px", textAlign: "center", ...headerStyle }}
           >
-            Edit Employee Details
+            {isAdding ? "Add Item" : "Edit Item Details"}
           </Typography>
-          {currentEmployee && (
+          {currentItem && (
             <Box>
               <TextField
                 fullWidth
-                label="Name"
-                value={currentEmployee.name}
+                label="Driver Name"
+                value={currentItem.name}
                 onChange={(e) => handleFieldChange("name", e.target.value)}
                 sx={{ marginBottom: "16px" }}
               />
               <TextField
                 fullWidth
-                label="Phone No"
-                value={currentEmployee.phoneNo}
+                label="Phone Number"
+                value={currentItem.phoneNo}
                 onChange={(e) => handleFieldChange("phoneNo", e.target.value)}
                 sx={{ marginBottom: "16px" }}
               />
-              <Select
+              <TextField
                 fullWidth
-                value={currentEmployee.warehouseCode}
-                onChange={(e) =>
-                  handleFieldChange("warehouseCode", e.target.value)
-                }
+                label="Item Number"
+                value={currentItem.vehicleNo}
+                onChange={(e) => handleFieldChange("vehicleNo", e.target.value)}
+                disabled={!isAdding}
                 sx={{ marginBottom: "16px" }}
-              >
-                {warehouses.map((warehouse) => (
-                  <MenuItem
-                    key={warehouse.warehouseID}
-                    value={warehouse.warehouseID}
-                  >
-                    {warehouse.name}
-                  </MenuItem>
-                ))}
-              </Select>
+              />
               <Box
                 sx={{
                   display: "flex",
@@ -359,9 +312,11 @@ const AllEmployeePage = () => {
                   marginTop: "16px",
                 }}
               >
-                <button className="button button-large" onClick={handleSave}>
-                  Save{" "}
-                  {isLoading1 && (
+                <button
+                  className="button button-large"
+                  onClick={handleSaveOrAdd}
+                >
+                  {isAdding ? "Add" : "Save"} {isLoading1 && (
                     <CircularProgress
                       size={22}
                       className="spinner"
@@ -374,7 +329,7 @@ const AllEmployeePage = () => {
           )}
         </Box>
       </Modal>
-      {/* Delete Modal */}
+      {/* Modal for Delete Confirmation */}
       <Modal open={deleteModalOpen} onClose={handleCloseDeleteModal}>
         <Box
           sx={{
@@ -405,7 +360,7 @@ const AllEmployeePage = () => {
               color: "#d32f2f",
             }}
           >
-            Delete Employee
+            Delete Item
           </Typography>
           <Typography
             sx={{
@@ -430,8 +385,7 @@ const AllEmployeePage = () => {
               startIcon={<FaTrash />}
               onClick={confirmDelete}
             >
-              Delete{" "}
-              {isLoading2 && (
+              Delete {isLoading2 && (
                 <CircularProgress
                   size={22}
                   className="spinner"
@@ -444,6 +398,4 @@ const AllEmployeePage = () => {
       </Modal>
     </Box>
   );
-};
-
-export default AllEmployeePage;
+}

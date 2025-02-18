@@ -38,6 +38,8 @@ export default function ViewOrderPage() {
   const [status, setStatus] = useState("");
   const [qrCount, setQrCount] = useState(0);
   const [charges, setCharges] = useState(0);
+  const [freight, setFreight] = useState(0);
+  const [hamali, setHamali] = useState(0);
   const [items, setItems] = useState([]);
   const [qrCode, setQrCode] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -185,7 +187,10 @@ export default function ViewOrderPage() {
                   <Typography sx={rowCellStyle}>
                     <strong>Package:</strong> {items.length}
                   </Typography>
-                </Box>
+                  <Typography sx={rowCellStyle}>
+                <strong>Freight:</strong> {charges}
+              </Typography>
+            </Box>
                 <Box sx={{ flex: 1, marginLeft: "20px" }}>
                   <Typography sx={rowCellStyle}>
                     <strong>Status:</strong> {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -206,7 +211,10 @@ export default function ViewOrderPage() {
                     <strong>Destination Warehouse:</strong> {destWarehouse}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Charges:</strong> {charges}
+                    <strong>Hamali:</strong> {hamali}
+              </Typography>
+              <Typography sx={rowCellStyle}>
+                <strong>Statistical Charges:</strong> {charges}
                   </Typography>
                 </Box>
               </Box>

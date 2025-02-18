@@ -20,10 +20,10 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { Cancel } from "@mui/icons-material";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import ledger from "../assets/ledger.jpg";
 import { useAuth } from "../routes/AuthContext";
-import { FaTrash, FaExclamationTriangle } from "react-icons/fa";
+import { FaTrash, FaExclamationTriangle, FaTruckLoading } from "react-icons/fa";
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
 import { CiDeliveryTruck } from "react-icons/ci";
 import { TbCubeSend } from "react-icons/tb";
@@ -35,7 +35,7 @@ export default function ViewLedgerPage() {
   const { id } = useParams();
   const [ledgerData, setLedgerData] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [totals, setTotals] = useState({ freight: 0, hamali: 0 });
+  const [totals, setTotals] = useState({ freight: 0, hamali: 0, charges: 0 });
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [allWarehouse, setAllWarehouse] = useState([]);
@@ -57,18 +57,19 @@ export default function ViewLedgerPage() {
   useEffect(() => {
     let totalfreight = 0;
     let totalhamali = 0;
+    let totalcharges = 0;
     orders.forEach((element) => {
       totalfreight += element.freight;
       totalhamali += element.hamali;
+      totalcharges += element.charges;
     });
 
     setTotals({
       freight: totalfreight,
       hamali: totalhamali,
+      charges: totalcharges,
     });
   }, [orders]);
-
-  // console.log(orders);
 
   const fetchData = async () => {
     setIsLoading1(true);
@@ -79,23 +80,23 @@ export default function ViewLedgerPage() {
         "Content-Type": "application/json",
       },
     });
+    const data = await response.json();
     if (!response.ok) {
       alert("Error occurred");
       setIsLoading1(false);
       return;
     }
-    if (response.status === 201) {
+    if (!data.flag) {
       alert("No such Ledger found");
       setIsLoading1(false);
       return;
     }
-    const data = (await response.json()).body;
-    setLedgerData(data);
-    if (data.sourceWarehouse)
-      setSourceWarehouse(data.sourceWarehouse.warehouseID);
-    if (data.destinationWarehouse)
-      setDestinationWarehouse(data.destinationWarehouse.warehouseID);
-    setOrders(data.parcels);
+    setLedgerData(data.body);
+    if (data.body.sourceWarehouse)
+      setSourceWarehouse(data.body.sourceWarehouse.warehouseID);
+    if (data.body.destinationWarehouse)
+      setDestinationWarehouse(data.body.destinationWarehouse.warehouseID);
+    setOrders(data.body.parcels);
     setIsLoading1(false);
   };
 
@@ -110,7 +111,8 @@ export default function ViewLedgerPage() {
   const handleUpdate = (value, index, type) => {
     value = parseInt(value) || 0;
     if (type === "freight") orders[index].freight = value;
-    else orders[index].hamali = value;
+    else if (type === "hamali") orders[index].hamali = value;
+    else orders[index].charges = value;
     const updated = [...orders];
     setOrders(updated);
   };
@@ -230,7 +232,10 @@ export default function ViewLedgerPage() {
       >
         {/* Left Section - Text Content */}
         <Box sx={{ flex: 1, textAlign: "left" }}>
-          <Typography variant="h5" sx={{ marginBottom: "10px", ...headerStyle }}>
+          <Typography
+            variant="h5"
+            sx={{ marginBottom: "10px", ...headerStyle }}
+          >
             Ledger Details
           </Typography>
 
@@ -254,12 +259,21 @@ export default function ViewLedgerPage() {
               <Typography sx={rowStyle}>
                 <strong>Truck No:</strong> {ledgerData.vehicleNo}
               </Typography>
-              <div style={{ display: "flex", flexDirection: "row", gap: "20px", alignItems: "center" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: "20px",
+                  alignItems: "center",
+                }}
+              >
                 <Typography sx={rowStyle}>
                   <strong>Source Warehouse:</strong>{" "}
                 </Typography>
                 {ledgerData.sourceWarehouse ? (
-                  <Typography sx={rowStyle}>{ledgerData.sourceWarehouse.name}</Typography>
+                  <Typography sx={rowStyle}>
+                    {ledgerData.sourceWarehouse.name}
+                  </Typography>
                 ) : (
                   <FormControl>
                     <InputLabel>Source Warehouse</InputLabel>
@@ -267,7 +281,8 @@ export default function ViewLedgerPage() {
                       label="Source Warehouse"
                       value={sourceWarehouse}
                       onChange={(e) => setSourceWarehouse(e.target.value)}
-                      sx={{ minWidth: "250px" }}>
+                      sx={{ minWidth: "250px" }}
+                    >
                       {allWarehouse
                         .filter((w) => !w.isSource)
                         .map((w) => (
@@ -279,12 +294,21 @@ export default function ViewLedgerPage() {
                   </FormControl>
                 )}
               </div>
-              <div style={{ display: "flex", flexDirection: "row", gap: "20px", alignItems: "center" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: "20px",
+                  alignItems: "center",
+                }}
+              >
                 <Typography sx={rowStyle}>
                   <strong>Destination Warehouse:</strong>{" "}
                 </Typography>
                 {ledgerData.destinationWarehouse ? (
-                  <Typography sx={rowStyle}>{ledgerData.destinationWarehouse.name}</Typography>
+                  <Typography sx={rowStyle}>
+                    {ledgerData.destinationWarehouse.name}
+                  </Typography>
                 ) : (
                   <FormControl>
                     <InputLabel>Destination Warehouse</InputLabel>
@@ -292,7 +316,8 @@ export default function ViewLedgerPage() {
                       label="Destination Warehouse"
                       value={destinationWarehouse}
                       onChange={(e) => setDestinationWarehouse(e.target.value)}
-                      sx={{ minWidth: "250px" }}>
+                      sx={{ minWidth: "250px" }}
+                    >
                       {allWarehouse
                         .filter((w) => !w.isSource)
                         .map((w) => (
@@ -306,7 +331,8 @@ export default function ViewLedgerPage() {
               </div>
               <Typography sx={rowStyle}>
                 <strong>Status:</strong>{" "}
-                {ledgerData.status?.charAt(0).toUpperCase() + ledgerData.status?.slice(1)}
+                {ledgerData.status?.charAt(0).toUpperCase() +
+                  ledgerData.status?.slice(1)}
               </Typography>
             </>
           )}
@@ -314,7 +340,11 @@ export default function ViewLedgerPage() {
 
         {/* Right Section - Image */}
         <Box sx={{ flex: "0 0 150px", marginLeft: "20px" }}>
-          <img src={ledger} alt="Ledger" style={{ width: "100%", height: "auto", borderRadius: "8px" }} />
+          <img
+            src={ledger}
+            alt="Ledger"
+            style={{ width: "100%", height: "auto", borderRadius: "8px" }}
+          />
         </Box>
       </Box>
 
@@ -336,6 +366,7 @@ export default function ViewLedgerPage() {
               <TableCell sx={headerStyle}>Receiver</TableCell>
               <TableCell sx={headerStyle}>Freight</TableCell>
               <TableCell sx={headerStyle}>Hamali</TableCell>
+              <TableCell sx={headerStyle}>Statistical Charges</TableCell>
               {ledgerData.status === "pending" && (
                 <TableCell sx={headerStyle}>Actions</TableCell>
               )}
@@ -343,71 +374,85 @@ export default function ViewLedgerPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {isLoading1 ? (<TableRow>
-              <TableCell colSpan={7} align="center">
-                <CircularProgress
-                  size={22}
-                  className="spinner"
-                  sx={{ color: "#1E3A5F", animation: "none !important" }}
-                />
-              </TableCell>
-            </TableRow>) : orders.length !== 0 &&
-            orders.map((order, index) => (
-              <TableRow key={order.trackingId}>
-                <TableCell sx={rowStyle}>{index + 1}</TableCell>
-                <TableCell sx={rowStyle}>{order.trackingId}</TableCell>
-                <TableCell sx={rowStyle}>{order.items.length}</TableCell>
-                <TableCell sx={rowStyle}>{order.sender.name}</TableCell>
-                <TableCell sx={rowStyle}>{order.receiver.name}</TableCell>
-                <TableCell sx={rowStyle}>
-                  <TextField
-                    type="text"
-                    size="small"
-                    value={order.freight}
-                    disabled={ledgerData.status !== "pending"}
-                    onChange={(e) =>
-                      handleUpdate(e.target.value, index, "freight")
-                    }
+            {isLoading1 ? (
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  <CircularProgress
+                    size={22}
+                    className="spinner"
+                    sx={{ color: "#1E3A5F", animation: "none !important" }}
                   />
-                </TableCell>
-                <TableCell sx={rowStyle}>
-                  <TextField
-                    type="text"
-                    size="small"
-                    value={order.hamali}
-                    disabled={ledgerData.status !== "pending"}
-                    onChange={(e) =>
-                      handleUpdate(e.target.value, index, "hamali")
-                    }
-                  />
-                </TableCell>
-                {ledgerData.status === "pending" && (
-                  <TableCell>
-                    <IconButton
-                      color="error"
-                      onClick={(e) => handleDelete(index)}
-                    >
-                      <Cancel />
-                    </IconButton>
-                  </TableCell>
-                )}
-                <TableCell>
-                  <Button
-                    variant="outlined"
-                    sx={{
-                      textTransform: "none",
-                      color: "#1E3A5F",
-                      borderColor: "#1E3A5F",
-                    }}
-                    onClick={() =>
-                      window.open(`/user/view/order/${order.trackingId}`, "_blank")
-                    }
-                  >
-                    <IoArrowForwardCircleOutline size={24} />
-                  </Button>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              orders.length !== 0 &&
+              orders.map((order, index) => (
+                <TableRow key={order.trackingId}>
+                  <TableCell sx={rowStyle}>{index + 1}</TableCell>
+                  <TableCell sx={rowStyle}>{order.trackingId}</TableCell>
+                  <TableCell sx={rowStyle}>{order.items.length}</TableCell>
+                  <TableCell sx={rowStyle}>{order.sender.name}</TableCell>
+                  <TableCell sx={rowStyle}>{order.receiver.name}</TableCell>
+                  <TableCell sx={rowStyle}>
+                    <TextField
+                      type="text"
+                      size="small"
+                      value={order.freight}
+                      disabled={ledgerData.status !== "pending"}
+                      onChange={(e) =>
+                        handleUpdate(e.target.value, index, "freight")
+                      }
+                    />
+                  </TableCell>
+                  <TableCell sx={rowStyle}>
+                    <TextField
+                      type="text"
+                      size="small"
+                      value={order.hamali}
+                      disabled={ledgerData.status !== "pending"}
+                      onChange={(e) =>
+                        handleUpdate(e.target.value, index, "hamali")
+                      }
+                    />
+                  </TableCell>
+                  <TableCell sx={rowStyle}>
+                    <TextField
+                      type="text"
+                      size="small"
+                      value={order.charges}
+                      disabled={ledgerData.status !== "pending"}
+                      onChange={(e) =>
+                        handleUpdate(e.target.value, index, "charges")
+                      }
+                    />
+                  </TableCell>
+                  {ledgerData.status === "pending" && (
+                    <TableCell>
+                      <IconButton
+                        color="error"
+                        onClick={(e) => handleDelete(index)}
+                      >
+                        <Cancel />
+                      </IconButton>
+                    </TableCell>
+                  )}
+                  <TableCell>
+                    <Button
+                      variant="outlined"
+                      sx={{
+                        textTransform: "none",
+                        color: "#1E3A5F",
+                        borderColor: "#1E3A5F",
+                      }}
+                      target="_blank"
+                      href={`/user/view/order/${order.trackingId}`}
+                    >
+                      <IoArrowForwardCircleOutline size={24} />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
 
             {/* Totals Row */}
             <TableRow>
@@ -425,6 +470,9 @@ export default function ViewLedgerPage() {
               <TableCell sx={{ ...rowStyle, fontWeight: "bold" }}>
                 {totals.hamali}
               </TableCell>
+              <TableCell sx={{ ...rowStyle, fontWeight: "bold" }}>
+                {totals.charges}
+              </TableCell>
               <TableCell></TableCell>
             </TableRow>
           </TableBody>
@@ -432,7 +480,7 @@ export default function ViewLedgerPage() {
       </TableContainer>
       {(isSource || isAdmin) && ledgerData.status === "pending" && (
         <button className="button button-large" onClick={handleDispatch}>
-          <TbCubeSend style={{ marginRight: "8px" }} />Dispatch Truck
+          <FaTruckLoading style={{ marginRight: "8px" }} />Dispatch Truck
         </button>
       )}
       {(!isSource || isAdmin) && ledgerData.status === "verified" && (
@@ -446,6 +494,9 @@ export default function ViewLedgerPage() {
       >
         <FaTrash style={{ marginRight: "8px" }} /> Delete Ledger
       </button>
+      <Link to={`${BASE_URL}/api/ledger/generate-ledger-receipt/${id}`}>
+        <button className="button button-large">Print Ledger</button>
+      </Link>
 
       {/* Delete Confirmation Modal */}
       <Modal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)}>
