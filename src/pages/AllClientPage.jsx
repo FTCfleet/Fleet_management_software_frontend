@@ -47,7 +47,8 @@ export default function AllClientPage() {
   const fetchData = async () => {
     setIsLoading(true);
     const token = localStorage.getItem("token");
-    const res = await fetch(`${BASE_URL}/api/admin/get-all-drivers`, {
+
+    const res = await fetch(`${BASE_URL}/api/admin/manage/regular-client`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -55,7 +56,6 @@ export default function AllClientPage() {
       },
     });
     const data = await res.json();
-    console.log(data);
     setClients(data.body);
     setIsLoading(false);
   };
@@ -91,7 +91,7 @@ export default function AllClientPage() {
   const confirmDelete = async () => {
     setIsLoading2(true);
     const token = localStorage.getItem("token");
-    const res = await fetch(`${BASE_URL}/api/admin/manage/driver`, {
+    const res = await fetch(`${BASE_URL}/api/admin/manage/regular-client`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -142,7 +142,7 @@ export default function AllClientPage() {
         },
       };
     }
-    const res = await fetch(`${BASE_URL}/api/admin/manage/driver`, {
+    const res = await fetch(`${BASE_URL}/api/admin/manage/regular-client`, {
       method: method,
       headers: {
         "Content-Type": "application/json",

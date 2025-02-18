@@ -15,6 +15,8 @@ import {
   FormControl,
   InputLabel,
   CircularProgress,
+  Autocomplete,
+  Paper,
 } from "@mui/material";
 import { FaCopy, FaTrash, FaPlus } from "react-icons/fa";
 import "../css/main.css";
@@ -26,13 +28,15 @@ export default function AddOrderPage({ }) {
   const { id } = useParams();
   const [items, setItems] = useState([]);
   const [counter, setCounter] = useState(1);
-  const [senderDetails, setSenderDetails] = useState({role: "sender" });
-  const [receiverDetails, setReceiverDetails] = useState({role: "receiver" });
+  const [senderDetails, setSenderDetails] = useState({ name: "", phoneNo: "", address: "", role: "sender" });
+  const [receiverDetails, setReceiverDetails] = useState({ name: "", phoneNo: "", address: "", role: "receiver" });
   const [error, setError] = useState(false);
   const [charges, setCharges] = useState(0);
   const [freight, setFreight] = useState(0);
   const [hamali, setHamali] = useState(0);
   const [allWarehouse, setAllWarehouse] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [regItems , setregItems] = useState([]);
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const { isAdmin } = useAuth();
@@ -40,8 +44,38 @@ export default function AddOrderPage({ }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    fetchClients();
     fetchWarehouse();
+    fetchItems();
   }, []);
+
+  const fetchClients = async () => {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(`${BASE_URL}/api/admin/manage/regular-client`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    setClients(data.body);
+  }
+
+  const fetchItems = async () => {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    setClients(data.body);
+  }
 
   const fetchWarehouse = async () => {
     const response = await fetch(`${BASE_URL}/api/warehouse/get-all`);
@@ -148,6 +182,42 @@ export default function AddOrderPage({ }) {
     }
   };
 
+  const handleSenderChange = (event, selectedOption) => {
+    console.log(senderDetails);
+    if (selectedOption.name) {
+      setSenderDetails({
+        ...senderDetails,
+        name: selectedOption.name,
+        phoneNo: selectedOption.phoneNo,
+        address: selectedOption.address,
+      });
+    } else {
+      console.log(event.target.value);
+      setSenderDetails({
+        ...senderDetails,
+        name: event.target.value,
+      });
+    }
+  };
+
+  const handleReceiverChange = (event, selectedOption) => {
+    if (selectedOption.name) {
+      setReceiverDetails({
+        ...receiverDetails,
+        name: selectedOption.name,
+        phoneNo: selectedOption.phoneNo,
+        address: selectedOption.address,
+      });
+    } else {
+      console.log(event.target.value);
+      setReceiverDetails({
+        ...receiverDetails,
+        name: event.target.value,
+      });
+    }
+  };
+
+
   return (
     <Box sx={{ padding: "20px", margin: "auto", backgroundColor: "#ffffff", color: "#1b3655" }}>
       <Typography variant="h4" sx={{ marginBottom: "20px", textAlign: "center", color: "#1c3553" }}>
@@ -155,33 +225,71 @@ export default function AddOrderPage({ }) {
       </Typography>
 
       <Box sx={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(3, 1fr)" }}>
-        <TextField
-          label="Sender's Name"
-          name="name"
-          onChange={(e) => setSenderDetails({ ...senderDetails, name: e.target.value })}
+        <Autocomplete
+          freeSolo
+          options={clients} // Pass full client objects
+          getOptionLabel={(option) => option.name || senderDetails.name} // Display only name
+          value={clients.find((client) => client.name === senderDetails.name) || senderDetails.name} // Match full object
+          onChange={(event, newValue) => handleSenderChange(event, newValue)} // Pass `newValue` (selectedOption)
+          renderInput={(params) => <TextField {...params} label="Sender's Name" />}
+          disableClearable // Disables the "x" (clear) button
+          slots={{
+            paper: (props) => (
+              <div
+                {...props}
+                style={{
+                  maxHeight: 200,
+                  overflowY: 'auto',
+                  backgroundColor: '#1E3A5F',
+                  color: '#fff'
+                }}
+              />
+            ),
+          }}
         />
         <TextField
           label="Sender's Phone No."
+          value={senderDetails.phoneNo}
           name="phoneNo"
           onChange={(e) => setSenderDetails({ ...senderDetails, phoneNo: e.target.value })}
         />
         <TextField
           label="Sender's Address (Optional)"
+          value={senderDetails.address}
           name="address"
           onChange={(e) => setSenderDetails({ ...senderDetails, address: e.target.value })}
         />
-        <TextField
-          label="Receiver's Name"
-          name="name"
-          onChange={(e) => setReceiverDetails({ ...receiverDetails, name: e.target.value })}
+        <Autocomplete
+          freeSolo
+          options={clients} // Pass full client objects
+          getOptionLabel={(option) => option.name || receiverDetails.name} // Display only name
+          value={clients.find((client) => client.name === receiverDetails.name) || receiverDetails.name} // Match full object
+          onChange={(event, newValue) => handleReceiverChange(event, newValue)} // Pass `newValue` (selectedOption)
+          renderInput={(params) => <TextField {...params} label="Receiver's Name" />}
+          disableClearable // Disables the "x" (clear) button
+          slots={{
+            paper: (props) => (
+              <div
+                {...props}
+                style={{
+                  maxHeight: 200,
+                  overflowY: 'auto',
+                  backgroundColor: '#1E3A5F',
+                  color: '#fff'
+                }}
+              />
+            ),
+          }}
         />
         <TextField
           label="Receiver's Phone No."
+          value={receiverDetails.phoneNo}
           name="phoneNo"
           onChange={(e) => setReceiverDetails({ ...receiverDetails, phoneNo: e.target.value })}
         />
         <TextField
           label="Receiver's Address"
+          value={receiverDetails.address}
           name="address"
           onChange={(e) => setReceiverDetails({ ...receiverDetails, address: e.target.value })}
         />
@@ -267,22 +375,44 @@ export default function AddOrderPage({ }) {
               <TableRow key={item.id}>
                 <TableCell>{item.id}</TableCell>
                 <TableCell>
-                  <TextField
-                    value={item.name}
-                    onChange={(e) =>
-                      handleInputChange(item.id, "name", e.target.value)
-                    }
-                    placeholder="Enter Item Name"
-                    variant="outlined"
-                    size="small"
-                    fullWidth
-                    error={error && !item.name}
-                    helperText={error && !item.name ? "Required" : ""}
-                    sx={{
-                      "& .MuiInputBase-root": {
-                        fontSize: "14px",
-                        color: "#1b3655",
-                      },
+                  <Autocomplete
+                    value={item.name} // Set the value to item.name
+                    options={regItems.map((item) => item.name)} // Populate options from regItems' names
+                    onClick={(event, newValue) => {
+                      handleInputChange(item.id , "name" , newValue); // Directly update item.name on selection
+                    }}
+                    getOptionLabel={(option) => option} // Use option as is (name)
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter Item Name"
+                        variant="outlined"
+                        size="small"
+                        error={error && !item.name}
+                        helperText={error && !item.name ? "Required" : ""}
+                        sx={{
+                          "& .MuiInputBase-root": {
+                            fontSize: "14px",
+                            color: "#1b3655",
+                          },
+                          width: "300px",
+                        }}
+                        
+                      />
+                    )}
+                    disableClearable // Disable the clear button
+                    slots={{
+                      paper: (props) => (
+                        <div
+                          {...props}
+                          style={{
+                            maxHeight: 200,
+                            overflowY: 'auto',
+                            backgroundColor: '#1E3A5F',
+                            color: '#fff',
+                          }}
+                        />
+                      ),
                     }}
                   />
                 </TableCell>

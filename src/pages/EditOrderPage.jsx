@@ -41,6 +41,7 @@ export default function EditOrderPage() {
   const [charges, setCharges] = useState(0);
   const [freight, setFreight] = useState(0);
   const [hamali, setHamali] = useState(0);
+  const [clients, setClients] = useState([]);
   const [status, setStatus] = useState("");
   const [counter, setCounter] = useState(0);
   const [sourceWarehouse, setSourceWarehouse] = useState("");
@@ -59,7 +60,22 @@ export default function EditOrderPage() {
   useEffect(() => {
     fetchWarehouse();
     fetchData();
+    fetchClients();
   }, []);
+
+  const fetchClients = async () => {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(`${BASE_URL}/api/admin/manage/regular-client`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    setClients(data.body);
+  }
 
   const fetchWarehouse = async () => {
     const response = await fetch(`${BASE_URL}/api/warehouse/get-all`);
@@ -97,6 +113,41 @@ export default function EditOrderPage() {
     setHamali(data.hamali || 0);
     setOldItems(data.items);
     setStatus(data.status);
+  };
+
+  const handleSenderChange = (event, selectedOption) => {
+    console.log(senderDetails);
+    if (selectedOption.name) {
+      setSenderDetails({
+        ...senderDetails,
+        name: selectedOption.name,
+        phoneNo: selectedOption.phoneNo,
+        address: selectedOption.address,
+      });
+    } else {
+      console.log(event.target.value);
+      setSenderDetails({
+        ...senderDetails,
+        name: event.target.value,
+      });
+    }
+  };
+
+  const handleReceiverChange = (event, selectedOption) => {
+    if (selectedOption.name) {
+      setReceiverDetails({
+        ...receiverDetails,
+        name: selectedOption.name,
+        phoneNo: selectedOption.phoneNo,
+        address: selectedOption.address,
+      });
+    } else {
+      console.log(event.target.value);
+      setReceiverDetails({
+        ...receiverDetails,
+        name: event.target.value,
+      });
+    }
   };
 
   const handleDelete = (item) => {
@@ -223,51 +274,74 @@ export default function EditOrderPage() {
         }}
       >
         {/* Sender Details */}
-        <TextField
-          label="Sender's Name"
-          value={senderDetails.name || ""}
-          onChange={(e) =>
-            setSenderDetails({ ...senderDetails, name: e.target.value })
-          }
+        <Autocomplete
+          freeSolo
+          options={clients} // Pass full client objects
+          getOptionLabel={(option) => option.name || senderDetails.name} // Display only name
+          value={clients.find((client) => client.name === senderDetails.name) || senderDetails.name} // Match full object
+          onChange={(event, newValue) => handleSenderChange(event, newValue)} // Pass `newValue` (selectedOption)
+          renderInput={(params) => <TextField {...params} label="Sender's Name" />}
+          disableClearable // Disables the "x" (clear) button
+          slots={{
+            paper: (props) => (
+              <div
+                {...props}
+                style={{
+                  maxHeight: 200,
+                  overflowY: 'auto',
+                  backgroundColor: '#1E3A5F',
+                  color: '#fff'
+                }}
+              />
+            ),
+          }}
         />
         <TextField
           label="Sender's Phone No."
-          value={senderDetails.phoneNo || ""}
-          onChange={(e) =>
-            setSenderDetails({ ...senderDetails, phoneNo: e.target.value })
-          }
+          value={senderDetails.phoneNo}
+          name="phoneNo"
+          onChange={(e) => setSenderDetails({ ...senderDetails, phoneNo: e.target.value })}
         />
         <TextField
           label="Sender's Address (Optional)"
-          value={senderDetails.address || ""}
-          onChange={(e) =>
-            setSenderDetails({ ...senderDetails, address: e.target.value })
-          }
+          value={senderDetails.address}
+          name="address"
+          onChange={(e) => setSenderDetails({ ...senderDetails, address: e.target.value })}
         />
-
-        {/* Receiver Details */}
-        <TextField
-          label="Receiver's Name"
-          value={receiverDetails.name || ""}
-          onChange={(e) =>
-            setReceiverDetails({ ...receiverDetails, name: e.target.value })
-          }
+        <Autocomplete
+          freeSolo
+          options={clients} // Pass full client objects
+          getOptionLabel={(option) => option.name || receiverDetails.name} // Display only name
+          value={clients.find((client) => client.name === receiverDetails.name) || receiverDetails.name} // Match full object
+          onChange={(event, newValue) => handleReceiverChange(event, newValue)} // Pass `newValue` (selectedOption)
+          renderInput={(params) => <TextField {...params} label="Receiver's Name" />}
+          disableClearable // Disables the "x" (clear) button
+          slots={{
+            paper: (props) => (
+              <div
+                {...props}
+                style={{
+                  maxHeight: 200,
+                  overflowY: 'auto',
+                  backgroundColor: '#1E3A5F',
+                  color: '#fff'
+                }}
+              />
+            ),
+          }}
         />
         <TextField
           label="Receiver's Phone No."
-          value={receiverDetails.phoneNo || ""}
-          onChange={(e) =>
-            setReceiverDetails({ ...receiverDetails, phoneNo: e.target.value })
-          }
+          value={receiverDetails.phoneNo}
+          name="phoneNo"
+          onChange={(e) => setReceiverDetails({ ...receiverDetails, phoneNo: e.target.value })}
         />
         <TextField
           label="Receiver's Address"
-          value={receiverDetails.address || ""}
-          onChange={(e) =>
-            setReceiverDetails({ ...receiverDetails, address: e.target.value })
-          }
+          value={receiverDetails.address}
+          name="address"
+          onChange={(e) => setReceiverDetails({ ...receiverDetails, address: e.target.value })}
         />
-
         <TextField
           label="Charges"
           type="text"
