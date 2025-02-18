@@ -22,7 +22,7 @@ const RegisterPage = () => {
   const [isSection1, setIsSection1] = useState(true);
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
-  const { setIsLoggedIn } = useAuth();
+  const { checkAuthStatus } = useAuth();
 
   const navigate = useNavigate();
   const style = {
@@ -106,7 +106,7 @@ const RegisterPage = () => {
         return;
       }
       localStorage.setItem("token", data.token);
-      window.location.reload();
+      checkAuthStatus();
       setIsLoading(false);
     } catch (error) {
       console.error("Registration error:", error);

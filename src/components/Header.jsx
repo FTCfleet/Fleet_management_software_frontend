@@ -34,8 +34,7 @@ const Menubutton = () => {
     handleClose();
   };
 
-  const lastUserPage =
-    localStorage.getItem("lastUserPage") || "/user/dashboard";
+  const { lastUserPage } = useAuth();
 
   return (
     <Box sx={{ paddingRight: 1 }}>
@@ -106,15 +105,13 @@ const Menubutton = () => {
   );
 };
 
-const HeaderTabs = ({ isDashboard }) => {
-  const { isLoggedIn, resetAuth } = useAuth();
+const HeaderTabs = () => {
+  const { isLoggedIn, resetAuth, lastUserPage } = useAuth();
   const tabs = [
     { url: "/", text: "Home" },
     { url: "/track", text: "Track Shipment" },
     { url: "/about", text: "About Us" },
   ];
-  const lastUserPage =
-    localStorage.getItem("lastUserPage") || "/user/dashboard";
 
   return (
     <ButtonGroup sx={{ textDecoration: "none", marginRight: 1 }}>
@@ -131,12 +128,12 @@ const HeaderTabs = ({ isDashboard }) => {
       ))}
       <NavLink
         className="navlink"
-        to={isLoggedIn ? lastUserPage : "/auth/login"}
+        to={isLoggedIn ? lastUserPage : "auth/login"}
       >
         <Button
           className="header-button"
           style={{ border: "none", outline: "none" }}
-          color="inherit"
+          color="white"
         >
           {isLoggedIn ? "Dashboard" : "Login"}
         </Button>
@@ -161,7 +158,7 @@ const Header = () => {
   const theme = useTheme();
   const mobileView = useMediaQuery(theme.breakpoints.down(470));
   const { checkAuthStatus } = useAuth();
-  const location = useLocation();
+
   return (
     <div className="header-box">
       <AppBar
@@ -192,7 +189,7 @@ const Header = () => {
             <img src={logoImg} height="50px"></img>
           </Link>
           <Link to="/user/dashboard">
-            <RxAvatar size="30px" style={{margin: "5 20 0 20"}}/>
+            <RxAvatar size="30px" style={{ margin: "5 20 0 20" }} />
           </Link>
           <button style={{ color: "red" }} onClick={checkAuthStatus}>
             Check

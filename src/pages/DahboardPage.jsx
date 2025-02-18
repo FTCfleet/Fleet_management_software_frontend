@@ -66,6 +66,9 @@ const DashboardPage = () => {
           <Typography variant="body1" sx={{ mt: 1 }}>
             <strong>Phone:</strong> {user.phoneNo}
           </Typography>
+          <Typography variant="body1" sx={{ mt: 1 }}>
+            <strong>Role:</strong> {user.role.charAt(0).toUpperCase()+user.role.slice(1)}
+          </Typography>
         </CardContent>
       </Card>
     </Box>

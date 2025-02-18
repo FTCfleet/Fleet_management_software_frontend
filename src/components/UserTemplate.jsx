@@ -29,6 +29,9 @@ const UserTemplate = () => {
   location.pathname.startsWith("/user/add/order/") ||
   location.pathname.startsWith("/user/edit/order/") ||
   !isSource;
+
+  const {setLastUserPage} = useAuth();
+
   const menuSections = [
     {
       heading: "Orders",
@@ -143,7 +146,7 @@ const UserTemplate = () => {
     }, []);
     
     useEffect(() => {
-      localStorage.setItem("lastUserPage", location.pathname);
+      setLastUserPage(location.pathname);
     }, [location.pathname]);
 
   return (

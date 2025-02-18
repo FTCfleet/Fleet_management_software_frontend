@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSource, setIsSource] = useState(true);
+  const [lastUserPage, setLastUserPage] = useState("/user/dahboard");
 
   const checkAuthStatus = async () => {
     let user_data = {};
@@ -79,6 +80,8 @@ export const AuthProvider = ({ children }) => {
         setIsAdmin,
         isSource,
         setIsSource,
+        lastUserPage,
+        setLastUserPage
       }}
     >
       {children}

@@ -12,7 +12,8 @@ const LoginPage = () => {
   const [passwordVal, setpasswordVal] = useState("");
   const [userVal, setuserVal] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { resetForgetAuth } = useAuth();
+  const { resetForgetAuth, checkAuthStatus } = useAuth();
+  const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setPasswordVisible((prevState) => !prevState);
@@ -45,7 +46,7 @@ const LoginPage = () => {
 
       if (data.flag) {
         localStorage.setItem("token", data.token);
-        window.location.reload();
+        checkAuthStatus();
       } else {
         throw new Error("No token received");
       }
