@@ -16,7 +16,6 @@ import {
   InputLabel,
   CircularProgress,
   Autocomplete,
-  Paper,
 } from "@mui/material";
 import { FaCopy, FaTrash, FaPlus } from "react-icons/fa";
 import "../css/main.css";
@@ -238,7 +237,7 @@ export default function AddOrderPage({ }) {
               <div
                 {...props}
                 style={{
-                  maxHeight: 200,
+                  // maxHeight: 200,
                   overflowY: 'auto',
                   backgroundColor: '#1E3A5F',
                   color: '#fff'
@@ -254,7 +253,7 @@ export default function AddOrderPage({ }) {
           onChange={(e) => setSenderDetails({ ...senderDetails, phoneNo: e.target.value })}
         />
         <TextField
-          label="Sender's Address (Optional)"
+          label="Sender's Address"
           value={senderDetails.address}
           name="address"
           onChange={(e) => setSenderDetails({ ...senderDetails, address: e.target.value })}
@@ -272,7 +271,7 @@ export default function AddOrderPage({ }) {
               <div
                 {...props}
                 style={{
-                  maxHeight: 200,
+                  // maxHeight: 200,
                   overflowY: 'auto',
                   backgroundColor: '#1E3A5F',
                   color: '#fff'

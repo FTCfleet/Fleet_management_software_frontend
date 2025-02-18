@@ -248,7 +248,7 @@ const AllEmployeePage = () => {
                   />
                 </TableCell>
               </TableRow>
-            ) : filteredEmployees.length > 0 ? (
+            ) : filteredEmployees.length > 1 ? (
               filteredEmployees.map(
                 (employee, index) =>
                   employee.role !== "admin" && (

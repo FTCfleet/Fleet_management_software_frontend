@@ -25,7 +25,7 @@ import {
   FaExclamationTriangle,
   FaTrash,
 } from "react-icons/fa";
-import { Edit, Delete, Close, Warning } from "@mui/icons-material";
+import { Delete } from "@mui/icons-material";
 import { useAuth } from "../routes/AuthContext";
 import "../css/main.css";
 
@@ -287,7 +287,7 @@ export default function EditOrderPage() {
               <div
                 {...props}
                 style={{
-                  maxHeight: 200,
+                  // maxHeight: 200,
                   overflowY: 'auto',
                   backgroundColor: '#1E3A5F',
                   color: '#fff'
@@ -303,7 +303,7 @@ export default function EditOrderPage() {
           onChange={(e) => setSenderDetails({ ...senderDetails, phoneNo: e.target.value })}
         />
         <TextField
-          label="Sender's Address (Optional)"
+          label="Sender's Address"
           value={senderDetails.address}
           name="address"
           onChange={(e) => setSenderDetails({ ...senderDetails, address: e.target.value })}
@@ -321,7 +321,6 @@ export default function EditOrderPage() {
               <div
                 {...props}
                 style={{
-                  maxHeight: 200,
                   overflowY: 'auto',
                   backgroundColor: '#1E3A5F',
                   color: '#fff'

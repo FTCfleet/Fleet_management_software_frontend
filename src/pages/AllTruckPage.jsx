@@ -217,22 +217,27 @@ export default function AllTruckPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {isLoading ? (<TableRow>
-              <TableCell colSpan={7} align="center">
-                <CircularProgress
-                  size={22}
-                  className="spinner"
-                  sx={{ color: "#1E3A5F", animation: "none !important" }}
-                />
-              </TableCell>
-            </TableRow>) :
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  <CircularProgress
+                    size={22}
+                    className="spinner"
+                    sx={{ color: "#1E3A5F", animation: "none !important" }}
+                  />
+                </TableCell>
+              </TableRow>
+            ) : filteredTrucks.length > 0 ? (
               filteredTrucks.map((truck) => (
                 <TableRow key={truck.vehicleNo}>
                   <TableCell sx={rowStyle}>{truck.name}</TableCell>
                   <TableCell sx={rowStyle}>{truck.phoneNo}</TableCell>
                   <TableCell sx={rowStyle}>{truck.vehicleNo}</TableCell>
                   <TableCell>
-                    <IconButton color="primary" onClick={() => handleEdit(truck)}>
+                    <IconButton
+                      color="primary"
+                      onClick={() => handleEdit(truck)}
+                    >
                       <Edit />
                     </IconButton>
                     <IconButton
@@ -243,15 +248,16 @@ export default function AllTruckPage() {
                     </IconButton>
                   </TableCell>
                 </TableRow>
-              ))}
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan="4" align="center" sx={rowStyle}>No data to display</TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
 
-      {/* Add Truck Button */}
-      {/* <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: "20px" }}>
-                
-            </Box> */}
 
       {/* Modal for Add/Edit Truck */}
       <Modal open={isModalOpen} onClose={handleClose}>
@@ -316,7 +322,8 @@ export default function AllTruckPage() {
                   className="button button-large"
                   onClick={handleSaveOrAdd}
                 >
-                  {isAdding ? "Add" : "Save"} {isLoading1 && (
+                  {isAdding ? "Add" : "Save"}{" "}
+                  {isLoading1 && (
                     <CircularProgress
                       size={22}
                       className="spinner"
@@ -385,7 +392,8 @@ export default function AllTruckPage() {
               startIcon={<FaTrash />}
               onClick={confirmDelete}
             >
-              Delete {isLoading2 && (
+              Delete{" "}
+              {isLoading2 && (
                 <CircularProgress
                   size={22}
                   className="spinner"

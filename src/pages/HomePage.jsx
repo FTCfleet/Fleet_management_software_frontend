@@ -1,11 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import backImg from "../assets/back2.jpg";
-import cardImg from "../assets/card.jpg";
-import workImg from "../assets/workflow.jpg";
-import { Typography, Button } from "@mui/material";
+import { Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 import {
-  FaTruck,
   FaMapMarkerAlt,
   FaWarehouse,
   FaCheckCircle,
@@ -13,19 +10,15 @@ import {
   FaHeadset,
   FaShippingFast,
   FaQrcode,
-  FaMobileAlt,
   FaBox,
   FaBoxOpen,
   FaSearchLocation,
-  FaArrowRight,
 } from "react-icons/fa";
-import { FaArrowRightLong } from "react-icons/fa6";
 import { useTheme, useMediaQuery } from "@mui/material";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
-// import { FaArrowRightLong } from "react-icons/fa";
 import "../css/main.css";
 
 const HomePage = () => {

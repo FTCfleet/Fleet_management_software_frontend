@@ -140,7 +140,7 @@ export default function AboutPage() {
                       {warehouse.address}
                     </Box>
                     <Box display="flex" alignItems="center" gap={1}>
-                      {warehouse.contactNo}{" "}
+                      {warehouse.phoneNo}{" "}
                       <FaPhone style={{ color: "#1976d2" }} />
                     </Box>
                   </Box>
@@ -193,7 +193,7 @@ export default function AboutPage() {
                       {warehouse.address}
                     </Box>
                     <Box display="flex" alignItems={mobileView ? "flex-start" : "center"} gap={1}>
-                      {warehouse.contactNo}{" "}
+                      {warehouse.phoneNo}{" "}
                       <FaPhone style={{ color: "#1976d2" }} />
                     </Box>
                   </Box>

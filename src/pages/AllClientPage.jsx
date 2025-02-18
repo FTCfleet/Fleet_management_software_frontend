@@ -85,6 +85,7 @@ export default function AllClientPage() {
 
   const handleDelete = (id) => {
     setClientToDelete(id);
+    console.log(id);
     setDeleteModalOpen(true);
   };
 
@@ -98,7 +99,7 @@ export default function AllClientPage() {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        name: clientToDelete,
+        id: clientToDelete,
       }),
     });
 
@@ -123,22 +124,23 @@ export default function AllClientPage() {
 
   const handleSaveOrAdd = async () => {
     setIsLoading1(true);
+    console.log(currentClient._id);
     const token = localStorage.getItem("token");
     let method, body;
     if (isAdding) {
       method = "POST";
       body = {
-        name: currentClient.name,
+        name: currentClient.name.toUpperCase(),
         phoneNo: currentClient.phoneNo,
-        address: currentClient.address,
+        address: currentClient.address.name.toUpperCase(),
       };
     } else {
       method = "PUT";
       body = {
-        name: currentClient.name,
+        id: currentClient._id,
         updates: {
           phoneNo: currentClient.phoneNo,
-          address: currentClient.address,
+          address: currentClient.address.name.toUpperCase(),
         },
       };
     }
@@ -215,7 +217,7 @@ export default function AllClientPage() {
               </TableCell>
             </TableRow>) :
               filteredClients.map((client) => (
-                <TableRow key={client.name}>
+                <TableRow key={client._id}>
                   <TableCell sx={rowStyle}>{client.name}</TableCell>
                   <TableCell sx={rowStyle}>{client.phoneNo}</TableCell>
                   <TableCell sx={rowStyle}>{client.address}</TableCell>
@@ -225,7 +227,7 @@ export default function AllClientPage() {
                     </IconButton>
                     <IconButton
                       color="error"
-                      onClick={() => handleDelete(client.name)}
+                      onClick={() => handleDelete(client._id)}
                     >
                       <Delete />
                     </IconButton>
@@ -235,11 +237,6 @@ export default function AllClientPage() {
           </TableBody>
         </Table>
       </TableContainer>
-
-      {/* Add Client Button */}
-      {/* <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: "20px" }}>
-                
-            </Box> */}
 
       {/* Modal for Add/Edit Client */}
       <Modal open={isModalOpen} onClose={handleClose}>

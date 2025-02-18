@@ -1,21 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  Box,
   Button,
-  Typography,
+  Checkbox,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TableRow,
-  Paper,
-  IconButton,
-  Modal,
   TextField,
-  CircularProgress,
 } from "@mui/material";
-import { Edit, Delete, Close } from "@mui/icons-material";
+import { Edit, Delete, Close, Add } from "@mui/icons-material";
 import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
 import "../css/main.css";
 
@@ -24,378 +23,314 @@ const rowStyle = { color: "#25344E" };
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function AllItemPage() {
-  const [items, setItems] = useState([]);
-  const [filteredItems, setFilteredItems] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentItem, setCurrentItem] = useState(null);
-  const [isAdding, setIsAdding] = useState(false);
-  const [nameFilter, setNameFilter] = useState("");
-  const [itemNoFilter, setItemNoFilter] = useState("");
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoading1, setIsLoading1] = useState(false);
-  const [isLoading2, setIsLoading2] = useState(false);
+  /*
+  const [items, setItems] = useState([
+    "Shadow Dagger",
+    "Crystal Fang",
+    "Ember Amulet",
+    "Storm Bracer",
+    "Lunar Cloak",
+    "Phantom Ring",
+    "Iron Gauntlet",
+    "Mystic Orb",
+    "Frost Charm",
+    "Arcane Staff",
+    "Dragon Relic",
+    "Thunder Axe",
+    "Twilight Pendant",
+    "Venom Spear",
+    "Obsidian Helm",
+    "Celestial Robe",
+    "Inferno Blade",
+    "Serpent Bow",
+    "Star Compass",
+    "Echo Talisman",
+    "Void Lantern",
+    "Ice Scepter",
+    "Shadow Band",
+    "Titan Shield",
+    "Sapphire Rune",
+    "Warlock Grimoire",
+    "Radiant Torch",
+    "Cursed Crown",
+    "Spirit Totem",
+    "Crimson Fang",
+    "Ghost Lantern",
+    "Frozen Gauntlet",
+    "Phoenix Feather",
+    "Eldritch Tome",
+    "Eternal Relic",
+    "Dusk Amulet",
+    "Solar Ring",
+    "Gravity Orb",
+    "Abyss Mask",
+    "Sacred Arrow",
+    "Storm Gauntlet",
+    "Midnight Cloak",
+  ]);
+  */
+
+  const [rows, setRows] = useState([]);
+  const [editing, setEditing] = useState(false);
+  const [openAddDialog, setOpenAddDialog] = useState(false);
+  const selected = useRef(new Set()); // Using Set for O(1) lookups
+  const [newItemNames, setNewItemNames] = useState([""]); // Array of input fields
+  const [delCounter, setDelCounter] = useState(0);
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    setFilteredItems(items);
-  }, [items]);
+  // Split items into rows of 3 columns
+  const chunkArray = (arr, size) =>
+    arr.length > 0
+      ? arr.reduce(
+          (acc, _, i) => (i % size ? acc : [...acc, arr.slice(i, i + size)]),
+          []
+        )
+      : [];
 
   const fetchData = async () => {
-    setIsLoading(true);
     const token = localStorage.getItem("token");
-    const res = await fetch(`${BASE_URL}/api/admin/get-all-drivers`, {
+    fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-    });
-    const data = await res.json();
-    console.log(data);
-    setItems(data.body);
-    setIsLoading(false);
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.flag) {
+          setRows(chunkArray(data.body, 3));
+        }
+      });
   };
 
-  // Filters
-  const applyFilter = () => {
-    const filtered = items.filter((item) => {
-      return (
-        (nameFilter
-          ? item.name.toLowerCase().includes(nameFilter.toLowerCase())
-          : true) &&
-        (itemNoFilter
-          ? item.vehicleNo.toLowerCase().includes(itemNoFilter.toLowerCase())
-          : true)
-      );
-    });
-    setFilteredItems(filtered);
+  // const rows = chunkArray(items, 3);
+
+  // Selection handling
+  const handleSelect = (itemName) => {
+    if (!selected.current.has(itemName)) {
+      selected.current.add(itemName); // O(1) insertion
+      setDelCounter(delCounter + 1);
+    } else {
+      selected.current.delete(itemName);
+      setDelCounter(delCounter - 1);
+    }
   };
 
-  const clearFilter = () => {
-    setNameFilter("");
-    setItemNoFilter("");
-    setFilteredItems(items);
-  };
-
-  const handleEdit = (item) => {
-    setCurrentItem({ ...item });
-    setIsModalOpen(true);
-    setIsAdding(false);
-  };
-
-  const handleDelete = (id) => {
-    setItemToDelete(id);
-    setDeleteModalOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    setIsLoading2(true);
+  // Delete selected items
+  const handleDelete = () => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`${BASE_URL}/api/admin/manage/driver`, {
+    // console.log(Array.from(selected));
+    // console.log(selected);
+    fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        vehicleNo: itemToDelete,
+        items: [...selected.current],
       }),
-    });
-
-    const data = await res.json();
-    fetchData();
-    setIsLoading2(false);
-    setDeleteModalOpen(false);
-    setItemToDelete(null);
-    return;
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        if (data.flag) {
+          fetchData();
+          selected.current = new Set();
+          setDelCounter(0);
+          setEditing(false);
+        }
+      });
   };
 
-  const handleCloseDeleteModal = () => {
-    setDeleteModalOpen(false);
-    setItemToDelete(null);
-  };
-
-  const handleAdd = () => {
-    setCurrentItem({ name: "", phoneNo: "", vehicleNo: "" });
-    setIsModalOpen(true);
-    setIsAdding(true);
-  };
-
-  const handleSaveOrAdd = async () => {
-    setIsLoading1(true);
-    const token = localStorage.getItem("token");
-    let method, body;
-    if (isAdding) {
-      method = "POST";
-      body = {
-        vehicleNo: currentItem.vehicleNo,
-        name: currentItem.name,
-        phoneNo: currentItem.phoneNo,
-      };
-    } else {
-      method = "PUT";
-      body = {
-        vehicleNo: currentItem.vehicleNo,
-        updates: {
-          name: currentItem.name,
-          phoneNo: currentItem.phoneNo,
-        },
-      };
+  // Add new items
+  const handleAddItems = () => {
+    const validItems = newItemNames
+      .map((name) => name.trim())
+      .filter((name) => name.length > 0);
+    if (validItems.length === 0) {
+      alert("Enter valid item names");
+      return;
     }
-    const res = await fetch(`${BASE_URL}/api/admin/manage/driver`, {
-      method: method,
+    const token = localStorage.getItem("token");
+    fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(body),
-    });
+      body: JSON.stringify({
+        items: validItems,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.flag) {
+          fetchData();
+          setNewItemNames([""]);
+          setOpenAddDialog(false);
+        }
+      });
+  };
 
-    const data = await res.json();
-    console.log(data);
-    fetchData();
-    setIsLoading1(false);
-    setIsModalOpen(false);
+  // Handle dynamic input fields
+  const handleInputChange = (index, value) => {
+    setNewItemNames((prev) => {
+      const newNames = [...prev];
+      newNames[index] = value;
+      return newNames;
+    });
+  };
+
+  const addInputField = () => {
+    setNewItemNames((prev) => [...prev, ""]);
+  };
+
+  const handleOpen = () => {
+    setNewItemNames([""]);
+    setOpenAddDialog(true);
   };
 
   const handleClose = () => {
-    setIsModalOpen(false);
-    setCurrentItem(null);
+    setNewItemNames([""]);
+    setOpenAddDialog(false);
   };
 
-  const handleFieldChange = (field, value) => {
-    setCurrentItem({ ...currentItem, [field]: value });
+  const handleCancelEdit = () => {
+    selected.current = new Set();
+    setDelCounter(0);
+    setEditing(false);
   };
 
   return (
-    <Box sx={{ padding: "20px" }}>
-      <Typography variant="h4" sx={{ marginBottom: "20px", ...headerStyle }}>
-        Item Details
-      </Typography>
+    <Paper sx={{ margin: 2, padding: 2 }}>
+      {/* Toolbar */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          paddingLeft: "10px",
+          paddingRight: "30px"
+        }}
+      >
+        <div>
+          <h1>Items</h1>
+        </div>
+        <div style={{alignContent: "center"}}>
+          {!editing && (
+            <>
+              <Button
+                variant="contained"
+                startIcon={<Add />}
+                onClick={handleOpen}
+                style={{ marginRight: "10px" }}
+                >
+                Add
+              </Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<Edit />}
+                onClick={() => setEditing(!editing)}
+                >
+                {"Edit"}
+              </Button>
+            </>
+          )}
+          {editing && (
+            <>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<Edit />}
+                onClick={handleCancelEdit}
+                style={{ marginRight: "10px" }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                color="error"
+                startIcon={<Delete />}
+                onClick={handleDelete}
+                disabled={delCounter === 0}
+              >
+                Delete ({delCounter})
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
 
-      {/* Filters */}
-      <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
-        <TextField
-          label="Search by Driver Name"
-          value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
-          variant="outlined"
-          size="small"
-        />
-        <TextField
-          label="Search by Item Number"
-          value={itemNoFilter}
-          onChange={(e) => setItemNoFilter(e.target.value)}
-          variant="outlined"
-          size="small"
-        />
-        <Button variant="contained" color="primary" onClick={applyFilter}>
-          Apply Filter
-        </Button>
-        <Button variant="outlined" color="secondary" onClick={clearFilter}>
-          Clear Filter
-        </Button>
-        <button className="button " onClick={handleAdd} style={{ margin: 0 }}>
-          Add Item
-        </button>
-      </Box>
-
-      {/* Item Table */}
-      <TableContainer component={Paper}>
+      {/* Table */}
+      <TableContainer>
         <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={headerStyle}>Driver Name</TableCell>
-              <TableCell sx={headerStyle}>Phone Number</TableCell>
-              <TableCell sx={headerStyle}>Item Number</TableCell>
-              <TableCell sx={headerStyle}>Actions</TableCell>
-            </TableRow>
-          </TableHead>
           <TableBody>
-            {isLoading ? (<TableRow>
-              <TableCell colSpan={7} align="center">
-                <CircularProgress
-                  size={22}
-                  className="spinner"
-                  sx={{ color: "#1E3A5F", animation: "none !important" }}
-                />
-              </TableCell>
-            </TableRow>) :
-              filteredItems.map((item) => (
-                <TableRow key={item.vehicleNo}>
-                  <TableCell sx={rowStyle}>{item.name}</TableCell>
-                  <TableCell sx={rowStyle}>{item.phoneNo}</TableCell>
-                  <TableCell sx={rowStyle}>{item.vehicleNo}</TableCell>
-                  <TableCell>
-                    <IconButton color="primary" onClick={() => handleEdit(item)}>
-                      <Edit />
-                    </IconButton>
-                    <IconButton
-                      color="error"
-                      onClick={() => handleDelete(item.vehicleNo)}
-                    >
-                      <Delete />
-                    </IconButton>
+            {rows.map((row, rowIndex) => (
+              <TableRow key={rowIndex}>
+                {row.map((item, colIndex) => (
+                  <TableCell key={colIndex}>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      {editing && (
+                        <Checkbox
+                          checked={selected.current.has(item._id)}
+                          onChange={() => handleSelect(item._id)}
+                        />
+                      )}
+                      {item.name}
+                    </div>
                   </TableCell>
-                </TableRow>
-              ))}
+                ))}
+                {/* Fill empty cells if row has less than 3 items */}
+                {Array(3 - row.length)
+                  .fill()
+                  .map((_, i) => (
+                    <TableCell key={`empty-${i}`} />
+                  ))}
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
 
-      {/* Add Item Button */}
-      {/* <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: "20px" }}>
-                
-            </Box> */}
-
-      {/* Modal for Add/Edit Item */}
-      <Modal open={isModalOpen} onClose={handleClose}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            borderRadius: 2,
-            boxShadow: 24,
-            p: 4,
-          }}
+      {/* Add Items Dialog */}
+      <Dialog open={openAddDialog} onClose={handleClose}>
+        <DialogTitle>Add New Items</DialogTitle>
+        <DialogContent
+          style={{ display: "flex", flexDirection: "column", width: "350px" }}
         >
-          <IconButton
-            color="error"
-            onClick={handleClose}
-            sx={{ position: "absolute", top: 8, right: 8 }}
+          {newItemNames.map((name, index) => (
+            <TextField
+              key={index}
+              autoFocus={index === 0}
+              margin="dense"
+              label={`Item ${index + 1}`}
+              variant="standard"
+              value={name}
+              onChange={(e) => handleInputChange(index, e.target.value)}
+              sx={{ mb: 2 }}
+            />
+          ))}
+          <Button
+            onClick={addInputField}
+            variant="outlined"
+            size="small"
+            style={{ maxWidth: "200px" }}
           >
-            <Close />
-          </IconButton>
-          <Typography
-            variant="h6"
-            sx={{ marginBottom: "16px", textAlign: "center", ...headerStyle }}
-          >
-            {isAdding ? "Add Item" : "Edit Item Details"}
-          </Typography>
-          {currentItem && (
-            <Box>
-              <TextField
-                fullWidth
-                label="Driver Name"
-                value={currentItem.name}
-                onChange={(e) => handleFieldChange("name", e.target.value)}
-                sx={{ marginBottom: "16px" }}
-              />
-              <TextField
-                fullWidth
-                label="Phone Number"
-                value={currentItem.phoneNo}
-                onChange={(e) => handleFieldChange("phoneNo", e.target.value)}
-                sx={{ marginBottom: "16px" }}
-              />
-              <TextField
-                fullWidth
-                label="Item Number"
-                value={currentItem.vehicleNo}
-                onChange={(e) => handleFieldChange("vehicleNo", e.target.value)}
-                disabled={!isAdding}
-                sx={{ marginBottom: "16px" }}
-              />
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginTop: "16px",
-                }}
-              >
-                <button
-                  className="button button-large"
-                  onClick={handleSaveOrAdd}
-                >
-                  {isAdding ? "Add" : "Save"} {isLoading1 && (
-                    <CircularProgress
-                      size={22}
-                      className="spinner"
-                      sx={{ color: "#fff", animation: "none !important" }}
-                    />
-                  )}
-                </button>
-              </Box>
-            </Box>
-          )}
-        </Box>
-      </Modal>
-      {/* Modal for Delete Confirmation */}
-      <Modal open={deleteModalOpen} onClose={handleCloseDeleteModal}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 350,
-            bgcolor: "background.paper",
-            borderRadius: 3,
-            boxShadow: 24,
-            p: 4,
-            textAlign: "center",
-          }}
-        >
-          <FaExclamationTriangle
-            style={{
-              color: "#d32f2f",
-              fontSize: "36px",
-              marginBottom: "12px",
-            }}
-          />
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: "bold",
-              marginBottom: "12px",
-              color: "#d32f2f",
-            }}
-          >
-            Delete Item
-          </Typography>
-          <Typography
-            sx={{
-              marginBottom: "20px",
-              color: "#374151",
-              fontSize: "15px",
-            }}
-          >
-            This action cannot be undone. Are you sure you want to proceed?
-          </Typography>
-          <Box sx={{ display: "flex", justifyContent: "center", gap: "12px" }}>
-            <Button
-              variant="outlined"
-              sx={{ borderColor: "#1E3A5F", color: "#1E3A5F" }}
-              onClick={handleCloseDeleteModal}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              sx={{ backgroundColor: "#d32f2f" }}
-              startIcon={<FaTrash />}
-              onClick={confirmDelete}
-            >
-              Delete {isLoading2 && (
-                <CircularProgress
-                  size={22}
-                  className="spinner"
-                  sx={{ color: "#fff", animation: "none !important" }}
-                />
-              )}
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
-    </Box>
+            Add Another Item
+          </Button>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleAddItems} variant="contained">
+            Add All
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Paper>
   );
 }

@@ -124,7 +124,7 @@ export default function AllWarehousePage() {
   };
 
   const handleAdd = () => {
-    setCurrentWarehouse({ name: "", contactNo: "", warehouseID: "", isSource: true });
+    setCurrentWarehouse({ name: "", phoneNo: "", warehouseID: "", isSource: true });
     setIsModalOpen(true);
     setIsAdding(true);
   };
@@ -138,7 +138,7 @@ export default function AllWarehousePage() {
       body = {
         name: currentWarehouse.name,
         address: currentWarehouse.address,
-        contactNo: currentWarehouse.contactNo,
+        phoneNo: currentWarehouse.phoneNo,
         warehouseID: currentWarehouse.warehouseID,
         isSource: currentWarehouse.isSource
       };
@@ -148,7 +148,7 @@ export default function AllWarehousePage() {
         warehouseID: currentWarehouse.warehouseID,
         updates: {
           name: currentWarehouse.name,
-          contactNo: currentWarehouse.contactNo,
+          phoneNo: currentWarehouse.phoneNo,
           isSource: currentWarehouse.isSource
         },
       };
@@ -237,7 +237,7 @@ export default function AllWarehousePage() {
               filteredWarehouses.map((warehouse) => (
                 <TableRow key={warehouse.warehouseID}>
                   <TableCell sx={rowStyle}>{warehouse.name}</TableCell>
-                  <TableCell sx={rowStyle}>{warehouse.contactNo}</TableCell>
+                  <TableCell sx={rowStyle}>{warehouse.phoneNo}</TableCell>
                   <TableCell sx={rowStyle}>{warehouse.address}</TableCell>
                   <TableCell sx={rowStyle}>{warehouse.warehouseID}</TableCell>
                   <TableCell sx={rowStyle}>{warehouse.isSource ? "Source" : "Destination"}</TableCell>
@@ -306,8 +306,8 @@ export default function AllWarehousePage() {
               <TextField
                 fullWidth
                 label="Phone Number"
-                value={currentWarehouse.contactNo}
-                onChange={(e) => handleFieldChange("contactNo", e.target.value)}
+                value={currentWarehouse.phoneNo}
+                onChange={(e) => handleFieldChange("phoneNo", e.target.value)}
                 sx={{ marginBottom: "16px" }}
               />
               <ToggleButtonGroup

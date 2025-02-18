@@ -18,7 +18,6 @@ import AllClientPage from "../pages/AllClientPage";
 import AllItemPage from "../pages/AllItemPage";
 import AllLedgerPage from "../pages/AllLedgerPage";
 import AllOrderPage from "../pages/AllOrderPage";
-import EditLedgerPage from "../pages/EditLedgerPage";
 import EditOrderPage from "../pages/EditOrderPage";
 import GenReportPage from "../pages/GenReportPage";
 import ErrorPage from "../pages/ErrorPage";
@@ -66,7 +65,6 @@ function AllRoutes() {
         <Route exact path="dashboard" element={<DashboardPage />} />
         <Route exact path="edit/*">
           <Route exact path="order/:id" element={<EditOrderPage />} />
-          <Route exact path="ledger/:id" element={<EditLedgerPage />} />
         </Route>
         <Route exact path="employees" element={<AllEmployeePage />} />
         <Route exact path="trucks" element={<AllTruckPage />} />

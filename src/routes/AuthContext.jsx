@@ -1,6 +1,5 @@
 // AuthContext.jsx
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { replace, useNavigate, useLocation } from "react-router-dom";
+import React, { createContext, useContext, useState } from "react";
 const AuthContext = createContext();
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -15,7 +14,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSource, setIsSource] = useState(true);
-  const [lastUserPage, setLastUserPage] = useState("/user/dahboard");
+  const [lastUserPage, setLastUserPage] = useState("/user/dashboard");
 
   const checkAuthStatus = async () => {
     let user_data = {};

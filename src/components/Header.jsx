@@ -3,7 +3,6 @@ import { Link, NavLink } from "react-router-dom";
 import logoImg from "../assets/logo.jpg";
 import "../css/header.css";
 import { useAuth } from "../routes/AuthContext";
-import { useLocation } from "react-router-dom";
 import { RxAvatar } from "react-icons/rx";
 import { useState } from "react";
 import {
@@ -132,8 +131,11 @@ const HeaderTabs = () => {
       >
         <Button
           className="header-button"
-          style={{ border: "none", outline: "none" }}
-          color="white"
+          style={{
+            border: "none",
+            outline: "none",
+            color: isLoggedIn ? "white" : "inherit",
+          }}
         >
           {isLoggedIn ? "Dashboard" : "Login"}
         </Button>
@@ -157,7 +159,7 @@ const HeaderTabs = () => {
 const Header = () => {
   const theme = useTheme();
   const mobileView = useMediaQuery(theme.breakpoints.down(470));
-  const { checkAuthStatus } = useAuth();
+  const { checkAuthStatus, isLoggedIn } = useAuth();
 
   return (
     <div className="header-box">
@@ -188,14 +190,20 @@ const Header = () => {
           >
             <img src={logoImg} height="50px"></img>
           </Link>
-          <Link to="/user/dashboard">
-            <RxAvatar size="30px" style={{ margin: "5 20 0 20" }} />
-          </Link>
+          {isLoggedIn && (
+            <Link to="/user/dashboard">
+              <RxAvatar size="30px" style={{ margin: "5 20 0 20" }} />
+            </Link>
+          )}
           <button style={{ color: "red" }} onClick={checkAuthStatus}>
             Check
           </button>
         </Box>
-        {mobileView ? <Menubutton /> : <HeaderTabs />}
+        {mobileView ? (
+          <Menubutton />
+        ) : (
+          <HeaderTabs />
+        )}
       </AppBar>
     </div>
   );

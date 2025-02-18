@@ -13,8 +13,8 @@ import {
   Modal,
   IconButton,
 } from "@mui/material";
-import { FaDownload, FaTimesCircle, FaTruck } from "react-icons/fa";
-import { Close, ConstructionOutlined } from "@mui/icons-material";
+import { FaDownload, FaTruck } from "react-icons/fa";
+import { Close } from "@mui/icons-material";
 import "react-calendar/dist/Calendar.css";
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 import "../css/main.css";
@@ -306,8 +306,6 @@ export default function GenReportPage() {
                 <Typography sx={{ marginBottom: "20px", color: "#374151", fontSize: "15px" }}>
                   <strong>{truckLabel}</strong>
                 </Typography>
-
-
 
                 <Box sx={{ display: "flex", justifyContent: "center", gap: "12px" }}>
                   <Button
