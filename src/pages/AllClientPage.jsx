@@ -215,7 +215,7 @@ export default function AllClientPage() {
                   />
                 </TableCell>
               </TableRow>
-            ) : (
+            ) : ( filteredClients.length>0 ? 
               filteredClients.map((client) => (
                 <TableRow key={client._id}>
                   <TableCell sx={rowStyle}>{client.name}</TableCell>
@@ -236,7 +236,12 @@ export default function AllClientPage() {
                     </IconButton>
                   </TableCell>
                 </TableRow>
-              ))
+              )) : 
+            <TableRow>
+              <TableCell colspan="4" align="center">
+                No data to display
+              </TableCell>
+            </TableRow>
             )}
           </TableBody>
         </Table>

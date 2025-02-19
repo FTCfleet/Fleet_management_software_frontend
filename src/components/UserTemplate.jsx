@@ -146,6 +146,7 @@ const UserTemplate = () => {
   }, []);
 
   useEffect(() => {
+    if (location.pathname !== "/user/dashboard")
     setLastUserPage(location.pathname);
   }, [location.pathname]);
 

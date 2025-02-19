@@ -6,13 +6,14 @@ import {
   Avatar,
   Box,
   Divider,
+  Button,
 } from "@mui/material";
 import { useAuth } from "../routes/AuthContext";
 import Loading from "../components/Loading";
 
 const DashboardPage = () => {
   const [user, setUser] = useState(null);
-  const { checkAuthStatus } = useAuth();
+  const { checkAuthStatus, resetAuth } = useAuth();
 
   useEffect(() => {
     checkAuthStatus().then((data) => {
@@ -69,6 +70,9 @@ const DashboardPage = () => {
             <strong>Role:</strong> {user.role.charAt(0).toUpperCase()+user.role.slice(1)}
           </Typography>
         </CardContent>
+        <Button variant="contained" onClick={resetAuth}>
+          Logout
+        </Button>
       </Card>
     </Box>
   ) : (

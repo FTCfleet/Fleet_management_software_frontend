@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   TextField,
@@ -24,7 +24,6 @@ import { useAuth } from "../routes/AuthContext";
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function AddOrderPage({}) {
-  const { id } = useParams();
   const [items, setItems] = useState([]);
   const [counter, setCounter] = useState(1);
   const [senderDetails, setSenderDetails] = useState({
@@ -349,23 +348,6 @@ export default function AddOrderPage({}) {
           value={charges}
           onChange={(e) => setCharges(parseInt(e.target.value) || 0)}
         />
-        <FormControl>
-          <InputLabel>Destination Warehouse</InputLabel>
-          <Select
-            label="Destination Warehouse"
-            value={destinationWarehouse}
-            onChange={(e) => setDestinationWarehouse(e.target.value)}
-            error={error && !destinationWarehouse}
-          >
-            {allWarehouse
-              .filter((w) => !w.isSource)
-              .map((w) => (
-                <MenuItem key={w.warehouseID} value={w.warehouseID}>
-                  {w.name}
-                </MenuItem>
-              ))}
-          </Select>
-        </FormControl>
         {isAdmin && (
           <FormControl>
             <InputLabel>Source Warehouse</InputLabel>
@@ -385,6 +367,23 @@ export default function AddOrderPage({}) {
             </Select>
           </FormControl>
         )}
+        <FormControl>
+          <InputLabel>Destination Warehouse</InputLabel>
+          <Select
+            label="Destination Warehouse"
+            value={destinationWarehouse}
+            onChange={(e) => setDestinationWarehouse(e.target.value)}
+            error={error && !destinationWarehouse}
+          >
+            {allWarehouse
+              .filter((w) => !w.isSource)
+              .map((w) => (
+                <MenuItem key={w.warehouseID} value={w.warehouseID}>
+                  {w.name}
+                </MenuItem>
+              ))}
+          </Select>
+        </FormControl>
       </Box>
 
       <Box sx={{ marginTop: "30px" }}>

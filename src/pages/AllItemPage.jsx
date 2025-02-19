@@ -13,6 +13,7 @@ import {
   TableContainer,
   TableRow,
   TextField,
+  CircularProgress,
 } from "@mui/material";
 import { Edit, Delete, Add } from "@mui/icons-material";
 import "../css/main.css";
@@ -23,9 +24,11 @@ export default function AllItemPage() {
   const [rows, setRows] = useState([]);
   const [editing, setEditing] = useState(false);
   const [openAddDialog, setOpenAddDialog] = useState(false);
-  const selected = useRef(new Set());
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading1, setIsLoading1] = useState(false);
   const [newItemNames, setNewItemNames] = useState([""]);
   const [delCounter, setDelCounter] = useState(0);
+  const selected = useRef(new Set());
 
   useEffect(() => {
     fetchData();
@@ -52,6 +55,7 @@ export default function AllItemPage() {
       .then((data) => {
         if (data.flag) {
           setRows(chunkArray(data.body, 3));
+          setIsLoading(false);
         }
       });
   };
@@ -67,8 +71,8 @@ export default function AllItemPage() {
   };
 
   const handleDelete = () => {
+    setIsLoading1(true);
     const token = localStorage.getItem("token");
-
     fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
       method: "DELETE",
       headers: {
@@ -85,12 +89,14 @@ export default function AllItemPage() {
           fetchData();
           selected.current = new Set();
           setDelCounter(0);
-          setEditing(false);
         }
+        setEditing(false);
+        setIsLoading1(false);
       });
   };
 
   const handleAddItems = () => {
+    setIsLoading1(true);
     const validItems = newItemNames
       .map((name) => name.trim())
       .filter((name) => name.length > 0);
@@ -116,6 +122,7 @@ export default function AllItemPage() {
           setNewItemNames([""]);
           setOpenAddDialog(false);
         }
+        setIsLoading1(false);
       });
   };
 
@@ -200,7 +207,14 @@ export default function AllItemPage() {
                 onClick={handleDelete}
                 disabled={delCounter === 0}
               >
-                Delete ({delCounter})
+                Delete ({delCounter}){" "}
+                {isLoading1 && (
+                  <CircularProgress
+                    size={15}
+                    className="spinner"
+                    sx={{ color: "#fff", animation: "none !important" }}
+                  />
+                )}
               </Button>
             </>
           )}
@@ -211,29 +225,45 @@ export default function AllItemPage() {
       <TableContainer>
         <Table>
           <TableBody>
-            {rows.map((row, rowIndex) => (
-              <TableRow key={rowIndex}>
-                {row.map((item, colIndex) => (
-                  <TableCell key={colIndex}>
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                      {editing && (
-                        <Checkbox
-                          checked={selected.current.has(item._id)}
-                          onChange={() => handleSelect(item._id)}
-                        />
-                      )}
-                      {item.name}
-                    </div>
-                  </TableCell>
-                ))}
-                {/* Fill empty cells if row has less than 3 items */}
-                {Array(3 - row.length)
-                  .fill()
-                  .map((_, i) => (
-                    <TableCell key={`empty-${i}`} />
-                  ))}
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  <CircularProgress
+                    size={22}
+                    className="spinner"
+                    sx={{ color: "#1E3A5F", animation: "none !important" }}
+                  />
+                </TableCell>
               </TableRow>
-            ))}
+            ) : rows.length > 0 ? (
+              rows.map((row, rowIndex) => (
+                <TableRow key={rowIndex}>
+                  {row.map((item, colIndex) => (
+                    <TableCell key={colIndex}>
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        {editing && (
+                          <Checkbox
+                            checked={selected.current.has(item._id)}
+                            onChange={() => handleSelect(item._id)}
+                          />
+                        )}
+                        {item.name}
+                      </div>
+                    </TableCell>
+                  ))}
+                  {/* Fill empty cells if row has less than 3 items */}
+                  {Array(3 - row.length)
+                    .fill()
+                    .map((_, i) => (
+                      <TableCell key={`empty-${i}`} />
+                    ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colspan>No data to display</TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
@@ -270,7 +300,14 @@ export default function AllItemPage() {
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
           <Button onClick={handleAddItems} variant="contained">
-            Add All
+            Add All{" "}
+            {isLoading1 && (
+              <CircularProgress
+                size={15}
+                className="spinner"
+                sx={{ color: "#fff", animation: "none !important" }}
+              />
+            )}
           </Button>
         </DialogActions>
       </Dialog>

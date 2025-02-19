@@ -141,14 +141,14 @@ const HeaderTabs = () => {
         </Button>
       </NavLink>
       {isLoggedIn ? (
-        <NavLink className="navlink" to={"/auth/login"}>
+        <NavLink className="navlink" to={"/user/dashboard"}>
           <Button
             className="header-button"
             style={{ border: "none", outline: "none" }}
             color="inherit"
-            onClick={resetAuth}
+            // onClick={resetAuth}
           >
-            Logout
+            Profile
           </Button>
         </NavLink>
       ) : null}
@@ -190,11 +190,11 @@ const Header = () => {
           >
             <img src={logoImg} height="50px"></img>
           </Link>
-          {isLoggedIn && (
+          {/* {isLoggedIn && (
             <Link to="/user/dashboard">
               <RxAvatar size="30px" style={{ margin: "5 20 0 20" }} />
             </Link>
-          )}
+          )} */}
         </Box>
         {mobileView ? <Menubutton /> : <HeaderTabs />}
       </AppBar>

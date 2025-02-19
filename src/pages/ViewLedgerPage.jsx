@@ -19,7 +19,6 @@ import {
   Modal,
   CircularProgress,
 } from "@mui/material";
-import { Cancel } from "@mui/icons-material";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import ledger from "../assets/ledger.jpg";
 import { useAuth } from "../routes/AuthContext";
@@ -132,7 +131,7 @@ export default function ViewLedgerPage() {
     });
 
     if (!destinationWarehouse || (isAdmin && !sourceWarehouse)) {
-      alert("Select Destination");
+      alert("Select Warehouse location");
       return;
     }
     const token = localStorage.getItem("token");
@@ -425,7 +424,7 @@ export default function ViewLedgerPage() {
                         color="error"
                         onClick={(e) => handleDelete(index)}
                       >
-                        <Cancel />
+                        <FaTrash size={20}/>
                       </IconButton>
                     </TableCell>
                   )}
@@ -481,15 +480,15 @@ export default function ViewLedgerPage() {
           <TbTruckDelivery  size="19" style={{ marginRight: "8px" }} />Deliver Truck
         </button>
       )}
+      <Link to={`${BASE_URL}/api/ledger/generate-ledger-receipt/${id}`} target="_blank">
+        <button className="button button-large"> <FaPrint style={{ marginRight: "8px" }} />Download Ledger</button>
+      </Link>
       <button
         className="button button-large"
         onClick={() => setDeleteModalOpen(true)}
       >
         <FaTrash style={{ marginRight: "8px" }} /> Delete Ledger
       </button>
-      <Link to={`${BASE_URL}/api/ledger/generate-ledger-receipt/${id}`}>
-        <button className="button button-large"> <FaPrint style={{ marginRight: "8px" }} />Print Ledger</button>
-      </Link>
 
       {/* Delete Confirmation Modal */}
       <Modal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)}>

@@ -81,6 +81,8 @@ export default function ViewOrderPage() {
     setDestWarehouse(data.body.destinationWarehouse.name);
     setItems(data.body.items);
     setCharges(data.body.charges);
+    setHamali(data.body.hamali);
+    setFreight(data.body.freight);
     setQrCode(data.qrCode);
     setStatus(data.body.status);
     setIsLoading1(false);
@@ -168,16 +170,13 @@ export default function ViewOrderPage() {
                     <strong>Order ID:</strong> {id}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Sender's Name:</strong>{" "}
-                    {senderDetails.name}
+                    <strong>Sender's Name:</strong> {senderDetails.name}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Sender's Phone:</strong>{" "}
-                    {senderDetails.phoneNo}
+                    <strong>Sender's Phone:</strong> {senderDetails.phoneNo}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Sender's Address:</strong>{" "}
-                    {senderDetails.address}
+                    <strong>Sender's Address:</strong> {senderDetails.address}
                   </Typography>
                   <Typography sx={rowCellStyle}>
                     <strong>Source Warehouse:</strong> {sourceWarehouse}
@@ -186,20 +185,19 @@ export default function ViewOrderPage() {
                     <strong>Package:</strong> {items.length}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                <strong>Freight:</strong> {charges}
-              </Typography>
-            </Box>
+                    <strong>Freight:</strong> {freight}
+                  </Typography>
+                </Box>
                 <Box sx={{ flex: 1, marginLeft: "20px" }}>
                   <Typography sx={rowCellStyle}>
-                    <strong>Status:</strong> {status.charAt(0).toUpperCase() + status.slice(1)}
+                    <strong>Status:</strong>{" "}
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Receiver's Name:</strong>{" "}
-                    {receiverDetails.name}
+                    <strong>Receiver's Name:</strong> {receiverDetails.name}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Receiver's Phone:</strong>{" "}
-                    {receiverDetails.phoneNo}
+                    <strong>Receiver's Phone:</strong> {receiverDetails.phoneNo}
                   </Typography>
                   <Typography sx={rowCellStyle}>
                     <strong>Receiver's Address:</strong>{" "}
@@ -210,9 +208,9 @@ export default function ViewOrderPage() {
                   </Typography>
                   <Typography sx={rowCellStyle}>
                     <strong>Hamali:</strong> {hamali}
-              </Typography>
-              <Typography sx={rowCellStyle}>
-                <strong>Statistical Charges:</strong> {charges}
+                  </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Statistical Charges:</strong> {charges}
                   </Typography>
                 </Box>
               </Box>
@@ -246,22 +244,26 @@ export default function ViewOrderPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {isLoading1 ? (<TableRow>
-              <TableCell colSpan={7} align="center">
-                <CircularProgress
-                  size={22}
-                  className="spinner"
-                  sx={{ color: "#1E3A5F", animation: "none !important" }}
-                />
-              </TableCell>
-            </TableRow>) :
-              (orders.length !== 0 && items.map((item, idx) => (
+            {isLoading1 ? (
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  <CircularProgress
+                    size={22}
+                    className="spinner"
+                    sx={{ color: "#1E3A5F", animation: "none !important" }}
+                  />
+                </TableCell>
+              </TableRow>
+            ) : (
+              orders.length !== 0 &&
+              items.map((item, idx) => (
                 <TableRow key={idx}>
                   <TableCell sx={rowCellStyle}>{idx + 1}</TableCell>
                   <TableCell sx={rowCellStyle}>{item.name}</TableCell>
                   <TableCell sx={rowCellStyle}>{item.quantity}</TableCell>
                 </TableRow>
-              )))}
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>
@@ -270,9 +272,10 @@ export default function ViewOrderPage() {
         <Link
           to={`${BASE_URL}/api/parcel/generate-lr-receipt/${id}`}
           style={{ color: "inherit", textDecoration: "none" }}
+          target="_blank"
         >
           <button className="button">
-            <FaPrint style={{ marginRight: "8px" }} /> Print LR Receipt
+            <FaPrint style={{ marginRight: "8px" }} /> Download LR Receipt
           </button>
         </Link>
         <Link
@@ -287,7 +290,7 @@ export default function ViewOrderPage() {
           <FaTrash style={{ marginRight: "8px" }} /> Delete Order
         </button>
         <button className="button" onClick={handleQrCodeModal}>
-          <FaQrcode style={{ marginRight: "8px" }} /> Print QR Code
+          <FaQrcode style={{ marginRight: "8px" }} /> Download QR Code
         </button>
 
         {/* Delete Confirmation Modal */}
@@ -332,7 +335,9 @@ export default function ViewOrderPage() {
             >
               This action cannot be undone. Are you sure you want to proceed?
             </Typography>
-            <Box sx={{ display: "flex", justifyContent: "center", gap: "12px" }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "center", gap: "12px" }}
+            >
               <Button
                 variant="outlined"
                 sx={{ borderColor: "#1E3A5F", color: "#1E3A5F" }}
@@ -346,7 +351,8 @@ export default function ViewOrderPage() {
                 startIcon={<FaTrash />}
                 onClick={confirmDelete}
               >
-                Delete  {isLoading && (
+                Delete{" "}
+                {isLoading && (
                   <CircularProgress
                     size={15}
                     className="spinner"
@@ -357,7 +363,6 @@ export default function ViewOrderPage() {
             </Box>
           </Box>
         </Modal>
-
 
         {/* QR Code Modal */}
         <Modal open={qrCodeModalOpen} onClose={() => setQrCodeModalOpen(false)}>
@@ -395,7 +400,8 @@ export default function ViewOrderPage() {
                 fontSize: 14,
               }}
             >
-              Specify the number of QR codes to generate. Default is set to package count.
+              Specify the number of QR codes to generate. Default is set to
+              package count.
             </Typography>
 
             <TextField
@@ -408,15 +414,29 @@ export default function ViewOrderPage() {
               size="small"
             />
 
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 2, gap: "20px" }}>
-              <Button variant="outlined" color="error" onClick={() => setQrCodeModalOpen(false)}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                mt: 2,
+                gap: "20px",
+              }}
+            >
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => setQrCodeModalOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button variant="contained" color="primary" onClick={() => {
-                window.location.href = `${BASE_URL}/api/parcel/generate-qr/${id}?count=${qrCount}`;
-              }}>
-                Confirm
-              </Button>
+              <Link
+                to={`${BASE_URL}/api/parcel/generate-qr/${id}?count=${qrCount}`}
+                target="_blank"
+              >
+                <Button variant="contained" color="primary" onClick={() => setQrCodeModalOpen(false)}>
+                  Confirm
+                </Button>
+              </Link>
             </Box>
           </Box>
         </Modal>

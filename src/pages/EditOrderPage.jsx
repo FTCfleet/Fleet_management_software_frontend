@@ -29,7 +29,6 @@ import {
 import { Delete } from "@mui/icons-material";
 import { useAuth } from "../routes/AuthContext";
 import "../css/main.css";
-import Loading from "../components/Loading";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -66,9 +65,6 @@ export default function EditOrderPage() {
 
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
-
-  const cellStyle = { color: "#1E3A5F", fontWeight: "bold" };
-  const rowCellStyle = { color: "#25344E" };
 
   useEffect(() => {
     fetchWarehouse();
@@ -230,7 +226,8 @@ export default function EditOrderPage() {
   const confirmSave = async () => {
     setIsLoading(true);
     const token = localStorage.getItem("token");
-
+    console.log(sourceWarehouse);
+    console.log(destinationWarehouse);
     await fetch(`${BASE_URL}/api/parcel/edit/${id}`, {
       method: "PUT",
       headers: {
@@ -252,6 +249,7 @@ export default function EditOrderPage() {
     })
       .then((response) => response.json())
       .then((data) => {
+        console.log(data);
         if (!data.flag) {
           setIsLoading(false);
           alert("Error occurred");
@@ -389,6 +387,18 @@ export default function EditOrderPage() {
           type="text"
           value={charges}
           onChange={(e) => setCharges(parseInt(e.target.value) || 0)}
+        />
+        <TextField
+          label="Hamali"
+          type="text"
+          value={hamali}
+          onChange={(e) => setHamali(parseInt(e.target.value) || 0)}
+        />
+        <TextField
+          label="Freight"
+          type="text"
+          value={freight}
+          onChange={(e) => setFreight(parseInt(e.target.value) || 0)}
         />
 
         {/* Warehouse Selection */}

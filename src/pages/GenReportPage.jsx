@@ -377,6 +377,8 @@ export default function GenReportPage() {
                     sx={{ backgroundColor: "#1976D2" }}
                     startIcon={<FaDownload />}
                     href={downloadUrl}
+                    target="_blank"
+                    onClick={() => setModalOpen(false)}
                   >
                     Confirm Download
                   </Button>
