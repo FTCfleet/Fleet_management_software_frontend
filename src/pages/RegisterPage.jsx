@@ -1,8 +1,7 @@
 import { React, useEffect, useState } from "react";
 import styles from "../css/auth_card.module.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import { Select, MenuItem, TextField, CircularProgress } from "@mui/material";
+import { Select, MenuItem, CircularProgress } from "@mui/material";
 import { useAuth } from "../routes/AuthContext";
 
 const CODE = import.meta.env.VITE_CODE;
@@ -24,7 +23,6 @@ const RegisterPage = () => {
   const [allUsers, setAllUsers] = useState([]);
   const { checkAuthStatus } = useAuth();
 
-  const navigate = useNavigate();
   const style = {
     borderColor: "red",
   };
@@ -72,7 +70,6 @@ const RegisterPage = () => {
       alert("Enter valid code");
       return;
     }
-    // if (pass)
     if (allUsers.length === 0 || !allUsers.includes(userVal)) {
       setIsSection1(false);
     } else {
@@ -230,13 +227,14 @@ const RegisterPage = () => {
                 Back
               </button>
               <button className={styles.loginButton} onClick={handleRegister}>
-                Create {isLoading && (
-                <CircularProgress
-                  size={20}
-                  className="spinner"
-                  sx={{ color: "#fff", animation: "none !important" }}
-                />
-              )}
+                Create{" "}
+                {isLoading && (
+                  <CircularProgress
+                    size={20}
+                    className="spinner"
+                    sx={{ color: "#fff", animation: "none !important" }}
+                  />
+                )}
               </button>
             </div>
           </>

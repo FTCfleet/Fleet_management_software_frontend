@@ -16,15 +16,15 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
-import { IoArrowForwardCircleOutline } from "react-icons/io5"; // Icon for View Ledger
+import { IoArrowForwardCircleOutline } from "react-icons/io5";
 import { useAuth } from "../routes/AuthContext";
-import "../css/table.css"; // Import CSS
+import "../css/table.css";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const AllLedgerPage = () => {
-  const { type } = useParams(); // Retrieve the type (all, outgoing, incoming, etc.) from the URL
-  const [ledgerEntries, setLedgerEntries] = useState([]); // All ledger entries
+  const { type } = useParams();
+  const [ledgerEntries, setLedgerEntries] = useState([]);
   const [filteredLedger, setFilteredLedger] = useState([]);
   const [selectedDate, setSelectedDate] = useState(
     () => new Date().toISOString().split("T")[0]
@@ -41,7 +41,7 @@ const AllLedgerPage = () => {
   }, [selectedDate]);
 
   useEffect(() => {
-    if (ledgerEntries.length > 0) filterLedgersByTypeAndDate(type);
+    filterLedgersByTypeAndDate(type);
   }, [type, ledgerEntries]);
 
   const fetchData = async () => {
@@ -73,7 +73,6 @@ const AllLedgerPage = () => {
         },
       });
       const data2 = await res.json();
-      console.log(data2);
       setWarehouses(
         data2.body.filter(
           (warehouse) => warehouse.isSource !== isSource || isAdmin
@@ -87,7 +86,6 @@ const AllLedgerPage = () => {
   };
 
   const filterLedgersByTypeAndDate = (type) => {
-    console.log(ledgerEntries);
     if (type === "all") {
       setFilteredLedger(ledgerEntries);
     } else {
@@ -123,7 +121,6 @@ const AllLedgerPage = () => {
           order.destinationWarehouse.name === warehouseFilter
       );
     }
-    console.log(filtered);
     setFilteredLedger(filtered);
   };
 
@@ -246,7 +243,7 @@ const AllLedgerPage = () => {
             ) : filteredLedger.length > 0 ? (
               filteredLedger.map((entry) => (
                 <TableRow key={entry.ledgerId}>
-                  <TableCell sx={{ color: "#25344E"}}>
+                  <TableCell sx={{ color: "#25344E" }}>
                     {entry.ledgerId}
                   </TableCell>
                   <TableCell sx={{ color: "#25344E" }}>
@@ -267,14 +264,13 @@ const AllLedgerPage = () => {
                         : "NA"}
                     </TableCell>
                   ) : null}
-                  <TableCell>
-                      {entry.parcels.length}
-                  </TableCell>
+                  <TableCell>{entry.parcels.length}</TableCell>
                   <TableCell>
                     <span
                       className={`table-status ${entry.status.toLowerCase()}`}
                     >
-                      {entry.status.toUpperCase().charAt(0) + entry.status.slice(1)}
+                      {entry.status.toUpperCase().charAt(0) +
+                        entry.status.slice(1)}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -296,11 +292,7 @@ const AllLedgerPage = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan="7"
-                  align="center"
-                  sx={{ color: "#7D8695" }}
-                >
+                <TableCell colSpan="7" align="center" sx={{ color: "#7D8695" }}>
                   No ledger entries found for the selected date.
                 </TableCell>
               </TableRow>

@@ -41,9 +41,6 @@ export default function GenReportPage() {
     const start = `01${newMonth.toString().padStart(2, "0")}${newYear}`;
     today.setHours(23, 59, 59, 999);
     let lastDay = new Date(newYear, newMonth, 0);
-    console.log(today);
-    console.log(lastDay);
-    console.log(lastDay.getMonth(), today.getMonth());
     let t = today.getDate();
     if (lastDay.getMonth() === today.getMonth() && t < lastDay.getDate()) {
       lastDay = t;
@@ -72,7 +69,10 @@ export default function GenReportPage() {
     for (let i = 3; i >= 0; i--) {
       const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
       months.push({
-        label: date.toLocaleString("default", { month: "long", year: "numeric" }),
+        label: date.toLocaleString("default", {
+          month: "long",
+          year: "numeric",
+        }),
         value: `${date.getMonth() + 1}-${date.getFullYear()}`,
       });
     }
@@ -90,7 +90,6 @@ export default function GenReportPage() {
     today.setHours(23, 59, 59, 999);
     const earlyDate = new Date(today.getFullYear(), today.getMonth() - 3, 1);
     earlyDate.setHours(0, 0, 0, 0);
-    console.log(earlyDate);
     if (type === "start") {
       if (selectedDate < earlyDate) {
         alert("Start date cannot be earlier than the last 4 months.");
@@ -124,14 +123,18 @@ export default function GenReportPage() {
     }
   };
 
-
   const handleDateRangeChange = (event, newRange) => {
     if (newRange !== null) {
       setDateRange(newRange);
       switch (newRange) {
         case "today":
           const today = new Date();
-          const formattedToday = `${today.getDate().toString().padStart(2, "0")}${(today.getMonth() + 1).toString().padStart(2, "0")}${today.getFullYear()}`;
+          const formattedToday = `${today
+            .getDate()
+            .toString()
+            .padStart(2, "0")}${(today.getMonth() + 1)
+            .toString()
+            .padStart(2, "0")}${today.getFullYear()}`;
           setStartDate(formattedToday);
           setEndDate(formattedToday);
           break;
@@ -139,8 +142,18 @@ export default function GenReportPage() {
           const end = new Date();
           const start = new Date();
           start.setDate(end.getDate() - 6);
-          setStartDate(`${start.getDate().toString().padStart(2, "0")}${(start.getMonth() + 1).toString().padStart(2, "0")}${start.getFullYear()}`);
-          setEndDate(`${end.getDate().toString().padStart(2, "0")}${(end.getMonth() + 1).toString().padStart(2, "0")}${end.getFullYear()}`);
+          setStartDate(
+            `${start.getDate().toString().padStart(2, "0")}${(
+              start.getMonth() + 1
+            )
+              .toString()
+              .padStart(2, "0")}${start.getFullYear()}`
+          );
+          setEndDate(
+            `${end.getDate().toString().padStart(2, "0")}${(end.getMonth() + 1)
+              .toString()
+              .padStart(2, "0")}${end.getFullYear()}`
+          );
           break;
         case "monthly":
           handleMonthAndYearChange(lastFourMonths[3].value);
@@ -159,7 +172,10 @@ export default function GenReportPage() {
 
   return (
     <Box sx={{ maxWidth: 600, margin: "0 auto", padding: 5 }}>
-      <Typography variant="h4" sx={{ color: "#1E3A5F", fontWeight: "bold", textAlign: "center" }}>
+      <Typography
+        variant="h4"
+        sx={{ color: "#1E3A5F", fontWeight: "bold", textAlign: "center" }}
+      >
         Ledger Generation
       </Typography>
       <TextField
@@ -169,7 +185,7 @@ export default function GenReportPage() {
         margin="normal"
         value={truckNo}
         placeholder="Enter truck no."
-        onChange={(e) => setTruckNo(e.target.value)}
+        onChange={(e) => setTruckNo(e.target.value.toUpperCase())}
       />
       <ToggleButtonGroup
         value={dateRange}
@@ -211,7 +227,7 @@ export default function GenReportPage() {
               type="date"
               onClick={(e) => e.target.showPicker()}
               onKeyDown={(e) => e.preventDefault()}
-              value = {sDate}
+              value={sDate}
               onChange={(e) => handleDateChange("start", e.target.value)}
             />
           </Box>
@@ -220,22 +236,23 @@ export default function GenReportPage() {
               type="date"
               onClick={(e) => e.target.showPicker()}
               onKeyDown={(e) => e.preventDefault()}
-              value ={eDate}
+              value={eDate}
               onChange={(e) => handleDateChange("end", e.target.value)}
             />
           </Box>
         </Box>
       )}
 
-
-      <button className="button button-large"
+      <button
+        className="button button-large"
         style={{
           backgroundColor: !startDate || !endDate ? "#B0B0B0" : "",
           cursor: !startDate || !endDate ? "not-allowed" : "pointer",
           color: "white",
         }}
         disabled={!startDate || !endDate}
-        onClick={handleOpenModal}>
+        onClick={handleOpenModal}
+      >
         <FaDownload /> Download
       </button>
 
@@ -278,36 +295,83 @@ export default function GenReportPage() {
           {/* Perform calculations inside the modal */}
           {(() => {
             const formatDate = (date) => {
-              return date ? `${date.substring(0, 2)}-${date.substring(2, 4)}-${date.substring(4)}` : "";
+              return date
+                ? `${date.substring(0, 2)}-${date.substring(
+                    2,
+                    4
+                  )}-${date.substring(4)}`
+                : "";
             };
             const formatDateUrl = (date) => {
-              return date ? `${date.substring(4)}${date.substring(2, 4)}${date.substring(0,2)}` : "";
+              return date
+                ? `${date.substring(4)}${date.substring(2, 4)}${date.substring(
+                    0,
+                    2
+                  )}`
+                : "";
             };
 
             const formattedStartDate = formatDate(startDate);
             const formattedEndDate = formatDate(endDate);
-            const truckLabel = truckNo ? `Vehicle No: ${truckNo}` : "All Trucks";
-            const downloadUrl = `${BASE_URL}/api/ledger/generate-excel/${formatDateUrl(startDate)}${formatDateUrl(endDate)}${truckNo ? `?vehicleNo=${truckNo}` : ""}`;
+            const truckLabel = truckNo
+              ? `Vehicle No: ${truckNo}`
+              : "All Trucks";
+            const downloadUrl = `${BASE_URL}/api/ledger/generate-excel/${formatDateUrl(
+              startDate
+            )}${formatDateUrl(endDate)}${
+              truckNo ? `?vehicleNo=${truckNo}` : ""
+            }`;
 
             return (
               <>
                 {/* Modal Title */}
-                <Typography variant="h6" sx={{ fontWeight: "bold", marginBottom: "12px", color: "#374151" }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: "bold",
+                    marginBottom: "12px",
+                    color: "#374151",
+                  }}
+                >
                   Download Ledger Report
                 </Typography>
 
                 {/* Report Info */}
-                <Typography sx={{ marginBottom: "12px", color: "#374151", fontSize: "15px" }}>
+                <Typography
+                  sx={{
+                    marginBottom: "12px",
+                    color: "#374151",
+                    fontSize: "15px",
+                  }}
+                >
                   <strong>Start Date:</strong> {formattedStartDate}
                 </Typography>
-                <Typography sx={{ marginBottom: "12px", color: "#374151", fontSize: "15px" }}>
+                <Typography
+                  sx={{
+                    marginBottom: "12px",
+                    color: "#374151",
+                    fontSize: "15px",
+                  }}
+                >
                   <strong>End Date:</strong> {formattedEndDate}
                 </Typography>
-                <Typography sx={{ marginBottom: "20px", color: "#374151", fontSize: "15px" }}>
+                <Typography
+                  sx={{
+                    marginBottom: "20px",
+                    color: "#374151",
+                    fontSize: "15px",
+                  }}
+                >
                   <strong>{truckLabel}</strong>
                 </Typography>
 
-                <Box sx={{ display: "flex", justifyContent: "center", gap: "12px" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: "12px",
+                  }}
+                >
                   <Button
                     variant="contained"
                     sx={{ backgroundColor: "#1976D2" }}
@@ -322,7 +386,6 @@ export default function GenReportPage() {
           })()}
         </Box>
       </Modal>
-
     </Box>
   );
 }

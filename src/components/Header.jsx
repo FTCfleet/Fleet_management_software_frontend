@@ -1,6 +1,6 @@
 import { AppBar, Box, Button, ButtonGroup } from "@mui/material";
 import { Link, NavLink } from "react-router-dom";
-import logoImg from "../assets/logo.jpg";
+import logoImg from "../assets/logo.png";
 import "../css/header.css";
 import { useAuth } from "../routes/AuthContext";
 import { RxAvatar } from "react-icons/rx";
@@ -159,7 +159,7 @@ const HeaderTabs = () => {
 const Header = () => {
   const theme = useTheme();
   const mobileView = useMediaQuery(theme.breakpoints.down(470));
-  const { checkAuthStatus, isLoggedIn } = useAuth();
+  const { isLoggedIn } = useAuth();
 
   return (
     <div className="header-box">
@@ -196,11 +196,7 @@ const Header = () => {
             </Link>
           )}
         </Box>
-        {mobileView ? (
-          <Menubutton />
-        ) : (
-          <HeaderTabs />
-        )}
+        {mobileView ? <Menubutton /> : <HeaderTabs />}
       </AppBar>
     </div>
   );

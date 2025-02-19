@@ -60,7 +60,6 @@ export default function AllWarehousePage() {
       },
     });
     const data = await res.json();
-    console.log(data);
     setWarehouses(data.body);
     setIsLoading(false);
   };
@@ -68,13 +67,11 @@ export default function AllWarehousePage() {
   // Filters
   const applyFilter = () => {
     const filtered = warehouses.filter((warehouse) => {
-      return (
-        (warehouseFilter
-          ? warehouse.warehouseID
+      return warehouseFilter
+        ? warehouse.warehouseID
             .toLowerCase()
             .includes(warehouseFilter.toLowerCase())
-          : true)
-      );
+        : true;
     });
     setFilteredWarehouses(filtered);
   };
@@ -124,7 +121,12 @@ export default function AllWarehousePage() {
   };
 
   const handleAdd = () => {
-    setCurrentWarehouse({ name: "", phoneNo: "", warehouseID: "", isSource: true });
+    setCurrentWarehouse({
+      name: "",
+      phoneNo: "",
+      warehouseID: "",
+      isSource: true,
+    });
     setIsModalOpen(true);
     setIsAdding(true);
   };
@@ -140,7 +142,7 @@ export default function AllWarehousePage() {
         address: currentWarehouse.address,
         phoneNo: currentWarehouse.phoneNo,
         warehouseID: currentWarehouse.warehouseID,
-        isSource: currentWarehouse.isSource
+        isSource: currentWarehouse.isSource,
       };
     } else {
       method = "PUT";
@@ -149,7 +151,7 @@ export default function AllWarehousePage() {
         updates: {
           name: currentWarehouse.name,
           phoneNo: currentWarehouse.phoneNo,
-          isSource: currentWarehouse.isSource
+          isSource: currentWarehouse.isSource,
         },
       };
     }
@@ -163,7 +165,6 @@ export default function AllWarehousePage() {
     });
 
     const data = await res.json();
-    console.log(data);
     fetchData();
     setIsLoading1(false);
     setIsModalOpen(false);
@@ -206,7 +207,11 @@ export default function AllWarehousePage() {
         <Button variant="outlined" color="secondary" onClick={clearFilter}>
           Clear Filter
         </Button>
-        <button className="button" onClick={handleAdd} style={{ margin: "0px" }}>
+        <button
+          className="button"
+          onClick={handleAdd}
+          style={{ margin: "0px" }}
+        >
           Add Warehouse
         </button>
       </Box>
@@ -225,22 +230,26 @@ export default function AllWarehousePage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {isLoading ? (<TableRow>
-              <TableCell colSpan={7} align="center">
-                <CircularProgress
-                  size={22}
-                  className="spinner"
-                  sx={{ color: "#1E3A5F", animation: "none !important" }}
-                />
-              </TableCell>
-            </TableRow>) :
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  <CircularProgress
+                    size={22}
+                    className="spinner"
+                    sx={{ color: "#1E3A5F", animation: "none !important" }}
+                  />
+                </TableCell>
+              </TableRow>
+            ) : (
               filteredWarehouses.map((warehouse) => (
                 <TableRow key={warehouse.warehouseID}>
                   <TableCell sx={rowStyle}>{warehouse.name}</TableCell>
                   <TableCell sx={rowStyle}>{warehouse.phoneNo}</TableCell>
                   <TableCell sx={rowStyle}>{warehouse.address}</TableCell>
                   <TableCell sx={rowStyle}>{warehouse.warehouseID}</TableCell>
-                  <TableCell sx={rowStyle}>{warehouse.isSource ? "Source" : "Destination"}</TableCell>
+                  <TableCell sx={rowStyle}>
+                    {warehouse.isSource ? "Source" : "Destination"}
+                  </TableCell>
                   <TableCell>
                     <IconButton
                       color="primary"
@@ -256,7 +265,8 @@ export default function AllWarehousePage() {
                     </IconButton>
                   </TableCell>
                 </TableRow>
-              ))}
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>
@@ -311,7 +321,7 @@ export default function AllWarehousePage() {
                 sx={{ marginBottom: "16px" }}
               />
               <ToggleButtonGroup
-                value={currentWarehouse.isSource} // Default to true if undefined
+                value={currentWarehouse.isSource}
                 exclusive
                 onChange={(e, newValue) => {
                   if (newValue !== null) {
@@ -324,9 +334,14 @@ export default function AllWarehousePage() {
                   value={true}
                   sx={{
                     flex: 1,
-                    backgroundColor: currentWarehouse.isSource ? "#003366" : "inherit",
+                    backgroundColor: currentWarehouse.isSource
+                      ? "#003366"
+                      : "inherit",
                     color: currentWarehouse.isSource ? "white" : "black",
-                    "&.Mui-selected, &.Mui-selected:hover": { backgroundColor: "#003366", color: "white" }
+                    "&.Mui-selected, &.Mui-selected:hover": {
+                      backgroundColor: "#003366",
+                      color: "white",
+                    },
                   }}
                 >
                   Source
@@ -335,9 +350,14 @@ export default function AllWarehousePage() {
                   value={false}
                   sx={{
                     flex: 1,
-                    backgroundColor: !currentWarehouse.isSource ? "#003366" : "inherit",
+                    backgroundColor: !currentWarehouse.isSource
+                      ? "#003366"
+                      : "inherit",
                     color: !currentWarehouse.isSource ? "white" : "black",
-                    "&.Mui-selected, &.Mui-selected:hover": { backgroundColor: "#003366", color: "white" }
+                    "&.Mui-selected, &.Mui-selected:hover": {
+                      backgroundColor: "#003366",
+                      color: "white",
+                    },
                   }}
                 >
                   Destination
@@ -347,7 +367,9 @@ export default function AllWarehousePage() {
                 fullWidth
                 label="Warehouse Code"
                 value={currentWarehouse.warehouseID}
-                onChange={(e) => handleFieldChange("warehouseID", e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  handleFieldChange("warehouseID", e.target.value.toUpperCase())
+                }
                 disabled={!isAdding}
                 sx={{ marginBottom: "16px" }}
               />
@@ -362,7 +384,8 @@ export default function AllWarehousePage() {
                   className="button button-large"
                   onClick={handleSaveOrAdd}
                 >
-                  {isAdding ? "Add" : "Save"}  {isLoading1 && (
+                  {isAdding ? "Add" : "Save"}{" "}
+                  {isLoading1 && (
                     <CircularProgress
                       size={22}
                       className="spinner"
@@ -431,7 +454,8 @@ export default function AllWarehousePage() {
               startIcon={<FaTrash />}
               onClick={confirmDelete}
             >
-              Delete {isLoading2 && (
+              Delete{" "}
+              {isLoading2 && (
                 <CircularProgress
                   size={22}
                   className="spinner"

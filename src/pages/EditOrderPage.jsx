@@ -38,13 +38,23 @@ export default function EditOrderPage() {
   const [oldItems, setOldItems] = useState([]);
   const [delItems, setDelItems] = useState([]);
   const [newItems, setNewItems] = useState([]);
-  const [senderDetails, setSenderDetails] = useState({ name: "", phoneNo: "", address: "", role: "sender" });
-  const [receiverDetails, setReceiverDetails] = useState({ name: "", phoneNo: "", address: "", role: "receiver" });
+  const [senderDetails, setSenderDetails] = useState({
+    name: "",
+    phoneNo: "",
+    address: "",
+    role: "sender",
+  });
+  const [receiverDetails, setReceiverDetails] = useState({
+    name: "",
+    phoneNo: "",
+    address: "",
+    role: "receiver",
+  });
   const [charges, setCharges] = useState(0);
   const [freight, setFreight] = useState(0);
   const [hamali, setHamali] = useState(0);
   const [clients, setClients] = useState([]);
-  const [regItems, setregItems] = useState([]);
+  const [regItems, setRegItems] = useState([]);
   const [status, setStatus] = useState("");
   const [counter, setCounter] = useState(0);
   const [sourceWarehouse, setSourceWarehouse] = useState("");
@@ -79,7 +89,7 @@ export default function EditOrderPage() {
     });
     const data = await res.json();
     setClients(data.body);
-  }
+  };
 
   const fetchWarehouse = async () => {
     const response = await fetch(`${BASE_URL}/api/warehouse/get-all`);
@@ -100,8 +110,8 @@ export default function EditOrderPage() {
       },
     });
     const data = await res.json();
-    setregItems(data.body);
-  }
+    setRegItems(data.body);
+  };
 
   const fetchData = async () => {
     const token = localStorage.getItem("token");
@@ -134,7 +144,6 @@ export default function EditOrderPage() {
   };
 
   const handleSenderChange = (event, selectedOption) => {
-    console.log(senderDetails);
     if (selectedOption.name) {
       setSenderDetails({
         ...senderDetails,
@@ -143,7 +152,6 @@ export default function EditOrderPage() {
         address: selectedOption.address,
       });
     } else {
-      console.log(event.target.value);
       setSenderDetails({
         ...senderDetails,
         name: event.target.value,
@@ -160,7 +168,6 @@ export default function EditOrderPage() {
         address: selectedOption.address,
       });
     } else {
-      console.log(event.target.value);
       setReceiverDetails({
         ...receiverDetails,
         name: event.target.value,
@@ -195,7 +202,6 @@ export default function EditOrderPage() {
   };
 
   const handleInputChange = (itemId, field, value) => {
-    console.log(value);
     setNewItems(
       newItems.map((item) =>
         item.itemId === itemId ? { ...item, [field]: value } : item
@@ -246,7 +252,6 @@ export default function EditOrderPage() {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
         if (!data.flag) {
           setIsLoading(false);
           alert("Error occurred");
@@ -295,21 +300,26 @@ export default function EditOrderPage() {
         {/* Sender Details */}
         <Autocomplete
           freeSolo
-          options={clients} // Pass full client objects
-          getOptionLabel={(option) => option.name || senderDetails.name} // Display only name
-          value={clients.find((client) => client.name === senderDetails.name) || senderDetails.name} // Match full object
-          onChange={(event, newValue) => handleSenderChange(event, newValue)} // Pass `newValue` (selectedOption)
-          renderInput={(params) => <TextField {...params} label="Sender's Name" />}
-          disableClearable // Disables the "x" (clear) button
+          options={clients}
+          getOptionLabel={(option) => option.name || senderDetails.name}
+          value={
+            clients.find((client) => client.name === senderDetails.name) ||
+            senderDetails.name
+          }
+          onChange={(event, newValue) => handleSenderChange(event, newValue)}
+          renderInput={(params) => (
+            <TextField {...params} label="Sender's Name" />
+          )}
+          disableClearable
           slots={{
             paper: (props) => (
               <div
                 {...props}
                 style={{
-                  overflowY: 'auto',
-                  backgroundColor: '#f7f9fc',
-                  color: 'black',
-                  border: "1px solid black"
+                  overflowY: "auto",
+                  backgroundColor: "#f7f9fc",
+                  color: "black",
+                  border: "1px solid black",
                 }}
               />
             ),
@@ -319,31 +329,40 @@ export default function EditOrderPage() {
           label="Sender's Phone No."
           value={senderDetails.phoneNo}
           name="phoneNo"
-          onChange={(e) => setSenderDetails({ ...senderDetails, phoneNo: e.target.value })}
+          onChange={(e) =>
+            setSenderDetails({ ...senderDetails, phoneNo: e.target.value })
+          }
         />
         <TextField
           label="Sender's Address"
           value={senderDetails.address}
           name="address"
-          onChange={(e) => setSenderDetails({ ...senderDetails, address: e.target.value })}
+          onChange={(e) =>
+            setSenderDetails({ ...senderDetails, address: e.target.value })
+          }
         />
         <Autocomplete
           freeSolo
-          options={clients} // Pass full client objects
-          getOptionLabel={(option) => option.name || receiverDetails.name} // Display only name
-          value={clients.find((client) => client.name === receiverDetails.name) || receiverDetails.name} // Match full object
-          onChange={(event, newValue) => handleReceiverChange(event, newValue)} // Pass `newValue` (selectedOption)
-          renderInput={(params) => <TextField {...params} label="Receiver's Name" />}
-          disableClearable // Disables the "x" (clear) button
+          options={clients}
+          getOptionLabel={(option) => option.name || receiverDetails.name}
+          value={
+            clients.find((client) => client.name === receiverDetails.name) ||
+            receiverDetails.name
+          }
+          onChange={(event, newValue) => handleReceiverChange(event, newValue)}
+          renderInput={(params) => (
+            <TextField {...params} label="Receiver's Name" />
+          )}
+          disableClearable
           slots={{
             paper: (props) => (
               <div
                 {...props}
                 style={{
-                  overflowY: 'auto',
-                  backgroundColor: '#f7f9fc',
-                  color: 'black',
-                  border: "1px solid black"
+                  overflowY: "auto",
+                  backgroundColor: "#f7f9fc",
+                  color: "black",
+                  border: "1px solid black",
                 }}
               />
             ),
@@ -353,13 +372,17 @@ export default function EditOrderPage() {
           label="Receiver's Phone No."
           value={receiverDetails.phoneNo}
           name="phoneNo"
-          onChange={(e) => setReceiverDetails({ ...receiverDetails, phoneNo: e.target.value })}
+          onChange={(e) =>
+            setReceiverDetails({ ...receiverDetails, phoneNo: e.target.value })
+          }
         />
         <TextField
           label="Receiver's Address"
           value={receiverDetails.address}
           name="address"
-          onChange={(e) => setReceiverDetails({ ...receiverDetails, address: e.target.value })}
+          onChange={(e) =>
+            setReceiverDetails({ ...receiverDetails, address: e.target.value })
+          }
         />
         <TextField
           label="Charges"
@@ -506,15 +529,15 @@ export default function EditOrderPage() {
                 <TableCell>{idx + 1}</TableCell>
                 <TableCell>
                   <Autocomplete
-                    value={item.name} // Set the value to item.name
-                    options={regItems.map((item) => item.name)} // Populate options from regItems' names
+                    value={item.name}
+                    options={regItems.map((item) => item.name)}
                     onChange={(event, newValue) => {
-                      handleInputChange(item.itemId, "name", newValue); // Directly update item.name on selection
+                      handleInputChange(item.itemId, "name", newValue);
                     }}
                     onInputChange={(event, newValue) => {
-                      handleInputChange(item.itemId, "name", newValue); // Directly update item.name on selection
+                      handleInputChange(item.itemId, "name", newValue);
                     }}
-                    getOptionLabel={(option) => option || item.name} // Use option as is (name)
+                    getOptionLabel={(option) => option || item.name}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -530,19 +553,18 @@ export default function EditOrderPage() {
                           },
                           width: "300px",
                         }}
-
                       />
                     )}
-                    disableClearable // Disable the clear button
+                    disableClearable
                     slots={{
                       paper: (props) => (
                         <div
                           {...props}
                           style={{
-                            overflowY: 'auto',
-                            backgroundColor: '#f7f9fc',
-                            color: 'black',
-                            border: "1px solid black"
+                            overflowY: "auto",
+                            backgroundColor: "#f7f9fc",
+                            color: "black",
+                            border: "1px solid black",
                           }}
                         />
                       ),

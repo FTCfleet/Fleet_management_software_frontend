@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   Typography,
-  Button,
   TextField,
   Table,
   TableContainer,
@@ -12,7 +11,7 @@ import {
   Paper,
   CircularProgress,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
 } from "@mui/material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -35,12 +34,11 @@ const TrackShipmentPage = () => {
   const theme = useTheme();
   const mobileView = useMediaQuery(theme.breakpoints.down(800));
 
-
   const getStepColor = (index) => {
     if (currentStep >= index + 1) {
-      return index + 1 === currentStep ? "#1E3A5F" : "#82acc2"; // Dark blue for current step, light blue for past
+      return index + 1 === currentStep ? "#1E3A5F" : "#82acc2";
     }
-    return "#9da8bb"; // Grey for future steps
+    return "#9da8bb";
   };
   const handleTrack = async () => {
     setIsLoading(true);
@@ -48,11 +46,17 @@ const TrackShipmentPage = () => {
       .then((response) => {
         if (!response.ok) {
           setIsLoading(false);
-          toast.error("Error occurred", { className: "custom-toast", position: "bottom-right" });
+          toast.error("Error occurred", {
+            className: "custom-toast",
+            position: "bottom-right",
+          });
         }
         if (response.status === 201) {
           setIsLoading(false);
-          toast.warn("Invalid Tracking ID", { className: "custom-toast", position: "bottom-right" });
+          toast.warn("Invalid Tracking ID", {
+            className: "custom-toast",
+            position: "bottom-right",
+          });
           setShipmentIdInput("");
         }
         return response.json();
@@ -68,8 +72,7 @@ const TrackShipmentPage = () => {
             if (data.status === "arrived") {
               setStatus(steps[0]);
               setCurrentStep(1);
-            }
-            else if (data.status === "dispatched") {
+            } else if (data.status === "dispatched") {
               setStatus(steps[1]);
               setCurrentStep(2);
             } else {
@@ -96,7 +99,7 @@ const TrackShipmentPage = () => {
           alignItems: "center",
           justifyContent: "center",
           gap: "20px",
-          flex: "55%" // Makes it responsive
+          flex: "55%",
         }}
       >
         <div
@@ -108,7 +111,10 @@ const TrackShipmentPage = () => {
             textAlign: "center",
           }}
         >
-          <Typography variant="h4" sx={{ color: "#1b3655", marginBottom: "20px" }}>
+          <Typography
+            variant="h4"
+            sx={{ color: "#1b3655", marginBottom: "20px" }}
+          >
             Wondering where your package is?
           </Typography>
           <Typography sx={{ color: "#82a7c1", marginBottom: "30px" }}>
@@ -151,7 +157,9 @@ const TrackShipmentPage = () => {
               }}
             >
               Track
-              {isLoading && <CircularProgress size={22} sx={{ color: "#fff" }} />}
+              {isLoading && (
+                <CircularProgress size={22} sx={{ color: "#fff" }} />
+              )}
             </button>
           </div>
         </div>
@@ -196,7 +204,7 @@ const TrackShipmentPage = () => {
             display: "flex",
             flexDirection: "column",
             gap: "40px",
-            alignItems:"center",
+            alignItems: "center",
           }}
         >
           {mobileView ? (
@@ -208,25 +216,45 @@ const TrackShipmentPage = () => {
                 padding: "20px",
               }}
             >
-              <div >
-                <Typography sx={{ color: "#7d8695" }}><b>Shipment ID</b></Typography>
-                <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>{shipmentIdInput}</Typography>
+              <div>
+                <Typography sx={{ color: "#7d8695" }}>
+                  <b>Shipment ID</b>
+                </Typography>
+                <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>
+                  {shipmentIdInput}
+                </Typography>
               </div>
-              <div >
-                <Typography sx={{ color: "#7d8695" }}><b>Status</b></Typography>
-                <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>{status}</Typography>
+              <div>
+                <Typography sx={{ color: "#7d8695" }}>
+                  <b>Status</b>
+                </Typography>
+                <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>
+                  {status}
+                </Typography>
               </div>
-              <div >
-                <Typography sx={{ color: "#7d8695" }}><b>Shipper</b></Typography>
-                <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>{shipper}</Typography>
+              <div>
+                <Typography sx={{ color: "#7d8695" }}>
+                  <b>Shipper</b>
+                </Typography>
+                <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>
+                  {shipper}
+                </Typography>
               </div>
-              <div >
-                <Typography sx={{ color: "#7d8695" }}><b>Consignee</b></Typography>
-                <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>{consignee}</Typography>
+              <div>
+                <Typography sx={{ color: "#7d8695" }}>
+                  <b>Consignee</b>
+                </Typography>
+                <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>
+                  {consignee}
+                </Typography>
               </div>
-              <div >
-                <Typography sx={{ color: "#7d8695" }}><b>Packages</b></Typography>
-                <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>{service}</Typography>
+              <div>
+                <Typography sx={{ color: "#7d8695" }}>
+                  <b>Packages</b>
+                </Typography>
+                <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>
+                  {service}
+                </Typography>
               </div>
             </div>
           ) : (
@@ -244,7 +272,9 @@ const TrackShipmentPage = () => {
               {/* Shipment Details */}
               <div style={{ flex: "60%", position: "relative" }}>
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
                     <div style={{ flex: 1, textAlign: "center" }}>
                       <Typography sx={{ color: "#7d8695" }}>
                         <b>Shipment ID</b>
@@ -312,7 +342,11 @@ const TrackShipmentPage = () => {
 
               {/* Tracking Section */}
               <div
-                style={{ flex: "40%", textAlign: "center", position: "relative" }}
+                style={{
+                  flex: "40%",
+                  textAlign: "center",
+                  position: "relative",
+                }}
               >
                 <div
                   style={{
@@ -363,9 +397,14 @@ const TrackShipmentPage = () => {
             </div>
           )}
 
-          < TableContainer
+          <TableContainer
             component={Paper}
-            sx={{ backgroundColor: "#ffffff", borderRadius: "8px", width: "90%", marginTop: "20px" }}
+            sx={{
+              backgroundColor: "#ffffff",
+              borderRadius: "8px",
+              width: "90%",
+              marginTop: "20px",
+            }}
           >
             <Typography variant="h6" sx={{ padding: "16px", ...cellStyle }}>
               Items in Package
@@ -389,7 +428,7 @@ const TrackShipmentPage = () => {
           </TableContainer>
         </div>
       </div>
-    </div >
+    </div>
   );
 };
 

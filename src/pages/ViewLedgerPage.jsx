@@ -23,10 +23,9 @@ import { Cancel } from "@mui/icons-material";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import ledger from "../assets/ledger.jpg";
 import { useAuth } from "../routes/AuthContext";
-import { FaTrash, FaExclamationTriangle, FaTruckLoading } from "react-icons/fa";
+import { FaTrash, FaExclamationTriangle, FaTruckLoading, FaPrint } from "react-icons/fa";
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
-import { CiDeliveryTruck } from "react-icons/ci";
-import { TbCubeSend } from "react-icons/tb";
+import { TbTruckDelivery  } from "react-icons/tb";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 let delOrders = [];
@@ -119,9 +118,7 @@ export default function ViewLedgerPage() {
 
   const handleDelete = (index) => {
     delOrders.push(orders[index]._id);
-    console.log(delOrders);
     orders.splice(index, 1);
-    console.log(orders);
     setOrders([...orders]);
   };
 
@@ -160,11 +157,9 @@ export default function ViewLedgerPage() {
     } else {
       alert("Error occurred");
     }
-    console.log(await response.json());
   };
 
   const handleVerify = async () => {
-    alert("Implement Verify");
     const token = localStorage.getItem("token");
     const response = await fetch(
       `${BASE_URL}/api/ledger/verify-deliver/${id}`,
@@ -180,7 +175,6 @@ export default function ViewLedgerPage() {
       alert("Error occurred");
     }
     const data = await response.json();
-    console.log(data);
     navigate("/user/ledgers/all");
   };
 
@@ -199,7 +193,6 @@ export default function ViewLedgerPage() {
     });
 
     const data = await res.json();
-    console.log(data);
     setIsLoading(false);
     setDeleteModalOpen(false);
     if (data.flag) {
@@ -227,7 +220,7 @@ export default function ViewLedgerPage() {
           padding: "20px",
           borderRadius: "8px",
           marginBottom: "20px",
-          minHeight: "150px", // Keeps structure stable
+          minHeight: "150px", 
         }}
       >
         {/* Left Section - Text Content */}
@@ -485,7 +478,7 @@ export default function ViewLedgerPage() {
       )}
       {(!isSource || isAdmin) && ledgerData.status === "verified" && (
         <button className="button button-large" onClick={handleVerify}>
-          <CiDeliveryTruck style={{ marginRight: "8px" }} />Deliver Truck
+          <TbTruckDelivery  size="19" style={{ marginRight: "8px" }} />Deliver Truck
         </button>
       )}
       <button
@@ -495,7 +488,7 @@ export default function ViewLedgerPage() {
         <FaTrash style={{ marginRight: "8px" }} /> Delete Ledger
       </button>
       <Link to={`${BASE_URL}/api/ledger/generate-ledger-receipt/${id}`}>
-        <button className="button button-large">Print Ledger</button>
+        <button className="button button-large"> <FaPrint style={{ marginRight: "8px" }} />Print Ledger</button>
       </Link>
 
       {/* Delete Confirmation Modal */}

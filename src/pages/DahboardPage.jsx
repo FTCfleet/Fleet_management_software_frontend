@@ -17,7 +17,6 @@ const DashboardPage = () => {
   useEffect(() => {
     checkAuthStatus().then((data) => {
       setUser(data.user_data);
-      console.log(data);
     });
   }, []);
 

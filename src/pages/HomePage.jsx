@@ -70,12 +70,12 @@ const HomePage = () => {
   const steps = [
     {
       step: "Step 1",
-      description: "Book your shipment online",
+      description: "Place your order at our warehouses",
       icon: <FaBox size={30} style={{ color: "#003366" }} />,
     },
     {
       step: "Step 2",
-      description: "Generate a QR Code for your parcel",
+      description: "Get a Order ID for your order",
       icon: <FaQrcode size={30} style={{ color: "#003366" }} />,
     },
     {
@@ -85,7 +85,7 @@ const HomePage = () => {
     },
     {
       step: "Step 4",
-      description: "Confirmation at the destination",
+      description: "Get a confirmation when your parcel arrives at the destination",
       icon: <FaBoxOpen size={30} style={{ color: "#003366" }} />,
     },
   ];
@@ -120,17 +120,17 @@ const HomePage = () => {
           style={{
             position: "absolute",
             top: "50%",
-            left: "5%", // Aligns text to the left
+            left: "5%",
             transform: "translateY(-50%)",
             color: "white",
-            textAlign: "left", // Ensures text stays left-aligned
-            width: "55%", // Ensures text doesn't stretch too much
+            textAlign: "left",
+            width: "55%",
           }}
         >
           <Typography
             variant="h2"
             sx={{
-              fontSize: "clamp(24px, 5vw, 60px)", // Responsive font size
+              fontSize: "clamp(24px, 5vw, 60px)",
               fontWeight: "bold",
             }}
           >
@@ -149,10 +149,8 @@ const HomePage = () => {
           Our Services
         </h1>
         {mobileView ? (
-          // Swiper.js for mobile horizontal scrolling
           <Swiper
             modules={[Navigation]}
-            // navigation={{ nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" }}
             navigation
             spaceBetween={20}
             slidesPerView={1}
@@ -216,7 +214,7 @@ const HomePage = () => {
               display: "flex",
               flexWrap: "wrap",
               justifyContent: "center",
-              gap: "3vw", // Responsive gap
+              gap: "3vw",
             }}
           >
             {services.map((service, index) => (
@@ -229,14 +227,14 @@ const HomePage = () => {
                   padding: "2vw",
                   borderRadius: "10px",
                   textAlign: "center",
-                  width: "clamp(200px, 30%, 400px)", // Responsive width
+                  width: "clamp(200px, 30%, 400px)",
                   boxSizing: "border-box",
                   boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
 
                   display: "flex",
                   flexDirection: "column",
-                  justifyContent: "center",  // Centers content vertically
-                  alignItems: "center",      // Centers content horizontally
+                  justifyContent: "center",
+                  alignItems: "center",
                   minHeight: "10px",
                 }}
               >
@@ -256,7 +254,10 @@ const HomePage = () => {
                   {service.icon}
                 </div>
                 <h2
-                  style={{ fontSize: "clamp(16px, 2vw, 24px)", margin: "10px 0" }}
+                  style={{
+                    fontSize: "clamp(16px, 2vw, 24px)",
+                    margin: "10px 0",
+                  }}
                 >
                   {service.title}
                 </h2>
@@ -293,7 +294,7 @@ const HomePage = () => {
                 textAlign: "center",
                 position: "relative",
                 flex: "1",
-                maxWidth: "clamp(150px, 20%, 250px)", // Responsive width
+                maxWidth: "clamp(150px, 20%, 250px)",
                 minWidth: "150px",
               }}
             >

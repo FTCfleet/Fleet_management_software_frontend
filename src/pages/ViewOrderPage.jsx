@@ -75,7 +75,6 @@ export default function ViewOrderPage() {
       return;
     }
     const data = await response.json();
-    console.log(data);
     setSenderDetails(data.body.sender);
     setReceiverDetails(data.body.receiver);
     setSourceWarehouse(data.body.sourceWarehouse.name);
@@ -115,7 +114,6 @@ export default function ViewOrderPage() {
     });
 
     const data = await res.json();
-    console.log(data);
     if (data.flag) {
       setIsLoading(false);
       handleCloseDeleteModal();

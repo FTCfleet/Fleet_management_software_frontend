@@ -11,8 +11,6 @@ const ResetPasswordPage = () => {
   const [isMatch, setIsMatch] = useState(true);
   const location = useLocation();
   const userData = location.state;
-  console.log('reset ');
-  console.log(userData);
   const navigate = useNavigate();
   const style = {
     borderColor: "red",
@@ -32,7 +30,6 @@ const ResetPasswordPage = () => {
       alert("Enter same password");
       return;
     }
-    console.log(userData);
     const res = await fetch(`${BASE_URL}/api/auth/reset-password`, {
       method: "POST",
       headers: {

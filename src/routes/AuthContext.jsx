@@ -19,7 +19,6 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = async () => {
     let user_data = {};
     const token = localStorage.getItem("token");
-    console.log(token);
     try {
       if (!token) {
         setIsLoggedIn(false);
@@ -38,7 +37,7 @@ export const AuthProvider = ({ children }) => {
 
       const data = await response.json();
       if (!data.flag) {
-        throw new Error("Invalid flag");
+        throw new Error("Session Expired");
       }
 
       setIsLoggedIn(true);

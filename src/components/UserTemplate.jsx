@@ -15,7 +15,7 @@ import {
   FaBoxOpen,
   FaFileInvoice,
   FaPlus,
-} from "react-icons/fa"; // Import different icons for headings
+} from "react-icons/fa";
 import { useAuth } from "../routes/AuthContext";
 import "../css/dashboard.css";
 import "../css/main.css";
@@ -25,17 +25,17 @@ const UserTemplate = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAddOrderPage =
-  location.pathname.startsWith("/user/add/order/") ||
-  location.pathname.startsWith("/user/edit/order/") ||
-  !isSource;
+    location.pathname.startsWith("/user/add/order/") ||
+    location.pathname.startsWith("/user/edit/order/") ||
+    !isSource;
 
-  const {setLastUserPage} = useAuth();
+  const { setLastUserPage } = useAuth();
 
   const menuSections = [
     {
       heading: "Orders",
       path: "/user/order",
-      headingIcon: <FaBoxOpen style={{ marginRight: "8px" }} />, // Icon for "Orders"
+      headingIcon: <FaBoxOpen style={{ marginRight: "8px" }} />,
       items: [
         { text: "All Orders", path: "/user/order/all", icon: <FaRegFileAlt /> },
         {
@@ -58,7 +58,7 @@ const UserTemplate = () => {
     {
       heading: "Receipts",
       path: "/user/ledgers",
-      headingIcon: <FaFileInvoice style={{ marginRight: "8px" }} />, // Icon for "Receipts"
+      headingIcon: <FaFileInvoice style={{ marginRight: "8px" }} />,
       items: [
         {
           text: "All Ledgers",
@@ -67,44 +67,45 @@ const UserTemplate = () => {
         },
         ...(isAdmin || isSource
           ? [
-            {
-              text: "Pending Ledgers",
-              path: "/user/ledgers/pending",
-              icon: <FaTruckMoving />,
-            },
-          ]
+              {
+                text: "Pending Ledgers",
+                path: "/user/ledgers/pending",
+                icon: <FaTruckMoving />,
+              },
+            ]
           : []),
-          {
-            text: `${isAdmin ? "Dispatched" : isSource ? "Outgoing" : "Incoming"
-            } Ledgers`,
-            path: `/user/ledgers/dispatched`,
-            icon: <FaTruckMoving />,
-          },
-          {
-            text: "Verified Ledgers",
-            path: "/user/ledgers/verified",
-            icon: <FaTruckMoving />,
-          },
-          {
-            text: "Completed Ledgers",
-            path: "/user/ledgers/completed",
-            icon: <FaTruckMoving />,
-          },
-        ],
-      },
-      {
-        heading: "Report Generation",
-        path: "/user/gen-report",
-        headingIcon: <FaMoneyCheckAlt style={{ marginRight: "8px" }} />,
-        items: [
-          {
-            text: "Ledger Generation",
-            path: "/user/gen-report/",
-            icon: <FaMoneyCheckAlt />,
-          },
-        ],
-      },
-      isAdmin
+        {
+          text: `${
+            isAdmin ? "Dispatched" : isSource ? "Outgoing" : "Incoming"
+          } Ledgers`,
+          path: `/user/ledgers/dispatched`,
+          icon: <FaTruckMoving />,
+        },
+        {
+          text: "Verified Ledgers",
+          path: "/user/ledgers/verified",
+          icon: <FaTruckMoving />,
+        },
+        {
+          text: "Completed Ledgers",
+          path: "/user/ledgers/completed",
+          icon: <FaTruckMoving />,
+        },
+      ],
+    },
+    {
+      heading: "Report Generation",
+      path: "/user/gen-report",
+      headingIcon: <FaMoneyCheckAlt style={{ marginRight: "8px" }} />,
+      items: [
+        {
+          text: "Ledger Generation",
+          path: "/user/gen-report/",
+          icon: <FaMoneyCheckAlt />,
+        },
+      ],
+    },
+    isAdmin
       ? {
           heading: "Admin",
           path: "/user",
@@ -138,24 +139,24 @@ const UserTemplate = () => {
           ],
         }
       : {},
-    ];
-    
-    useEffect(() => {
-      if (!isLoggedIn) navigate("/auth/login");
-    }, []);
-    
-    useEffect(() => {
-      setLastUserPage(location.pathname);
-    }, [location.pathname]);
+  ];
+
+  useEffect(() => {
+    if (!isLoggedIn) navigate("/auth/login");
+  }, []);
+
+  useEffect(() => {
+    setLastUserPage(location.pathname);
+  }, [location.pathname]);
 
   return (
     <div style={{ display: "flex" }}>
       {/* Left Sidebar */}
       <Box
         sx={{
-          width: { xs: "60px", sm: "200px" }, // Adjusted width
+          width: { xs: "60px", sm: "200px" },
           backgroundColor: "#f7f9fc",
-          padding: { xs: "8px", sm: "12px" }, // Adjusted padding
+          padding: { xs: "8px", sm: "12px" },
           minHeight: "100vh",
           borderRight: "1px solid #ddd",
           transition: "width 0.3s ease",
@@ -170,12 +171,12 @@ const UserTemplate = () => {
               <Typography
                 variant="body1"
                 sx={{
-                  color: "#1E3A5F", // Heading color
+                  color: "#1E3A5F",
                   fontWeight: "bold",
-                  fontSize: "15px", // Reduced font size for headings
+                  fontSize: "15px",
                   display: "flex",
                   alignItems: "center",
-                  marginBottom: "6px", // Reduced gap between heading and items
+                  marginBottom: "6px",
                 }}
               >
                 {section.headingIcon} {section.heading}
@@ -188,11 +189,11 @@ const UserTemplate = () => {
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      padding: "4px 0", // Reduced padding
+                      padding: "4px 0",
                       "&:hover": {
                         backgroundColor: "#e3f2fd",
                         borderRadius: "4px",
-                        color: "#1976d2", // Hover effect color
+                        color: "#1976d2",
                       },
                     }}
                   >
@@ -200,14 +201,14 @@ const UserTemplate = () => {
                       to={item.path}
                       style={({ isActive }) => ({
                         textDecoration: "none",
-                        color: isActive ? "#82acc2" : "#25344e", // Active/Inactive color
+                        color: isActive ? "#82acc2" : "#25344e",
                         fontWeight: isActive ? "bold" : "normal",
                         display: "flex",
                         alignItems: "center",
                         width: "100%",
-                        padding: "4px 12px", // Adjusted padding
+                        padding: "4px 12px",
                         transform: isActive ? "scale(1.05)" : "none",
-                        backgroundColor: isActive ? "#e3f2fd" : "", // Slight scaling effect for active item
+                        backgroundColor: isActive ? "#e3f2fd" : "",
                       })}
                     >
                       <ListItemIcon
@@ -221,9 +222,9 @@ const UserTemplate = () => {
                       <ListItemText
                         primary={item.text}
                         sx={{
-                          fontSize: "12px", // Reduced font size
-                          margin: "-5px", // Reduced margin
-                          color: "#25344e", // Text color
+                          fontSize: "12px",
+                          margin: "-5px",
+                          color: "#25344e",
                         }}
                       />
                     </NavLink>

@@ -13,7 +13,6 @@ const OtpPage = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log(userData.phoneNo);
     const res = await fetch(`${BASE_URL}/api/auth/verify-otp`, {
       method: "POST",
       headers:{
@@ -26,8 +25,6 @@ const OtpPage = () => {
     });
 
     const data = await res.json();
-    console.log(data);
-    console.log(otp);
 
     if (res.ok){
       if (data.flag){

@@ -56,7 +56,6 @@ export default function AllTruckPage() {
       },
     });
     const data = await res.json();
-    console.log(data);
     setTrucks(data.body);
     setIsLoading(false);
   };
@@ -157,7 +156,6 @@ export default function AllTruckPage() {
     });
 
     const data = await res.json();
-    console.log(data);
     fetchData();
     setIsLoading1(false);
     setIsModalOpen(false);
@@ -251,13 +249,14 @@ export default function AllTruckPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan="4" align="center" sx={rowStyle}>No data to display</TableCell>
+                <TableCell colSpan="4" align="center" sx={rowStyle}>
+                  No data to display
+                </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </TableContainer>
-
 
       {/* Modal for Add/Edit Truck */}
       <Modal open={isModalOpen} onClose={handleClose}>
@@ -307,7 +306,9 @@ export default function AllTruckPage() {
                 fullWidth
                 label="Truck Number"
                 value={currentTruck.vehicleNo}
-                onChange={(e) => handleFieldChange("vehicleNo", e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  handleFieldChange("vehicleNo", e.target.value.toUpperCase())
+                }
                 disabled={!isAdding}
                 sx={{ marginBottom: "16px" }}
               />

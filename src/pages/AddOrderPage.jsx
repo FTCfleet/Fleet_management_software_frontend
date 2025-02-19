@@ -23,12 +23,22 @@ import { useAuth } from "../routes/AuthContext";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-export default function AddOrderPage({ }) {
+export default function AddOrderPage({}) {
   const { id } = useParams();
   const [items, setItems] = useState([]);
   const [counter, setCounter] = useState(1);
-  const [senderDetails, setSenderDetails] = useState({ name: "", phoneNo: "", address: "", role: "sender" });
-  const [receiverDetails, setReceiverDetails] = useState({ name: "", phoneNo: "", address: "", role: "receiver" });
+  const [senderDetails, setSenderDetails] = useState({
+    name: "",
+    phoneNo: "",
+    address: "",
+    role: "sender",
+  });
+  const [receiverDetails, setReceiverDetails] = useState({
+    name: "",
+    phoneNo: "",
+    address: "",
+    role: "receiver",
+  });
   const [error, setError] = useState(false);
   const [charges, setCharges] = useState(0);
   const [freight, setFreight] = useState(0);
@@ -60,7 +70,7 @@ export default function AddOrderPage({ }) {
     });
     const data = await res.json();
     setClients(data.body);
-  }
+  };
 
   const fetchItems = async () => {
     const token = localStorage.getItem("token");
@@ -74,7 +84,7 @@ export default function AddOrderPage({ }) {
     });
     const data = await res.json();
     setregItems(data.body);
-  }
+  };
 
   const fetchWarehouse = async () => {
     const response = await fetch(`${BASE_URL}/api/warehouse/get-all`);
@@ -85,7 +95,7 @@ export default function AddOrderPage({ }) {
   };
 
   const handleAddRow = () => {
-    setItems([...items, { id: counter, name: "", quantity: "" }]);
+    setItems([...items, { id: counter, name: "", quantity: 0 }]);
     setCounter(counter + 1);
   };
 
@@ -109,7 +119,6 @@ export default function AddOrderPage({ }) {
   };
 
   const handleInputChange = (id, field, value) => {
-    console.log(value);
     if (field === "quantity") {
       value = parseInt(value) || 0;
     }
@@ -119,20 +128,21 @@ export default function AddOrderPage({ }) {
     setItems(updatedItems);
   };
 
-
   const validateOrder = () => {
-    console.log(senderDetails);
     if (!destinationWarehouse || (isAdmin && !sourceWarehouse)) {
       return false;
     }
-    if (items.length === 0 || items.some(item => !item.name || !item.quantity)) {
+    if (
+      items.length === 0 ||
+      items.some((item) => !item.name)
+    ) {
+      if (items.length === 0) alert("Add items");
       return false;
     }
     return true;
   };
 
   const handleEmptyDetails = (details) => {
-    console.log(details);
     if (!details.name || details.name == "") details.name = "NA";
     if (!details.phoneNo || details.phoneNo == "") details.phoneNo = "NA";
     if (!details.address || details.address == "") details.address = "NA";
@@ -146,8 +156,6 @@ export default function AddOrderPage({ }) {
     }
     setIsLoading(true);
     try {
-      console.log(handleEmptyDetails(senderDetails));
-      console.log(handleEmptyDetails(receiverDetails));
       const token = localStorage.getItem("token");
       const response = await fetch(`${BASE_URL}/api/parcel/new`, {
         method: "POST",
@@ -178,12 +186,11 @@ export default function AddOrderPage({ }) {
       console.error("Error adding order:", error);
       alert("Network error occurred");
     } finally {
-      setIsLoading(false); // Stop loading spinner
+      setIsLoading(false);
     }
   };
 
   const handleSenderChange = (event, selectedOption) => {
-    console.log(senderDetails);
     if (selectedOption.name) {
       setSenderDetails({
         ...senderDetails,
@@ -192,7 +199,6 @@ export default function AddOrderPage({ }) {
         address: selectedOption.address,
       });
     } else {
-      console.log(event.target.value);
       setSenderDetails({
         ...senderDetails,
         name: event.target.value,
@@ -209,7 +215,6 @@ export default function AddOrderPage({ }) {
         address: selectedOption.address,
       });
     } else {
-      console.log(event.target.value);
       setReceiverDetails({
         ...receiverDetails,
         name: event.target.value,
@@ -217,31 +222,51 @@ export default function AddOrderPage({ }) {
     }
   };
 
-
   return (
-    <Box sx={{ padding: "20px", margin: "auto", backgroundColor: "#ffffff", color: "#1b3655" }}>
-      <Typography variant="h4" sx={{ marginBottom: "20px", textAlign: "center", color: "#1c3553" }}>
+    <Box
+      sx={{
+        padding: "20px",
+        margin: "auto",
+        backgroundColor: "#ffffff",
+        color: "#1b3655",
+      }}
+    >
+      <Typography
+        variant="h4"
+        sx={{ marginBottom: "20px", textAlign: "center", color: "#1c3553" }}
+      >
         Add Order
       </Typography>
 
-      <Box sx={{ display: "grid", gap: "12px", gridTemplateColumns: "repeat(3, 1fr)" }}>
+      <Box
+        sx={{
+          display: "grid",
+          gap: "12px",
+          gridTemplateColumns: "repeat(3, 1fr)",
+        }}
+      >
         <Autocomplete
           freeSolo
-          options={clients} // Pass full client objects
-          getOptionLabel={(option) => option.name || senderDetails.name} // Display only name
-          value={clients.find((client) => client.name === senderDetails.name) || senderDetails.name} // Match full object
-          onChange={(event, newValue) => handleSenderChange(event, newValue)} // Pass `newValue` (selectedOption)
-          renderInput={(params) => <TextField {...params} label="Sender's Name" />}
-          disableClearable // Disables the "x" (clear) button
+          options={clients}
+          getOptionLabel={(option) => option.name || senderDetails.name}
+          value={
+            clients.find((client) => client.name === senderDetails.name) ||
+            senderDetails.name
+          }
+          onChange={(event, newValue) => handleSenderChange(event, newValue)}
+          renderInput={(params) => (
+            <TextField {...params} label="Sender's Name" />
+          )}
+          disableClearable
           slots={{
             paper: (props) => (
               <div
                 {...props}
                 style={{
-                  overflowY: 'auto',
-                  backgroundColor: '#f7f9fc',
-                  color: 'black',
-                  border: "1px solid black"
+                  overflowY: "auto",
+                  backgroundColor: "#f7f9fc",
+                  color: "black",
+                  border: "1px solid black",
                 }}
               />
             ),
@@ -251,31 +276,40 @@ export default function AddOrderPage({ }) {
           label="Sender's Phone No."
           value={senderDetails.phoneNo}
           name="phoneNo"
-          onChange={(e) => setSenderDetails({ ...senderDetails, phoneNo: e.target.value })}
+          onChange={(e) =>
+            setSenderDetails({ ...senderDetails, phoneNo: e.target.value })
+          }
         />
         <TextField
           label="Sender's Address"
           value={senderDetails.address}
           name="address"
-          onChange={(e) => setSenderDetails({ ...senderDetails, address: e.target.value })}
+          onChange={(e) =>
+            setSenderDetails({ ...senderDetails, address: e.target.value })
+          }
         />
         <Autocomplete
           freeSolo
-          options={clients} // Pass full client objects
-          getOptionLabel={(option) => option.name || receiverDetails.name} // Display only name
-          value={clients.find((client) => client.name === receiverDetails.name) || receiverDetails.name} // Match full object
-          onChange={(event, newValue) => handleReceiverChange(event, newValue)} // Pass `newValue` (selectedOption)
-          renderInput={(params) => <TextField {...params} label="Receiver's Name" />}
-          disableClearable // Disables the "x" (clear) button
+          options={clients}
+          getOptionLabel={(option) => option.name || receiverDetails.name}
+          value={
+            clients.find((client) => client.name === receiverDetails.name) ||
+            receiverDetails.name
+          }
+          onChange={(event, newValue) => handleReceiverChange(event, newValue)}
+          renderInput={(params) => (
+            <TextField {...params} label="Receiver's Name" />
+          )}
+          disableClearable
           slots={{
             paper: (props) => (
               <div
                 {...props}
                 style={{
-                  overflowY: 'auto',
-                  backgroundColor: '#f7f9fc',
-                  color: 'black',
-                  border: "1px solid black"
+                  overflowY: "auto",
+                  backgroundColor: "#f7f9fc",
+                  color: "black",
+                  border: "1px solid black",
                 }}
               />
             ),
@@ -285,13 +319,17 @@ export default function AddOrderPage({ }) {
           label="Receiver's Phone No."
           value={receiverDetails.phoneNo}
           name="phoneNo"
-          onChange={(e) => setReceiverDetails({ ...receiverDetails, phoneNo: e.target.value })}
+          onChange={(e) =>
+            setReceiverDetails({ ...receiverDetails, phoneNo: e.target.value })
+          }
         />
         <TextField
           label="Receiver's Address"
           value={receiverDetails.address}
           name="address"
-          onChange={(e) => setReceiverDetails({ ...receiverDetails, address: e.target.value })}
+          onChange={(e) =>
+            setReceiverDetails({ ...receiverDetails, address: e.target.value })
+          }
         />
         <TextField
           label="Freight"
@@ -319,9 +357,13 @@ export default function AddOrderPage({ }) {
             onChange={(e) => setDestinationWarehouse(e.target.value)}
             error={error && !destinationWarehouse}
           >
-            {allWarehouse.filter(w => !w.isSource).map(w => (
-              <MenuItem key={w.warehouseID} value={w.warehouseID}>{w.name}</MenuItem>
-            ))}
+            {allWarehouse
+              .filter((w) => !w.isSource)
+              .map((w) => (
+                <MenuItem key={w.warehouseID} value={w.warehouseID}>
+                  {w.name}
+                </MenuItem>
+              ))}
           </Select>
         </FormControl>
         {isAdmin && (
@@ -333,9 +375,13 @@ export default function AddOrderPage({ }) {
               onChange={(e) => setSourceWarehouse(e.target.value)}
               error={error && !sourceWarehouse}
             >
-              {allWarehouse.filter(w => w.isSource).map(w => (
-                <MenuItem key={w.warehouseID} value={w.warehouseID}>{w.name}</MenuItem>
-              ))}
+              {allWarehouse
+                .filter((w) => w.isSource)
+                .map((w) => (
+                  <MenuItem key={w.warehouseID} value={w.warehouseID}>
+                    {w.name}
+                  </MenuItem>
+                ))}
             </Select>
           </FormControl>
         )}
@@ -376,15 +422,15 @@ export default function AddOrderPage({ }) {
                 <TableCell>{item.id}</TableCell>
                 <TableCell>
                   <Autocomplete
-                    value={item.name} // Set the value to item.name
-                    options={regItems.map((item) => item.name)} // Populate options from regItems' names
+                    value={item.name}
+                    options={regItems.map((item) => item.name)}
                     onChange={(event, newValue) => {
-                      handleInputChange(item.id, "name", newValue); // Directly update item.name on selection
+                      handleInputChange(item.id, "name", newValue);
                     }}
                     onInputChange={(event, newValue) => {
-                      handleInputChange(item.id, "name", newValue); // Directly update item.name on selection
+                      handleInputChange(item.id, "name", newValue);
                     }}
-                    getOptionLabel={(option) => option || item.name} // Use option as is (name)
+                    getOptionLabel={(option) => option || item.name}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -400,19 +446,18 @@ export default function AddOrderPage({ }) {
                           },
                           width: "300px",
                         }}
-
                       />
                     )}
-                    disableClearable // Disable the clear button
+                    disableClearable
                     slots={{
                       paper: (props) => (
                         <div
                           {...props}
                           style={{
-                            overflowY: 'auto',
-                            backgroundColor: '#f7f9fc',
-                            color: 'black',
-                            border: "1px solid black"
+                            overflowY: "auto",
+                            backgroundColor: "#f7f9fc",
+                            color: "black",
+                            border: "1px solid black",
                           }}
                         />
                       ),
@@ -465,7 +510,11 @@ export default function AddOrderPage({ }) {
       </Box>
 
       <Box className="button-wrapper">
-        <button className="button button-large" onClick={handleAddOrder} disabled={isLoading}>
+        <button
+          className="button button-large"
+          onClick={handleAddOrder}
+          disabled={isLoading}
+        >
           Add Order
           {isLoading && (
             <CircularProgress
@@ -476,8 +525,6 @@ export default function AddOrderPage({ }) {
           )}
         </button>
       </Box>
-
-
     </Box>
   );
 }

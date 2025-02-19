@@ -8,43 +8,37 @@ const ForgetPasswordPage = () => {
   const navigate = useNavigate();
 
   const [forgetUsername, setForgetUsername] = useState("");
-  const {
-    setIsForgetUsernameSubmitted,
-    setIsOtpVerified,
-  } = useAuth();
-  
+  const { setIsForgetUsernameSubmitted, setIsOtpVerified } = useAuth();
+
   useEffect(() => {
     setIsForgetUsernameSubmitted(false);
     setIsOtpVerified(false);
   }, []);
-  
+
   const handleLogin = async (event) => {
     event.preventDefault();
-    console.log(forgetUsername);
     const res = await fetch(`${BASE_URL}/api/auth/get-otp`, {
-      method:"POST",
-      headers:{
+      method: "POST",
+      headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         username: forgetUsername,
-      })
+      }),
     });
     const data = await res.json();
-    console.log(data);
-    if (res.ok){
-      if (data.flag){
-        alert("Sent OTP to Mobile Number: xxxx"+data.phoneNo.slice(7));
+    if (res.ok) {
+      if (data.flag) {
+        alert("Sent OTP to Mobile Number: xxxx" + data.phoneNo.slice(7));
         setIsForgetUsernameSubmitted(true);
-        navigate("/auth/otp", { state: { username: forgetUsername,  phoneNo: data.phoneNo } });
-      }
-      else{
+        navigate("/auth/otp", {
+          state: { username: forgetUsername, phoneNo: data.phoneNo },
+        });
+      } else {
         alert("No such user exist");
       }
     }
-
   };
-
 
   return (
     <div>

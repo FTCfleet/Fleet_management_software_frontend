@@ -46,13 +46,11 @@ const AllEmployeePage = () => {
 
   useEffect(() => {
     setFilteredEmployees(employees);
-    // console.log(employees[0]);
   }, [employees]);
 
   const fetchWarehouses = async () => {
     const res = await fetch(`${BASE_URL}/api/warehouse/get-all`);
     const data = await res.json();
-    console.log(data);
     setWarehouses(data.body);
   };
 
@@ -68,7 +66,6 @@ const AllEmployeePage = () => {
       },
     });
     const data = await res.json();
-    console.log(data.body);
     setEmployees(data.body);
     setIsLoading(false);
   };
@@ -125,7 +122,6 @@ const AllEmployeePage = () => {
     });
 
     const data = await res.json();
-    console.log(data);
     setIsLoading2(false);
     setDeleteModalOpen(false);
     fetchData();
@@ -139,8 +135,6 @@ const AllEmployeePage = () => {
 
   const handleSave = async () => {
     setIsLoading1(true);
-    console.log(currentEmployee);
-    // return;
     const token = localStorage.getItem("token");
     const res = await fetch(`${BASE_URL}/api/admin/manage/employee`, {
       method: "PUT",
@@ -159,7 +153,6 @@ const AllEmployeePage = () => {
     });
 
     const data = await res.json();
-    console.log(data);
     setIsLoading1(false);
     fetchData();
     setIsModalOpen(false);
@@ -171,12 +164,10 @@ const AllEmployeePage = () => {
   };
 
   const handleFieldChange = (field, value) => {
-    if(field === 'warehouseCode') {
-      console.log(currentEmployee.warehouseCode);
+    if (field === "warehouseCode") {
     }
     setCurrentEmployee({ ...currentEmployee, [field]: value });
-    if(field === 'warehouseCode') {
-      console.log(currentEmployee.warehouseCode);
+    if (field === "warehouseCode") {
     }
   };
 

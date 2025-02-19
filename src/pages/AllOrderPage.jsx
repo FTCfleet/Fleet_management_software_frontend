@@ -16,16 +16,16 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
-import "../css/table.css"; // Import CSS
-import "../css/calendar.css"; // Import Calendar CSS
-import { IoArrowForwardCircleOutline } from "react-icons/io5"; // Icon for View Ledger
-import { useAuth } from "../routes/AuthContext"
+import "../css/table.css";
+import "../css/calendar.css";
+import { IoArrowForwardCircleOutline } from "react-icons/io5";
+import { useAuth } from "../routes/AuthContext";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const AllOrderPage = () => {
-  const { type } = useParams(); // Retrieve the type (all, dispatched, etc.) from the URL
-  const [orders, setOrders] = useState([]); // All orders
+  const { type } = useParams();
+  const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [selectedDate, setSelectedDate] = useState(
     () => new Date().toISOString().split("T")[0]
@@ -35,7 +35,11 @@ const AllOrderPage = () => {
   const [nameFilter, setNameFilter] = useState("");
   const [warehouseFilter, setWarehouseFilter] = useState("");
   const navigate = useNavigate();
-  const cellStyle = { color: "#1E3A5F", fontWeight: "bold", textAlign: "center" };
+  const cellStyle = {
+    color: "#1E3A5F",
+    fontWeight: "bold",
+    textAlign: "center",
+  };
   const rowCellStyle = { color: "#25344E", textAlign: "center" };
   const [isLoading, setIsLoading] = useState(false);
 
@@ -67,7 +71,6 @@ const AllOrderPage = () => {
       }
 
       const data = await response.json();
-      console.log(data);
       if (!data.flag) {
         alert("Please login first");
         return;
@@ -81,8 +84,11 @@ const AllOrderPage = () => {
         },
       });
       const data2 = await res.json();
-      console.log(data2);
-      setWarehouses((data2.body).filter((warehouse) => (warehouse.isSource !== isSource || isAdmin) ));
+      setWarehouses(
+        data2.body.filter(
+          (warehouse) => warehouse.isSource !== isSource || isAdmin
+        )
+      );
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
@@ -95,15 +101,12 @@ const AllOrderPage = () => {
     } else {
       setFilteredOrders(orders.filter((order) => order.status === type));
     }
-    console.log(filteredOrders);
   };
 
   const applyFilter = () => {
-    let filtered = orders.filter((order) => order.status === type || type === "all");
-    console.log(orders);
-    console.log(filtered);
-    console.log(nameFilter, warehouseFilter);
-    // Apply name filter
+    let filtered = orders.filter(
+      (order) => order.status === type || type === "all"
+    );
     if (nameFilter) {
       filtered = filtered.filter(
         (order) =>
@@ -112,7 +115,6 @@ const AllOrderPage = () => {
       );
     }
 
-    // Apply warehouse filter
     if (warehouseFilter) {
       filtered = filtered.filter(
         (order) =>
@@ -120,14 +122,15 @@ const AllOrderPage = () => {
           order.destinationWarehouse.name === warehouseFilter
       );
     }
-    console.log(filtered);
     setFilteredOrders(filtered);
   };
 
   const clearFilter = () => {
     setNameFilter("");
     setWarehouseFilter("");
-    let filtered = orders.filter((order) => order.status === type || type === "all");
+    let filtered = orders.filter(
+      (order) => order.status === type || type === "all"
+    );
     setFilteredOrders(filtered);
   };
 
@@ -215,89 +218,89 @@ const AllOrderPage = () => {
             <TableRow>
               <TableCell sx={cellStyle}>Order ID</TableCell>
               <TableCell sx={cellStyle}>{"Sender's\nName"}</TableCell>
-              <TableCell sx={cellStyle}>
-                {"Receiver's Name"}
-              </TableCell>
-              {isAdmin ?
-                (<>
+              <TableCell sx={cellStyle}>{"Receiver's Name"}</TableCell>
+              {isAdmin ? (
+                <>
                   <TableCell sx={cellStyle}>
-                    {("Source") + "\n" + "Warehouse"}
+                    {"Source" + "\n" + "Warehouse"}
                   </TableCell>
                   <TableCell sx={cellStyle}>
-                    {("Destination") + "\n" + "Warehouse"}
+                    {"Destination" + "\n" + "Warehouse"}
                   </TableCell>
-                </>) :
+                </>
+              ) : (
                 <TableCell sx={cellStyle}>
                   {(isSource ? "Destination" : "Source") + "\n" + "Warehouse"}
-                </TableCell>}
+                </TableCell>
+              )}
               <TableCell sx={cellStyle}>Status</TableCell>
               <TableCell sx={cellStyle}>View Order</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {isLoading ? (<TableRow>
-              <TableCell colSpan={7} align="center">
-                <CircularProgress
-                  size={22}
-                  className="spinner"
-                  sx={{ color: "#1E3A5F", animation: "none !important" }}
-                />
-              </TableCell>
-            </TableRow>) :
-              filteredOrders.length > 0 ? (
-                filteredOrders.map((order) => (
-                  <TableRow key={order.trackingId}>
-                    <TableCell sx={rowCellStyle}>
-                      {order.trackingId}
-                    </TableCell>
-                    <TableCell sx={rowCellStyle}>
-                      {order.sender.name}
-                    </TableCell>
-                    <TableCell sx={rowCellStyle}>
-                      {order.receiver.name}
-                    </TableCell>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  <CircularProgress
+                    size={22}
+                    className="spinner"
+                    sx={{ color: "#1E3A5F", animation: "none !important" }}
+                  />
+                </TableCell>
+              </TableRow>
+            ) : filteredOrders.length > 0 ? (
+              filteredOrders.map((order) => (
+                <TableRow key={order.trackingId}>
+                  <TableCell sx={rowCellStyle}>{order.trackingId}</TableCell>
+                  <TableCell sx={rowCellStyle}>{order.sender.name}</TableCell>
+                  <TableCell sx={rowCellStyle}>{order.receiver.name}</TableCell>
 
-                    {isAdmin ? (<>
+                  {isAdmin ? (
+                    <>
                       <TableCell sx={rowCellStyle}>
                         {order.sourceWarehouse.name}
                       </TableCell>
                       <TableCell sx={rowCellStyle}>
                         {order.destinationWarehouse.name}
                       </TableCell>
-                    </>)
-                      : (<TableCell sx={rowCellStyle}>
-                        {isSource ? order.destinationWarehouse.name : order.sourceWarehouse.name}
-                      </TableCell>)}
-                    <TableCell>
-                      <span className={`table-status ${order.status}`}>
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                      </span>
+                    </>
+                  ) : (
+                    <TableCell sx={rowCellStyle}>
+                      {isSource
+                        ? order.destinationWarehouse.name
+                        : order.sourceWarehouse.name}
                     </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="outlined"
-                        sx={{
-                          textTransform: "none",
-                          color: "#1E3A5F",
-                          borderColor: "#1E3A5F",
-                        }}
-                        onClick={() =>
-                          navigate(`/user/view/order/${order.trackingId}`)
-                        }
-                      >
-                        <IoArrowForwardCircleOutline size={24} />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ color: "#7D8695" }}>
-                    No orders found for the selected date.
+                  )}
+                  <TableCell>
+                    <span className={`table-status ${order.status}`}>
+                      {order.status.charAt(0).toUpperCase() +
+                        order.status.slice(1)}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outlined"
+                      sx={{
+                        textTransform: "none",
+                        color: "#1E3A5F",
+                        borderColor: "#1E3A5F",
+                      }}
+                      onClick={() =>
+                        navigate(`/user/view/order/${order.trackingId}`)
+                      }
+                    >
+                      <IoArrowForwardCircleOutline size={24} />
+                    </Button>
                   </TableCell>
                 </TableRow>
-              )
-            }
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={7} align="center" sx={{ color: "#7D8695" }}>
+                  No orders found for the selected date.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>

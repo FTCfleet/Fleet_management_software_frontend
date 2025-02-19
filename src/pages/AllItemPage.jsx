@@ -14,74 +14,23 @@ import {
   TableRow,
   TextField,
 } from "@mui/material";
-import { Edit, Delete, Close, Add } from "@mui/icons-material";
-import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
+import { Edit, Delete, Add } from "@mui/icons-material";
 import "../css/main.css";
 
-const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
-const rowStyle = { color: "#25344E" };
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function AllItemPage() {
-  /*
-  const [items, setItems] = useState([
-    "Shadow Dagger",
-    "Crystal Fang",
-    "Ember Amulet",
-    "Storm Bracer",
-    "Lunar Cloak",
-    "Phantom Ring",
-    "Iron Gauntlet",
-    "Mystic Orb",
-    "Frost Charm",
-    "Arcane Staff",
-    "Dragon Relic",
-    "Thunder Axe",
-    "Twilight Pendant",
-    "Venom Spear",
-    "Obsidian Helm",
-    "Celestial Robe",
-    "Inferno Blade",
-    "Serpent Bow",
-    "Star Compass",
-    "Echo Talisman",
-    "Void Lantern",
-    "Ice Scepter",
-    "Shadow Band",
-    "Titan Shield",
-    "Sapphire Rune",
-    "Warlock Grimoire",
-    "Radiant Torch",
-    "Cursed Crown",
-    "Spirit Totem",
-    "Crimson Fang",
-    "Ghost Lantern",
-    "Frozen Gauntlet",
-    "Phoenix Feather",
-    "Eldritch Tome",
-    "Eternal Relic",
-    "Dusk Amulet",
-    "Solar Ring",
-    "Gravity Orb",
-    "Abyss Mask",
-    "Sacred Arrow",
-    "Storm Gauntlet",
-    "Midnight Cloak",
-  ]);
-  */
-
   const [rows, setRows] = useState([]);
   const [editing, setEditing] = useState(false);
   const [openAddDialog, setOpenAddDialog] = useState(false);
-  const selected = useRef(new Set()); // Using Set for O(1) lookups
-  const [newItemNames, setNewItemNames] = useState([""]); // Array of input fields
+  const selected = useRef(new Set());
+  const [newItemNames, setNewItemNames] = useState([""]);
   const [delCounter, setDelCounter] = useState(0);
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  // Split items into rows of 3 columns
   const chunkArray = (arr, size) =>
     arr.length > 0
       ? arr.reduce(
@@ -107,12 +56,9 @@ export default function AllItemPage() {
       });
   };
 
-  // const rows = chunkArray(items, 3);
-
-  // Selection handling
   const handleSelect = (itemName) => {
     if (!selected.current.has(itemName)) {
-      selected.current.add(itemName); // O(1) insertion
+      selected.current.add(itemName);
       setDelCounter(delCounter + 1);
     } else {
       selected.current.delete(itemName);
@@ -120,11 +66,9 @@ export default function AllItemPage() {
     }
   };
 
-  // Delete selected items
   const handleDelete = () => {
     const token = localStorage.getItem("token");
-    // console.log(Array.from(selected));
-    // console.log(selected);
+
     fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
       method: "DELETE",
       headers: {
@@ -137,7 +81,6 @@ export default function AllItemPage() {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
         if (data.flag) {
           fetchData();
           selected.current = new Set();
@@ -147,7 +90,6 @@ export default function AllItemPage() {
       });
   };
 
-  // Add new items
   const handleAddItems = () => {
     const validItems = newItemNames
       .map((name) => name.trim())
@@ -177,7 +119,6 @@ export default function AllItemPage() {
       });
   };
 
-  // Handle dynamic input fields
   const handleInputChange = (index, value) => {
     setNewItemNames((prev) => {
       const newNames = [...prev];
@@ -214,13 +155,13 @@ export default function AllItemPage() {
           display: "flex",
           justifyContent: "space-between",
           paddingLeft: "10px",
-          paddingRight: "30px"
+          paddingRight: "30px",
         }}
       >
         <div>
           <h1>Items</h1>
         </div>
-        <div style={{alignContent: "center"}}>
+        <div style={{ alignContent: "center" }}>
           {!editing && (
             <>
               <Button
@@ -228,7 +169,7 @@ export default function AllItemPage() {
                 startIcon={<Add />}
                 onClick={handleOpen}
                 style={{ marginRight: "10px" }}
-                >
+              >
                 Add
               </Button>
               <Button
@@ -236,7 +177,7 @@ export default function AllItemPage() {
                 color="primary"
                 startIcon={<Edit />}
                 onClick={() => setEditing(!editing)}
-                >
+              >
                 {"Edit"}
               </Button>
             </>
@@ -311,7 +252,9 @@ export default function AllItemPage() {
               label={`Item ${index + 1}`}
               variant="standard"
               value={name}
-              onChange={(e) => handleInputChange(index, e.target.value.toUpperCase())}
+              onChange={(e) =>
+                handleInputChange(index, e.target.value.toUpperCase())
+              }
               sx={{ mb: 2 }}
             />
           ))}

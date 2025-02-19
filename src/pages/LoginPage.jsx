@@ -1,7 +1,6 @@
 import { React, useEffect, useState } from "react";
 import styles from "../css/auth_card.module.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../routes/AuthContext";
 import { CircularProgress } from "@mui/material";
 
@@ -13,7 +12,6 @@ const LoginPage = () => {
   const [userVal, setuserVal] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { resetForgetAuth, checkAuthStatus } = useAuth();
-  const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setPasswordVisible((prevState) => !prevState);

@@ -60,14 +60,11 @@ export default function AllClientPage() {
     setIsLoading(false);
   };
 
-  // Filters
   const applyFilter = () => {
     const filtered = clients.filter((client) => {
-      return (
-        (nameFilter
-          ? client.name.toLowerCase().includes(nameFilter.toLowerCase())
-          : true)
-      );
+      return nameFilter
+        ? client.name.toLowerCase().includes(nameFilter.toLowerCase())
+        : true;
     });
     setFilteredClients(filtered);
   };
@@ -85,7 +82,6 @@ export default function AllClientPage() {
 
   const handleDelete = (id) => {
     setClientToDelete(id);
-    console.log(id);
     setDeleteModalOpen(true);
   };
 
@@ -124,7 +120,6 @@ export default function AllClientPage() {
 
   const handleSaveOrAdd = async () => {
     setIsLoading1(true);
-    console.log(currentClient._id);
     const token = localStorage.getItem("token");
     let method, body;
     if (isAdding) {
@@ -132,7 +127,9 @@ export default function AllClientPage() {
       body = {
         name: currentClient.name.toUpperCase(),
         phoneNo: currentClient.phoneNo ? currentClient.phoneNo : "NA",
-        address: currentClient.address ? currentClient.address.toUpperCase() : "NA",
+        address: currentClient.address
+          ? currentClient.address.toUpperCase()
+          : "NA",
       };
     } else {
       method = "PUT";
@@ -140,7 +137,9 @@ export default function AllClientPage() {
         id: currentClient._id,
         updates: {
           phoneNo: currentClient.phoneNo ? currentClient.phoneNo : "NA",
-          address: currentClient.address ? currentClient.address.toUpperCase() : "NA",
+          address: currentClient.address
+            ? currentClient.address.toUpperCase()
+            : "NA",
         },
       };
     }
@@ -154,7 +153,6 @@ export default function AllClientPage() {
     });
 
     const data = await res.json();
-    console.log(data);
     fetchData();
     setIsLoading1(false);
     setIsModalOpen(false);
@@ -207,22 +205,27 @@ export default function AllClientPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {isLoading ? (<TableRow>
-              <TableCell colSpan={7} align="center">
-                <CircularProgress
-                  size={22}
-                  className="spinner"
-                  sx={{ color: "#1E3A5F", animation: "none !important" }}
-                />
-              </TableCell>
-            </TableRow>) :
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  <CircularProgress
+                    size={22}
+                    className="spinner"
+                    sx={{ color: "#1E3A5F", animation: "none !important" }}
+                  />
+                </TableCell>
+              </TableRow>
+            ) : (
               filteredClients.map((client) => (
                 <TableRow key={client._id}>
                   <TableCell sx={rowStyle}>{client.name}</TableCell>
                   <TableCell sx={rowStyle}>{client.phoneNo}</TableCell>
                   <TableCell sx={rowStyle}>{client.address}</TableCell>
                   <TableCell>
-                    <IconButton color="primary" onClick={() => handleEdit(client)}>
+                    <IconButton
+                      color="primary"
+                      onClick={() => handleEdit(client)}
+                    >
                       <Edit />
                     </IconButton>
                     <IconButton
@@ -233,7 +236,8 @@ export default function AllClientPage() {
                     </IconButton>
                   </TableCell>
                 </TableRow>
-              ))}
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>
@@ -272,7 +276,9 @@ export default function AllClientPage() {
                 fullWidth
                 label="Client Name"
                 value={currentClient.name}
-                onChange={(e) => handleFieldChange("name", e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  handleFieldChange("name", e.target.value.toUpperCase())
+                }
                 sx={{ marginBottom: "16px" }}
                 disabled={!isAdding}
               />
@@ -287,7 +293,9 @@ export default function AllClientPage() {
                 fullWidth
                 label="Client Address"
                 value={currentClient.address}
-                onChange={(e) => handleFieldChange("address", e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  handleFieldChange("address", e.target.value.toUpperCase())
+                }
                 sx={{ marginBottom: "16px" }}
               />
               <Box
@@ -301,7 +309,8 @@ export default function AllClientPage() {
                   className="button button-large"
                   onClick={handleSaveOrAdd}
                 >
-                  {isAdding ? "Add" : "Save"} {isLoading1 && (
+                  {isAdding ? "Add" : "Save"}{" "}
+                  {isLoading1 && (
                     <CircularProgress
                       size={22}
                       className="spinner"
@@ -370,7 +379,8 @@ export default function AllClientPage() {
               startIcon={<FaTrash />}
               onClick={confirmDelete}
             >
-              Delete {isLoading2 && (
+              Delete{" "}
+              {isLoading2 && (
                 <CircularProgress
                   size={22}
                   className="spinner"
