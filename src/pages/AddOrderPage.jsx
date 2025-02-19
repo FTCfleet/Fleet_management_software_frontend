@@ -35,7 +35,7 @@ export default function AddOrderPage({ }) {
   const [hamali, setHamali] = useState(0);
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [clients, setClients] = useState([]);
-  const [regItems , setregItems] = useState([]);
+  const [regItems, setregItems] = useState([]);
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const { isAdmin } = useAuth();
@@ -73,7 +73,7 @@ export default function AddOrderPage({ }) {
       },
     });
     const data = await res.json();
-    setClients(data.body);
+    setregItems(data.body);
   }
 
   const fetchWarehouse = async () => {
@@ -109,6 +109,7 @@ export default function AddOrderPage({ }) {
   };
 
   const handleInputChange = (id, field, value) => {
+    console.log(value);
     if (field === "quantity") {
       value = parseInt(value) || 0;
     }
@@ -237,10 +238,10 @@ export default function AddOrderPage({ }) {
               <div
                 {...props}
                 style={{
-                  // maxHeight: 200,
                   overflowY: 'auto',
-                  backgroundColor: '#1E3A5F',
-                  color: '#fff'
+                  backgroundColor: '#f7f9fc',
+                  color: 'black',
+                  border: "1px solid black"
                 }}
               />
             ),
@@ -271,10 +272,10 @@ export default function AddOrderPage({ }) {
               <div
                 {...props}
                 style={{
-                  // maxHeight: 200,
                   overflowY: 'auto',
-                  backgroundColor: '#1E3A5F',
-                  color: '#fff'
+                  backgroundColor: '#f7f9fc',
+                  color: 'black',
+                  border: "1px solid black"
                 }}
               />
             ),
@@ -377,10 +378,13 @@ export default function AddOrderPage({ }) {
                   <Autocomplete
                     value={item.name} // Set the value to item.name
                     options={regItems.map((item) => item.name)} // Populate options from regItems' names
-                    onClick={(event, newValue) => {
-                      handleInputChange(item.id , "name" , newValue); // Directly update item.name on selection
+                    onChange={(event, newValue) => {
+                      handleInputChange(item.id, "name", newValue); // Directly update item.name on selection
                     }}
-                    getOptionLabel={(option) => option} // Use option as is (name)
+                    onInputChange={(event, newValue) => {
+                      handleInputChange(item.id, "name", newValue); // Directly update item.name on selection
+                    }}
+                    getOptionLabel={(option) => option || item.name} // Use option as is (name)
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -396,7 +400,7 @@ export default function AddOrderPage({ }) {
                           },
                           width: "300px",
                         }}
-                        
+
                       />
                     )}
                     disableClearable // Disable the clear button
@@ -405,10 +409,10 @@ export default function AddOrderPage({ }) {
                         <div
                           {...props}
                           style={{
-                            maxHeight: 200,
                             overflowY: 'auto',
-                            backgroundColor: '#1E3A5F',
-                            color: '#fff',
+                            backgroundColor: '#f7f9fc',
+                            color: 'black',
+                            border: "1px solid black"
                           }}
                         />
                       ),

@@ -311,7 +311,7 @@ export default function AllItemPage() {
               label={`Item ${index + 1}`}
               variant="standard"
               value={name}
-              onChange={(e) => handleInputChange(index, e.target.value)}
+              onChange={(e) => handleInputChange(index, e.target.value.toUpperCase())}
               sx={{ mb: 2 }}
             />
           ))}

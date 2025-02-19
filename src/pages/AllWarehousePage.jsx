@@ -347,7 +347,7 @@ export default function AllWarehousePage() {
                 fullWidth
                 label="Warehouse Code"
                 value={currentWarehouse.warehouseID}
-                onChange={(e) => handleFieldChange("warehouseCode", e.target.value)}
+                onChange={(e) => handleFieldChange("warehouseID", e.target.value.toUpperCase())}
                 disabled={!isAdding}
                 sx={{ marginBottom: "16px" }}
               />

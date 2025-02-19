@@ -17,6 +17,7 @@ import {
   Modal,
   Button,
   CircularProgress,
+  Autocomplete,
 } from "@mui/material";
 import {
   FaCopy,
@@ -28,6 +29,7 @@ import {
 import { Delete } from "@mui/icons-material";
 import { useAuth } from "../routes/AuthContext";
 import "../css/main.css";
+import Loading from "../components/Loading";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -36,12 +38,13 @@ export default function EditOrderPage() {
   const [oldItems, setOldItems] = useState([]);
   const [delItems, setDelItems] = useState([]);
   const [newItems, setNewItems] = useState([]);
-  const [senderDetails, setSenderDetails] = useState({});
-  const [receiverDetails, setReceiverDetails] = useState({});
+  const [senderDetails, setSenderDetails] = useState({ name: "", phoneNo: "", address: "", role: "sender" });
+  const [receiverDetails, setReceiverDetails] = useState({ name: "", phoneNo: "", address: "", role: "receiver" });
   const [charges, setCharges] = useState(0);
   const [freight, setFreight] = useState(0);
   const [hamali, setHamali] = useState(0);
   const [clients, setClients] = useState([]);
+  const [regItems, setregItems] = useState([]);
   const [status, setStatus] = useState("");
   const [counter, setCounter] = useState(0);
   const [sourceWarehouse, setSourceWarehouse] = useState("");
@@ -61,6 +64,7 @@ export default function EditOrderPage() {
     fetchWarehouse();
     fetchData();
     fetchClients();
+    fetchItems();
   }, []);
 
   const fetchClients = async () => {
@@ -84,6 +88,20 @@ export default function EditOrderPage() {
       setAllWarehouse(data.body);
     }
   };
+
+  const fetchItems = async () => {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    setregItems(data.body);
+  }
 
   const fetchData = async () => {
     const token = localStorage.getItem("token");
@@ -177,6 +195,7 @@ export default function EditOrderPage() {
   };
 
   const handleInputChange = (itemId, field, value) => {
+    console.log(value);
     setNewItems(
       newItems.map((item) =>
         item.itemId === itemId ? { ...item, [field]: value } : item
@@ -287,10 +306,10 @@ export default function EditOrderPage() {
               <div
                 {...props}
                 style={{
-                  // maxHeight: 200,
                   overflowY: 'auto',
-                  backgroundColor: '#1E3A5F',
-                  color: '#fff'
+                  backgroundColor: '#f7f9fc',
+                  color: 'black',
+                  border: "1px solid black"
                 }}
               />
             ),
@@ -322,8 +341,9 @@ export default function EditOrderPage() {
                 {...props}
                 style={{
                   overflowY: 'auto',
-                  backgroundColor: '#1E3A5F',
-                  color: '#fff'
+                  backgroundColor: '#f7f9fc',
+                  color: 'black',
+                  border: "1px solid black"
                 }}
               />
             ),
@@ -485,16 +505,48 @@ export default function EditOrderPage() {
               <TableRow key={item.itemId}>
                 <TableCell>{idx + 1}</TableCell>
                 <TableCell>
-                  <TextField
-                    value={item.name}
-                    onChange={(e) =>
-                      handleInputChange(item.itemId, "name", e.target.value)
-                    }
-                    placeholder="Enter Item Name"
-                    variant="outlined"
-                    size="small"
-                    error={error && !item.name}
-                    fullWidth
+                  <Autocomplete
+                    value={item.name} // Set the value to item.name
+                    options={regItems.map((item) => item.name)} // Populate options from regItems' names
+                    onChange={(event, newValue) => {
+                      handleInputChange(item.itemId, "name", newValue); // Directly update item.name on selection
+                    }}
+                    onInputChange={(event, newValue) => {
+                      handleInputChange(item.itemId, "name", newValue); // Directly update item.name on selection
+                    }}
+                    getOptionLabel={(option) => option || item.name} // Use option as is (name)
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter Item Name"
+                        variant="outlined"
+                        size="small"
+                        error={error && !item.name}
+                        helperText={error && !item.name ? "Required" : ""}
+                        sx={{
+                          "& .MuiInputBase-root": {
+                            fontSize: "14px",
+                            color: "#1b3655",
+                          },
+                          width: "300px",
+                        }}
+
+                      />
+                    )}
+                    disableClearable // Disable the clear button
+                    slots={{
+                      paper: (props) => (
+                        <div
+                          {...props}
+                          style={{
+                            overflowY: 'auto',
+                            backgroundColor: '#f7f9fc',
+                            color: 'black',
+                            border: "1px solid black"
+                          }}
+                        />
+                      ),
+                    }}
                   />
                 </TableCell>
                 <TableCell>

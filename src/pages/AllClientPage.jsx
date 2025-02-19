@@ -131,16 +131,16 @@ export default function AllClientPage() {
       method = "POST";
       body = {
         name: currentClient.name.toUpperCase(),
-        phoneNo: currentClient.phoneNo,
-        address: currentClient.address.name.toUpperCase(),
+        phoneNo: currentClient.phoneNo ? currentClient.phoneNo : "NA",
+        address: currentClient.address ? currentClient.address.toUpperCase() : "NA",
       };
     } else {
       method = "PUT";
       body = {
         id: currentClient._id,
         updates: {
-          phoneNo: currentClient.phoneNo,
-          address: currentClient.address.name.toUpperCase(),
+          phoneNo: currentClient.phoneNo ? currentClient.phoneNo : "NA",
+          address: currentClient.address ? currentClient.address.toUpperCase() : "NA",
         },
       };
     }
@@ -272,7 +272,7 @@ export default function AllClientPage() {
                 fullWidth
                 label="Client Name"
                 value={currentClient.name}
-                onChange={(e) => handleFieldChange("name", e.target.value)}
+                onChange={(e) => handleFieldChange("name", e.target.value.toUpperCase())}
                 sx={{ marginBottom: "16px" }}
                 disabled={!isAdding}
               />
@@ -287,7 +287,7 @@ export default function AllClientPage() {
                 fullWidth
                 label="Client Address"
                 value={currentClient.address}
-                onChange={(e) => handleFieldChange("address", e.target.value)}
+                onChange={(e) => handleFieldChange("address", e.target.value.toUpperCase())}
                 sx={{ marginBottom: "16px" }}
               />
               <Box

@@ -195,9 +195,6 @@ const Header = () => {
               <RxAvatar size="30px" style={{ margin: "5 20 0 20" }} />
             </Link>
           )}
-          <button style={{ color: "red" }} onClick={checkAuthStatus}>
-            Check
-          </button>
         </Box>
         {mobileView ? (
           <Menubutton />

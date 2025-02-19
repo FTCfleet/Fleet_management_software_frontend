@@ -32,7 +32,7 @@ const Footer = () => {
             <div className="footer-content">
                 <div>
                     <a className="footer-title" href='/'>
-                        Friends Transport
+                        Friends Transport Company
                     </a>
                 </div>
 
@@ -66,7 +66,7 @@ const Footer = () => {
 
                 <div className="footer-bottom">
                     <span>Terms & Conditions</span>
-                    <span>2025 Friends Transport</span>
+                    <span>2025 Friends Transport Company</span>
                 </div>
                 <div className="footer-bottom">
                     <span>Privacy & Cookie Statement</span>

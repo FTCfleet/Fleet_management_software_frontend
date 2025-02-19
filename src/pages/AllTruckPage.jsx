@@ -307,7 +307,7 @@ export default function AllTruckPage() {
                 fullWidth
                 label="Truck Number"
                 value={currentTruck.vehicleNo}
-                onChange={(e) => handleFieldChange("vehicleNo", e.target.value)}
+                onChange={(e) => handleFieldChange("vehicleNo", e.target.value.toUpperCase())}
                 disabled={!isAdding}
                 sx={{ marginBottom: "16px" }}
               />
