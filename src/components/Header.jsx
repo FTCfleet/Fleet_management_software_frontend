@@ -77,15 +77,15 @@ const Menubutton = () => {
                 sx={{ textDecoration: "none", color: "black" }}
                 onClick={handleClose}
               >
-                DashBoard
+                Dashboard
               </MenuItem>
             </NavLink>
-            <NavLink style={{ textDecoration: "none" }} to="/auth/login">
+            <NavLink style={{ textDecoration: "none" }} to="/user/dashboard">
               <MenuItem
                 sx={{ textDecoration: "none", color: "black" }}
-                onClick={logout}
+                onClick={handleClose}
               >
-                Logout
+                Profile
               </MenuItem>
             </NavLink>
           </div>
