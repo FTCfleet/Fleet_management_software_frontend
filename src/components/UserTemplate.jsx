@@ -155,7 +155,7 @@ const UserTemplate = () => {
       {/* Left Sidebar */}
       <Box
         sx={{
-          width: { xs: "60px", sm: "200px" },
+          width: { xs: "60px", sm: "15vw" },
           backgroundColor: "#f7f9fc",
           padding: { xs: "8px", sm: "12px" },
           minHeight: "100vh",
@@ -242,6 +242,7 @@ const UserTemplate = () => {
         sx={{
           flexGrow: 1,
           padding: "20px",
+          paddingRight: "0px",
           backgroundColor: "#ffffff",
           minHeight: "100vh",
         }}

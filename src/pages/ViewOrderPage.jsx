@@ -22,7 +22,7 @@ import {
   FaExclamationTriangle,
   FaQrcode,
 } from "react-icons/fa";
-import orders from "../assets/orders.png";
+import orders_img from "../assets/orders.png";
 import { useAuth } from "../routes/AuthContext";
 import "../css/table.css";
 import "../css/main.css";
@@ -31,17 +31,21 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function ViewOrderPage() {
   const { id } = useParams();
-  const [senderDetails, setSenderDetails] = useState({});
-  const [receiverDetails, setReceiverDetails] = useState({});
-  const [sourceWarehouse, setSourceWarehouse] = useState("");
-  const [destWarehouse, setDestWarehouse] = useState("");
-  const [status, setStatus] = useState("");
+  const [order, setOrder] = useState({
+    sender: {},
+    receiver: {},
+    sourceWarehouse: {},
+    destinationWarehouse: {},
+    items: [],
+    hamali: 0,
+    freight: 0,
+    status: "",
+    isDoorDelivery: false,
+    isPaid: false,
+    addedBy: {},
+  });
+  const [qrCode, setQrCode] = useState(0);
   const [qrCount, setQrCount] = useState(0);
-  const [charges, setCharges] = useState(0);
-  const [freight, setFreight] = useState(0);
-  const [hamali, setHamali] = useState(0);
-  const [items, setItems] = useState([]);
-  const [qrCode, setQrCode] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -75,16 +79,18 @@ export default function ViewOrderPage() {
       return;
     }
     const data = await response.json();
-    setSenderDetails(data.body.sender);
-    setReceiverDetails(data.body.receiver);
-    setSourceWarehouse(data.body.sourceWarehouse.name);
-    setDestWarehouse(data.body.destinationWarehouse.name);
-    setItems(data.body.items);
-    setCharges(data.body.charges);
-    setHamali(data.body.hamali);
-    setFreight(data.body.freight);
+    setOrder(data.body);
+    console.log(data.body);
+    // setSenderDetails(data.body.sender);
+    // setReceiverDetails(data.body.receiver);
+    // setSourceWarehouse(data.body.sourceWarehouse.name);
+    // setDestWarehouse(data.body.destinationWarehouse.name);
+    // setItems(data.body.items);
+    // setCharges(data.body.charges);
+    // setHamali(data.body.hamali);
+    // setFreight(data.body.freight);
     setQrCode(data.qrCode);
-    setStatus(data.body.status);
+    // setStatus(data.body.status);
     setIsLoading1(false);
   };
 
@@ -165,65 +171,99 @@ export default function ViewOrderPage() {
           ) : (
             <>
               <Box sx={{ display: "flex", marginBottom: "10px" }}>
-                <Box sx={{ flex: 1 }}>
+                <Box>
                   <Typography sx={rowCellStyle}>
                     <strong>Order ID:</strong> {id}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Sender's Name:</strong> {senderDetails.name}
+                    <strong>Sender's Name:</strong> {order.sender.name}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Sender's Phone:</strong> {senderDetails.phoneNo}
+                    <strong>Sender's Phone:</strong> {order.sender.phoneNo}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Sender's Address:</strong> {senderDetails.address}
+                    <strong>Sender's Address:</strong> {order.sender.address}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Source Warehouse:</strong> {sourceWarehouse}
+                    <strong>Sender's GST:</strong> {order.sender.gst}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Package:</strong> {items.length}
+                    <strong>Source Warehouse:</strong>{" "}
+                    {order.sourceWarehouse.name}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Freight:</strong> {freight}
+                    <strong>Added by:</strong> {order.addedBy.name}
                   </Typography>
                 </Box>
-                <Box sx={{ flex: 1, marginLeft: "20px" }}>
+                <Box sx={{ marginLeft: "40px" }}>
                   <Typography sx={rowCellStyle}>
                     <strong>Status:</strong>{" "}
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                    {order.status.charAt(0).toUpperCase() +
+                      order.status.slice(1)}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Receiver's Name:</strong> {receiverDetails.name}
+                    <strong>Receiver's Name:</strong> {order.receiver.name}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Receiver's Phone:</strong> {receiverDetails.phoneNo}
+                    <strong>Receiver's Phone:</strong> {order.receiver.phoneNo}
                   </Typography>
                   <Typography sx={rowCellStyle}>
                     <strong>Receiver's Address:</strong>{" "}
-                    {receiverDetails.address}
+                    {order.receiver.address}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Destination Warehouse:</strong> {destWarehouse}
+                    <strong>Receiver's GST:</strong> {order.receiver.gst}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Hamali:</strong> {hamali}
+                    <strong>Destination Warehouse:</strong>{" "}
+                    {order.destinationWarehouse.name}
+                  </Typography>
+                </Box>
+                <Box sx={{ marginLeft: "40px" }}>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Type:</strong> {order.isPaid ? "Paid" : "To Pay"}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Statistical Charges:</strong> {charges}
+                    <strong>Freight:</strong> {order.freight}
                   </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Hamali:</strong> {order.hamali}
+                  </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Statistical Charges:</strong> {order.hamali}
+                  </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Packages:</strong> {order.items.length}
+                  </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Door Delivery:</strong>
+                    {order.isDoorDelivery ? " Yes" : " No"}
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    boxSizing: "border-box",
+                    alignContent: "center",
+                    justifyContent: "center",
+                    height: "10vw",
+                    marginLeft: "60px",
+                  }}
+                >
+                  <img
+                    src={qrCode ? qrCode : orders_img}
+                    alt="Orders"
+                    style={{
+                      objectFit: "cover",
+                      borderRadius: "8px",
+                      width: "100%",
+                      height: "100%",
+                      position: "relative",
+                    }}
+                  />
                 </Box>
               </Box>
             </>
           )}
-        </Box>
-
-        <Box sx={{ flex: "0 0 150px" }}>
-          <img
-            src={qrCode ? qrCode : orders}
-            alt="Orders"
-            style={{ width: "100%", height: "auto", borderRadius: "8px" }}
-          />
         </Box>
       </Box>
 
@@ -238,9 +278,14 @@ export default function ViewOrderPage() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={cellStyle}>Sl. No.</TableCell>
+              <TableCell sx={cellStyle}>No.</TableCell>
               <TableCell sx={cellStyle}>Item Name</TableCell>
+              <TableCell sx={cellStyle}>Item Type</TableCell>
               <TableCell sx={cellStyle}>Quantity</TableCell>
+              <TableCell sx={cellStyle}>Freight</TableCell>
+              <TableCell sx={cellStyle}>Hamali</TableCell>
+              <TableCell sx={cellStyle}>Statistical Charges</TableCell>
+              <TableCell sx={cellStyle}>Amount</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -255,12 +300,19 @@ export default function ViewOrderPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              orders.length !== 0 &&
-              items.map((item, idx) => (
+              order.items.length !== 0 &&
+              order.items.map((item, idx) => (
                 <TableRow key={idx}>
                   <TableCell sx={rowCellStyle}>{idx + 1}</TableCell>
                   <TableCell sx={rowCellStyle}>{item.name}</TableCell>
+                  <TableCell sx={rowCellStyle}>{item.type}</TableCell>
                   <TableCell sx={rowCellStyle}>{item.quantity}</TableCell>
+                  <TableCell sx={rowCellStyle}>{item.freight}</TableCell>
+                  <TableCell sx={rowCellStyle}>{item.hamali}</TableCell>
+                  <TableCell sx={rowCellStyle}>{item.hamali}</TableCell>
+                  <TableCell sx={rowCellStyle}>
+                    {(item.freight + item.hamali) * item.quantity}
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -433,7 +485,11 @@ export default function ViewOrderPage() {
                 to={`${BASE_URL}/api/parcel/generate-qr/${id}?count=${qrCount}`}
                 target="_blank"
               >
-                <Button variant="contained" color="primary" onClick={() => setQrCodeModalOpen(false)}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => setQrCodeModalOpen(false)}
+                >
                   Confirm
                 </Button>
               </Link>

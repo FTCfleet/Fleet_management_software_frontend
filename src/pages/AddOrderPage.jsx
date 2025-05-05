@@ -16,6 +16,9 @@ import {
   InputLabel,
   CircularProgress,
   Autocomplete,
+  FormControlLabel,
+  Checkbox,
+  createFilterOptions
 } from "@mui/material";
 import { FaCopy, FaTrash, FaPlus } from "react-icons/fa";
 import "../css/main.css";
@@ -30,31 +33,66 @@ export default function AddOrderPage({}) {
     name: "",
     phoneNo: "",
     address: "",
+    gst: "",
     role: "sender",
   });
   const [receiverDetails, setReceiverDetails] = useState({
     name: "",
     phoneNo: "",
     address: "",
+    gst: "",
     role: "receiver",
   });
   const [error, setError] = useState(false);
-  const [charges, setCharges] = useState(0);
   const [freight, setFreight] = useState(0);
   const [hamali, setHamali] = useState(0);
   const [allWarehouse, setAllWarehouse] = useState([]);
-  const [clients, setClients] = useState([]);
-  const [regItems, setregItems] = useState([]);
+  const [regClients, setRegClients] = useState([
+    {
+      id: 1,
+      name: "Client",
+      phoneNo: "1234567890",
+      address: "123 Street, City",
+      gst: "GST123456",
+    },
+    {
+      id: 2,
+      name: "Lien 2",
+      phoneNo: "0987654321",
+      address: "456 Avenue, City",
+      gst: "GST654321",
+    },
+  ]);
+  const [regItems, setregItems] = useState([
+    {
+      id: 1,
+      name: "Item",
+      type: "gb",
+      quantity: 1,
+      freight: 30,
+      hamali: 5,
+    },
+    {
+      id: 2,
+      name: "KItem",
+      type: "gb",
+      quantity: 1,
+      freight: 30,
+      hamali: 5,
+    },
+  ]);
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [sourceWarehouse, setSourceWarehouse] = useState("");
+  const [isPaid, setIsPaid] = useState(0);
+  const [isDoorDelivery, setIsDoorDelivery] = useState(false);
   const { isAdmin } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchClients();
-    fetchWarehouse();
-    fetchItems();
+    // fetchClients();
+    // fetchWarehouse();
+    // fetchItems();
   }, []);
 
   const fetchClients = async () => {
@@ -68,7 +106,7 @@ export default function AddOrderPage({}) {
       },
     });
     const data = await res.json();
-    setClients(data.body);
+    setRegClients(data.body);
   };
 
   const fetchItems = async () => {
@@ -94,7 +132,17 @@ export default function AddOrderPage({}) {
   };
 
   const handleAddRow = () => {
-    setItems([...items, { id: counter, name: "", quantity: 0 }]);
+    setItems([
+      ...items,
+      {
+        id: counter,
+        name: "",
+        quantity: 0,
+        freight: 0,
+        hamali: 0,
+        type: "cb",
+      },
+    ]);
     setCounter(counter + 1);
   };
 
@@ -105,6 +153,7 @@ export default function AddOrderPage({}) {
         ...item,
         id: index + 1,
       }));
+    fixCharges(id, 0, 0, 0);
     setItems(updatedItems);
     setCounter(updatedItems.length + 1);
   };
@@ -112,29 +161,64 @@ export default function AddOrderPage({}) {
   const handleCopyRow = (id) => {
     const itemToCopy = items.find((item) => item.id === id);
     if (itemToCopy) {
+      fixCharges(
+        id,
+        itemToCopy.quantity,
+        itemToCopy.freight * 2,
+        itemToCopy.hamali * 2
+      );
       setItems([...items, { ...itemToCopy, id: counter }]);
       setCounter(counter + 1);
     }
   };
 
+  const fixCharges = (id, quantity_new, freight_new, hamali_new) => {
+    let ham = 0,
+      frt = 0;
+    items
+      .filter((item) => item.id !== id)
+      .map((item) => {
+        ham += item.quantity * item.hamali;
+        frt += item.quantity * item.freight;
+      });
+    ham += hamali_new * quantity_new;
+    frt += freight_new * quantity_new;
+    setHamali(ham);
+    setFreight(frt);
+  };
+
   const handleInputChange = (id, field, value) => {
-    if (field === "quantity") {
-      value = parseInt(value) || 0;
+    console.log("item", items);
+    if (field === "autoComplete") {
+      let item = regItems.find((item) => item.name === value);
+      console.log("itemmm", item);
+      setItems((prevItems) =>
+        prevItems.map((prevItem) =>
+          prevItem.id === id ? { ...prevItem, ...item } : prevItem
+        )
+      );
+      fixCharges(id, item.quantity, item.freight, item.hamali);
+      return;
     }
-    const updatedItems = items.map((item) =>
-      item.id === id ? { ...item, [field]: value } : item
-    );
-    setItems(updatedItems);
+
+    let idx = items.findIndex((item) => item.id === id);
+    let item = items[idx];
+
+    if (field === "quantity" || field === "freight" || field === "hamali") {
+      value = parseInt(value) || 0;
+      item[field] = value;
+      fixCharges(id, item.quantity, item.freight, item.hamali);
+    }
+    item[field] = value;
+    items[idx] = item;
+    setItems([...items]);
   };
 
   const validateOrder = () => {
     if (!destinationWarehouse || (isAdmin && !sourceWarehouse)) {
       return false;
     }
-    if (
-      items.length === 0 ||
-      items.some((item) => !item.name)
-    ) {
+    if (items.length === 0 || items.some((item) => !item.name)) {
       if (items.length === 0) alert("Add items");
       return false;
     }
@@ -167,7 +251,7 @@ export default function AddOrderPage({}) {
           receiverDetails: handleEmptyDetails(receiverDetails),
           items,
           destinationWarehouse,
-          charges,
+          charges: hamali,
           hamali,
           freight,
           ...(isAdmin ? { sourceWarehouse } : {}),
@@ -190,12 +274,15 @@ export default function AddOrderPage({}) {
   };
 
   const handleSenderChange = (event, selectedOption) => {
+    console.log(selectedOption);
+    console.log(senderDetails);
     if (selectedOption.name) {
       setSenderDetails({
         ...senderDetails,
         name: selectedOption.name,
         phoneNo: selectedOption.phoneNo,
         address: selectedOption.address,
+        gst: selectedOption.gst,
       });
     } else {
       setSenderDetails({
@@ -212,6 +299,7 @@ export default function AddOrderPage({}) {
         name: selectedOption.name,
         phoneNo: selectedOption.phoneNo,
         address: selectedOption.address,
+        gst: selectedOption.gst,
       });
     } else {
       setReceiverDetails({
@@ -241,15 +329,18 @@ export default function AddOrderPage({}) {
         sx={{
           display: "grid",
           gap: "12px",
-          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateColumns: "repeat(4, 1fr)",
         }}
       >
         <Autocomplete
           freeSolo
-          options={clients}
+          options={regClients}
           getOptionLabel={(option) => option.name || senderDetails.name}
+          filterOptions={createFilterOptions({
+            matchFrom: 'start',
+          })}
           value={
-            clients.find((client) => client.name === senderDetails.name) ||
+            regClients.find((client) => client.name === senderDetails.name) ||
             senderDetails.name
           }
           onChange={(event, newValue) => handleSenderChange(event, newValue)}
@@ -267,10 +358,10 @@ export default function AddOrderPage({}) {
                   color: "black",
                   border: "1px solid black",
                 }}
-              />
-            ),
-          }}
-        />
+                />
+              ),
+            }}
+            />
         <TextField
           label="Sender's Phone No."
           value={senderDetails.phoneNo}
@@ -278,7 +369,7 @@ export default function AddOrderPage({}) {
           onChange={(e) =>
             setSenderDetails({ ...senderDetails, phoneNo: e.target.value })
           }
-        />
+          />
         <TextField
           label="Sender's Address"
           value={senderDetails.address}
@@ -286,14 +377,25 @@ export default function AddOrderPage({}) {
           onChange={(e) =>
             setSenderDetails({ ...senderDetails, address: e.target.value })
           }
+          />
+        <TextField
+          label="Sender's GST"
+          value={senderDetails.gst}
+          name="gst"
+          onChange={(e) =>
+            setSenderDetails({ ...senderDetails, gst: e.target.value })
+          }
         />
         <Autocomplete
           freeSolo
-          options={clients}
+          options={regClients}
           getOptionLabel={(option) => option.name || receiverDetails.name}
-          value={
-            clients.find((client) => client.name === receiverDetails.name) ||
-            receiverDetails.name
+          filterOptions={createFilterOptions({
+            matchFrom: 'start',
+          })}
+          value={regClients.find(
+            (client) =>
+              client.name === receiverDetails.name) || receiverDetails.name
           }
           onChange={(event, newValue) => handleReceiverChange(event, newValue)}
           renderInput={(params) => (
@@ -331,23 +433,16 @@ export default function AddOrderPage({}) {
           }
         />
         <TextField
-          label="Freight"
-          type="text"
-          value={freight}
-          onChange={(e) => setFreight(parseInt(e.target.value) || 0)}
+          label="Receiver's GST"
+          value={receiverDetails.gst}
+          name="gst"
+          onChange={(e) =>
+            setReceiverDetails({ ...receiverDetails, gst: e.target.value })
+          }
         />
-        <TextField
-          label="Hamali"
-          type="text"
-          value={hamali}
-          onChange={(e) => setHamali(parseInt(e.target.value) || 0)}
-        />
-        <TextField
-          label="Statistical Charges"
-          type="text"
-          value={charges}
-          onChange={(e) => setCharges(parseInt(e.target.value) || 0)}
-        />
+        <TextField label="Freight" type="text" value={freight} />
+        <TextField label="Hamali" type="text" value={hamali} />
+        <TextField label="Statistical Charges" type="text" value={hamali} />
         {isAdmin && (
           <FormControl>
             <InputLabel>Source Warehouse</InputLabel>
@@ -384,6 +479,27 @@ export default function AddOrderPage({}) {
               ))}
           </Select>
         </FormControl>
+        <FormControl>
+          <InputLabel>Choose</InputLabel>
+          <Select
+            label="Choose"
+            value={isPaid ? 1 : 0}
+            onChange={(e) => setIsPaid(e.target.value === 1)}
+          >
+            <MenuItem value={0}>To Pay</MenuItem>
+            <MenuItem value={1}>Paid</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={isDoorDelivery}
+              onChange={(e) => setIsDoorDelivery(e.target.checked)}
+            />
+          }
+          style={{ justifyContent: "center" }}
+          label="Door Delivery"
+        />
       </Box>
 
       <Box sx={{ marginTop: "30px" }}>
@@ -402,13 +518,28 @@ export default function AddOrderPage({}) {
           <TableHead>
             <TableRow>
               <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Sl. No.
+                No.
               </TableCell>
               <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
                 Item Name
               </TableCell>
               <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Item Type
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
                 Quantity
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Freight
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Hamali
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Statistical Charges
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Amount
               </TableCell>
               <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
                 Actions
@@ -421,14 +552,15 @@ export default function AddOrderPage({}) {
                 <TableCell>{item.id}</TableCell>
                 <TableCell>
                   <Autocomplete
+                    freeSolo
                     value={item.name}
                     options={regItems.map((item) => item.name)}
                     onChange={(event, newValue) => {
-                      handleInputChange(item.id, "name", newValue);
+                      handleInputChange(item.id, "autoComplete", newValue);
                     }}
-                    onInputChange={(event, newValue) => {
-                      handleInputChange(item.id, "name", newValue);
-                    }}
+                    filterOptions={createFilterOptions({
+                      matchFrom: 'start',
+                    })}
                     getOptionLabel={(option) => option || item.name}
                     renderInput={(params) => (
                       <TextField
@@ -443,7 +575,7 @@ export default function AddOrderPage({}) {
                             fontSize: "14px",
                             color: "#1b3655",
                           },
-                          width: "300px",
+                          width: "13vw",
                         }}
                       />
                     )}
@@ -464,6 +596,21 @@ export default function AddOrderPage({}) {
                   />
                 </TableCell>
                 <TableCell>
+                  <FormControl fullWidth>
+                    <Select
+                      value={item.type}
+                      onChange={(e) =>
+                        handleInputChange(item.id, "type", e.target.value)
+                      }
+                      size="small"
+                    >
+                      <MenuItem value="cb">C/B</MenuItem>
+                      <MenuItem value="gb">G/B</MenuItem>
+                      <MenuItem value="bundle">Bundle</MenuItem>
+                    </Select>
+                  </FormControl>
+                </TableCell>
+                <TableCell>
                   <TextField
                     type="text"
                     value={item.quantity}
@@ -473,8 +620,8 @@ export default function AddOrderPage({}) {
                     variant="outlined"
                     size="small"
                     fullWidth
-                    error={error && !item.quantity}
-                    helperText={error && !item.quantity ? "Required" : ""}
+                    error={error && !item.hamali}
+                    helperText={error && !item.hamali ? "Required" : ""}
                     sx={{
                       "& .MuiInputBase-root": {
                         fontSize: "14px",
@@ -484,6 +631,75 @@ export default function AddOrderPage({}) {
                   />
                 </TableCell>
                 <TableCell>
+                  <TextField
+                    type="text"
+                    value={item.freight}
+                    onChange={(e) =>
+                      handleInputChange(item.id, "freight", e.target.value)
+                    }
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        fontSize: "14px",
+                        color: "#1b3655",
+                      },
+                    }}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TextField
+                    type="text"
+                    value={item.hamali}
+                    onChange={(e) =>
+                      handleInputChange(item.id, "hamali", e.target.value)
+                    }
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        fontSize: "14px",
+                        color: "#1b3655",
+                      },
+                    }}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TextField
+                    type="text"
+                    value={item.hamali}
+                    onChange={(e) =>
+                      handleInputChange(item.id, "hamali", e.target.value)
+                    }
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        fontSize: "14px",
+                        color: "#1b3655",
+                      },
+                    }}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TextField
+                    type="text"
+                    value={(2 * item.hamali + item.freight) * item.quantity}
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        fontSize: "14px",
+                        color: "#1b3655",
+                      },
+                    }}
+                  />
+                </TableCell>
+                <TableCell style={{ alignContent: "center", display: "flex" }}>
                   <IconButton
                     color="primary"
                     onClick={() => handleCopyRow(item.id)}

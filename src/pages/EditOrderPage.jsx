@@ -18,6 +18,9 @@ import {
   Button,
   CircularProgress,
   Autocomplete,
+  FormControlLabel,
+  Checkbox,
+  createFilterOptions,
 } from "@mui/material";
 import {
   FaCopy,
@@ -49,13 +52,14 @@ export default function EditOrderPage() {
     address: "",
     role: "receiver",
   });
-  const [charges, setCharges] = useState(0);
   const [freight, setFreight] = useState(0);
   const [hamali, setHamali] = useState(0);
+  const [isDoorDelivery, setIsDoorDelivery] = useState(false);
+  const [isPaid, setIsPaid] = useState(false);
   const [clients, setClients] = useState([]);
   const [regItems, setRegItems] = useState([]);
   const [status, setStatus] = useState("");
-  const [counter, setCounter] = useState(0);
+  const [counter, setCounter] = useState(1);
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [allWarehouse, setAllWarehouse] = useState([]);
@@ -132,9 +136,10 @@ export default function EditOrderPage() {
     setReceiverDetails(data.receiver);
     setSourceWarehouse(data.sourceWarehouse.warehouseID);
     setDestinationWarehouse(data.destinationWarehouse.warehouseID);
-    setCharges(data.charges || 0);
     setFreight(data.freight || 0);
     setHamali(data.hamali || 0);
+    setIsDoorDelivery(data.isDoorDelivery || false);
+    setIsPaid(data.isPaid || false);
     setOldItems(data.items);
     setStatus(data.status);
   };
@@ -179,30 +184,84 @@ export default function EditOrderPage() {
 
   const handleAddRow = () => {
     setError(false);
+    setNewItems([
+      ...newItems,
+      {
+        itemId: counter,
+        name: "",
+        quantity: 0,
+        freight: 0,
+        hamali: 0,
+        type: "cb",
+      },
+    ]);
     setCounter(counter + 1);
-    setNewItems([...newItems, { itemId: counter + 1, name: "", quantity: 0 }]);
   };
 
   const handleRemoveRow = (itemId) => {
-    setNewItems(newItems.filter((item) => item.itemId !== itemId));
+    const updatedItems = items
+      .filter((item) => item.itemId !== itemId)
+      .map((item, index) => ({
+        ...item,
+        itemId: index + 1,
+      }));
+    fixCharges(itemId, 0, 0, 0);
+    setNewItems(updatedItems);
+    setCounter(updatedItems.length + 1);
   };
 
   const handleCopyRow = (itemId) => {
     const itemToCopy = newItems.find((item) => item.itemId === itemId);
     if (itemToCopy) {
-      setNewItems([
-        ...newItems,
-        { ...itemToCopy, itemId: newItems.length + 1 },
-      ]);
+      fixCharges(
+        itemId,
+        itemToCopy.quantity,
+        itemToCopy.freight * 2,
+        itemToCopy.hamali * 2
+      );
+      setNewItems([...newItems, { ...itemToCopy, itemId: counter }]);
+      setCounter(counter + 1);
     }
   };
 
-  const handleInputChange = (itemId, field, value) => {
-    setNewItems(
-      newItems.map((item) =>
-        item.itemId === itemId ? { ...item, [field]: value } : item
-      )
-    );
+  const fixCharges = (id, quantity_new, freight_new, hamali_new) => {
+    let ham = 0,
+      frt = 0;
+    newItems
+      .filter((item) => item.itemId !== id)
+      .map((item) => {
+        ham += item.quantity * item.hamali;
+        frt += item.quantity * item.freight;
+      });
+    ham += hamali_new * quantity_new;
+    frt += freight_new * quantity_new;
+    setHamali(ham);
+    setFreight(frt);
+  };
+
+  const handleInputChange = (id, field, value) => {
+    if (field === "autoComplete") {
+      let item = regItems.find((item) => item.name === value);
+      setNewItems((prevItems) =>
+        prevItems.map((prevItem) =>
+          prevItem.itemId === id ? { ...prevItem, ...item } : prevItem
+        )
+      );
+      fixCharges(id, item.quantity, item.freight, item.hamali);
+      return;
+    }
+
+    let idx = newItems.findIndex((item) => item.itemId === id);
+    let item = newItems[idx];
+
+    if (field === "quantity" || field === "freight" || field === "hamali") {
+      value = parseInt(value) || 0;
+      item[field] = value;
+      fixCharges(id, item.quantity, item.freight, item.hamali);
+    }
+    item[field] = value;
+    newItems[idx] = item;
+    setNewItems([...newItems]);
   };
 
   const validateOrder = () => {
@@ -239,7 +298,7 @@ export default function EditOrderPage() {
         receiverDetails,
         addItems: newItems,
         delItems: delItems,
-        charges,
+        charges: hamali,
         hamali,
         freight,
         sourceWarehouse,
@@ -292,7 +351,7 @@ export default function EditOrderPage() {
         sx={{
           display: "grid",
           gap: "12px",
-          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateColumns: "repeat(4, 1fr)",
         }}
       >
         {/* Sender Details */}
@@ -300,6 +359,9 @@ export default function EditOrderPage() {
           freeSolo
           options={clients}
           getOptionLabel={(option) => option.name || senderDetails.name}
+          filterOptions={createFilterOptions({
+            matchFrom: "start",
+          })}
           value={
             clients.find((client) => client.name === senderDetails.name) ||
             senderDetails.name
@@ -339,6 +401,14 @@ export default function EditOrderPage() {
             setSenderDetails({ ...senderDetails, address: e.target.value })
           }
         />
+        <TextField
+          label="Sender's GST"
+          value={senderDetails.gst}
+          name="gst"
+          onChange={(e) =>
+            setSenderDetails({ ...senderDetails, gst: e.target.value })
+          }
+        />
         <Autocomplete
           freeSolo
           options={clients}
@@ -347,6 +417,9 @@ export default function EditOrderPage() {
             clients.find((client) => client.name === receiverDetails.name) ||
             receiverDetails.name
           }
+          filterOptions={createFilterOptions({
+            matchFrom: "start",
+          })}
           onChange={(event, newValue) => handleReceiverChange(event, newValue)}
           renderInput={(params) => (
             <TextField {...params} label="Receiver's Name" />
@@ -383,22 +456,27 @@ export default function EditOrderPage() {
           }
         />
         <TextField
-          label="Charges"
-          type="text"
-          value={charges}
-          onChange={(e) => setCharges(parseInt(e.target.value) || 0)}
-        />
-        <TextField
-          label="Hamali"
-          type="text"
-          value={hamali}
-          onChange={(e) => setHamali(parseInt(e.target.value) || 0)}
+          label="Receiver's GST"
+          value={receiverDetails.gst}
+          name="gst"
+          onChange={(e) =>
+            setReceiverDetails({ ...receiverDetails, gst: e.target.value })
+          }
         />
         <TextField
           label="Freight"
           type="text"
           value={freight}
-          onChange={(e) => setFreight(parseInt(e.target.value) || 0)}
+        />
+        <TextField
+          label="Hamali"
+          type="text"
+          value={hamali}
+        />
+        <TextField
+          label="Statistical Charges"
+          type="text"
+          value={hamali}
         />
 
         {/* Warehouse Selection */}
@@ -437,7 +515,7 @@ export default function EditOrderPage() {
               ))}
           </Select>
         </FormControl>
-        {isAdmin ? (
+        {isAdmin && (
           <FormControl>
             <InputLabel>Status</InputLabel>
             <Select
@@ -456,7 +534,28 @@ export default function EditOrderPage() {
               </MenuItem>
             </Select>
           </FormControl>
-        ) : null}
+        )}
+        <FormControl>
+          <InputLabel>Choose</InputLabel>
+          <Select
+            label="Choose"
+            value={isPaid ? 1 : 0}
+            onChange={(e) => setIsPaid(e.target.value === 1)}
+          >
+            <MenuItem value={0}>To Pay</MenuItem>
+            <MenuItem value={1}>Paid</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={isDoorDelivery}
+              onChange={(e) => setIsDoorDelivery(e.target.checked)}
+            />
+          }
+          style={{ justifyContent: "center" }}
+          label="Door Delivery"
+        />
       </Box>
 
       <Box sx={{ marginTop: "30px" }}>
@@ -475,16 +574,31 @@ export default function EditOrderPage() {
           <TableHead>
             <TableRow>
               <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Item No
+                No.
               </TableCell>
               <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
                 Item Name
               </TableCell>
               <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Item Type
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
                 Quantity
               </TableCell>
               <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Action
+                Freight
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Hamali
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Statistical Charges
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Amount
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Actions
               </TableCell>
             </TableRow>
           </TableHead>
@@ -493,7 +607,14 @@ export default function EditOrderPage() {
               <TableRow key={idx}>
                 <TableCell>{idx + 1}</TableCell>
                 <TableCell>{item.name}</TableCell>
+                <TableCell>{item.type}</TableCell>
                 <TableCell>{item.quantity}</TableCell>
+                <TableCell>{item.freight}</TableCell>
+                <TableCell>{item.hamali}</TableCell>
+                <TableCell>{item.hamali}</TableCell>
+                <TableCell>
+                  {(item.freight + item.hamali*2) * item.quantity}
+                </TableCell>
                 <TableCell>
                   <IconButton color="error" onClick={() => handleDelete(item)}>
                     <Delete />
@@ -520,13 +641,28 @@ export default function EditOrderPage() {
           <TableHead>
             <TableRow>
               <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Sl. No.
+                No.
               </TableCell>
               <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
                 Item Name
               </TableCell>
               <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Item Type
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
                 Quantity
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Freight
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Hamali
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Statistical Charges
+              </TableCell>
+              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                Amount
               </TableCell>
               <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
                 Actions
@@ -539,14 +675,15 @@ export default function EditOrderPage() {
                 <TableCell>{idx + 1}</TableCell>
                 <TableCell>
                   <Autocomplete
+                    freeSolo
                     value={item.name}
                     options={regItems.map((item) => item.name)}
                     onChange={(event, newValue) => {
                       handleInputChange(item.itemId, "name", newValue);
                     }}
-                    onInputChange={(event, newValue) => {
-                      handleInputChange(item.itemId, "name", newValue);
-                    }}
+                    filterOptions={createFilterOptions({
+                      matchFrom: "start",
+                    })}
                     getOptionLabel={(option) => option || item.name}
                     renderInput={(params) => (
                       <TextField
@@ -561,7 +698,7 @@ export default function EditOrderPage() {
                             fontSize: "14px",
                             color: "#1b3655",
                           },
-                          width: "300px",
+                          width: "13vw",
                         }}
                       />
                     )}
@@ -582,6 +719,21 @@ export default function EditOrderPage() {
                   />
                 </TableCell>
                 <TableCell>
+                  <FormControl fullWidth>
+                    <Select
+                      value={item.type}
+                      onChange={(e) =>
+                        handleInputChange(item.itemId, "type", e.target.value)
+                      }
+                      size="small"
+                    >
+                      <MenuItem value="cb">C/B</MenuItem>
+                      <MenuItem value="gb">G/B</MenuItem>
+                      <MenuItem value="bundle">Bundle</MenuItem>
+                    </Select>
+                  </FormControl>
+                </TableCell>
+                <TableCell>
                   <TextField
                     type="text"
                     value={item.quantity}
@@ -598,6 +750,63 @@ export default function EditOrderPage() {
                   />
                 </TableCell>
                 <TableCell>
+                  <TextField
+                    type="text"
+                    value={item.freight}
+                    onChange={(e) =>
+                      handleInputChange(
+                        item.itemId,
+                        "freight",
+                        parseInt(e.target.value) || 0
+                      )
+                    }
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                  />
+                </TableCell>
+                <TableCell>
+                  <TextField
+                    type="text"
+                    value={item.hamali}
+                    onChange={(e) =>
+                      handleInputChange(
+                        item.itemId,
+                        "hamali",
+                        parseInt(e.target.value) || 0
+                      )
+                    }
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                  />
+                </TableCell>
+                <TableCell>
+                  <TextField
+                    type="text"
+                    value={item.hamali}
+                    onChange={(e) =>
+                      handleInputChange(
+                        item.itemId,
+                        "hamali",
+                        parseInt(e.target.value) || 0
+                      )
+                    }
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                  />
+                </TableCell>
+                <TableCell>
+                  <TextField
+                    type="text"
+                    value={(item.freight + item.hamali*2) * item.quantity}
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                  />
+                </TableCell>
+                <TableCell sx={{ display: "flex", gap: "10px" }}>
                   <IconButton
                     color="primary"
                     onClick={() => handleCopyRow(item.itemId)}
