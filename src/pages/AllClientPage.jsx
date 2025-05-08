@@ -14,9 +14,13 @@ import {
   Modal,
   TextField,
   CircularProgress,
+  FormControl,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { Edit, Delete, Close } from "@mui/icons-material";
 import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
+import { IoArrowForwardCircleOutline } from "react-icons/io5";
 import "../css/main.css";
 
 const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
@@ -27,6 +31,7 @@ export default function AllClientPage() {
   const [clients, setClients] = useState([]);
   const [filteredClients, setFilteredClients] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [page, setPage] = useState(1);
   const [currentClient, setCurrentClient] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [nameFilter, setNameFilter] = useState("");
@@ -36,29 +41,56 @@ export default function AllClientPage() {
   const [isLoading1, setIsLoading1] = useState(false);
   const [isLoading2, setIsLoading2] = useState(false);
 
+
+
+
+  const clientD = [
+    {
+      name: "John Doe",
+      phoneNo: "1234567890",
+      address: "123 Main St, City, State",
+      GST: "XYZ`123",
+      items: [
+        { name: "item1", freight: 100 , hamali: 50 , type: "cb"},
+        { name: "item1", freight: 100 , hamali: 50 , type: "gb"},
+      ]
+    },
+    {
+      name: "Jane Smith",
+      phoneNo: "0987654321",
+      address: "456 Elm St, City, State",
+      GST: "ABC`456",
+      items: [
+        { name: "item1", freight: 100 , hamali: 50 , type: "cb"},
+        { name: "item1", freight: 100 , hamali: 50 , type: "bundle"},
+      ]
+    },
+  ];
+
   useEffect(() => {
-    fetchData();
+    // fetchData();
+    setClients(clientD);
   }, []);
 
   useEffect(() => {
     setFilteredClients(clients);
   }, [clients]);
 
-  const fetchData = async () => {
-    setIsLoading(true);
-    const token = localStorage.getItem("token");
+  // const fetchData = async () => {
+  //   setIsLoading(true);
+  //   const token = localStorage.getItem("token");
 
-    const res = await fetch(`${BASE_URL}/api/admin/manage/regular-client`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const data = await res.json();
-    setClients(data.body);
-    setIsLoading(false);
-  };
+  //   const res = await fetch(`${BASE_URL}/api/admin/manage/regular-client`, {
+  //     method: "GET",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       Authorization: `Bearer ${token}`,
+  //     },
+  //   });
+  //   const data = await res.json();
+  //   setClients(data.body);
+  //   setIsLoading(false);
+  // };
 
   const applyFilter = () => {
     const filtered = clients.filter((client) => {
@@ -76,6 +108,14 @@ export default function AllClientPage() {
 
   const handleEdit = (client) => {
     setCurrentClient({ ...client });
+    setPage(1);
+    setIsModalOpen(true);
+    setIsAdding(false);
+  };
+
+  const handleEditItems = (client) => {
+    setCurrentClient({ ...client });
+    setPage(2);
     setIsModalOpen(true);
     setIsAdding(false);
   };
@@ -113,8 +153,22 @@ export default function AllClientPage() {
   };
 
   const handleAdd = () => {
-    setCurrentClient({ name: "", phoneNo: "", address: "" });
+    setCurrentClient({
+      name: "",
+      phoneNo: "",
+      address: "",
+      GST: "",
+      items: [
+        {
+          name: "",
+          freight: "",
+          hamali: "",
+          type: "cb",
+        },
+      ],
+    });
     setIsModalOpen(true);
+    setPage(1);
     setIsAdding(true);
   };
 
@@ -167,6 +221,183 @@ export default function AllClientPage() {
     setCurrentClient({ ...currentClient, [field]: value });
   };
 
+  const handleItemChange = (index, field, value) => {
+    const updatedItems = [...currentClient.items];
+    if (field === "freight" || field === "hamali") {
+      value = parseInt(value) || 0;
+    }
+    updatedItems[index][field] = value;
+    setCurrentClient({ ...currentClient, items: updatedItems });
+  };
+
+  const handleAddItemRow = () => {
+    setCurrentClient((prev) => ({
+      ...prev,
+      items: [...prev.items, { name: "", freight: "" , hamali: "", type: "cb" }],
+    }));
+  };
+
+  const handleRemove = (index) => {
+    const updatedItems = [...currentClient.items];
+    updatedItems.splice(index, 1);
+    setCurrentClient({ ...currentClient, items: updatedItems });
+  };
+
+
+  const renderPage1 = () => (
+    <>
+      <TextField
+        fullWidth
+        label="Client Name"
+        value={currentClient.name}
+        onChange={(e) =>
+          handleFieldChange("name", e.target.value.toUpperCase())
+        }
+        sx={{ marginBottom: "16px" }}
+        disabled={!isAdding}
+      />
+      <TextField
+        fullWidth
+        label="Phone Number"
+        value={currentClient.phoneNo}
+        onChange={(e) => handleFieldChange("phoneNo", e.target.value)}
+        sx={{ marginBottom: "16px" }}
+      />
+      <TextField
+        fullWidth
+        label="Client Address"
+        value={currentClient.address}
+        onChange={(e) =>
+          handleFieldChange("address", e.target.value.toUpperCase())
+        }
+        sx={{ marginBottom: "16px" }}
+      />
+      <TextField
+        fullWidth
+        label="GST Number"
+        value={currentClient.GST}
+        onChange={(e) => handleFieldChange("GST", e.target.value.toUpperCase())}
+        sx={{ marginBottom: "16px" }}
+      />
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+        {isAdding ? (
+          <Button variant="contained" onClick={() => setPage(2)}>
+            Next
+          </Button>
+        ) : (
+          <Button variant="contained" onClick={handleSaveOrAdd}>
+            Save Changes
+            {isLoading1 && (
+              <CircularProgress
+                size={22}
+                sx={{ color: "#fff", ml: 1 }}
+              />
+            )}
+          </Button>
+        )}
+      </Box>
+    </>
+  );
+
+  const renderPage2 = () => (
+    <>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Item Name</TableCell>
+            <TableCell>Type</TableCell>
+            <TableCell>Freight</TableCell>
+            <TableCell>Hamali</TableCell>
+            <TableCell>Actions</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {currentClient.items?.map((item, idx) => (
+            <TableRow key={idx}>
+              <TableCell>
+                <TextField
+                  value={item.name}
+                  onChange={(e) =>
+                    handleItemChange(idx, "name", e.target.value)
+                  }
+                  fullWidth
+                />
+              </TableCell>
+              <TableCell>
+                <FormControl fullWidth>
+                  <Select
+                    value={item.type}
+                    onChange={(e) =>
+                      handleItemChange(item.id, "type", e.target.value)
+                    }
+                    size="small"
+                  >
+                    <MenuItem value="cb">C/B</MenuItem>
+                    <MenuItem value="gb">G/B</MenuItem>
+                    <MenuItem value="bundle">Bundle</MenuItem>
+                  </Select>
+                </FormControl>
+              </TableCell>
+              <TableCell>
+                <TextField
+                  type="text"
+                  value={item.freight}
+                  onChange={(e) =>
+                    handleItemChange(idx, "freight", e.target.value)
+                  }
+                  fullWidth
+                />
+              </TableCell>
+              <TableCell>
+                <TextField
+                  type="text"
+                  value={item.hamali}
+                  onChange={(e) =>
+                    handleItemChange(idx, "hamali", e.target.value)
+                  }
+                  fullWidth
+                />
+              </TableCell>
+              <TableCell>
+                
+                <IconButton
+                  color="error"
+                  onClick={() => handleRemove(idx)}
+                >
+                  <Delete />
+                </IconButton>
+              </TableCell>
+
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={handleAddItemRow}
+        >
+          + Add Row
+        </Button>
+      </Box>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 2, gap: 12 }}>
+        {isAdding ? <Button variant="outlined" onClick={() => setPage(1)}>
+          Previous
+        </Button> : null}
+        <Button variant="contained" onClick={handleSaveOrAdd}>
+          {isAdding ? "Add Client" : "Save Changes"}
+          {isLoading1 && (
+            <CircularProgress
+              size={22}
+              sx={{ color: "#fff", ml: 1 }}
+            />
+          )}
+        </Button>
+      </Box>
+    </>
+  );
+
   return (
     <Box sx={{ padding: "20px" }}>
       <Typography variant="h4" sx={{ marginBottom: "20px", ...headerStyle }}>
@@ -201,6 +432,8 @@ export default function AllClientPage() {
               <TableCell sx={headerStyle}>Client Name</TableCell>
               <TableCell sx={headerStyle}>Phone Number</TableCell>
               <TableCell sx={headerStyle}>Client Address</TableCell>
+              <TableCell sx={headerStyle}>GST</TableCell>
+              <TableCell sx={headerStyle}>View Items</TableCell>
               <TableCell sx={headerStyle}>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -215,12 +448,19 @@ export default function AllClientPage() {
                   />
                 </TableCell>
               </TableRow>
-            ) : ( filteredClients.length>0 ? 
+            ) : (filteredClients.length > 0 ?
               filteredClients.map((client) => (
                 <TableRow key={client._id}>
                   <TableCell sx={rowStyle}>{client.name}</TableCell>
                   <TableCell sx={rowStyle}>{client.phoneNo}</TableCell>
                   <TableCell sx={rowStyle}>{client.address}</TableCell>
+                  <TableCell sx={rowStyle}>{client.GST}</TableCell>
+                  <TableCell sx={{ ...rowStyle, justifyItems: "center" }}>
+                    <IconButton color="primary"
+                      onClick={() => handleEditItems(client)}>
+                      <IoArrowForwardCircleOutline size={24} />
+                    </IconButton>
+                  </TableCell>
                   <TableCell>
                     <IconButton
                       color="primary"
@@ -236,12 +476,12 @@ export default function AllClientPage() {
                     </IconButton>
                   </TableCell>
                 </TableRow>
-              )) : 
-            <TableRow>
-              <TableCell colspan="4" align="center">
-                No data to display
-              </TableCell>
-            </TableRow>
+              )) :
+              <TableRow>
+                <TableCell colSpan={4} align="center">
+                  No data to display
+                </TableCell>
+              </TableRow>
             )}
           </TableBody>
         </Table>
@@ -255,7 +495,9 @@ export default function AllClientPage() {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 400,
+            width: page===1 ? 500 : 700,
+            maxHeight: "70vh",
+            overflowY: "auto",
             bgcolor: "background.paper",
             borderRadius: 2,
             boxShadow: 24,
@@ -273,58 +515,10 @@ export default function AllClientPage() {
             variant="h6"
             sx={{ marginBottom: "16px", textAlign: "center", ...headerStyle }}
           >
-            {isAdding ? "Add Client" : "Edit Client Details"}
+            {isAdding ? (page === 1 ? "Add Client" : "Add Item Rate") : (page === 1 ? "Edit Client Details" : "Edit Item Rate")}
           </Typography>
           {currentClient && (
-            <Box>
-              <TextField
-                fullWidth
-                label="Client Name"
-                value={currentClient.name}
-                onChange={(e) =>
-                  handleFieldChange("name", e.target.value.toUpperCase())
-                }
-                sx={{ marginBottom: "16px" }}
-                disabled={!isAdding}
-              />
-              <TextField
-                fullWidth
-                label="Phone Number"
-                value={currentClient.phoneNo}
-                onChange={(e) => handleFieldChange("phoneNo", e.target.value)}
-                sx={{ marginBottom: "16px" }}
-              />
-              <TextField
-                fullWidth
-                label="Client Address"
-                value={currentClient.address}
-                onChange={(e) =>
-                  handleFieldChange("address", e.target.value.toUpperCase())
-                }
-                sx={{ marginBottom: "16px" }}
-              />
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginTop: "16px",
-                }}
-              >
-                <button
-                  className="button button-large"
-                  onClick={handleSaveOrAdd}
-                >
-                  {isAdding ? "Add" : "Save"}{" "}
-                  {isLoading1 && (
-                    <CircularProgress
-                      size={22}
-                      className="spinner"
-                      sx={{ color: "#fff", animation: "none !important" }}
-                    />
-                  )}
-                </button>
-              </Box>
-            </Box>
+            <Box>{page === 1 ? renderPage1() : renderPage2()}</Box>
           )}
         </Box>
       </Modal>
@@ -336,9 +530,9 @@ export default function AllClientPage() {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 350,
+            width: 500,
             bgcolor: "background.paper",
-            borderRadius: 3,
+            borderRadius: 2,
             boxShadow: 24,
             p: 4,
             textAlign: "center",

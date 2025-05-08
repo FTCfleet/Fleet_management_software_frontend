@@ -1,229 +1,350 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  Box,
   Button,
-  Checkbox,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Paper,
+  Typography,
   Table,
   TableBody,
   TableCell,
   TableContainer,
+  TableHead,
   TableRow,
+  Paper,
+  IconButton,
+  Modal,
   TextField,
   CircularProgress,
+  FormControl,
+  Select,
+  MenuItem,
 } from "@mui/material";
-import { Edit, Delete, Add } from "@mui/icons-material";
+import { Edit, Delete, Close } from "@mui/icons-material";
+import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
+import { IoArrowForwardCircleOutline } from "react-icons/io5";
 import "../css/main.css";
 
+const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
+const rowStyle = { color: "#25344E" };
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function AllItemPage() {
-  const [rows, setRows] = useState([]);
-  const [editing, setEditing] = useState(false);
-  const [openAddDialog, setOpenAddDialog] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [items, setItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentItemList, setCurrentItemList] = useState(null);
+  const [currentItem, setCurrentItem] = useState(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [nameFilter, setNameFilter] = useState("");
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
-  const [newItemNames, setNewItemNames] = useState([""]);
-  const [delCounter, setDelCounter] = useState(0);
-  const selected = useRef(new Set());
+  const [isLoading2, setIsLoading2] = useState(false);
+
+
+
+
+  const itemsD = [
+    { name: "Item 1", type: "cb", freight: 100, hamali: 50 },
+    { name: "Item 2", type: "gb", freight: 200, hamali: 100 },
+    { name: "Item 3", type: "bundle", freight: 300, hamali: 150 },
+    { name: "Item 4", type: "cb", freight: 400, hamali: 200 },
+    { name: "Item 5", type: "gb", freight: 500, hamali: 250 },
+  ];
 
   useEffect(() => {
-    fetchData();
+    // fetchData();
+    setItems(itemsD);
   }, []);
 
-  const chunkArray = (arr, size) =>
-    arr.length > 0
-      ? arr.reduce(
-          (acc, _, i) => (i % size ? acc : [...acc, arr.slice(i, i + size)]),
-          []
-        )
-      : [];
+  useEffect(() => {
+    setFilteredItems(items);
+  }, [items]);
 
-  const fetchData = async () => {
-    const token = localStorage.getItem("token");
-    fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.flag) {
-          setRows(chunkArray(data.body, 3));
-          setIsLoading(false);
-        }
-      });
+  // const fetchData = async () => {
+  //   setIsLoading(true);
+  //   const token = localStorage.getItem("token");
+
+  //   const res = await fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
+  //     method: "GET",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       Authorization: `Bearer ${token}`,
+  //     },
+  //   });
+  //   const data = await res.json();
+  //   setItems(data.body);
+  //   setIsLoading(false);
+  // };
+
+  const applyFilter = () => {
+    const filtered = items.filter((item) => {
+      return nameFilter
+        ? item.name.toLowerCase().includes(nameFilter.toLowerCase())
+        : true;
+    });
+    setFilteredItems(filtered);
   };
 
-  const handleSelect = (itemName) => {
-    if (!selected.current.has(itemName)) {
-      selected.current.add(itemName);
-      setDelCounter(delCounter + 1);
-    } else {
-      selected.current.delete(itemName);
-      setDelCounter(delCounter - 1);
-    }
+  const clearFilter = () => {
+    setNameFilter("");
+    setFilteredItems(items);
   };
 
-  const handleDelete = () => {
-    setIsLoading1(true);
+  const handleEdit = (Item) => {
+    setCurrentItemList([Item]);
+    console.log(currentItemList);
+    setIsModalOpen(true);
+    setIsAdding(false);
+  };
+
+
+  const handleDelete = (id) => {
+    setItemToDelete(id);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    setIsLoading2(true);
     const token = localStorage.getItem("token");
-    fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
+    const res = await fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        items: [...selected.current],
+        id: itemToDelete,
       }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.flag) {
-          fetchData();
-          selected.current = new Set();
-          setDelCounter(0);
-        }
-        setEditing(false);
-        setIsLoading1(false);
-      });
+    });
+
+    const data = await res.json();
+    fetchData();
+    setIsLoading2(false);
+    setDeleteModalOpen(false);
+    setItemToDelete(null);
+    return;
   };
 
-  const handleAddItems = () => {
+  const handleCloseDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setItemToDelete(null);
+  };
+
+  const handleAdd = () => {
+    setCurrentItemList([{
+      name: "",
+      freight: "",
+      hamali: "",
+      type: "cb",
+    }]);
+    setIsModalOpen(true);
+    setIsAdding(true);
+  };
+
+  const handleSaveOrAdd = async () => {
     setIsLoading1(true);
-    const validItems = newItemNames
-      .map((name) => name.trim())
-      .filter((name) => name.length > 0);
-    if (validItems.length === 0) {
-      alert("Enter valid item names");
-      return;
-    }
     const token = localStorage.getItem("token");
-    fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
-      method: "POST",
+    let method, body;
+    if (isAdding) {
+      method = "POST";
+      body = {
+        name: currentItem.name.toUpperCase(),
+        phoneNo: currentItem.phoneNo ? currentItem.phoneNo : "NA",
+        address: currentItem.address
+          ? currentItem.address.toUpperCase()
+          : "NA",
+      };
+    } else {
+      method = "PUT";
+      body = {
+        id: currentItem._id,
+        updates: {
+          phoneNo: currentItem.phoneNo ? currentItem.phoneNo : "NA",
+          address: currentItem.address
+            ? currentItem.address.toUpperCase()
+            : "NA",
+        },
+      };
+    }
+    const res = await fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
+      method: method,
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        items: validItems,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.flag) {
-          fetchData();
-          setNewItemNames([""]);
-          setOpenAddDialog(false);
-        }
-        setIsLoading1(false);
-      });
-  };
-
-  const handleInputChange = (index, value) => {
-    setNewItemNames((prev) => {
-      const newNames = [...prev];
-      newNames[index] = value;
-      return newNames;
+      body: JSON.stringify(body),
     });
-  };
 
-  const addInputField = () => {
-    setNewItemNames((prev) => [...prev, ""]);
-  };
-
-  const handleOpen = () => {
-    setNewItemNames([""]);
-    setOpenAddDialog(true);
+    const data = await res.json();
+    fetchData();
+    setIsLoading1(false);
+    setIsModalOpen(false);
   };
 
   const handleClose = () => {
-    setNewItemNames([""]);
-    setOpenAddDialog(false);
+    setIsModalOpen(false);
+    setCurrentItemList(null);
   };
 
-  const handleCancelEdit = () => {
-    selected.current = new Set();
-    setDelCounter(0);
-    setEditing(false);
+  const handleItemChange = (index, field, value) => {
+    const updatedItems = [...currentItemList];
+    if (field === "freight" || field === "hamali") {
+      value = parseInt(value) || 0;
+    }
+    updatedItems[index][field] = value;
+    setCurrentItemList(updatedItems);
   };
+
+  const handleAddItemRow = () => {
+    setCurrentItemList((prev) =>
+      [...prev,
+      { name: "", freight: "", hamali: "", type: "cb" }],
+    );
+  };
+
+  const handleRemove = (index) => {
+    const updatedItems = [...currentItemList];
+    updatedItems.splice(index, 1);
+    setCurrentItemList(updatedItems);
+  };
+
+
+
+  const renderPage2 = () => (
+    <>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Item Name</TableCell>
+            <TableCell>Type</TableCell>
+            <TableCell>Freight</TableCell>
+            <TableCell>Hamali</TableCell>
+            {isAdding ? <TableCell>Actions</TableCell> : null}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {currentItemList?.map((item, idx) => (
+            <TableRow key={idx}>
+              <TableCell>
+                <TextField
+                  value={item.name}
+                  onChange={(e) =>
+                    handleItemChange(idx, "name", e.target.value)
+                  }
+                  fullWidth
+                />
+              </TableCell>
+              <TableCell>
+                <FormControl fullWidth>
+                  <Select
+                    value={item.type}
+                    onChange={(e) =>
+                      handleItemChange(item.id, "type", e.target.value)
+                    }
+                    size="small"
+                  >
+                    <MenuItem value="cb">C/B</MenuItem>
+                    <MenuItem value="gb">G/B</MenuItem>
+                    <MenuItem value="bundle">Bundle</MenuItem>
+                  </Select>
+                </FormControl>
+              </TableCell>
+              <TableCell>
+                <TextField
+                  type="text"
+                  value={item.freight}
+                  onChange={(e) =>
+                    handleItemChange(idx, "freight", e.target.value)
+                  }
+                  fullWidth
+                />
+              </TableCell>
+              <TableCell>
+                <TextField
+                  type="text"
+                  value={item.hamali}
+                  onChange={(e) =>
+                    handleItemChange(idx, "hamali", e.target.value)
+                  }
+                  fullWidth
+                />
+              </TableCell>
+              {isAdding ? <TableCell>
+
+                <IconButton
+                  color="error"
+                  onClick={() => handleRemove(idx)}
+                >
+                  <Delete />
+                </IconButton>
+              </TableCell> : null}
+
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      {isAdding ? <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={handleAddItemRow}
+        >
+          + Add Row
+        </Button>
+      </Box> : null}
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 2, gap: 12 }}>
+        <Button variant="contained" onClick={handleSaveOrAdd}>
+          {isAdding ? "Add Item" : "Save Changes"}
+          {isLoading1 && (
+            <CircularProgress
+              size={22}
+              sx={{ color: "#fff", ml: 1 }}
+            />
+          )}
+        </Button>
+      </Box>
+    </>
+  );
 
   return (
-    <Paper sx={{ margin: 2, padding: 2 }}>
-      {/* Toolbar */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          paddingLeft: "10px",
-          paddingRight: "30px",
-        }}
-      >
-        <div>
-          <h1>Items</h1>
-        </div>
-        <div style={{ alignContent: "center" }}>
-          {!editing && (
-            <>
-              <Button
-                variant="contained"
-                startIcon={<Add />}
-                onClick={handleOpen}
-                style={{ marginRight: "10px" }}
-              >
-                Add
-              </Button>
-              <Button
-                variant="outlined"
-                color="primary"
-                startIcon={<Edit />}
-                onClick={() => setEditing(!editing)}
-              >
-                {"Edit"}
-              </Button>
-            </>
-          )}
-          {editing && (
-            <>
-              <Button
-                variant="outlined"
-                color="primary"
-                startIcon={<Edit />}
-                onClick={handleCancelEdit}
-                style={{ marginRight: "10px" }}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="contained"
-                color="error"
-                startIcon={<Delete />}
-                onClick={handleDelete}
-                disabled={delCounter === 0}
-              >
-                Delete ({delCounter}){" "}
-                {isLoading1 && (
-                  <CircularProgress
-                    size={15}
-                    className="spinner"
-                    sx={{ color: "#fff", animation: "none !important" }}
-                  />
-                )}
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
+    <Box sx={{ padding: "20px" }}>
+      <Typography variant="h4" sx={{ marginBottom: "20px", ...headerStyle }}>
+        Item Details
+      </Typography>
 
-      {/* Table */}
-      <TableContainer>
+      {/* Filters */}
+      <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
+        <TextField
+          label="Search by Item Name"
+          value={nameFilter}
+          onChange={(e) => setNameFilter(e.target.value)}
+          variant="outlined"
+          size="small"
+        />
+        <Button variant="contained" color="primary" onClick={applyFilter}>
+          Apply Filter
+        </Button>
+        <Button variant="outlined" color="secondary" onClick={clearFilter}>
+          Clear Filter
+        </Button>
+        <button className="button " onClick={handleAdd} style={{ margin: 0 }}>
+          Add Item
+        </button>
+      </Box>
+
+      {/* Item Table */}
+      <TableContainer component={Paper}>
         <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={headerStyle}>Item Name</TableCell>
+              <TableCell sx={headerStyle}>Type</TableCell>
+              <TableCell sx={headerStyle}>Freight</TableCell>
+              <TableCell sx={headerStyle}>Hamali</TableCell>
+              <TableCell sx={headerStyle}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
           <TableBody>
             {isLoading ? (
               <TableRow>
@@ -235,82 +356,142 @@ export default function AllItemPage() {
                   />
                 </TableCell>
               </TableRow>
-            ) : rows.length > 0 ? (
-              rows.map((row, rowIndex) => (
-                <TableRow key={rowIndex}>
-                  {row.map((item, colIndex) => (
-                    <TableCell key={colIndex}>
-                      <div style={{ display: "flex", alignItems: "center" }}>
-                        {editing && (
-                          <Checkbox
-                            checked={selected.current.has(item._id)}
-                            onChange={() => handleSelect(item._id)}
-                          />
-                        )}
-                        {item.name}
-                      </div>
-                    </TableCell>
-                  ))}
-                  {/* Fill empty cells if row has less than 3 items */}
-                  {Array(3 - row.length)
-                    .fill()
-                    .map((_, i) => (
-                      <TableCell key={`empty-${i}`} />
-                    ))}
+            ) : (filteredItems.length > 0 ?
+              filteredItems.map((item) => (
+                <TableRow key={item._id}>
+                  <TableCell sx={rowStyle}>{item.name}</TableCell>
+                  <TableCell sx={rowStyle}>{item.type === "cb" ? "C/B" : item.type === "gb" ? "G/B" : "Bundle"}</TableCell>
+                  <TableCell sx={rowStyle}>{item.freight}</TableCell>
+                  <TableCell sx={rowStyle}>{item.hamali}</TableCell>
+                  <TableCell>
+                    <IconButton
+                      color="primary"
+                      onClick={() => handleEdit(item)}
+                    >
+                      <Edit />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      onClick={() => handleDelete(item._id)}
+                    >
+                      <Delete />
+                    </IconButton>
+                  </TableCell>
                 </TableRow>
-              ))
-            ) : (
+              )) :
               <TableRow>
-                <TableCell colspan>No data to display</TableCell>
+                <TableCell colSpan={4} align="center">
+                  No data to display
+                </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </TableContainer>
 
-      {/* Add Items Dialog */}
-      <Dialog open={openAddDialog} onClose={handleClose}>
-        <DialogTitle>Add New Items</DialogTitle>
-        <DialogContent
-          style={{ display: "flex", flexDirection: "column", width: "350px" }}
+      {/* Modal for Add/Edit Item */}
+      <Modal open={isModalOpen} onClose={handleClose}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 700,
+            maxHeight: "70vh",
+            overflowY: "auto",
+            bgcolor: "background.paper",
+            borderRadius: 2,
+            boxShadow: 24,
+            p: 4,
+          }}
         >
-          {newItemNames.map((name, index) => (
-            <TextField
-              key={index}
-              autoFocus={index === 0}
-              margin="dense"
-              label={`Item ${index + 1}`}
-              variant="standard"
-              value={name}
-              onChange={(e) =>
-                handleInputChange(index, e.target.value.toUpperCase())
-              }
-              sx={{ mb: 2 }}
-            />
-          ))}
-          <Button
-            onClick={addInputField}
-            variant="outlined"
-            size="small"
-            style={{ maxWidth: "200px" }}
+          <IconButton
+            color="error"
+            onClick={handleClose}
+            sx={{ position: "absolute", top: 8, right: 8 }}
           >
-            Add Another Item
-          </Button>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleAddItems} variant="contained">
-            Add All{" "}
-            {isLoading1 && (
-              <CircularProgress
-                size={15}
-                className="spinner"
-                sx={{ color: "#fff", animation: "none !important" }}
-              />
-            )}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Paper>
+            <Close />
+          </IconButton>
+          <Typography
+            variant="h6"
+            sx={{ marginBottom: "16px", textAlign: "center", ...headerStyle }}
+          >
+            {isAdding ? "Add Items" : "Edit Item"}
+          </Typography>
+          {currentItemList && (
+            <Box>{renderPage2()}</Box>
+          )}
+        </Box>
+      </Modal>
+      {/* Modal for Delete Confirmation */}
+      <Modal open={deleteModalOpen} onClose={handleCloseDeleteModal}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 500,
+            bgcolor: "background.paper",
+            borderRadius: 2,
+            boxShadow: 24,
+            p: 4,
+            textAlign: "center",
+          }}
+        >
+          <FaExclamationTriangle
+            style={{
+              color: "#d32f2f",
+              fontSize: "36px",
+              marginBottom: "12px",
+            }}
+          />
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: "bold",
+              marginBottom: "12px",
+              color: "#d32f2f",
+            }}
+          >
+            Delete Item
+          </Typography>
+          <Typography
+            sx={{
+              marginBottom: "20px",
+              color: "#374151",
+              fontSize: "15px",
+            }}
+          >
+            This action cannot be undone. Are you sure you want to proceed?
+          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "center", gap: "12px" }}>
+            <Button
+              variant="outlined"
+              sx={{ borderColor: "#1E3A5F", color: "#1E3A5F" }}
+              onClick={handleCloseDeleteModal}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              sx={{ backgroundColor: "#d32f2f" }}
+              startIcon={<FaTrash />}
+              onClick={confirmDelete}
+            >
+              Delete{" "}
+              {isLoading2 && (
+                <CircularProgress
+                  size={22}
+                  className="spinner"
+                  sx={{ color: "#fff", animation: "none !important" }}
+                />
+              )}
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+    </Box>
   );
 }
