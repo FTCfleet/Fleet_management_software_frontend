@@ -41,41 +41,29 @@ export default function AllItemPage() {
   const [isLoading1, setIsLoading1] = useState(false);
   const [isLoading2, setIsLoading2] = useState(false);
 
-
-
-
-  const itemsD = [
-    { name: "Item 1", type: "cb", freight: 100, hamali: 50 },
-    { name: "Item 2", type: "gb", freight: 200, hamali: 100 },
-    { name: "Item 3", type: "bundle", freight: 300, hamali: 150 },
-    { name: "Item 4", type: "cb", freight: 400, hamali: 200 },
-    { name: "Item 5", type: "gb", freight: 500, hamali: 250 },
-  ];
-
   useEffect(() => {
-    // fetchData();
-    setItems(itemsD);
+    fetchData();
   }, []);
 
   useEffect(() => {
     setFilteredItems(items);
   }, [items]);
 
-  // const fetchData = async () => {
-  //   setIsLoading(true);
-  //   const token = localStorage.getItem("token");
+  const fetchData = async () => {
+    setIsLoading(true);
+    const token = localStorage.getItem("token");
 
-  //   const res = await fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
-  //     method: "GET",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       Authorization: `Bearer ${token}`,
-  //     },
-  //   });
-  //   const data = await res.json();
-  //   setItems(data.body);
-  //   setIsLoading(false);
-  // };
+    const res = await fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    setItems(data.body);
+    setIsLoading(false);
+  };
 
   const applyFilter = () => {
     const filtered = items.filter((item) => {
@@ -114,7 +102,7 @@ export default function AllItemPage() {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        id: itemToDelete,
+        itemId: itemToDelete,
       }),
     });
 
@@ -134,9 +122,9 @@ export default function AllItemPage() {
   const handleAdd = () => {
     setCurrentItemList([{
       name: "",
-      freight: "",
-      hamali: "",
-      type: "cb",
+      freight: 0,
+      hamali: 0,
+      type: "C/B",
     }]);
     setIsModalOpen(true);
     setIsAdding(true);
@@ -144,17 +132,12 @@ export default function AllItemPage() {
 
   const handleSaveOrAdd = async () => {
     setIsLoading1(true);
+    console.log(currentItemList);
     const token = localStorage.getItem("token");
     let method, body;
     if (isAdding) {
       method = "POST";
-      body = {
-        name: currentItem.name.toUpperCase(),
-        phoneNo: currentItem.phoneNo ? currentItem.phoneNo : "NA",
-        address: currentItem.address
-          ? currentItem.address.toUpperCase()
-          : "NA",
-      };
+      body = {items: currentItemList}
     } else {
       method = "PUT";
       body = {
@@ -192,6 +175,10 @@ export default function AllItemPage() {
     if (field === "freight" || field === "hamali") {
       value = parseInt(value) || 0;
     }
+    if (field === "name") {
+      value = value.toUpperCase();
+    }
+
     updatedItems[index][field] = value;
     setCurrentItemList(updatedItems);
   };
@@ -199,7 +186,7 @@ export default function AllItemPage() {
   const handleAddItemRow = () => {
     setCurrentItemList((prev) =>
       [...prev,
-      { name: "", freight: "", hamali: "", type: "cb" }],
+      { name: "", freight: 0, hamali: 0, type: "C/B" }],
     );
   };
 
@@ -240,13 +227,13 @@ export default function AllItemPage() {
                   <Select
                     value={item.type}
                     onChange={(e) =>
-                      handleItemChange(item.id, "type", e.target.value)
+                      handleItemChange(idx, "type", e.target.value)
                     }
                     size="small"
                   >
-                    <MenuItem value="cb">C/B</MenuItem>
-                    <MenuItem value="gb">G/B</MenuItem>
-                    <MenuItem value="bundle">Bundle</MenuItem>
+                    <MenuItem value="C/B">C/B</MenuItem>
+                    <MenuItem value="G/B">G/B</MenuItem>
+                    <MenuItem value="Bundle">Bundle</MenuItem>
                   </Select>
                 </FormControl>
               </TableCell>
@@ -338,6 +325,7 @@ export default function AllItemPage() {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell sx={headerStyle}>No</TableCell>
               <TableCell sx={headerStyle}>Item Name</TableCell>
               <TableCell sx={headerStyle}>Type</TableCell>
               <TableCell sx={headerStyle}>Freight</TableCell>
@@ -357,10 +345,11 @@ export default function AllItemPage() {
                 </TableCell>
               </TableRow>
             ) : (filteredItems.length > 0 ?
-              filteredItems.map((item) => (
-                <TableRow key={item._id}>
+              filteredItems.map((item, idx) => (
+                <TableRow key={idx}>
+                  <TableCell sx={rowStyle}>{idx+1}</TableCell>
                   <TableCell sx={rowStyle}>{item.name}</TableCell>
-                  <TableCell sx={rowStyle}>{item.type === "cb" ? "C/B" : item.type === "gb" ? "G/B" : "Bundle"}</TableCell>
+                  <TableCell sx={rowStyle}>{item.type}</TableCell>
                   <TableCell sx={rowStyle}>{item.freight}</TableCell>
                   <TableCell sx={rowStyle}>{item.hamali}</TableCell>
                   <TableCell>

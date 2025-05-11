@@ -44,12 +44,14 @@ export default function EditOrderPage() {
     name: "",
     phoneNo: "",
     address: "",
+    gst: "",
     role: "sender",
   });
   const [receiverDetails, setReceiverDetails] = useState({
     name: "",
     phoneNo: "",
     address: "",
+    gst: "",
     role: "receiver",
   });
   const [freight, setFreight] = useState(0);
@@ -192,7 +194,7 @@ export default function EditOrderPage() {
         quantity: 0,
         freight: 0,
         hamali: 0,
-        type: "cb",
+        type: "C/B",
       },
     ]);
     setCounter(counter + 1);
@@ -242,6 +244,7 @@ export default function EditOrderPage() {
   const handleInputChange = (id, field, value) => {
     if (field === "autoComplete") {
       let item = regItems.find((item) => item.name === value);
+      item.quantity = 1;
       setNewItems((prevItems) =>
         prevItems.map((prevItem) =>
           prevItem.itemId === id ? { ...prevItem, ...item } : prevItem
@@ -303,6 +306,9 @@ export default function EditOrderPage() {
         freight,
         sourceWarehouse,
         destinationWarehouse,
+        isDoorDelivery,
+        payment: isPaid? "Paid" : "To Pay", 
+        doorDelivery: isDoorDelivery,
         ...(isAdmin ? { status } : {}),
       }),
     })
@@ -727,9 +733,9 @@ export default function EditOrderPage() {
                       }
                       size="small"
                     >
-                      <MenuItem value="cb">C/B</MenuItem>
-                      <MenuItem value="gb">G/B</MenuItem>
-                      <MenuItem value="bundle">Bundle</MenuItem>
+                      <MenuItem value="C/B">C/B</MenuItem>
+                      <MenuItem value="G/B">G/B</MenuItem>
+                      <MenuItem value="Bundle">Bundle</MenuItem>
                     </Select>
                   </FormControl>
                 </TableCell>

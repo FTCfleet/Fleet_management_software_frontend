@@ -41,61 +41,34 @@ export default function AllClientPage() {
   const [isLoading1, setIsLoading1] = useState(false);
   const [isLoading2, setIsLoading2] = useState(false);
 
-
-
-
-  const clientD = [
-    {
-      name: "John Doe",
-      phoneNo: "1234567890",
-      address: "123 Main St, City, State",
-      GST: "XYZ`123",
-      items: [
-        { name: "item1", freight: 100 , hamali: 50 , type: "cb"},
-        { name: "item1", freight: 100 , hamali: 50 , type: "gb"},
-      ]
-    },
-    {
-      name: "Jane Smith",
-      phoneNo: "0987654321",
-      address: "456 Elm St, City, State",
-      GST: "ABC`456",
-      items: [
-        { name: "item1", freight: 100 , hamali: 50 , type: "cb"},
-        { name: "item1", freight: 100 , hamali: 50 , type: "bundle"},
-      ]
-    },
-  ];
-
   useEffect(() => {
-    // fetchData();
-    setClients(clientD);
+    fetchData();
   }, []);
 
   useEffect(() => {
     setFilteredClients(clients);
   }, [clients]);
 
-  // const fetchData = async () => {
-  //   setIsLoading(true);
-  //   const token = localStorage.getItem("token");
+  const fetchData = async () => {
+    setIsLoading(true);
+    const token = localStorage.getItem("token");
 
-  //   const res = await fetch(`${BASE_URL}/api/admin/manage/regular-client`, {
-  //     method: "GET",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       Authorization: `Bearer ${token}`,
-  //     },
-  //   });
-  //   const data = await res.json();
-  //   setClients(data.body);
-  //   setIsLoading(false);
-  // };
+    const res = await fetch(`${BASE_URL}/api/admin/manage/regular-client`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    setClients(data.body);
+    setIsLoading(false);
+  };
 
   const applyFilter = () => {
     const filtered = clients.filter((client) => {
       return nameFilter
-        ? client.name.toLowerCase().includes(nameFilter.toLowerCase())
+        ? client.name.toLowerCase().startsWith(nameFilter.toLowerCase())
         : true;
     });
     setFilteredClients(filtered);
@@ -157,7 +130,7 @@ export default function AllClientPage() {
       name: "",
       phoneNo: "",
       address: "",
-      GST: "",
+      gst: "",
       items: [
         {
           name: "",
@@ -181,9 +154,8 @@ export default function AllClientPage() {
       body = {
         name: currentClient.name.toUpperCase(),
         phoneNo: currentClient.phoneNo ? currentClient.phoneNo : "NA",
-        address: currentClient.address
-          ? currentClient.address.toUpperCase()
-          : "NA",
+        address: currentClient.address ? currentClient.address : "NA",
+        gst: currentClient.gst ? currentClient.gst : "NA",
       };
     } else {
       method = "PUT";
@@ -191,9 +163,8 @@ export default function AllClientPage() {
         id: currentClient._id,
         updates: {
           phoneNo: currentClient.phoneNo ? currentClient.phoneNo : "NA",
-          address: currentClient.address
-            ? currentClient.address.toUpperCase()
-            : "NA",
+          address: currentClient.address ? currentClient.address : "NA",
+          gst: currentClient.gst ? currentClient.gst : "NA",
         },
       };
     }
@@ -233,7 +204,7 @@ export default function AllClientPage() {
   const handleAddItemRow = () => {
     setCurrentClient((prev) => ({
       ...prev,
-      items: [...prev.items, { name: "", freight: "" , hamali: "", type: "cb" }],
+      items: [...prev.items, { name: "", freight: "", hamali: "", type: "cb" }],
     }));
   };
 
@@ -242,7 +213,6 @@ export default function AllClientPage() {
     updatedItems.splice(index, 1);
     setCurrentClient({ ...currentClient, items: updatedItems });
   };
-
 
   const renderPage1 = () => (
     <>
@@ -275,8 +245,8 @@ export default function AllClientPage() {
       <TextField
         fullWidth
         label="GST Number"
-        value={currentClient.GST}
-        onChange={(e) => handleFieldChange("GST", e.target.value.toUpperCase())}
+        value={currentClient.gst}
+        onChange={(e) => handleFieldChange("gst", e.target.value.toUpperCase())}
         sx={{ marginBottom: "16px" }}
       />
       <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
@@ -288,10 +258,7 @@ export default function AllClientPage() {
           <Button variant="contained" onClick={handleSaveOrAdd}>
             Save Changes
             {isLoading1 && (
-              <CircularProgress
-                size={22}
-                sx={{ color: "#fff", ml: 1 }}
-              />
+              <CircularProgress size={22} sx={{ color: "#fff", ml: 1 }} />
             )}
           </Button>
         )}
@@ -359,39 +326,29 @@ export default function AllClientPage() {
                 />
               </TableCell>
               <TableCell>
-                
-                <IconButton
-                  color="error"
-                  onClick={() => handleRemove(idx)}
-                >
+                <IconButton color="error" onClick={() => handleRemove(idx)}>
                   <Delete />
                 </IconButton>
               </TableCell>
-
             </TableRow>
           ))}
         </TableBody>
       </Table>
       <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={handleAddItemRow}
-        >
+        <Button variant="outlined" size="small" onClick={handleAddItemRow}>
           + Add Row
         </Button>
       </Box>
       <Box sx={{ display: "flex", justifyContent: "center", mt: 2, gap: 12 }}>
-        {isAdding ? <Button variant="outlined" onClick={() => setPage(1)}>
-          Previous
-        </Button> : null}
+        {isAdding ? (
+          <Button variant="outlined" onClick={() => setPage(1)}>
+            Previous
+          </Button>
+        ) : null}
         <Button variant="contained" onClick={handleSaveOrAdd}>
           {isAdding ? "Add Client" : "Save Changes"}
           {isLoading1 && (
-            <CircularProgress
-              size={22}
-              sx={{ color: "#fff", ml: 1 }}
-            />
+            <CircularProgress size={22} sx={{ color: "#fff", ml: 1 }} />
           )}
         </Button>
       </Box>
@@ -429,6 +386,7 @@ export default function AllClientPage() {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell sx={headerStyle}>No</TableCell>
               <TableCell sx={headerStyle}>Client Name</TableCell>
               <TableCell sx={headerStyle}>Phone Number</TableCell>
               <TableCell sx={headerStyle}>Client Address</TableCell>
@@ -448,20 +406,23 @@ export default function AllClientPage() {
                   />
                 </TableCell>
               </TableRow>
-            ) : (filteredClients.length > 0 ?
-              filteredClients.map((client) => (
-                <TableRow key={client._id}>
+            ) : filteredClients.length > 0 ? (
+              filteredClients.map((client, idx) => (
+                <TableRow key={idx}>
+                  <TableCell sx={rowStyle}>{idx+1}</TableCell>
                   <TableCell sx={rowStyle}>{client.name}</TableCell>
                   <TableCell sx={rowStyle}>{client.phoneNo}</TableCell>
                   <TableCell sx={rowStyle}>{client.address}</TableCell>
-                  <TableCell sx={rowStyle}>{client.GST}</TableCell>
-                  <TableCell sx={{ ...rowStyle, justifyItems: "center" }}>
-                    <IconButton color="primary"
-                      onClick={() => handleEditItems(client)}>
+                  <TableCell sx={rowStyle}>{client.gst}</TableCell>
+                  <TableCell sx={rowStyle}>
+                    <IconButton
+                      color="primary"
+                      onClick={() => handleEditItems(client)}
+                    >
                       <IoArrowForwardCircleOutline size={24} />
                     </IconButton>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{display: "flex"}}>
                     <IconButton
                       color="primary"
                       onClick={() => handleEdit(client)}
@@ -476,7 +437,8 @@ export default function AllClientPage() {
                     </IconButton>
                   </TableCell>
                 </TableRow>
-              )) :
+              ))
+            ) : (
               <TableRow>
                 <TableCell colSpan={4} align="center">
                   No data to display
@@ -495,7 +457,7 @@ export default function AllClientPage() {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: page===1 ? 500 : 700,
+            width: page === 1 ? 500 : 700,
             maxHeight: "70vh",
             overflowY: "auto",
             bgcolor: "background.paper",
@@ -515,7 +477,13 @@ export default function AllClientPage() {
             variant="h6"
             sx={{ marginBottom: "16px", textAlign: "center", ...headerStyle }}
           >
-            {isAdding ? (page === 1 ? "Add Client" : "Add Item Rate") : (page === 1 ? "Edit Client Details" : "Edit Item Rate")}
+            {isAdding
+              ? page === 1
+                ? "Add Client"
+                : "Add Item Rate"
+              : page === 1
+              ? "Edit Client Details"
+              : "Edit Item Rate"}
           </Typography>
           {currentClient && (
             <Box>{page === 1 ? renderPage1() : renderPage2()}</Box>

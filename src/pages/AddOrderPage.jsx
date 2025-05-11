@@ -18,7 +18,7 @@ import {
   Autocomplete,
   FormControlLabel,
   Checkbox,
-  createFilterOptions
+  createFilterOptions,
 } from "@mui/material";
 import { FaCopy, FaTrash, FaPlus } from "react-icons/fa";
 import "../css/main.css";
@@ -67,7 +67,7 @@ export default function AddOrderPage({}) {
     {
       id: 1,
       name: "Item",
-      type: "gb",
+      type: "G/B",
       quantity: 1,
       freight: 30,
       hamali: 5,
@@ -75,7 +75,7 @@ export default function AddOrderPage({}) {
     {
       id: 2,
       name: "KItem",
-      type: "gb",
+      type: "C/B",
       quantity: 1,
       freight: 30,
       hamali: 5,
@@ -90,9 +90,9 @@ export default function AddOrderPage({}) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // fetchClients();
-    // fetchWarehouse();
-    // fetchItems();
+    fetchClients();
+    fetchWarehouse();
+    fetchItems();
   }, []);
 
   const fetchClients = async () => {
@@ -140,7 +140,7 @@ export default function AddOrderPage({}) {
         quantity: 0,
         freight: 0,
         hamali: 0,
-        type: "cb",
+        type: "C/B",
       },
     ]);
     setCounter(counter + 1);
@@ -175,23 +175,22 @@ export default function AddOrderPage({}) {
   const fixCharges = (id, quantity_new, freight_new, hamali_new) => {
     let ham = 0,
       frt = 0;
-    items
+      items
       .filter((item) => item.id !== id)
       .map((item) => {
         ham += item.quantity * item.hamali;
         frt += item.quantity * item.freight;
       });
-    ham += hamali_new * quantity_new;
-    frt += freight_new * quantity_new;
+      ham += hamali_new * quantity_new;
+      frt += freight_new * quantity_new;
     setHamali(ham);
     setFreight(frt);
   };
 
   const handleInputChange = (id, field, value) => {
-    console.log("item", items);
     if (field === "autoComplete") {
       let item = regItems.find((item) => item.name === value);
-      console.log("itemmm", item);
+      item.quantity = 1;
       setItems((prevItems) =>
         prevItems.map((prevItem) =>
           prevItem.id === id ? { ...prevItem, ...item } : prevItem
@@ -254,6 +253,8 @@ export default function AddOrderPage({}) {
           charges: hamali,
           hamali,
           freight,
+          payment: isPaid ? "Paid" : "To Pay",
+          doorDelivery: isDoorDelivery,
           ...(isAdmin ? { sourceWarehouse } : {}),
         }),
       });
@@ -337,7 +338,7 @@ export default function AddOrderPage({}) {
           options={regClients}
           getOptionLabel={(option) => option.name || senderDetails.name}
           filterOptions={createFilterOptions({
-            matchFrom: 'start',
+            matchFrom: "start",
           })}
           value={
             regClients.find((client) => client.name === senderDetails.name) ||
@@ -358,10 +359,10 @@ export default function AddOrderPage({}) {
                   color: "black",
                   border: "1px solid black",
                 }}
-                />
-              ),
-            }}
-            />
+              />
+            ),
+          }}
+        />
         <TextField
           label="Sender's Phone No."
           value={senderDetails.phoneNo}
@@ -369,7 +370,7 @@ export default function AddOrderPage({}) {
           onChange={(e) =>
             setSenderDetails({ ...senderDetails, phoneNo: e.target.value })
           }
-          />
+        />
         <TextField
           label="Sender's Address"
           value={senderDetails.address}
@@ -377,7 +378,7 @@ export default function AddOrderPage({}) {
           onChange={(e) =>
             setSenderDetails({ ...senderDetails, address: e.target.value })
           }
-          />
+        />
         <TextField
           label="Sender's GST"
           value={senderDetails.gst}
@@ -391,11 +392,11 @@ export default function AddOrderPage({}) {
           options={regClients}
           getOptionLabel={(option) => option.name || receiverDetails.name}
           filterOptions={createFilterOptions({
-            matchFrom: 'start',
+            matchFrom: "start",
           })}
-          value={regClients.find(
-            (client) =>
-              client.name === receiverDetails.name) || receiverDetails.name
+          value={
+            regClients.find((client) => client.name === receiverDetails.name) ||
+            receiverDetails.name
           }
           onChange={(event, newValue) => handleReceiverChange(event, newValue)}
           renderInput={(params) => (
@@ -559,7 +560,7 @@ export default function AddOrderPage({}) {
                       handleInputChange(item.id, "autoComplete", newValue);
                     }}
                     filterOptions={createFilterOptions({
-                      matchFrom: 'start',
+                      matchFrom: "start",
                     })}
                     getOptionLabel={(option) => option || item.name}
                     renderInput={(params) => (
@@ -604,9 +605,9 @@ export default function AddOrderPage({}) {
                       }
                       size="small"
                     >
-                      <MenuItem value="cb">C/B</MenuItem>
-                      <MenuItem value="gb">G/B</MenuItem>
-                      <MenuItem value="bundle">Bundle</MenuItem>
+                      <MenuItem value="C/B">C/B</MenuItem>
+                      <MenuItem value="G/B">G/B</MenuItem>
+                      <MenuItem value="Bundle">Bundle</MenuItem>
                     </Select>
                   </FormControl>
                 </TableCell>

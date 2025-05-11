@@ -80,17 +80,7 @@ export default function ViewOrderPage() {
     }
     const data = await response.json();
     setOrder(data.body);
-    console.log(data.body);
-    // setSenderDetails(data.body.sender);
-    // setReceiverDetails(data.body.receiver);
-    // setSourceWarehouse(data.body.sourceWarehouse.name);
-    // setDestWarehouse(data.body.destinationWarehouse.name);
-    // setItems(data.body.items);
-    // setCharges(data.body.charges);
-    // setHamali(data.body.hamali);
-    // setFreight(data.body.freight);
     setQrCode(data.qrCode);
-    // setStatus(data.body.status);
     setIsLoading1(false);
   };
 
@@ -221,7 +211,7 @@ export default function ViewOrderPage() {
                 </Box>
                 <Box sx={{ marginLeft: "40px" }}>
                   <Typography sx={rowCellStyle}>
-                    <strong>Type:</strong> {order.isPaid ? "Paid" : "To Pay"}
+                    <strong>Type:</strong> {order.payment}
                   </Typography>
                   <Typography sx={rowCellStyle}>
                     <strong>Freight:</strong> {order.freight}
@@ -237,7 +227,7 @@ export default function ViewOrderPage() {
                   </Typography>
                   <Typography sx={rowCellStyle}>
                     <strong>Door Delivery:</strong>
-                    {order.isDoorDelivery ? " Yes" : " No"}
+                    {order.doorDelivery ? " Yes" : " No"}
                   </Typography>
                 </Box>
                 <Box
