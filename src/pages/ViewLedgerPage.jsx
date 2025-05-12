@@ -201,6 +201,30 @@ export default function ViewLedgerPage() {
     }
   };
 
+  const handlePrint = async () => {
+    try {
+      const response = await fetch(
+        `${BASE_URL}/api/ledger/generate-ledger-receipt/${id}`
+      );
+      const blob = await response.blob();
+      const pdfURL = URL.createObjectURL(blob);
+
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = pdfURL;
+
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      };
+    } catch (error) {
+      alert("Failed to load or print the PDF.");
+    }
+    setQrCodeModalOpen(false);
+  };
+
   return (
     <Box
       sx={{
@@ -480,9 +504,9 @@ export default function ViewLedgerPage() {
           <TbTruckDelivery  size="19" style={{ marginRight: "8px" }} />Deliver Truck
         </button>
       )}
-      <Link to={`${BASE_URL}/api/ledger/generate-ledger-receipt/${id}`} target="_blank">
-        <button className="button button-large"> <FaPrint style={{ marginRight: "8px" }} />Download Ledger</button>
-      </Link>
+      
+        <button className="button button-large" onClick={handlePrint}> <FaPrint style={{ marginRight: "8px" }} />Download Ledger</button>
+      
       <button
         className="button button-large"
         onClick={() => setDeleteModalOpen(true)}

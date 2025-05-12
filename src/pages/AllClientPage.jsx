@@ -17,11 +17,12 @@ import {
   FormControl,
   Select,
   MenuItem,
+  Autocomplete,
+  createFilterOptions,
 } from "@mui/material";
 import { Edit, Delete, Close } from "@mui/icons-material";
 import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
-import "../css/main.css";
 
 const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
 const rowStyle = { color: "#25344E" };
@@ -30,6 +31,7 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 export default function AllClientPage() {
   const [clients, setClients] = useState([]);
   const [filteredClients, setFilteredClients] = useState([]);
+  const [regItems, setRegItems] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [currentClient, setCurrentClient] = useState(null);
@@ -43,6 +45,7 @@ export default function AllClientPage() {
 
   useEffect(() => {
     fetchData();
+    fetchItems();
   }, []);
 
   useEffect(() => {
@@ -63,6 +66,20 @@ export default function AllClientPage() {
     const data = await res.json();
     setClients(data.body);
     setIsLoading(false);
+  };
+
+  const fetchItems = async () => {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    setRegItems(data.body);
   };
 
   const applyFilter = () => {
@@ -134,9 +151,9 @@ export default function AllClientPage() {
       items: [
         {
           name: "",
-          freight: "",
-          hamali: "",
-          type: "cb",
+          freight: 0,
+          hamali: 0,
+          type: "C/B",
         },
       ],
     });
@@ -194,7 +211,16 @@ export default function AllClientPage() {
 
   const handleItemChange = (index, field, value) => {
     const updatedItems = [...currentClient.items];
-    if (field === "freight" || field === "hamali") {
+    if (field === "autoComplete") {
+      const selectedItem = regItems.find((item) => item.name === value);
+      updatedItems[index].name = value;
+      updatedItems[index].type = selectedItem.type;
+      updatedItems[index].freight = selectedItem.freight;
+      updatedItems[index].hamali = selectedItem.hamali;
+      setCurrentClient({ ...currentClient, items: updatedItems });
+      return;
+    }
+    else if (field === "freight" || field === "hamali") {
       value = parseInt(value) || 0;
     }
     updatedItems[index][field] = value;
@@ -204,7 +230,7 @@ export default function AllClientPage() {
   const handleAddItemRow = () => {
     setCurrentClient((prev) => ({
       ...prev,
-      items: [...prev.items, { name: "", freight: "", hamali: "", type: "cb" }],
+      items: [...prev.items, { name: "", freight: 0, hamali: 0, type: "C/B" }],
     }));
   };
 
@@ -282,12 +308,45 @@ export default function AllClientPage() {
           {currentClient.items?.map((item, idx) => (
             <TableRow key={idx}>
               <TableCell>
-                <TextField
+                <Autocomplete
                   value={item.name}
-                  onChange={(e) =>
-                    handleItemChange(idx, "name", e.target.value)
-                  }
-                  fullWidth
+                  options={regItems.map((item) => item.name)}
+                  onChange={(event, newValue) => {
+                    handleItemChange(idx, "autoComplete", newValue);
+                  }}
+                  filterOptions={createFilterOptions({
+                    matchFrom: "start",
+                  })}
+                  getOptionLabel={(option) => option || item.name}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Enter Item Name"
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        "& .MuiInputBase-root": {
+                          fontSize: "14px",
+                          color: "#1b3655",
+                        },
+                        width: "13vw",
+                      }}
+                    />
+                  )}
+                  disableClearable
+                  slots={{
+                    paper: (props) => (
+                      <div
+                        {...props}
+                        style={{
+                          overflowY: "auto",
+                          backgroundColor: "#f7f9fc",
+                          color: "black",
+                          border: "1px solid black",
+                        }}
+                      />
+                    ),
+                  }}
                 />
               </TableCell>
               <TableCell>
@@ -299,9 +358,9 @@ export default function AllClientPage() {
                     }
                     size="small"
                   >
-                    <MenuItem value="cb">C/B</MenuItem>
-                    <MenuItem value="gb">G/B</MenuItem>
-                    <MenuItem value="bundle">Bundle</MenuItem>
+                    <MenuItem value="C/B">C/B</MenuItem>
+                    <MenuItem value="G/B">G/B</MenuItem>
+                    <MenuItem value="Bundle">Bundle</MenuItem>
                   </Select>
                 </FormControl>
               </TableCell>
@@ -309,6 +368,7 @@ export default function AllClientPage() {
                 <TextField
                   type="text"
                   value={item.freight}
+                  size="small"
                   onChange={(e) =>
                     handleItemChange(idx, "freight", e.target.value)
                   }
@@ -319,6 +379,7 @@ export default function AllClientPage() {
                 <TextField
                   type="text"
                   value={item.hamali}
+                  size="small"
                   onChange={(e) =>
                     handleItemChange(idx, "hamali", e.target.value)
                   }
@@ -409,7 +470,7 @@ export default function AllClientPage() {
             ) : filteredClients.length > 0 ? (
               filteredClients.map((client, idx) => (
                 <TableRow key={idx}>
-                  <TableCell sx={rowStyle}>{idx+1}</TableCell>
+                  <TableCell sx={rowStyle}>{idx + 1}</TableCell>
                   <TableCell sx={rowStyle}>{client.name}</TableCell>
                   <TableCell sx={rowStyle}>{client.phoneNo}</TableCell>
                   <TableCell sx={rowStyle}>{client.address}</TableCell>
@@ -422,7 +483,7 @@ export default function AllClientPage() {
                       <IoArrowForwardCircleOutline size={24} />
                     </IconButton>
                   </TableCell>
-                  <TableCell sx={{display: "flex"}}>
+                  <TableCell sx={{ display: "flex" }}>
                     <IconButton
                       color="primary"
                       onClick={() => handleEdit(client)}

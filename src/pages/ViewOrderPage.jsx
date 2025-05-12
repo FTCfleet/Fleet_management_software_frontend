@@ -123,21 +123,52 @@ export default function ViewOrderPage() {
   };
 
   const handlePrint = async () => {
-    const response = await fetch(`${BASE_URL}/api/parcel/generate-qr/${id}?count=${qrCount}`);
-    const blob = await response.blob();
-    const pdfURL = URL.createObjectURL(blob);
-  
-    const printWindow = window.open(pdfURL);
-    if (printWindow) {
-      printWindow.onload = () => {
-        printWindow.focus();
-        printWindow.print();
+    try {
+      const response = await fetch(
+        `${BASE_URL}/api/parcel/generate-qr/${id}?count=${qrCount}`
+      );
+      const blob = await response.blob();
+      const pdfURL = URL.createObjectURL(blob);
+
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = pdfURL;
+
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
       };
-    } else {
-      alert("Pop-up blocked. Please allow pop-ups to print the PDF.");
+    } catch (error) {
+      alert("Failed to load or print the PDF.");
+    }
+    setQrCodeModalOpen(false);
+  };
+
+  const handleLRPrint = async () => {
+    try {
+      const response = await fetch(
+        `${BASE_URL}/api/parcel/generate-lr-receipt/${id}`
+      );
+      const blob = await response.blob();
+      const pdfURL = URL.createObjectURL(blob);
+
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = pdfURL;
+
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      };
+    } catch (error) {
+      alert("Failed to load or print the PDF.");
     }
   };
-  
+
   return (
     <Box
       sx={{
@@ -327,15 +358,10 @@ export default function ViewOrderPage() {
       </TableContainer>
 
       <Box sx={{ marginTop: "20px", textAlign: "center" }}>
-        <Link
-          to={`${BASE_URL}/api/parcel/generate-lr-receipt/${id}`}
-          style={{ color: "inherit", textDecoration: "none" }}
-          target="_blank"
-        >
-          <button className="button">
-            <FaPrint style={{ marginRight: "8px" }} /> Download LR Receipt
-          </button>
-        </Link>
+        <button className="button" onClick={handleLRPrint}>
+          <FaPrint style={{ marginRight: "8px" }} /> Download LR Receipt
+        </button>
+
         <Link
           to={`/user/edit/order/${id}`}
           style={{ color: "inherit", textDecoration: "none" }}
@@ -487,13 +513,9 @@ export default function ViewOrderPage() {
               >
                 Cancel
               </Button>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => { setQrCodeModalOpen(false); handlePrint();}}
-                >
-                  Confirm
-                </Button>
+              <Button variant="contained" color="primary" onClick={handlePrint}>
+                Confirm
+              </Button>
             </Box>
           </Box>
         </Modal>

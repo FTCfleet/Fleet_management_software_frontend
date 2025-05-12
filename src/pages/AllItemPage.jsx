@@ -216,6 +216,7 @@ export default function AllItemPage() {
               <TableCell>
                 <TextField
                   value={item.name}
+                  size="small"
                   onChange={(e) =>
                     handleItemChange(idx, "name", e.target.value)
                   }
@@ -241,6 +242,7 @@ export default function AllItemPage() {
                 <TextField
                   type="text"
                   value={item.freight}
+                  size="small"
                   onChange={(e) =>
                     handleItemChange(idx, "freight", e.target.value)
                   }
@@ -251,6 +253,7 @@ export default function AllItemPage() {
                 <TextField
                   type="text"
                   value={item.hamali}
+                  size="small"
                   onChange={(e) =>
                     handleItemChange(idx, "hamali", e.target.value)
                   }
