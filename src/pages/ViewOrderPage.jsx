@@ -122,6 +122,22 @@ export default function ViewOrderPage() {
     }
   };
 
+  const handlePrint = async () => {
+    const response = await fetch(`${BASE_URL}/api/parcel/generate-qr/${id}?count=${qrCount}`);
+    const blob = await response.blob();
+    const pdfURL = URL.createObjectURL(blob);
+  
+    const printWindow = window.open(pdfURL);
+    if (printWindow) {
+      printWindow.onload = () => {
+        printWindow.focus();
+        printWindow.print();
+      };
+    } else {
+      alert("Pop-up blocked. Please allow pop-ups to print the PDF.");
+    }
+  };
+  
   return (
     <Box
       sx={{
@@ -478,7 +494,7 @@ export default function ViewOrderPage() {
                 <Button
                   variant="contained"
                   color="primary"
-                  onClick={() => setQrCodeModalOpen(false)}
+                  onClick={() => { setQrCodeModalOpen(false); handlePrint();}}
                 >
                   Confirm
                 </Button>
