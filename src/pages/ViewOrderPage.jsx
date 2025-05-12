@@ -487,10 +487,6 @@ export default function ViewOrderPage() {
               >
                 Cancel
               </Button>
-              <Link
-                to={`${BASE_URL}/api/parcel/generate-qr/${id}?count=${qrCount}`}
-                target="_blank"
-              >
                 <Button
                   variant="contained"
                   color="primary"
@@ -498,7 +494,6 @@ export default function ViewOrderPage() {
                 >
                   Confirm
                 </Button>
-              </Link>
             </Box>
           </Box>
         </Modal>
