@@ -150,7 +150,7 @@ export default function AllClientPage() {
       gst: "",
       items: [
         {
-          name: "",
+          itemDetails: {},
           freight: 0,
           hamali: 0,
           type: "C/B",
@@ -165,6 +165,7 @@ export default function AllClientPage() {
   const handleSaveOrAdd = async () => {
     setIsLoading1(true);
     const token = localStorage.getItem("token");
+    console.log(currentClient);
     let method, body;
     if (isAdding) {
       method = "POST";
@@ -173,6 +174,12 @@ export default function AllClientPage() {
         phoneNo: currentClient.phoneNo ? currentClient.phoneNo : "NA",
         address: currentClient.address ? currentClient.address : "NA",
         gst: currentClient.gst ? currentClient.gst : "NA",
+        items: currentClient.items.map((item) => ({
+          itemDetails: item.itemDetails._id,
+          freight: parseInt(item.freight) || 0,
+          hamali: parseInt(item.hamali) || 0,
+          statisticalCharges: parseInt(item.hamali) || 0,
+        })),
       };
     } else {
       method = "PUT";
@@ -182,6 +189,12 @@ export default function AllClientPage() {
           phoneNo: currentClient.phoneNo ? currentClient.phoneNo : "NA",
           address: currentClient.address ? currentClient.address : "NA",
           gst: currentClient.gst ? currentClient.gst : "NA",
+          items: currentClient.items.map((item) => ({
+            itemDetails: item.itemDetails._id,
+            freight: parseInt(item.freight) || 0,
+            hamali: parseInt(item.hamali) || 0,
+            statisticalCharges: parseInt(item.hamali) || 0,
+          })),
         },
       };
     }
@@ -213,8 +226,8 @@ export default function AllClientPage() {
     const updatedItems = [...currentClient.items];
     if (field === "autoComplete") {
       const selectedItem = regItems.find((item) => item.name === value);
+      updatedItems[index].itemDetails = selectedItem;
       updatedItems[index].name = value;
-      updatedItems[index].type = selectedItem.type;
       updatedItems[index].freight = selectedItem.freight;
       updatedItems[index].hamali = selectedItem.hamali;
       setCurrentClient({ ...currentClient, items: updatedItems });
@@ -230,7 +243,7 @@ export default function AllClientPage() {
   const handleAddItemRow = () => {
     setCurrentClient((prev) => ({
       ...prev,
-      items: [...prev.items, { name: "", freight: 0, hamali: 0, type: "C/B" }],
+      items: [...prev.items, { name: "", freight: 0, hamali: 0, _id: ""}],
     }));
   };
 
@@ -298,7 +311,6 @@ export default function AllClientPage() {
         <TableHead>
           <TableRow>
             <TableCell>Item Name</TableCell>
-            <TableCell>Type</TableCell>
             <TableCell>Freight</TableCell>
             <TableCell>Hamali</TableCell>
             <TableCell>Actions</TableCell>
@@ -309,7 +321,7 @@ export default function AllClientPage() {
             <TableRow key={idx}>
               <TableCell>
                 <Autocomplete
-                  value={item.name}
+                  value={item.itemDetails.name}
                   options={regItems.map((item) => item.name)}
                   onChange={(event, newValue) => {
                     handleItemChange(idx, "autoComplete", newValue);
@@ -348,21 +360,6 @@ export default function AllClientPage() {
                     ),
                   }}
                 />
-              </TableCell>
-              <TableCell>
-                <FormControl fullWidth>
-                  <Select
-                    value={item.type}
-                    onChange={(e) =>
-                      handleItemChange(item.id, "type", e.target.value)
-                    }
-                    size="small"
-                  >
-                    <MenuItem value="C/B">C/B</MenuItem>
-                    <MenuItem value="G/B">G/B</MenuItem>
-                    <MenuItem value="Bundle">Bundle</MenuItem>
-                  </Select>
-                </FormControl>
               </TableCell>
               <TableCell>
                 <TextField
@@ -518,7 +515,7 @@ export default function AllClientPage() {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: page === 1 ? 500 : 700,
+            width: page === 1 ? 400 : 600,
             maxHeight: "70vh",
             overflowY: "auto",
             bgcolor: "background.paper",

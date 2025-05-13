@@ -40,26 +40,15 @@ export default function EditOrderPage() {
   const [oldItems, setOldItems] = useState([]);
   const [delItems, setDelItems] = useState([]);
   const [newItems, setNewItems] = useState([]);
-  const [senderDetails, setSenderDetails] = useState({
-    name: "",
-    phoneNo: "",
-    address: "",
-    gst: "",
-    role: "sender",
-  });
-  const [receiverDetails, setReceiverDetails] = useState({
-    name: "",
-    phoneNo: "",
-    address: "",
-    gst: "",
-    role: "receiver",
-  });
+  const [senderDetails, setSenderDetails] = useState({});
+  const [receiverDetails, setReceiverDetails] = useState({});
   const [freight, setFreight] = useState(0);
   const [hamali, setHamali] = useState(0);
   const [isDoorDelivery, setIsDoorDelivery] = useState(false);
   const [isPaid, setIsPaid] = useState(false);
   const [clients, setClients] = useState([]);
   const [regItems, setRegItems] = useState([]);
+  const [regClientItems, setRegClientItems] = useState([]);
   const [status, setStatus] = useState("");
   const [counter, setCounter] = useState(1);
   const [sourceWarehouse, setSourceWarehouse] = useState("");
@@ -78,6 +67,23 @@ export default function EditOrderPage() {
     fetchClients();
     fetchItems();
   }, []);
+
+  const fetchRegClientItems = async (clientId) => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(
+      `${BASE_URL}/api/admin/regular-client-items/${clientId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await res.json();
+    setRegClientItems(data.body);
+    console.log(data);
+  };
 
   const fetchClients = async () => {
     const token = localStorage.getItem("token");
@@ -164,12 +170,14 @@ export default function EditOrderPage() {
 
   const handleReceiverChange = (event, selectedOption) => {
     if (selectedOption.name) {
+      console.log(selectedOption);
       setReceiverDetails({
         ...receiverDetails,
         name: selectedOption.name,
         phoneNo: selectedOption.phoneNo,
         address: selectedOption.address,
       });
+      fetchRegClientItems(selectedOption._id);
     } else {
       setReceiverDetails({
         ...receiverDetails,
@@ -243,7 +251,11 @@ export default function EditOrderPage() {
 
   const handleInputChange = (id, field, value) => {
     if (field === "autoComplete") {
-      let item = regItems.find((item) => item.name === value);
+
+      let item = regClientItems.find((item) => item.name === value);
+      if (!item){
+        item = regItems.find((item) => item.name === value);
+      }
       item.quantity = 1;
       setNewItems((prevItems) =>
         prevItems.map((prevItem) =>
@@ -288,8 +300,6 @@ export default function EditOrderPage() {
   const confirmSave = async () => {
     setIsLoading(true);
     const token = localStorage.getItem("token");
-    console.log(sourceWarehouse);
-    console.log(destinationWarehouse);
     await fetch(`${BASE_URL}/api/parcel/edit/${id}`, {
       method: "PUT",
       headers: {

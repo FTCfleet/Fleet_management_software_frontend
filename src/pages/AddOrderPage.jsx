@@ -47,40 +47,9 @@ export default function AddOrderPage({}) {
   const [freight, setFreight] = useState(0);
   const [hamali, setHamali] = useState(0);
   const [allWarehouse, setAllWarehouse] = useState([]);
-  const [regClients, setRegClients] = useState([
-    {
-      id: 1,
-      name: "Client",
-      phoneNo: "1234567890",
-      address: "123 Street, City",
-      gst: "GST123456",
-    },
-    {
-      id: 2,
-      name: "Lien 2",
-      phoneNo: "0987654321",
-      address: "456 Avenue, City",
-      gst: "GST654321",
-    },
-  ]);
-  const [regItems, setregItems] = useState([
-    {
-      id: 1,
-      name: "Item",
-      type: "G/B",
-      quantity: 1,
-      freight: 30,
-      hamali: 5,
-    },
-    {
-      id: 2,
-      name: "KItem",
-      type: "C/B",
-      quantity: 1,
-      freight: 30,
-      hamali: 5,
-    },
-  ]);
+  const [regClients, setRegClients] = useState([]);
+  const [regClientItems, setRegClientItems] = useState([]);
+  const [regItems, setregItems] = useState([]);
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [isPaid, setIsPaid] = useState(0);
@@ -94,6 +63,22 @@ export default function AddOrderPage({}) {
     fetchWarehouse();
     fetchItems();
   }, []);
+
+  const fetchRegClientItems = async (clientId) => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(
+      `${BASE_URL}/api/admin/regular-client-items/${clientId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await res.json();
+    setRegClientItems(data.body);
+  };
 
   const fetchClients = async () => {
     const token = localStorage.getItem("token");
@@ -175,21 +160,32 @@ export default function AddOrderPage({}) {
   const fixCharges = (id, quantity_new, freight_new, hamali_new) => {
     let ham = 0,
       frt = 0;
-      items
+    items
       .filter((item) => item.id !== id)
       .map((item) => {
         ham += item.quantity * item.hamali;
         frt += item.quantity * item.freight;
       });
-      ham += hamali_new * quantity_new;
-      frt += freight_new * quantity_new;
+    ham += hamali_new * quantity_new;
+    frt += freight_new * quantity_new;
     setHamali(ham);
     setFreight(frt);
   };
 
   const handleInputChange = (id, field, value) => {
     if (field === "autoComplete") {
-      let item = regItems.find((item) => item.name === value);
+      let item = regClientItems.find((item) => item.itemDetails.name === value);
+      if (!item) {
+        item = regItems.find((item) => item.name === value);
+      }
+      if (!item) {
+        setItems((prevItems) =>
+          prevItems.map((prevItem) =>
+            prevItem.id === id ? { ...prevItem, name: value.toUpperCase() } : prevItem
+          )
+        );
+        return;
+      }
       item.quantity = 1;
       setItems((prevItems) =>
         prevItems.map((prevItem) =>
@@ -276,7 +272,6 @@ export default function AddOrderPage({}) {
 
   const handleSenderChange = (event, selectedOption) => {
     console.log(selectedOption);
-    console.log(senderDetails);
     if (selectedOption.name) {
       setSenderDetails({
         ...senderDetails,
@@ -302,6 +297,7 @@ export default function AddOrderPage({}) {
         address: selectedOption.address,
         gst: selectedOption.gst,
       });
+      fetchRegClientItems(selectedOption._id);
     } else {
       setReceiverDetails({
         ...receiverDetails,
@@ -335,16 +331,16 @@ export default function AddOrderPage({}) {
       >
         <Autocomplete
           freeSolo
-          options={regClients}
-          getOptionLabel={(option) => option.name || senderDetails.name}
-          filterOptions={createFilterOptions({
-            matchFrom: "start",
-          })}
           value={
             regClients.find((client) => client.name === senderDetails.name) ||
             senderDetails.name
           }
+          options={regClients}
           onChange={(event, newValue) => handleSenderChange(event, newValue)}
+          filterOptions={createFilterOptions({
+            matchFrom: "start",
+          })}
+          getOptionLabel={(option) => option.name || senderDetails.name}
           renderInput={(params) => (
             <TextField {...params} label="Sender's Name" />
           )}
