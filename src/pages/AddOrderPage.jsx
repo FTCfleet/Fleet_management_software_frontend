@@ -172,8 +172,11 @@ export default function AddOrderPage({}) {
     setFreight(frt);
   };
 
-  const handleInputChange = (id, field, value) => {
+  const handleInputChange = (id, field, value, event) => {
     if (field === "autoComplete") {
+      if (!value) {
+        value = event?.target.value.toUpperCase();
+      }
       let item = regClientItems.find((item) => item.itemDetails.name === value);
       if (!item) {
         item = regItems.find((item) => item.name === value);
@@ -181,7 +184,9 @@ export default function AddOrderPage({}) {
       if (!item) {
         setItems((prevItems) =>
           prevItems.map((prevItem) =>
-            prevItem.id === id ? { ...prevItem, name: value.toUpperCase() } : prevItem
+            prevItem.id === id
+              ? { ...prevItem, name: value.toUpperCase() }
+              : prevItem
           )
         );
         return;
@@ -221,9 +226,9 @@ export default function AddOrderPage({}) {
   };
 
   const handleEmptyDetails = (details) => {
-    if (!details.name || details.name == "") details.name = "NA";
     if (!details.phoneNo || details.phoneNo == "") details.phoneNo = "NA";
     if (!details.address || details.address == "") details.address = "NA";
+    if (!details.gst || details.gst == "") details.gst = "NA";
     return details;
   };
 
@@ -271,39 +276,49 @@ export default function AddOrderPage({}) {
   };
 
   const handleSenderChange = (event, selectedOption) => {
-    console.log(selectedOption);
-    if (selectedOption.name) {
-      setSenderDetails({
-        ...senderDetails,
-        name: selectedOption.name,
-        phoneNo: selectedOption.phoneNo,
-        address: selectedOption.address,
-        gst: selectedOption.gst,
-      });
+    if (!selectedOption) {
+      selectedOption = event.target.value.toUpperCase();
     } else {
+      selectedOption = selectedOption.toUpperCase();
+    }
+    let item = regClients.find((item) => item.name === selectedOption);
+    if (!item) {
       setSenderDetails({
         ...senderDetails,
-        name: event.target.value,
+        name: selectedOption,
       });
+      return;
     }
+    setSenderDetails({
+      ...senderDetails,
+      name: item.name,
+      phoneNo: item.phoneNo,
+      address: item.address,
+      gst: item.gst,
+    });
   };
 
   const handleReceiverChange = (event, selectedOption) => {
-    if (selectedOption.name) {
-      setReceiverDetails({
-        ...receiverDetails,
-        name: selectedOption.name,
-        phoneNo: selectedOption.phoneNo,
-        address: selectedOption.address,
-        gst: selectedOption.gst,
-      });
-      fetchRegClientItems(selectedOption._id);
+    if (!selectedOption) {
+      selectedOption = event.target.value.toUpperCase();
     } else {
+      selectedOption = selectedOption.toUpperCase();
+    }
+    let item = regClients.find((item) => item.name === selectedOption);
+    if (!item) {
       setReceiverDetails({
         ...receiverDetails,
-        name: event.target.value,
+        name: selectedOption,
       });
+      return;
     }
+    setReceiverDetails({
+      ...receiverDetails,
+      name: item.name,
+      phoneNo: item.phoneNo,
+      address: item.address,
+      gst: item.gst,
+    });
   };
 
   return (
@@ -331,16 +346,14 @@ export default function AddOrderPage({}) {
       >
         <Autocomplete
           freeSolo
-          value={
-            regClients.find((client) => client.name === senderDetails.name) ||
-            senderDetails.name
-          }
-          options={regClients}
+          value={senderDetails.name}
+          options={regClients.map((client) => client.name)}
           onChange={(event, newValue) => handleSenderChange(event, newValue)}
           filterOptions={createFilterOptions({
             matchFrom: "start",
           })}
-          getOptionLabel={(option) => option.name || senderDetails.name}
+          onBlur={(event, newValue) => handleSenderChange(event, newValue)}
+          getOptionLabel={(option) => option || senderDetails.name}
           renderInput={(params) => (
             <TextField {...params} label="Sender's Name" />
           )}
@@ -385,16 +398,14 @@ export default function AddOrderPage({}) {
         />
         <Autocomplete
           freeSolo
-          options={regClients}
-          getOptionLabel={(option) => option.name || receiverDetails.name}
+          value={receiverDetails.name}
+          options={regClients.map((client) => client.name)}
+          onChange={(event, newValue) => handleReceiverChange(event, newValue)}
+          onBlur={(event, newValue) => handleReceiverChange(event, newValue)}
           filterOptions={createFilterOptions({
             matchFrom: "start",
           })}
-          value={
-            regClients.find((client) => client.name === receiverDetails.name) ||
-            receiverDetails.name
-          }
-          onChange={(event, newValue) => handleReceiverChange(event, newValue)}
+          getOptionLabel={(option) => option || receiverDetails.name}
           renderInput={(params) => (
             <TextField {...params} label="Receiver's Name" />
           )}
@@ -553,11 +564,24 @@ export default function AddOrderPage({}) {
                     value={item.name}
                     options={regItems.map((item) => item.name)}
                     onChange={(event, newValue) => {
-                      handleInputChange(item.id, "autoComplete", newValue);
+                      handleInputChange(
+                        item.id,
+                        "autoComplete",
+                        newValue,
+                        event
+                      );
                     }}
                     filterOptions={createFilterOptions({
                       matchFrom: "start",
                     })}
+                    onBlur={(event, newValue) =>
+                      handleInputChange(
+                        item.id,
+                        "autoComplete",
+                        newValue,
+                        event
+                      )
+                    }
                     getOptionLabel={(option) => option || item.name}
                     renderInput={(params) => (
                       <TextField

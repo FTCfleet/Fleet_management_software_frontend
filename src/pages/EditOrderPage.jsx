@@ -40,8 +40,22 @@ export default function EditOrderPage() {
   const [oldItems, setOldItems] = useState([]);
   const [delItems, setDelItems] = useState([]);
   const [newItems, setNewItems] = useState([]);
-  const [senderDetails, setSenderDetails] = useState({});
-  const [receiverDetails, setReceiverDetails] = useState({});
+  const [senderDetails, setSenderDetails] = useState({
+    name: "",
+    phoneNo: "",
+    address: "",
+    gst: "",
+    role: "sender",
+  });
+  const [receiverDetails, setReceiverDetails] = useState({
+    name: "",
+    phoneNo: "",
+    address: "",
+    gst: "",
+    role: "receiver",
+  });
+  const [freightOld, setFreightOld] = useState(0);
+  const [hamaliOld, setHamaliOld] = useState(0);
   const [freight, setFreight] = useState(0);
   const [hamali, setHamali] = useState(0);
   const [isDoorDelivery, setIsDoorDelivery] = useState(false);
@@ -82,7 +96,6 @@ export default function EditOrderPage() {
     );
     const data = await res.json();
     setRegClientItems(data.body);
-    console.log(data);
   };
 
   const fetchClients = async () => {
@@ -144,8 +157,8 @@ export default function EditOrderPage() {
     setReceiverDetails(data.receiver);
     setSourceWarehouse(data.sourceWarehouse.warehouseID);
     setDestinationWarehouse(data.destinationWarehouse.warehouseID);
-    setFreight(data.freight || 0);
-    setHamali(data.hamali || 0);
+    setFreightOld(data.freight || 0);
+    setHamaliOld(data.hamali || 0);
     setIsDoorDelivery(data.isDoorDelivery || false);
     setIsPaid(data.isPaid || false);
     setOldItems(data.items);
@@ -153,41 +166,55 @@ export default function EditOrderPage() {
   };
 
   const handleSenderChange = (event, selectedOption) => {
-    if (selectedOption.name) {
-      setSenderDetails({
-        ...senderDetails,
-        name: selectedOption.name,
-        phoneNo: selectedOption.phoneNo,
-        address: selectedOption.address,
-      });
+    if (!selectedOption) {
+      selectedOption = event.target.value.toUpperCase();
     } else {
+      selectedOption = selectedOption.toUpperCase();
+    }
+    let item = clients.find((item) => item.name === selectedOption);
+    if (!item) {
       setSenderDetails({
         ...senderDetails,
-        name: event.target.value,
+        name: selectedOption,
       });
+      return;
     }
+    setSenderDetails({
+      ...senderDetails,
+      name: item.name,
+      phoneNo: item.phoneNo,
+      address: item.address,
+      gst: item.gst,
+    });
   };
 
   const handleReceiverChange = (event, selectedOption) => {
-    if (selectedOption.name) {
-      console.log(selectedOption);
-      setReceiverDetails({
-        ...receiverDetails,
-        name: selectedOption.name,
-        phoneNo: selectedOption.phoneNo,
-        address: selectedOption.address,
-      });
-      fetchRegClientItems(selectedOption._id);
+    if (!selectedOption) {
+      selectedOption = event.target.value.toUpperCase();
     } else {
+      selectedOption = selectedOption.toUpperCase();
+    }
+    let item = clients.find((item) => item.name === selectedOption);
+    if (!item) {
       setReceiverDetails({
         ...receiverDetails,
-        name: event.target.value,
+        name: selectedOption,
       });
+      return;
     }
+    setReceiverDetails({
+      ...receiverDetails,
+      name: item.name,
+      phoneNo: item.phoneNo,
+      address: item.address,
+      gst: item.gst,
+    });
   };
 
   const handleDelete = (item) => {
     delItems.push(item._id);
+    setFreightOld((prev) => prev - item.quantity * item.freight);
+    setHamaliOld((prev) => prev - item.quantity * item.hamali);
     setDelItems(delItems);
     setOldItems(oldItems.filter((element) => element._id !== item._id));
   };
@@ -209,7 +236,7 @@ export default function EditOrderPage() {
   };
 
   const handleRemoveRow = (itemId) => {
-    const updatedItems = items
+    const updatedItems = newItems
       .filter((item) => item.itemId !== itemId)
       .map((item, index) => ({
         ...item,
@@ -249,12 +276,24 @@ export default function EditOrderPage() {
     setFreight(frt);
   };
 
-  const handleInputChange = (id, field, value) => {
+  const handleInputChange = (id, field, value, event) => {
     if (field === "autoComplete") {
-
-      let item = regClientItems.find((item) => item.name === value);
-      if (!item){
+      if (!value) {
+        value = event?.target.value.toUpperCase();
+      }
+      let item = regClientItems.find((item) => item.itemDetails.name === value);
+      if (!item) {
         item = regItems.find((item) => item.name === value);
+      }
+      if (!item) {
+        setNewItems((prevItems) =>
+          prevItems.map((prevItem) =>
+            prevItem.itemId === id
+              ? { ...prevItem, name: value.toUpperCase() }
+              : prevItem
+          )
+        );
+        return;
       }
       item.quantity = 1;
       setNewItems((prevItems) =>
@@ -297,6 +336,13 @@ export default function EditOrderPage() {
     setSaveModalOpen(false);
   };
 
+  const handleEmptyDetails = (details) => {
+    if (!details.phoneNo || details.phoneNo == "") details.phoneNo = "NA";
+    if (!details.address || details.address == "") details.address = "NA";
+    if (!details.gst || details.gst == "") details.gst = "NA";
+    return details;
+  };
+
   const confirmSave = async () => {
     setIsLoading(true);
     const token = localStorage.getItem("token");
@@ -307,17 +353,17 @@ export default function EditOrderPage() {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        senderDetails,
-        receiverDetails,
+        senderDetails: handleEmptyDetails(senderDetails),
+        receiverDetails: handleEmptyDetails(receiverDetails),
         addItems: newItems,
         delItems: delItems,
-        charges: hamali,
-        hamali,
-        freight,
+        charges: hamali + hamaliOld,
+        hamali: hamali + hamaliOld,
+        freight: freight + freightOld,
         sourceWarehouse,
         destinationWarehouse,
         isDoorDelivery,
-        payment: isPaid? "Paid" : "To Pay", 
+        payment: isPaid ? "Paid" : "To Pay",
         doorDelivery: isDoorDelivery,
         ...(isAdmin ? { status } : {}),
       }),
@@ -373,16 +419,14 @@ export default function EditOrderPage() {
         {/* Sender Details */}
         <Autocomplete
           freeSolo
-          options={clients}
-          getOptionLabel={(option) => option.name || senderDetails.name}
+          value={senderDetails.name}
+          options={clients.map((client) => client.name)}
+          onChange={(event, newValue) => handleSenderChange(event, newValue)}
           filterOptions={createFilterOptions({
             matchFrom: "start",
           })}
-          value={
-            clients.find((client) => client.name === senderDetails.name) ||
-            senderDetails.name
-          }
-          onChange={(event, newValue) => handleSenderChange(event, newValue)}
+          onBlur={(event, newValue) => handleSenderChange(event, newValue)}
+          getOptionLabel={(option) => option || senderDetails.name}
           renderInput={(params) => (
             <TextField {...params} label="Sender's Name" />
           )}
@@ -427,16 +471,14 @@ export default function EditOrderPage() {
         />
         <Autocomplete
           freeSolo
-          options={clients}
-          getOptionLabel={(option) => option.name || receiverDetails.name}
-          value={
-            clients.find((client) => client.name === receiverDetails.name) ||
-            receiverDetails.name
-          }
+          value={receiverDetails.name}
+          options={clients.map((client) => client.name)}
+          onChange={(event, newValue) => handleReceiverChange(event, newValue)}
+          onBlur={(event, newValue) => handleReceiverChange(event, newValue)}
           filterOptions={createFilterOptions({
             matchFrom: "start",
           })}
-          onChange={(event, newValue) => handleReceiverChange(event, newValue)}
+          getOptionLabel={(option) => option || receiverDetails.name}
           renderInput={(params) => (
             <TextField {...params} label="Receiver's Name" />
           )}
@@ -479,20 +521,12 @@ export default function EditOrderPage() {
             setReceiverDetails({ ...receiverDetails, gst: e.target.value })
           }
         />
-        <TextField
-          label="Freight"
-          type="text"
-          value={freight}
-        />
-        <TextField
-          label="Hamali"
-          type="text"
-          value={hamali}
-        />
+        <TextField label="Freight" type="text" value={freight + freightOld} />
+        <TextField label="Hamali" type="text" value={hamali + hamaliOld} />
         <TextField
           label="Statistical Charges"
           type="text"
-          value={hamali}
+          value={hamali + hamaliOld}
         />
 
         {/* Warehouse Selection */}
@@ -629,7 +663,7 @@ export default function EditOrderPage() {
                 <TableCell>{item.hamali}</TableCell>
                 <TableCell>{item.hamali}</TableCell>
                 <TableCell>
-                  {(item.freight + item.hamali*2) * item.quantity}
+                  {(item.freight + item.hamali * 2) * item.quantity}
                 </TableCell>
                 <TableCell>
                   <IconButton color="error" onClick={() => handleDelete(item)}>
@@ -695,11 +729,24 @@ export default function EditOrderPage() {
                     value={item.name}
                     options={regItems.map((item) => item.name)}
                     onChange={(event, newValue) => {
-                      handleInputChange(item.itemId, "name", newValue);
+                      handleInputChange(
+                        item.itemId,
+                        "autoComplete",
+                        newValue,
+                        event
+                      );
                     }}
                     filterOptions={createFilterOptions({
                       matchFrom: "start",
                     })}
+                    onBlur={(event, newValue) =>
+                      handleInputChange(
+                        item.itemId,
+                        "autoComplete",
+                        newValue,
+                        event
+                      )
+                    }
                     getOptionLabel={(option) => option || item.name}
                     renderInput={(params) => (
                       <TextField
@@ -816,7 +863,7 @@ export default function EditOrderPage() {
                 <TableCell>
                   <TextField
                     type="text"
-                    value={(item.freight + item.hamali*2) * item.quantity}
+                    value={(item.freight + item.hamali * 2) * item.quantity}
                     variant="outlined"
                     size="small"
                     fullWidth

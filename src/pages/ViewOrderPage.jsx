@@ -94,7 +94,7 @@ export default function ViewOrderPage() {
 
   const handleQrCodeModal = () => {
     setQrCodeModalOpen(true);
-    setQrCount(items.length);
+    setQrCount(order.items.length);
   };
 
   const confirmDelete = async () => {

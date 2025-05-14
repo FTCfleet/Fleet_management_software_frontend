@@ -21,6 +21,7 @@ import "../css/main.css";
 
 const TrackShipmentPage = () => {
   const [shipmentIdInput, setShipmentIdInput] = useState("");
+  const [shipmentId, setShipmentId] = useState("NA");
   const [status, setStatus] = useState("NA");
   const [shipper, setShipper] = useState("NA");
   const [consignee, setConsignee] = useState("NA");
@@ -80,6 +81,7 @@ const TrackShipmentPage = () => {
               setCurrentStep(3);
             }
           }
+          setShipmentId(shipmentIdInput);
           setShipper(data.sender.name);
           setConsignee(data.receiver.name);
           setService(data.items.length);
@@ -221,7 +223,7 @@ const TrackShipmentPage = () => {
                   <b>Shipment ID</b>
                 </Typography>
                 <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>
-                  {shipmentIdInput}
+                  {shipmentId}
                 </Typography>
               </div>
               <div>
@@ -280,7 +282,7 @@ const TrackShipmentPage = () => {
                         <b>Shipment ID</b>
                       </Typography>
                       <Typography sx={{ color: "#25344e", fontWeight: "bold" }}>
-                        {shipmentIdInput}
+                        {shipmentId}
                       </Typography>
                     </div>
                     <div style={{ flex: 1, textAlign: "center" }}>

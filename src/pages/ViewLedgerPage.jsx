@@ -414,10 +414,6 @@ export default function ViewLedgerPage() {
                       type="text"
                       size="small"
                       value={order.freight}
-                      disabled={ledgerData.status !== "pending"}
-                      onChange={(e) =>
-                        handleUpdate(e.target.value, index, "freight")
-                      }
                     />
                   </TableCell>
                   <TableCell sx={rowStyle}>
@@ -425,10 +421,6 @@ export default function ViewLedgerPage() {
                       type="text"
                       size="small"
                       value={order.hamali}
-                      disabled={ledgerData.status !== "pending"}
-                      onChange={(e) =>
-                        handleUpdate(e.target.value, index, "hamali")
-                      }
                     />
                   </TableCell>
                   <TableCell sx={rowStyle}>
@@ -436,10 +428,6 @@ export default function ViewLedgerPage() {
                       type="text"
                       size="small"
                       value={order.charges}
-                      disabled={ledgerData.status !== "pending"}
-                      onChange={(e) =>
-                        handleUpdate(e.target.value, index, "charges")
-                      }
                     />
                   </TableCell>
                   {ledgerData.status === "pending" && (
