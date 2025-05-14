@@ -52,7 +52,7 @@ export default function AddOrderPage({}) {
   const [regItems, setregItems] = useState([]);
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [sourceWarehouse, setSourceWarehouse] = useState("");
-  const [isPaid, setIsPaid] = useState(0);
+  const [payment, setPayemnt] = useState("To Pay");
   const [isDoorDelivery, setIsDoorDelivery] = useState(false);
   const { isAdmin } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -177,20 +177,27 @@ export default function AddOrderPage({}) {
       if (!value) {
         value = event?.target.value.toUpperCase();
       }
+      value.toUpperCase();
+      console.log(value);
       let item = regClientItems.find((item) => item.itemDetails.name === value);
+      console.log('item '+item);
       if (!item) {
         item = regItems.find((item) => item.name === value);
       }
+      console.log(item);
       if (!item) {
+        console.log('val'+value);
         setItems((prevItems) =>
           prevItems.map((prevItem) =>
             prevItem.id === id
-              ? { ...prevItem, name: value.toUpperCase() }
+        ? { ...prevItem, name: value.toUpperCase() }
               : prevItem
-          )
+            )
         );
         return;
       }
+      console.log(value);
+      console.log(item);
       item.quantity = 1;
       setItems((prevItems) =>
         prevItems.map((prevItem) =>
@@ -215,11 +222,17 @@ export default function AddOrderPage({}) {
   };
 
   const validateOrder = () => {
+    if (senderDetails.name === "" || receiverDetails.name === "") {
+      alert("Please fill all the required fields");
+      return false;
+    }
     if (!destinationWarehouse || (isAdmin && !sourceWarehouse)) {
+      alert("Please fill all the required fields");
       return false;
     }
     if (items.length === 0 || items.some((item) => !item.name)) {
       if (items.length === 0) alert("Add items");
+      alert("Please fill all the required fields");
       return false;
     }
     return true;
@@ -254,7 +267,7 @@ export default function AddOrderPage({}) {
           charges: hamali,
           hamali,
           freight,
-          payment: isPaid ? "Paid" : "To Pay",
+          payment,
           doorDelivery: isDoorDelivery,
           ...(isAdmin ? { sourceWarehouse } : {}),
         }),
@@ -281,8 +294,8 @@ export default function AddOrderPage({}) {
     } else {
       selectedOption = selectedOption.toUpperCase();
     }
-    let item = regClients.find((item) => item.name === selectedOption);
-    if (!item) {
+    let client = regClients.find((client) => client.name === selectedOption);
+    if (!client) {
       setSenderDetails({
         ...senderDetails,
         name: selectedOption,
@@ -291,10 +304,10 @@ export default function AddOrderPage({}) {
     }
     setSenderDetails({
       ...senderDetails,
-      name: item.name,
-      phoneNo: item.phoneNo,
-      address: item.address,
-      gst: item.gst,
+      name: client.name,
+      phoneNo: client.phoneNo,
+      address: client.address,
+      gst: client.gst,
     });
   };
 
@@ -304,20 +317,21 @@ export default function AddOrderPage({}) {
     } else {
       selectedOption = selectedOption.toUpperCase();
     }
-    let item = regClients.find((item) => item.name === selectedOption);
-    if (!item) {
+    let client = regClients.find((client) => client.name === selectedOption);
+    if (!client) {
       setReceiverDetails({
         ...receiverDetails,
         name: selectedOption,
       });
       return;
     }
+    fetchRegClientItems(client._id);
     setReceiverDetails({
       ...receiverDetails,
-      name: item.name,
-      phoneNo: item.phoneNo,
-      address: item.address,
-      gst: item.gst,
+      name: client.name,
+      phoneNo: client.phoneNo,
+      address: client.address,
+      gst: client.gst,
     });
   };
 
@@ -354,8 +368,9 @@ export default function AddOrderPage({}) {
           })}
           onBlur={(event, newValue) => handleSenderChange(event, newValue)}
           getOptionLabel={(option) => option || senderDetails.name}
+          
           renderInput={(params) => (
-            <TextField {...params} label="Sender's Name" />
+            <TextField {...params} label="Sender's Name" error={error && !senderDetails.name}/>
           )}
           disableClearable
           slots={{
@@ -407,7 +422,7 @@ export default function AddOrderPage({}) {
           })}
           getOptionLabel={(option) => option || receiverDetails.name}
           renderInput={(params) => (
-            <TextField {...params} label="Receiver's Name" />
+            <TextField {...params} label="Receiver's Name" error={error && !receiverDetails.name} />
           )}
           disableClearable
           slots={{
@@ -491,11 +506,11 @@ export default function AddOrderPage({}) {
           <InputLabel>Choose</InputLabel>
           <Select
             label="Choose"
-            value={isPaid ? 1 : 0}
-            onChange={(e) => setIsPaid(e.target.value === 1)}
+            value={payment}
+            onChange={(e) => setPayemnt(e.target.value)}
           >
-            <MenuItem value={0}>To Pay</MenuItem>
-            <MenuItem value={1}>Paid</MenuItem>
+            <MenuItem value="To Pay">To Pay</MenuItem>
+            <MenuItem value="Paid">Paid</MenuItem>
           </Select>
         </FormControl>
         <FormControlLabel

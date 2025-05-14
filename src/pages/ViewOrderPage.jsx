@@ -261,6 +261,10 @@ export default function ViewOrderPage() {
                     <strong>Type:</strong> {order.payment}
                   </Typography>
                   <Typography sx={rowCellStyle}>
+                    <strong>Total:</strong>{" "}
+                    {order.freight + order.hamali + order.hamali}
+                  </Typography>
+                  <Typography sx={rowCellStyle}>
                     <strong>Freight:</strong> {order.freight}
                   </Typography>
                   <Typography sx={rowCellStyle}>
@@ -348,11 +352,21 @@ export default function ViewOrderPage() {
                   <TableCell sx={rowCellStyle}>{item.hamali}</TableCell>
                   <TableCell sx={rowCellStyle}>{item.hamali}</TableCell>
                   <TableCell sx={rowCellStyle}>
-                    {(item.freight + item.hamali) * item.quantity}
+                    {(item.freight + 2 * item.hamali) * item.quantity}
                   </TableCell>
                 </TableRow>
               ))
             )}
+            <TableRow>
+              <TableCell sx={rowCellStyle}/>
+              <TableCell sx={rowCellStyle}/>
+              <TableCell sx={rowCellStyle}><strong>Total</strong></TableCell>
+              <TableCell sx={rowCellStyle}>{order.items.reduce((prev, item) => prev + item.quantity, 0)}</TableCell>
+              <TableCell sx={rowCellStyle}>{order.freight}</TableCell>
+              <TableCell sx={rowCellStyle}>{order.hamali}</TableCell>
+              <TableCell sx={rowCellStyle}>{order.hamali}</TableCell>
+              <TableCell sx={rowCellStyle}>{order.freight + order.hamali + order.hamali}</TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </TableContainer>

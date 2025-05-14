@@ -59,7 +59,7 @@ export default function EditOrderPage() {
   const [freight, setFreight] = useState(0);
   const [hamali, setHamali] = useState(0);
   const [isDoorDelivery, setIsDoorDelivery] = useState(false);
-  const [isPaid, setIsPaid] = useState(false);
+  const [payment, setPayemnt] = useState("To Pay");
   const [clients, setClients] = useState([]);
   const [regItems, setRegItems] = useState([]);
   const [regClientItems, setRegClientItems] = useState([]);
@@ -153,14 +153,15 @@ export default function EditOrderPage() {
     }
 
     const data = (await response.json()).body;
+    console.log(data);
     setSenderDetails(data.sender);
     setReceiverDetails(data.receiver);
     setSourceWarehouse(data.sourceWarehouse.warehouseID);
     setDestinationWarehouse(data.destinationWarehouse.warehouseID);
     setFreightOld(data.freight || 0);
     setHamaliOld(data.hamali || 0);
-    setIsDoorDelivery(data.isDoorDelivery || false);
-    setIsPaid(data.isPaid || false);
+    setIsDoorDelivery(data.doorDelivery);
+    setPayemnt(data.payment);
     setOldItems(data.items);
     setStatus(data.status);
   };
@@ -171,8 +172,8 @@ export default function EditOrderPage() {
     } else {
       selectedOption = selectedOption.toUpperCase();
     }
-    let item = clients.find((item) => item.name === selectedOption);
-    if (!item) {
+    let client = clients.find((client) => client.name === selectedOption);
+    if (!client) {
       setSenderDetails({
         ...senderDetails,
         name: selectedOption,
@@ -181,10 +182,10 @@ export default function EditOrderPage() {
     }
     setSenderDetails({
       ...senderDetails,
-      name: item.name,
-      phoneNo: item.phoneNo,
-      address: item.address,
-      gst: item.gst,
+      name: client.name,
+      phoneNo: client.phoneNo,
+      address: client.address,
+      gst: client.gst,
     });
   };
 
@@ -194,20 +195,21 @@ export default function EditOrderPage() {
     } else {
       selectedOption = selectedOption.toUpperCase();
     }
-    let item = clients.find((item) => item.name === selectedOption);
-    if (!item) {
+    let client = clients.find((client) => client.name === selectedOption);
+    if (!client) {
       setReceiverDetails({
         ...receiverDetails,
         name: selectedOption,
       });
       return;
     }
+    fetchRegClientItems(client._id);
     setReceiverDetails({
       ...receiverDetails,
-      name: item.name,
-      phoneNo: item.phoneNo,
-      address: item.address,
-      gst: item.gst,
+      name: client.name,
+      phoneNo: client.phoneNo,
+      address: client.address,
+      gst: client.gst,
     });
   };
 
@@ -281,6 +283,8 @@ export default function EditOrderPage() {
       if (!value) {
         value = event?.target.value.toUpperCase();
       }
+      // console.log(value);
+      // console.log(value);
       let item = regClientItems.find((item) => item.itemDetails.name === value);
       if (!item) {
         item = regItems.find((item) => item.name === value);
@@ -319,10 +323,20 @@ export default function EditOrderPage() {
   };
 
   const validateOrder = () => {
+    if (senderDetails.name === "" || receiverDetails.name === "") {
+      alert("Please fill all the required fields");
+      return false;
+    }
     if (!destinationWarehouse || (isAdmin && !sourceWarehouse)) {
+      alert("Please fill all the required fields");
       return false;
     }
     if (newItems.some((item) => !item.name)) {
+      alert("Please fill all the required fields");
+      return false;
+    }
+    if (oldItems.length === 0 && newItems.length === 0) {
+      alert("Add items");
       return false;
     }
     return true;
@@ -346,6 +360,7 @@ export default function EditOrderPage() {
   const confirmSave = async () => {
     setIsLoading(true);
     const token = localStorage.getItem("token");
+    console.log(isDoorDelivery);
     await fetch(`${BASE_URL}/api/parcel/edit/${id}`, {
       method: "PUT",
       headers: {
@@ -362,9 +377,8 @@ export default function EditOrderPage() {
         freight: freight + freightOld,
         sourceWarehouse,
         destinationWarehouse,
-        isDoorDelivery,
-        payment: isPaid ? "Paid" : "To Pay",
         doorDelivery: isDoorDelivery,
+        payment,
         ...(isAdmin ? { status } : {}),
       }),
     })
@@ -428,7 +442,7 @@ export default function EditOrderPage() {
           onBlur={(event, newValue) => handleSenderChange(event, newValue)}
           getOptionLabel={(option) => option || senderDetails.name}
           renderInput={(params) => (
-            <TextField {...params} label="Sender's Name" />
+            <TextField {...params} label="Sender's Name" error={error && !senderDetails.name} />
           )}
           disableClearable
           slots={{
@@ -480,7 +494,7 @@ export default function EditOrderPage() {
           })}
           getOptionLabel={(option) => option || receiverDetails.name}
           renderInput={(params) => (
-            <TextField {...params} label="Receiver's Name" />
+            <TextField {...params} label="Receiver's Name" error={error && !receiverDetails.name} />
           )}
           disableClearable
           slots={{
@@ -536,6 +550,7 @@ export default function EditOrderPage() {
             <Select
               label="Source Warehouse"
               value={sourceWarehouse}
+              error={error && !sourceWarehouse}
               onChange={(e) => setSourceWarehouse(e.target.value)}
             >
               {allWarehouse
@@ -554,6 +569,7 @@ export default function EditOrderPage() {
           <Select
             label="Destination Warehouse"
             value={destinationWarehouse}
+            error={error && !destinationWarehouse}
             onChange={(e) => setDestinationWarehouse(e.target.value)}
           >
             {allWarehouse
@@ -589,11 +605,11 @@ export default function EditOrderPage() {
           <InputLabel>Choose</InputLabel>
           <Select
             label="Choose"
-            value={isPaid ? 1 : 0}
-            onChange={(e) => setIsPaid(e.target.value === 1)}
+            value={payment}
+            onChange={(e) => setPayemnt(e.target.value)}
           >
-            <MenuItem value={0}>To Pay</MenuItem>
-            <MenuItem value={1}>Paid</MenuItem>
+            <MenuItem value="To Pay">To Pay</MenuItem>
+            <MenuItem value="Paid">Paid</MenuItem>
           </Select>
         </FormControl>
         <FormControlLabel
@@ -726,7 +742,7 @@ export default function EditOrderPage() {
                 <TableCell>
                   <Autocomplete
                     freeSolo
-                    value={item.name}
+                    value={item.name.toUpperCase()}
                     options={regItems.map((item) => item.name)}
                     onChange={(event, newValue) => {
                       handleInputChange(

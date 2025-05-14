@@ -14,9 +14,6 @@ import {
   Modal,
   TextField,
   CircularProgress,
-  FormControl,
-  Select,
-  MenuItem,
   Autocomplete,
   createFilterOptions,
 } from "@mui/material";
@@ -32,6 +29,7 @@ export default function AllClientPage() {
   const [clients, setClients] = useState([]);
   const [filteredClients, setFilteredClients] = useState([]);
   const [regItems, setRegItems] = useState([]);
+  const [regClientItems, setRegClientItems] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [currentClient, setCurrentClient] = useState(null);
@@ -104,10 +102,12 @@ export default function AllClientPage() {
   };
 
   const handleEditItems = (client) => {
-    setCurrentClient({ ...client });
-    setPage(2);
-    setIsModalOpen(true);
-    setIsAdding(false);
+    fetchRegClientItems(client._id).then(() => {
+      setCurrentClient({ ...client });
+      setPage(2);
+      setIsModalOpen(true);
+      setIsAdding(false);
+    });
   };
 
   const handleDelete = (id) => {
@@ -162,11 +162,28 @@ export default function AllClientPage() {
     setIsAdding(true);
   };
 
+  const fetchRegClientItems = async (clientId) => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(
+      `${BASE_URL}/api/admin/regular-client-items/${clientId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await res.json();
+    setCurrentClient((prev) => ({...prev, items: data.body }));
+  };
+
   const handleSaveOrAdd = async () => {
     setIsLoading1(true);
     const token = localStorage.getItem("token");
     console.log(currentClient);
     let method, body;
+    currentClient.items = currentClient.items.filter((item) => item.itemDetails._id);
     if (isAdding) {
       method = "POST";
       body = {
@@ -208,6 +225,9 @@ export default function AllClientPage() {
     });
 
     const data = await res.json();
+    if (data.error?.includes("duplicate")){
+      alert("Client exists");
+    }
     fetchData();
     setIsLoading1(false);
     setIsModalOpen(false);
@@ -241,9 +261,10 @@ export default function AllClientPage() {
   };
 
   const handleAddItemRow = () => {
+    console.log(currentClient.items);
     setCurrentClient((prev) => ({
       ...prev,
-      items: [...prev.items, { name: "", freight: 0, hamali: 0, _id: ""}],
+      items: [...prev.items, { name: "", freight: 0, hamali: 0, _id: "", itemDetails: {} }],
     }));
   };
 
@@ -290,7 +311,7 @@ export default function AllClientPage() {
       />
       <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
         {isAdding ? (
-          <Button variant="contained" onClick={() => setPage(2)}>
+          <Button variant="contained" onClick={() => {setPage(2); setCurrentClient({ ...currentClient, items: [] })}}>
             Next
           </Button>
         ) : (
@@ -321,7 +342,7 @@ export default function AllClientPage() {
             <TableRow key={idx}>
               <TableCell>
                 <Autocomplete
-                  value={item.itemDetails.name}
+                  value={item.itemDetails?.name || ""}
                   options={regItems.map((item) => item.name)}
                   onChange={(event, newValue) => {
                     handleItemChange(idx, "autoComplete", newValue);
