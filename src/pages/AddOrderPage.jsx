@@ -177,31 +177,25 @@ export default function AddOrderPage({}) {
       if (!value) {
         value = event?.target.value.toUpperCase();
       }
-      value.toUpperCase();
-      console.log(value);
+      value = value.toUpperCase();
       let item = regClientItems.find((item) => item.itemDetails.name === value);
-      console.log('item '+item);
       if (!item) {
         item = regItems.find((item) => item.name === value);
       }
-      console.log(item);
       if (!item) {
-        console.log('val'+value);
         setItems((prevItems) =>
           prevItems.map((prevItem) =>
             prevItem.id === id
-        ? { ...prevItem, name: value.toUpperCase() }
+        ? { ...prevItem, name: value}
               : prevItem
             )
         );
         return;
       }
-      console.log(value);
-      console.log(item);
       item.quantity = 1;
       setItems((prevItems) =>
         prevItems.map((prevItem) =>
-          prevItem.id === id ? { ...prevItem, ...item } : prevItem
+          prevItem.id === id ? { ...prevItem, ...item, name: value } : prevItem
         )
       );
       fixCharges(id, item.quantity, item.freight, item.hamali);
@@ -281,7 +275,6 @@ export default function AddOrderPage({}) {
         navigate(`/user/view/order/${data.body}`);
       }
     } catch (error) {
-      console.error("Error adding order:", error);
       alert("Network error occurred");
     } finally {
       setIsLoading(false);

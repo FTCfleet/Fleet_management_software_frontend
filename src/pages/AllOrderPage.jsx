@@ -90,7 +90,7 @@ const AllOrderPage = () => {
         )
       );
     } catch (error) {
-      console.error("Error fetching orders:", error);
+      alert("Error fetching orders:", error);
     }
     setIsLoading(false);
   };
@@ -180,14 +180,15 @@ const AllOrderPage = () => {
             onChange={handleDateChange}
           />
         </Box>
-        <Box sx={{ display: "flex", gap: "10px" }}>
+        <Box sx={{ display: "flex", gap: "10px", alignItems: "center" }}>
+
           <TextField
             label="Search by Customer Name"
             value={nameFilter}
             onChange={(e) => setNameFilter(e.target.value)}
             variant="outlined"
             size="small"
-          />
+            />
           <Select
             value={warehouseFilter}
             onChange={(e) => setWarehouseFilter(e.target.value)}

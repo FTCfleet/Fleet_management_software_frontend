@@ -291,13 +291,12 @@ export default function ViewLedgerPage() {
                     {ledgerData.sourceWarehouse.name}
                   </Typography>
                 ) : (
-                  <FormControl>
-                    <InputLabel>Source Warehouse</InputLabel>
                     <Select
                       label="Source Warehouse"
                       value={sourceWarehouse}
                       onChange={(e) => setSourceWarehouse(e.target.value)}
                       sx={{ minWidth: "250px" }}
+                      size="small"
                     >
                       {allWarehouse
                         .filter((w) => !w.isSource)
@@ -307,7 +306,6 @@ export default function ViewLedgerPage() {
                           </MenuItem>
                         ))}
                     </Select>
-                  </FormControl>
                 )}
               </div>
               <div
@@ -326,13 +324,12 @@ export default function ViewLedgerPage() {
                     {ledgerData.destinationWarehouse.name}
                   </Typography>
                 ) : (
-                  <FormControl>
-                    <InputLabel>Destination Warehouse</InputLabel>
                     <Select
                       label="Destination Warehouse"
                       value={destinationWarehouse}
                       onChange={(e) => setDestinationWarehouse(e.target.value)}
                       sx={{ minWidth: "250px" }}
+                      size="small"
                     >
                       {allWarehouse
                         .filter((w) => !w.isSource)
@@ -342,7 +339,6 @@ export default function ViewLedgerPage() {
                           </MenuItem>
                         ))}
                     </Select>
-                  </FormControl>
                 )}
               </div>
               <Typography sx={rowStyle}>
@@ -558,12 +554,12 @@ export default function ViewLedgerPage() {
               startIcon={<FaTrash />}
               onClick={handleDeleteLedger}
             >
-              Delete{" "}
+              Delete
               {isLoading && (
                 <CircularProgress
                   size={15}
                   className="spinner"
-                  sx={{ color: "#fff", animation: "none !important" }}
+                  sx={{ color: "#fff", animation: "none !important", ml: 1 }}
                 />
               )}
             </Button>

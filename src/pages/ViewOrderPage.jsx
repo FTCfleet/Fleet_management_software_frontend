@@ -449,7 +449,7 @@ export default function ViewOrderPage() {
                 startIcon={<FaTrash />}
                 onClick={confirmDelete}
               >
-                Delete{" "}
+                Delete {"  "}
                 {isLoading && (
                   <CircularProgress
                     size={15}

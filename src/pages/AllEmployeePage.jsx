@@ -75,9 +75,9 @@ const AllEmployeePage = () => {
     const filtered = employees.filter((emp) => {
       return (
         (nameFilter
-          ? emp.name.toLowerCase().includes(nameFilter.toLowerCase())
+          ? emp.name.toLowerCase().startsWith(nameFilter.toLowerCase())
           : true) &&
-        (phoneFilter ? emp.phoneNo.includes(phoneFilter) : true) &&
+        (phoneFilter ? emp.phoneNo.startsWith(phoneFilter) : true) &&
         (warehouseFilter
           ? emp.warehouseCode.warehouseID === warehouseFilter
           : true)
@@ -178,7 +178,7 @@ const AllEmployeePage = () => {
       </Typography>
 
       {/* Filters */}
-      <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
+      <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
         <TextField
           label="Search by Name"
           value={nameFilter}
@@ -351,12 +351,12 @@ const AllEmployeePage = () => {
                 }}
               >
                 <button className="button button-large" onClick={handleSave}>
-                  Save{" "}
+                  Save
                   {isLoading1 && (
                     <CircularProgress
                       size={22}
                       className="spinner"
-                      sx={{ color: "#fff", animation: "none !important" }}
+                      sx={{ color: "#fff", animation: "none !important", ml: 1 }}
                     />
                   )}
                 </button>
@@ -421,12 +421,12 @@ const AllEmployeePage = () => {
               startIcon={<FaTrash />}
               onClick={confirmDelete}
             >
-              Delete{" "}
+              Delete
               {isLoading2 && (
                 <CircularProgress
                   size={22}
                   className="spinner"
-                  sx={{ color: "#fff", animation: "none !important" }}
+                  sx={{ color: "#fff", animation: "none !important", ml:1 }}
                 />
               )}
             </Button>

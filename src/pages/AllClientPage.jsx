@@ -181,7 +181,6 @@ export default function AllClientPage() {
   const handleSaveOrAdd = async () => {
     setIsLoading1(true);
     const token = localStorage.getItem("token");
-    console.log(currentClient);
     let method, body;
     currentClient.items = currentClient.items.filter((item) => item.itemDetails._id);
     if (isAdding) {
@@ -261,7 +260,6 @@ export default function AllClientPage() {
   };
 
   const handleAddItemRow = () => {
-    console.log(currentClient.items);
     setCurrentClient((prev) => ({
       ...prev,
       items: [...prev.items, { name: "", freight: 0, hamali: 0, _id: "", itemDetails: {} }],
@@ -311,7 +309,7 @@ export default function AllClientPage() {
       />
       <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
         {isAdding ? (
-          <Button variant="contained" onClick={() => {setPage(2); setCurrentClient({ ...currentClient, items: [] })}}>
+          <Button variant="contained" onClick={() => {setPage(2); setCurrentClient({ ...currentClient, items: [] }); handleAddItemRow();}}>
             Next
           </Button>
         ) : (
@@ -441,7 +439,7 @@ export default function AllClientPage() {
       </Typography>
 
       {/* Filters */}
-      <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
+      <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
         <TextField
           label="Search by Client Name"
           value={nameFilter}
@@ -519,7 +517,7 @@ export default function AllClientPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={4} align="center">
+                <TableCell colSpan={7} align="center">
                   No data to display
                 </TableCell>
               </TableRow>
@@ -625,12 +623,12 @@ export default function AllClientPage() {
               startIcon={<FaTrash />}
               onClick={confirmDelete}
             >
-              Delete{" "}
+              Delete
               {isLoading2 && (
                 <CircularProgress
                   size={22}
                   className="spinner"
-                  sx={{ color: "#fff", animation: "none !important" }}
+                  sx={{ color: "#fff", animation: "none !important", ml: 1 }}
                 />
               )}
             </Button>

@@ -79,7 +79,7 @@ const AllLedgerPage = () => {
         )
       );
     } catch (error) {
-      console.error("Error fetching orders:", error);
+      alert("Failed to fetch ledger entries. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -154,7 +154,7 @@ const AllLedgerPage = () => {
           display: "flex",
           gap: "10px",
           marginBottom: "20px",
-          alignItems: "center",
+          alignContent: "center",
         }}
       >
         <Box className="calendar-input">
@@ -202,6 +202,9 @@ const AllLedgerPage = () => {
           <TableHead>
             <TableRow>
               <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+                Sl No
+              </TableCell>
+              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
                 Ledger No
               </TableCell>
               <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
@@ -241,8 +244,9 @@ const AllLedgerPage = () => {
                 </TableCell>
               </TableRow>
             ) : filteredLedger.length > 0 ? (
-              filteredLedger.map((entry) => (
+              filteredLedger.map((entry, idx) => (
                 <TableRow key={entry.ledgerId}>
+                  <TableCell sx={{ color: "#25344E" }}>{idx + 1}</TableCell>
                   <TableCell sx={{ color: "#25344E" }}>
                     {entry.ledgerId}
                   </TableCell>

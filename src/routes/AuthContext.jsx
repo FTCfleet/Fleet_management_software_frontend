@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }) => {
       setIsAdmin(data.user.role === "admin");
       setIsSource(data.user.isSource);
     } catch (error) {
-      console.error("Auth check failed:", error);
+      console.error("Auth check failed:");
     } finally {
       return { flag: false, user_data: user_data };
     }

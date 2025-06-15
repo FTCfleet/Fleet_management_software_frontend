@@ -68,7 +68,7 @@ export default function AllItemPage() {
   const applyFilter = () => {
     const filtered = items.filter((item) => {
       return nameFilter
-        ? item.name.toLowerCase().includes(nameFilter.toLowerCase())
+        ? item.name.toLowerCase().startsWith(nameFilter.toLowerCase())
         : true;
     });
     setFilteredItems(filtered);
@@ -81,7 +81,6 @@ export default function AllItemPage() {
 
   const handleEdit = (Item) => {
     setCurrentItemList([Item]);
-    console.log(currentItemList);
     setIsModalOpen(true);
     setIsAdding(false);
   };
@@ -132,7 +131,6 @@ export default function AllItemPage() {
 
   const handleSaveOrAdd = async () => {
     setIsLoading1(true);
-    console.log(currentItemList);
     const token = localStorage.getItem("token");
     let method, body;
     if (isAdding) {
@@ -140,15 +138,7 @@ export default function AllItemPage() {
       body = {items: currentItemList}
     } else {
       method = "PUT";
-      body = {
-        id: currentItem._id,
-        updates: {
-          phoneNo: currentItem.phoneNo ? currentItem.phoneNo : "NA",
-          address: currentItem.address
-            ? currentItem.address.toUpperCase()
-            : "NA",
-        },
-      };
+      body = {items: currentItemList };
     }
     const res = await fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
       method: method,
@@ -217,6 +207,7 @@ export default function AllItemPage() {
                 <TextField
                   value={item.name}
                   size="small"
+                  disabled={!isAdding}
                   onChange={(e) =>
                     handleItemChange(idx, "name", e.target.value)
                   }
@@ -304,7 +295,7 @@ export default function AllItemPage() {
       </Typography>
 
       {/* Filters */}
-      <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
+      <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
         <TextField
           label="Search by Item Name"
           value={nameFilter}
@@ -372,7 +363,7 @@ export default function AllItemPage() {
                 </TableRow>
               )) :
               <TableRow>
-                <TableCell colSpan={4} align="center">
+                <TableCell colSpan={6} align="center">
                   No data to display
                 </TableCell>
               </TableRow>
@@ -472,12 +463,12 @@ export default function AllItemPage() {
               startIcon={<FaTrash />}
               onClick={confirmDelete}
             >
-              Delete{" "}
+              Delete
               {isLoading2 && (
                 <CircularProgress
                   size={22}
                   className="spinner"
-                  sx={{ color: "#fff", animation: "none !important" }}
+                  sx={{ color: "#fff", animation: "none !important", ml: 1 }}
                 />
               )}
             </Button>

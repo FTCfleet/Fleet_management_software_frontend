@@ -65,10 +65,10 @@ export default function AllTruckPage() {
     const filtered = trucks.filter((truck) => {
       return (
         (nameFilter
-          ? truck.name.toLowerCase().includes(nameFilter.toLowerCase())
+          ? truck.name.toLowerCase().startsWith(nameFilter.toLowerCase())
           : true) &&
         (truckNoFilter
-          ? truck.vehicleNo.toLowerCase().includes(truckNoFilter.toLowerCase())
+          ? truck.vehicleNo.toLowerCase().startsWith(truckNoFilter.toLowerCase())
           : true)
       );
     });
@@ -177,7 +177,7 @@ export default function AllTruckPage() {
       </Typography>
 
       {/* Filters */}
-      <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
+      <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
         <TextField
           label="Search by Driver Name"
           value={nameFilter}
@@ -323,12 +323,12 @@ export default function AllTruckPage() {
                   className="button button-large"
                   onClick={handleSaveOrAdd}
                 >
-                  {isAdding ? "Add" : "Save"}{" "}
+                  {isAdding ? "Add" : "Save"}
                   {isLoading1 && (
                     <CircularProgress
                       size={22}
                       className="spinner"
-                      sx={{ color: "#fff", animation: "none !important" }}
+                      sx={{ color: "#fff", animation: "none !important", ml: 1}}
                     />
                   )}
                 </button>
@@ -393,12 +393,12 @@ export default function AllTruckPage() {
               startIcon={<FaTrash />}
               onClick={confirmDelete}
             >
-              Delete{" "}
+              Delete
               {isLoading2 && (
                 <CircularProgress
                   size={22}
                   className="spinner"
-                  sx={{ color: "#fff", animation: "none !important" }}
+                  sx={{ color: "#fff", animation: "none !important", ml: 1 }}
                 />
               )}
             </Button>

@@ -70,6 +70,7 @@ export default function EditOrderPage() {
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [error, setError] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
   const { isAdmin } = useAuth();
@@ -136,13 +137,13 @@ export default function EditOrderPage() {
 
   const fetchData = async () => {
     const token = localStorage.getItem("token");
-    const response = await fetch(`${BASE_URL}/api/parcel/track/${id}`, {
+    const response  =  await fetch(`${BASE_URL}/api/parcel/track/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
     });
-
+    
     if (!response.ok) {
       alert("Error occurred");
       return;
@@ -151,9 +152,8 @@ export default function EditOrderPage() {
       alert("No such Order");
       return;
     }
-
+    
     const data = (await response.json()).body;
-    console.log(data);
     setSenderDetails(data.sender);
     setReceiverDetails(data.receiver);
     setSourceWarehouse(data.sourceWarehouse.warehouseID);
@@ -164,6 +164,7 @@ export default function EditOrderPage() {
     setPayemnt(data.payment);
     setOldItems(data.items);
     setStatus(data.status);
+    setIsPageLoading(false);
   };
 
   const handleSenderChange = (event, selectedOption) => {
@@ -283,8 +284,7 @@ export default function EditOrderPage() {
       if (!value) {
         value = event?.target.value.toUpperCase();
       }
-      // console.log(value);
-      // console.log(value);
+      value = value.toUpperCase();
       let item = regClientItems.find((item) => item.itemDetails.name === value);
       if (!item) {
         item = regItems.find((item) => item.name === value);
@@ -293,7 +293,7 @@ export default function EditOrderPage() {
         setNewItems((prevItems) =>
           prevItems.map((prevItem) =>
             prevItem.itemId === id
-              ? { ...prevItem, name: value.toUpperCase() }
+              ? { ...prevItem, name: value }
               : prevItem
           )
         );
@@ -302,7 +302,7 @@ export default function EditOrderPage() {
       item.quantity = 1;
       setNewItems((prevItems) =>
         prevItems.map((prevItem) =>
-          prevItem.itemId === id ? { ...prevItem, ...item } : prevItem
+          prevItem.itemId === id ? { ...prevItem, ...item, name: value } : prevItem
         )
       );
       fixCharges(id, item.quantity, item.freight, item.hamali);
@@ -360,7 +360,6 @@ export default function EditOrderPage() {
   const confirmSave = async () => {
     setIsLoading(true);
     const token = localStorage.getItem("token");
-    console.log(isDoorDelivery);
     await fetch(`${BASE_URL}/api/parcel/edit/${id}`, {
       method: "PUT",
       headers: {
@@ -384,7 +383,6 @@ export default function EditOrderPage() {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
         if (!data.flag) {
           setIsLoading(false);
           alert("Error occurred");
@@ -416,569 +414,618 @@ export default function EditOrderPage() {
         color: "#1b3655",
       }}
     >
-      <Typography
-        variant="h4"
-        sx={{ marginBottom: "20px", textAlign: "center", color: "#1c3553" }}
-      >
-        Edit Order
-      </Typography>
-
-      <Box
-        sx={{
-          display: "grid",
-          gap: "12px",
-          gridTemplateColumns: "repeat(4, 1fr)",
-        }}
-      >
-        {/* Sender Details */}
-        <Autocomplete
-          freeSolo
-          value={senderDetails.name}
-          options={clients.map((client) => client.name)}
-          onChange={(event, newValue) => handleSenderChange(event, newValue)}
-          filterOptions={createFilterOptions({
-            matchFrom: "start",
-          })}
-          onBlur={(event, newValue) => handleSenderChange(event, newValue)}
-          getOptionLabel={(option) => option || senderDetails.name}
-          renderInput={(params) => (
-            <TextField {...params} label="Sender's Name" error={error && !senderDetails.name} />
-          )}
-          disableClearable
-          slots={{
-            paper: (props) => (
-              <div
-                {...props}
-                style={{
-                  overflowY: "auto",
-                  backgroundColor: "#f7f9fc",
-                  color: "black",
-                  border: "1px solid black",
-                }}
-              />
-            ),
-          }}
+      {isPageLoading ? (
+        <CircularProgress
+          size={80}
+          className="spinner"
+          sx={{ color: "#1d3557", animation: "none !important", ml: 1 }}
         />
-        <TextField
-          label="Sender's Phone No."
-          value={senderDetails.phoneNo}
-          name="phoneNo"
-          onChange={(e) =>
-            setSenderDetails({ ...senderDetails, phoneNo: e.target.value })
-          }
-        />
-        <TextField
-          label="Sender's Address"
-          value={senderDetails.address}
-          name="address"
-          onChange={(e) =>
-            setSenderDetails({ ...senderDetails, address: e.target.value })
-          }
-        />
-        <TextField
-          label="Sender's GST"
-          value={senderDetails.gst}
-          name="gst"
-          onChange={(e) =>
-            setSenderDetails({ ...senderDetails, gst: e.target.value })
-          }
-        />
-        <Autocomplete
-          freeSolo
-          value={receiverDetails.name}
-          options={clients.map((client) => client.name)}
-          onChange={(event, newValue) => handleReceiverChange(event, newValue)}
-          onBlur={(event, newValue) => handleReceiverChange(event, newValue)}
-          filterOptions={createFilterOptions({
-            matchFrom: "start",
-          })}
-          getOptionLabel={(option) => option || receiverDetails.name}
-          renderInput={(params) => (
-            <TextField {...params} label="Receiver's Name" error={error && !receiverDetails.name} />
-          )}
-          disableClearable
-          slots={{
-            paper: (props) => (
-              <div
-                {...props}
-                style={{
-                  overflowY: "auto",
-                  backgroundColor: "#f7f9fc",
-                  color: "black",
-                  border: "1px solid black",
-                }}
-              />
-            ),
-          }}
-        />
-        <TextField
-          label="Receiver's Phone No."
-          value={receiverDetails.phoneNo}
-          name="phoneNo"
-          onChange={(e) =>
-            setReceiverDetails({ ...receiverDetails, phoneNo: e.target.value })
-          }
-        />
-        <TextField
-          label="Receiver's Address"
-          value={receiverDetails.address}
-          name="address"
-          onChange={(e) =>
-            setReceiverDetails({ ...receiverDetails, address: e.target.value })
-          }
-        />
-        <TextField
-          label="Receiver's GST"
-          value={receiverDetails.gst}
-          name="gst"
-          onChange={(e) =>
-            setReceiverDetails({ ...receiverDetails, gst: e.target.value })
-          }
-        />
-        <TextField label="Freight" type="text" value={freight + freightOld} />
-        <TextField label="Hamali" type="text" value={hamali + hamaliOld} />
-        <TextField
-          label="Statistical Charges"
-          type="text"
-          value={hamali + hamaliOld}
-        />
-
-        {/* Warehouse Selection */}
-        {isAdmin && (
-          <FormControl>
-            <InputLabel>Source Warehouse</InputLabel>
-            <Select
-              label="Source Warehouse"
-              value={sourceWarehouse}
-              error={error && !sourceWarehouse}
-              onChange={(e) => setSourceWarehouse(e.target.value)}
-            >
-              {allWarehouse
-                .filter((w) => w.isSource)
-                .map((w) => (
-                  <MenuItem key={w.warehouseID} value={w.warehouseID}>
-                    {w.name}
-                  </MenuItem>
-                ))}
-            </Select>
-          </FormControl>
-        )}
-
-        <FormControl>
-          <InputLabel>Destination Warehouse</InputLabel>
-          <Select
-            label="Destination Warehouse"
-            value={destinationWarehouse}
-            error={error && !destinationWarehouse}
-            onChange={(e) => setDestinationWarehouse(e.target.value)}
+      ) : (
+        <>
+          <Typography
+            variant="h4"
+            sx={{ marginBottom: "20px", textAlign: "center", color: "#1c3553" }}
           >
-            {allWarehouse
-              .filter((w) => !w.isSource)
-              .map((w) => (
-                <MenuItem key={w.warehouseID} value={w.warehouseID}>
-                  {w.name}
-                </MenuItem>
-              ))}
-          </Select>
-        </FormControl>
-        {isAdmin && (
-          <FormControl>
-            <InputLabel>Status</InputLabel>
-            <Select
-              label="Status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-            >
-              <MenuItem key="arrived" value="arrived">
-                Arrived
-              </MenuItem>
-              <MenuItem key="dispatched" value="dispatched">
-                Dispatched
-              </MenuItem>
-              <MenuItem key="delivered" value="delivered">
-                Delivered
-              </MenuItem>
-            </Select>
-          </FormControl>
-        )}
-        <FormControl>
-          <InputLabel>Choose</InputLabel>
-          <Select
-            label="Choose"
-            value={payment}
-            onChange={(e) => setPayemnt(e.target.value)}
-          >
-            <MenuItem value="To Pay">To Pay</MenuItem>
-            <MenuItem value="Paid">Paid</MenuItem>
-          </Select>
-        </FormControl>
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={isDoorDelivery}
-              onChange={(e) => setIsDoorDelivery(e.target.checked)}
-            />
-          }
-          style={{ justifyContent: "center" }}
-          label="Door Delivery"
-        />
-      </Box>
+            Edit Order
+          </Typography>
 
-      <Box sx={{ marginTop: "30px" }}>
-        <Typography
-          variant="h6"
-          sx={{
-            marginBottom: "10px",
-            textAlign: "center",
-            color: "#25344e",
-            fontWeight: "bold",
-          }}
-        >
-          Old Items
-        </Typography>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                No.
-              </TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Item Name
-              </TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Item Type
-              </TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Quantity
-              </TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Freight
-              </TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Hamali
-              </TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Statistical Charges
-              </TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Amount
-              </TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Actions
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {oldItems.map((item, idx) => (
-              <TableRow key={idx}>
-                <TableCell>{idx + 1}</TableCell>
-                <TableCell>{item.name}</TableCell>
-                <TableCell>{item.type}</TableCell>
-                <TableCell>{item.quantity}</TableCell>
-                <TableCell>{item.freight}</TableCell>
-                <TableCell>{item.hamali}</TableCell>
-                <TableCell>{item.hamali}</TableCell>
-                <TableCell>
-                  {(item.freight + item.hamali * 2) * item.quantity}
-                </TableCell>
-                <TableCell>
-                  <IconButton color="error" onClick={() => handleDelete(item)}>
-                    <Delete />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-
-        <Typography
-          variant="h6"
-          sx={{
-            marginTop: "20px",
-            marginBottom: "10px",
-            textAlign: "center",
-            color: "#25344e",
-            fontWeight: "bold",
-          }}
-        >
-          Add New Items
-        </Typography>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                No.
-              </TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Item Name
-              </TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Item Type
-              </TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Quantity
-              </TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Freight
-              </TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Hamali
-              </TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Statistical Charges
-              </TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Amount
-              </TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Actions
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {newItems.map((item, idx) => (
-              <TableRow key={item.itemId}>
-                <TableCell>{idx + 1}</TableCell>
-                <TableCell>
-                  <Autocomplete
-                    freeSolo
-                    value={item.name.toUpperCase()}
-                    options={regItems.map((item) => item.name)}
-                    onChange={(event, newValue) => {
-                      handleInputChange(
-                        item.itemId,
-                        "autoComplete",
-                        newValue,
-                        event
-                      );
-                    }}
-                    filterOptions={createFilterOptions({
-                      matchFrom: "start",
-                    })}
-                    onBlur={(event, newValue) =>
-                      handleInputChange(
-                        item.itemId,
-                        "autoComplete",
-                        newValue,
-                        event
-                      )
-                    }
-                    getOptionLabel={(option) => option || item.name}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        placeholder="Enter Item Name"
-                        variant="outlined"
-                        size="small"
-                        error={error && !item.name}
-                        helperText={error && !item.name ? "Required" : ""}
-                        sx={{
-                          "& .MuiInputBase-root": {
-                            fontSize: "14px",
-                            color: "#1b3655",
-                          },
-                          width: "13vw",
-                        }}
-                      />
-                    )}
-                    disableClearable
-                    slots={{
-                      paper: (props) => (
-                        <div
-                          {...props}
-                          style={{
-                            overflowY: "auto",
-                            backgroundColor: "#f7f9fc",
-                            color: "black",
-                            border: "1px solid black",
-                          }}
-                        />
-                      ),
-                    }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <FormControl fullWidth>
-                    <Select
-                      value={item.type}
-                      onChange={(e) =>
-                        handleInputChange(item.itemId, "type", e.target.value)
-                      }
-                      size="small"
-                    >
-                      <MenuItem value="C/B">C/B</MenuItem>
-                      <MenuItem value="G/B">G/B</MenuItem>
-                      <MenuItem value="Bundle">Bundle</MenuItem>
-                    </Select>
-                  </FormControl>
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    type="text"
-                    value={item.quantity}
-                    onChange={(e) =>
-                      handleInputChange(
-                        item.itemId,
-                        "quantity",
-                        parseInt(e.target.value) || 0
-                      )
-                    }
-                    variant="outlined"
-                    size="small"
-                    fullWidth
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    type="text"
-                    value={item.freight}
-                    onChange={(e) =>
-                      handleInputChange(
-                        item.itemId,
-                        "freight",
-                        parseInt(e.target.value) || 0
-                      )
-                    }
-                    variant="outlined"
-                    size="small"
-                    fullWidth
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    type="text"
-                    value={item.hamali}
-                    onChange={(e) =>
-                      handleInputChange(
-                        item.itemId,
-                        "hamali",
-                        parseInt(e.target.value) || 0
-                      )
-                    }
-                    variant="outlined"
-                    size="small"
-                    fullWidth
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    type="text"
-                    value={item.hamali}
-                    onChange={(e) =>
-                      handleInputChange(
-                        item.itemId,
-                        "hamali",
-                        parseInt(e.target.value) || 0
-                      )
-                    }
-                    variant="outlined"
-                    size="small"
-                    fullWidth
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    type="text"
-                    value={(item.freight + item.hamali * 2) * item.quantity}
-                    variant="outlined"
-                    size="small"
-                    fullWidth
-                  />
-                </TableCell>
-                <TableCell sx={{ display: "flex", gap: "10px" }}>
-                  <IconButton
-                    color="primary"
-                    onClick={() => handleCopyRow(item.itemId)}
-                  >
-                    <FaCopy />
-                  </IconButton>
-                  <IconButton
-                    color="secondary"
-                    onClick={() => handleRemoveRow(item.itemId)}
-                  >
-                    <FaTrash />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-
-        <Box sx={{ textAlign: "right", marginTop: "10px" }}>
-          <button className="button" onClick={handleAddRow}>
-            <FaPlus style={{ marginRight: "8px" }} /> Add Item
-          </button>
-        </Box>
-      </Box>
-
-      <Box sx={{ textAlign: "center", marginTop: "30px" }}>
-        <button className="button button-large" onClick={handleSaveChanges}>
-          <FaSave style={{ marginRight: "8px" }} />
-          Save Changes
-        </button>
-        <Modal open={saveModalOpen} onClose={handleCloseSaveModal}>
           <Box
             sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: 300,
-              bgcolor: "background.paper",
-              borderRadius: 2,
-              boxShadow: 24,
-              p: 4,
+              display: "grid",
+              gap: "12px",
+              gridTemplateColumns: "repeat(4, 1fr)",
             }}
           >
+            {/* Sender Details */}
+            <Autocomplete
+              freeSolo
+              value={senderDetails.name}
+              options={clients.map((client) => client.name)}
+              onChange={(event, newValue) =>
+                handleSenderChange(event, newValue)
+              }
+              filterOptions={createFilterOptions({
+                matchFrom: "start",
+              })}
+              onBlur={(event, newValue) => handleSenderChange(event, newValue)}
+              getOptionLabel={(option) => option || senderDetails.name}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Sender's Name"
+                  error={error && !senderDetails.name}
+                />
+              )}
+              disableClearable
+              slots={{
+                paper: (props) => (
+                  <div
+                    {...props}
+                    style={{
+                      overflowY: "auto",
+                      backgroundColor: "#f7f9fc",
+                      color: "black",
+                      border: "1px solid black",
+                    }}
+                  />
+                ),
+              }}
+            />
+            <TextField
+              label="Sender's Phone No."
+              value={senderDetails.phoneNo}
+              name="phoneNo"
+              onChange={(e) =>
+                setSenderDetails({ ...senderDetails, phoneNo: e.target.value })
+              }
+            />
+            <TextField
+              label="Sender's Address"
+              value={senderDetails.address}
+              name="address"
+              onChange={(e) =>
+                setSenderDetails({ ...senderDetails, address: e.target.value })
+              }
+            />
+            <TextField
+              label="Sender's GST"
+              value={senderDetails.gst}
+              name="gst"
+              onChange={(e) =>
+                setSenderDetails({ ...senderDetails, gst: e.target.value })
+              }
+            />
+            <Autocomplete
+              freeSolo
+              value={receiverDetails.name}
+              options={clients.map((client) => client.name)}
+              onChange={(event, newValue) =>
+                handleReceiverChange(event, newValue)
+              }
+              onBlur={(event, newValue) =>
+                handleReceiverChange(event, newValue)
+              }
+              filterOptions={createFilterOptions({
+                matchFrom: "start",
+              })}
+              getOptionLabel={(option) => option || receiverDetails.name}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Receiver's Name"
+                  error={error && !receiverDetails.name}
+                />
+              )}
+              disableClearable
+              slots={{
+                paper: (props) => (
+                  <div
+                    {...props}
+                    style={{
+                      overflowY: "auto",
+                      backgroundColor: "#f7f9fc",
+                      color: "black",
+                      border: "1px solid black",
+                    }}
+                  />
+                ),
+              }}
+            />
+            <TextField
+              label="Receiver's Phone No."
+              value={receiverDetails.phoneNo}
+              name="phoneNo"
+              onChange={(e) =>
+                setReceiverDetails({
+                  ...receiverDetails,
+                  phoneNo: e.target.value,
+                })
+              }
+            />
+            <TextField
+              label="Receiver's Address"
+              value={receiverDetails.address}
+              name="address"
+              onChange={(e) =>
+                setReceiverDetails({
+                  ...receiverDetails,
+                  address: e.target.value,
+                })
+              }
+            />
+            <TextField
+              label="Receiver's GST"
+              value={receiverDetails.gst}
+              name="gst"
+              onChange={(e) =>
+                setReceiverDetails({ ...receiverDetails, gst: e.target.value })
+              }
+            />
+            <TextField
+              label="Freight"
+              type="text"
+              value={freight + freightOld}
+            />
+            <TextField label="Hamali" type="text" value={hamali + hamaliOld} />
+            <TextField
+              label="Statistical Charges"
+              type="text"
+              value={hamali + hamaliOld}
+            />
+
+            {/* Warehouse Selection */}
+            {isAdmin && (
+              <FormControl>
+                <InputLabel>Source Warehouse</InputLabel>
+                <Select
+                  label="Source Warehouse"
+                  value={sourceWarehouse}
+                  error={error && !sourceWarehouse}
+                  onChange={(e) => setSourceWarehouse(e.target.value)}
+                >
+                  {allWarehouse
+                    .filter((w) => w.isSource)
+                    .map((w) => (
+                      <MenuItem key={w.warehouseID} value={w.warehouseID}>
+                        {w.name}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+            )}
+
+            <FormControl>
+              <InputLabel>Destination Warehouse</InputLabel>
+              <Select
+                label="Destination Warehouse"
+                value={destinationWarehouse}
+                error={error && !destinationWarehouse}
+                onChange={(e) => setDestinationWarehouse(e.target.value)}
+              >
+                {allWarehouse
+                  .filter((w) => !w.isSource)
+                  .map((w) => (
+                    <MenuItem key={w.warehouseID} value={w.warehouseID}>
+                      {w.name}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+            {isAdmin && (
+              <FormControl>
+                <InputLabel>Status</InputLabel>
+                <Select
+                  label="Status"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                >
+                  <MenuItem key="arrived" value="arrived">
+                    Arrived
+                  </MenuItem>
+                  <MenuItem key="dispatched" value="dispatched">
+                    Dispatched
+                  </MenuItem>
+                  <MenuItem key="delivered" value="delivered">
+                    Delivered
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            )}
+            <FormControl>
+              <InputLabel>Choose</InputLabel>
+              <Select
+                label="Choose"
+                value={payment}
+                onChange={(e) => setPayemnt(e.target.value)}
+              >
+                <MenuItem value="To Pay">To Pay</MenuItem>
+                <MenuItem value="Paid">Paid</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={isDoorDelivery}
+                  onChange={(e) => setIsDoorDelivery(e.target.checked)}
+                />
+              }
+              style={{ justifyContent: "center" }}
+              label="Door Delivery"
+            />
+          </Box>
+
+          <Box sx={{ marginTop: "30px" }}>
             <Typography
               variant="h6"
               sx={{
-                marginBottom: "16px",
+                marginBottom: "10px",
                 textAlign: "center",
-                color: "#ffc107",
+                color: "#25344e",
+                fontWeight: "bold",
               }}
             >
-              <FaExclamationTriangle style={{ marginRight: "8px" }} /> Confirm
-              Save
+              Old Items
             </Typography>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    No.
+                  </TableCell>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    Item Name
+                  </TableCell>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    Item Type
+                  </TableCell>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    Quantity
+                  </TableCell>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    Freight
+                  </TableCell>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    Hamali
+                  </TableCell>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    Statistical Charges
+                  </TableCell>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    Amount
+                  </TableCell>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    Actions
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {oldItems.map((item, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>{idx + 1}</TableCell>
+                    <TableCell>{item.name}</TableCell>
+                    <TableCell>{item.type}</TableCell>
+                    <TableCell>{item.quantity}</TableCell>
+                    <TableCell>{item.freight}</TableCell>
+                    <TableCell>{item.hamali}</TableCell>
+                    <TableCell>{item.hamali}</TableCell>
+                    <TableCell>
+                      {(item.freight + item.hamali * 2) * item.quantity}
+                    </TableCell>
+                    <TableCell>
+                      <IconButton
+                        color="error"
+                        onClick={() => handleDelete(item)}
+                      >
+                        <Delete />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
             <Typography
+              variant="h6"
               sx={{
-                marginBottom: "16px",
+                marginTop: "20px",
+                marginBottom: "10px",
                 textAlign: "center",
-                color: "#1E3A5F",
+                color: "#25344e",
+                fontWeight: "bold",
               }}
             >
-              Are you sure you want to save the changes?
+              Add New Items
             </Typography>
-            <Box
-              sx={{ display: "flex", justifyContent: "center", gap: "16px" }}
-            >
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={handleCloseSaveModal}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<FaSave style={{ marginRight: "8px" }} />}
-                onClick={confirmSave}
-              >
-                Confirm{" "}
-                {isLoading && (
-                  <CircularProgress
-                    size={15}
-                    className="spinner"
-                    sx={{ color: "#fff", animation: "none !important" }}
-                  />
-                )}
-              </Button>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    No.
+                  </TableCell>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    Item Name
+                  </TableCell>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    Item Type
+                  </TableCell>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    Quantity
+                  </TableCell>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    Freight
+                  </TableCell>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    Hamali
+                  </TableCell>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    Statistical Charges
+                  </TableCell>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    Amount
+                  </TableCell>
+                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
+                    Actions
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {newItems.map((item, idx) => (
+                  <TableRow key={item.itemId}>
+                    <TableCell>{idx + 1}</TableCell>
+                    <TableCell>
+                      <Autocomplete
+                        freeSolo
+                        value={item.name.toUpperCase()}
+                        options={regItems.map((item) => item.name)}
+                        onChange={(event, newValue) => {
+                          handleInputChange(
+                            item.itemId,
+                            "autoComplete",
+                            newValue,
+                            event
+                          );
+                        }}
+                        filterOptions={createFilterOptions({
+                          matchFrom: "start",
+                        })}
+                        onBlur={(event, newValue) =>
+                          handleInputChange(
+                            item.itemId,
+                            "autoComplete",
+                            newValue,
+                            event
+                          )
+                        }
+                        getOptionLabel={(option) => option || item.name}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            placeholder="Enter Item Name"
+                            variant="outlined"
+                            size="small"
+                            error={error && !item.name}
+                            helperText={error && !item.name ? "Required" : ""}
+                            sx={{
+                              "& .MuiInputBase-root": {
+                                fontSize: "14px",
+                                color: "#1b3655",
+                              },
+                              width: "13vw",
+                            }}
+                          />
+                        )}
+                        disableClearable
+                        slots={{
+                          paper: (props) => (
+                            <div
+                              {...props}
+                              style={{
+                                overflowY: "auto",
+                                backgroundColor: "#f7f9fc",
+                                color: "black",
+                                border: "1px solid black",
+                              }}
+                            />
+                          ),
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <FormControl fullWidth>
+                        <Select
+                          value={item.type}
+                          onChange={(e) =>
+                            handleInputChange(
+                              item.itemId,
+                              "type",
+                              e.target.value
+                            )
+                          }
+                          size="small"
+                        >
+                          <MenuItem value="C/B">C/B</MenuItem>
+                          <MenuItem value="G/B">G/B</MenuItem>
+                          <MenuItem value="Bundle">Bundle</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        type="text"
+                        value={item.quantity}
+                        onChange={(e) =>
+                          handleInputChange(
+                            item.itemId,
+                            "quantity",
+                            parseInt(e.target.value) || 0
+                          )
+                        }
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        type="text"
+                        value={item.freight}
+                        onChange={(e) =>
+                          handleInputChange(
+                            item.itemId,
+                            "freight",
+                            parseInt(e.target.value) || 0
+                          )
+                        }
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        type="text"
+                        value={item.hamali}
+                        onChange={(e) =>
+                          handleInputChange(
+                            item.itemId,
+                            "hamali",
+                            parseInt(e.target.value) || 0
+                          )
+                        }
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        type="text"
+                        value={item.hamali}
+                        onChange={(e) =>
+                          handleInputChange(
+                            item.itemId,
+                            "hamali",
+                            parseInt(e.target.value) || 0
+                          )
+                        }
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        type="text"
+                        value={(item.freight + item.hamali * 2) * item.quantity}
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                      />
+                    </TableCell>
+                    <TableCell sx={{ display: "flex", gap: "10px" }}>
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleCopyRow(item.itemId)}
+                      >
+                        <FaCopy />
+                      </IconButton>
+                      <IconButton
+                        color="secondary"
+                        onClick={() => handleRemoveRow(item.itemId)}
+                      >
+                        <FaTrash />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            <Box sx={{ textAlign: "right", marginTop: "10px" }}>
+              <button className="button" onClick={handleAddRow}>
+                <FaPlus style={{ marginRight: "8px" }} /> Add Item
+              </button>
             </Box>
           </Box>
-        </Modal>
-      </Box>
+
+          <Box sx={{ textAlign: "center", marginTop: "30px" }}>
+            <button className="button button-large" onClick={handleSaveChanges}>
+              <FaSave style={{ marginRight: "8px" }} />
+              Save Changes
+            </button>
+            <Modal open={saveModalOpen} onClose={handleCloseSaveModal}>
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: 300,
+                  bgcolor: "background.paper",
+                  borderRadius: 2,
+                  boxShadow: 24,
+                  p: 4,
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{
+                    marginBottom: "16px",
+                    textAlign: "center",
+                    color: "#ffc107",
+                  }}
+                >
+                  <FaExclamationTriangle style={{ marginRight: "8px" }} />{" "}
+                  Confirm Save
+                </Typography>
+                <Typography
+                  sx={{
+                    marginBottom: "16px",
+                    textAlign: "center",
+                    color: "#1E3A5F",
+                  }}
+                >
+                  Are you sure you want to save the changes?
+                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: "16px",
+                  }}
+                >
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={handleCloseSaveModal}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<FaSave style={{ marginRight: "8px" }} />}
+                    onClick={confirmSave}
+                  >
+                    Confirm
+                    {isLoading && (
+                      <CircularProgress
+                        size={15}
+                        className="spinner"
+                        sx={{
+                          color: "#fff",
+                          animation: "none !important",
+                          ml: 1,
+                        }}
+                      />
+                    )}
+                  </Button>
+                </Box>
+              </Box>
+            </Modal>
+          </Box>
+        </>
+      )}
     </Box>
   );
 }

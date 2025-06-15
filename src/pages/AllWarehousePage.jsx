@@ -33,8 +33,7 @@ export default function AllWarehousePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentWarehouse, setCurrentWarehouse] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
-  const [nameFilter, setNameFilter] = useState("");
-  const [warehouseFilter, setWarehouseFilter] = useState("");
+  const [warehouseFilter, setWarehouseFilter] = useState("All");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [warehouseToDelete, setWarehouseToDelete] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,10 +43,6 @@ export default function AllWarehousePage() {
   useEffect(() => {
     fetchData();
   }, []);
-
-  useEffect(() => {
-    setFilteredWarehouses(warehouses);
-  }, [warehouses]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -60,26 +55,23 @@ export default function AllWarehousePage() {
       },
     });
     const data = await res.json();
+      data.body.sort((a, b) =>
+        a.isSource !== b.isSource ? (a.isSource ? -1 : 1) : a.name.localeCompare(b.name)
+    );
     setWarehouses(data.body);
+    setFilteredWarehouses(data.body);
     setIsLoading(false);
   };
 
-  // Filters
-  const applyFilter = () => {
-    const filtered = warehouses.filter((warehouse) => {
-      return warehouseFilter
-        ? warehouse.warehouseID
-            .toLowerCase()
-            .includes(warehouseFilter.toLowerCase())
-        : true;
-    });
-    setFilteredWarehouses(filtered);
-  };
-
-  const clearFilter = () => {
-    setNameFilter("");
-    setWarehouseFilter("");
-    setFilteredWarehouses(warehouses);
+  const applyFilter = (value) => {
+    setWarehouseFilter(value);
+    if (value === "All") {
+      setFilteredWarehouses(warehouses);
+    } else {
+      setFilteredWarehouses([
+        warehouses.find((warehouse) => warehouse.warehouseID === value),
+      ]);
+    }
   };
 
   const handleEdit = (warehouse) => {
@@ -124,6 +116,7 @@ export default function AllWarehousePage() {
     setCurrentWarehouse({
       name: "",
       phoneNo: "",
+      address: "",
       warehouseID: "",
       isSource: true,
     });
@@ -150,6 +143,7 @@ export default function AllWarehousePage() {
         warehouseID: currentWarehouse.warehouseID,
         updates: {
           name: currentWarehouse.name,
+          address: currentWarehouse.address,
           phoneNo: currentWarehouse.phoneNo,
           isSource: currentWarehouse.isSource,
         },
@@ -186,27 +180,28 @@ export default function AllWarehousePage() {
       </Typography>
 
       {/* Filters */}
-      <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: "16px",
+          marginBottom: "20px",
+          alignItems: "center",
+        }}
+      >
         <Select
           value={warehouseFilter}
-          onChange={(e) => setWarehouseFilter(e.target.value)}
+          onChange={(e) => applyFilter(e.target.value)}
           displayEmpty
           size="small"
           sx={{ minWidth: "250px" }}
         >
-          <MenuItem value="">All Warehouses</MenuItem>
+          <MenuItem value="All">All Warehouses</MenuItem>
           {warehouses.map((warehouse) => (
             <MenuItem key={warehouse.warehouseID} value={warehouse.warehouseID}>
               {warehouse.name}
             </MenuItem>
           ))}
         </Select>
-        <Button variant="contained" color="primary" onClick={applyFilter}>
-          Apply Filter
-        </Button>
-        <Button variant="outlined" color="secondary" onClick={clearFilter}>
-          Clear Filter
-        </Button>
         <button
           className="button"
           onClick={handleAdd}
@@ -221,6 +216,7 @@ export default function AllWarehousePage() {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell sx={headerStyle}>Sl No.</TableCell>
               <TableCell sx={headerStyle}>Warehouse Name</TableCell>
               <TableCell sx={headerStyle}>Phone Number</TableCell>
               <TableCell sx={headerStyle}>Warehouse Address</TableCell>
@@ -241,8 +237,9 @@ export default function AllWarehousePage() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredWarehouses.map((warehouse) => (
+              filteredWarehouses.map((warehouse, idx) => (
                 <TableRow key={warehouse.warehouseID}>
+                  <TableCell sx={rowStyle}>{idx + 1}.</TableCell>
                   <TableCell sx={rowStyle}>{warehouse.name}</TableCell>
                   <TableCell sx={rowStyle}>{warehouse.phoneNo}</TableCell>
                   <TableCell sx={rowStyle}>{warehouse.address}</TableCell>
@@ -270,11 +267,6 @@ export default function AllWarehousePage() {
           </TableBody>
         </Table>
       </TableContainer>
-
-      {/* Add Warehouse Button */}
-      {/* <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: "20px" }}>
-                
-            </Box> */}
 
       {/* Modal for Add/Edit Warehouse */}
       <Modal open={isModalOpen} onClose={handleClose}>
@@ -318,6 +310,13 @@ export default function AllWarehousePage() {
                 label="Phone Number"
                 value={currentWarehouse.phoneNo}
                 onChange={(e) => handleFieldChange("phoneNo", e.target.value)}
+                sx={{ marginBottom: "16px" }}
+              />
+              <TextField
+                fullWidth
+                label="Address"
+                value={currentWarehouse.address}
+                onChange={(e) => handleFieldChange("address", e.target.value)}
                 sx={{ marginBottom: "16px" }}
               />
               <ToggleButtonGroup
@@ -384,12 +383,16 @@ export default function AllWarehousePage() {
                   className="button button-large"
                   onClick={handleSaveOrAdd}
                 >
-                  {isAdding ? "Add" : "Save"}{" "}
+                  {isAdding ? "Add" : "Save"}
                   {isLoading1 && (
                     <CircularProgress
                       size={22}
                       className="spinner"
-                      sx={{ color: "#fff", animation: "none !important" }}
+                      sx={{
+                        color: "#fff",
+                        animation: "none !important",
+                        ml: 1,
+                      }}
                     />
                   )}
                 </button>
@@ -454,12 +457,12 @@ export default function AllWarehousePage() {
               startIcon={<FaTrash />}
               onClick={confirmDelete}
             >
-              Delete{" "}
+              Delete
               {isLoading2 && (
                 <CircularProgress
                   size={22}
                   className="spinner"
-                  sx={{ color: "#fff", animation: "none !important" }}
+                  sx={{ color: "#fff", animation: "none !important", ml: 1 }}
                 />
               )}
             </Button>

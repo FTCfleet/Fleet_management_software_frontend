@@ -106,7 +106,6 @@ const RegisterPage = () => {
       checkAuthStatus();
       setIsLoading(false);
     } catch (error) {
-      console.error("Registration error:", error);
       alert("Registration failed. Please try again.");
       setIsLoading(false);
     }
