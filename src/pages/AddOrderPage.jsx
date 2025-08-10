@@ -268,6 +268,7 @@ export default function AddOrderPage({}) {
       });
 
       const data = await response.json();
+      console.log(data);
       if (!response.ok || !data.flag) {
         alert("Error occurred");
       } else {

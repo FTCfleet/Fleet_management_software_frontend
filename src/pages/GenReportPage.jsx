@@ -176,7 +176,7 @@ export default function GenReportPage() {
         variant="h4"
         sx={{ color: "#1E3A5F", fontWeight: "bold", textAlign: "center" }}
       >
-        Ledger Generation
+        Memo Generation
       </Typography>
       <TextField
         label="Truck Number"
@@ -333,7 +333,7 @@ export default function GenReportPage() {
                     color: "#374151",
                   }}
                 >
-                  Download Ledger Report
+                  Download Memo Report
                 </Typography>
 
                 {/* Report Info */}

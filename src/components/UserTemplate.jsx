@@ -61,14 +61,14 @@ const UserTemplate = () => {
       headingIcon: <FaFileInvoice style={{ marginRight: "8px" }} />,
       items: [
         {
-          text: "All Ledgers",
+          text: "All Memo",
           path: "/user/ledgers/all",
           icon: <FaTruckMoving />,
         },
         ...(isAdmin || isSource
           ? [
               {
-                text: "Pending Ledgers",
+                text: "Pending Memo",
                 path: "/user/ledgers/pending",
                 icon: <FaTruckMoving />,
               },
@@ -77,68 +77,70 @@ const UserTemplate = () => {
         {
           text: `${
             isAdmin ? "Dispatched" : isSource ? "Outgoing" : "Incoming"
-          } Ledgers`,
+          } Memo`,
           path: `/user/ledgers/dispatched`,
           icon: <FaTruckMoving />,
         },
+        // {
+        //   text: "Verified Memo",
+        //   path: "/user/ledgers/verified",
+        //   icon: <FaTruckMoving />,
+        // },
         {
-          text: "Verified Ledgers",
-          path: "/user/ledgers/verified",
-          icon: <FaTruckMoving />,
-        },
-        {
-          text: "Completed Ledgers",
+          text: "Completed Memo",
           path: "/user/ledgers/completed",
           icon: <FaTruckMoving />,
         },
       ],
     },
-    {
-      heading: "Report Generation",
-      path: "/user/gen-report",
-      headingIcon: <FaMoneyCheckAlt style={{ marginRight: "8px" }} />,
-      items: [
-        {
-          text: "Ledger Generation",
-          path: "/user/gen-report/",
-          icon: <FaMoneyCheckAlt />,
-        },
-      ],
-    },
-    isAdmin
-      ? {
-          heading: "Admin",
-          path: "/user",
-          headingIcon: <FaMoneyCheckAlt style={{ marginRight: "8px" }} />,
-          items: [
-            {
-              text: "Truck Drivers List",
-              path: "/user/trucks",
-              icon: <FaMoneyCheckAlt />,
-            },
-            {
-              text: "Employees List",
-              path: "/user/employees",
-              icon: <FaMoneyCheckAlt />,
-            },
-            {
-              text: "Warehouse List",
-              path: "/user/warehouses",
-              icon: <FaMoneyCheckAlt />,
-            },
-            {
-              text: "Client List",
-              path: "/user/clients",
-              icon: <FaMoneyCheckAlt />,
-            },
-            {
-              text: "Items List",
-              path: "/user/items",
-              icon: <FaMoneyCheckAlt />,
-            },
-          ],
-        }
-      : {},
+    ...(isAdmin ? 
+    [
+      {
+        heading: "Report Generation",
+        path: "/user/gen-report",
+        headingIcon: <FaMoneyCheckAlt style={{ marginRight: "8px" }} />,
+        items: [
+          {
+            text: "Memo Generation",
+            path: "/user/gen-report/",
+            icon: <FaMoneyCheckAlt />,
+          },
+        ],
+      },
+      {
+        heading: "Admin",
+        path: "/user",
+        headingIcon: <FaMoneyCheckAlt style={{ marginRight: "8px" }} />,
+        items: [
+          {
+            text: "Truck Drivers List",
+            path: "/user/trucks",
+            icon: <FaMoneyCheckAlt />,
+          },
+          {
+            text: "Employees List",
+            path: "/user/employees",
+            icon: <FaMoneyCheckAlt />,
+          },
+          {
+            text: "Warehouse List",
+            path: "/user/warehouses",
+            icon: <FaMoneyCheckAlt />,
+          },
+          {
+            text: "Client List",
+            path: "/user/clients",
+            icon: <FaMoneyCheckAlt />,
+          },
+          {
+            text: "Items List",
+            path: "/user/items",
+            icon: <FaMoneyCheckAlt />,
+          },
+        ],
+      }
+    ]
+    : [] ),
   ];
 
   useEffect(() => {
@@ -272,7 +274,7 @@ const UserTemplate = () => {
               onMouseOver={(e) => (e.target.style.backgroundColor = "#25344e")}
               onMouseOut={(e) => (e.target.style.backgroundColor = "#1E3A5F")}
             >
-              <FaPlus style={{ marginRight: "8px" }} /> Create Ledger
+              <FaPlus style={{ marginRight: "8px" }} /> Create Memo
             </button>
           </Box>
         )}

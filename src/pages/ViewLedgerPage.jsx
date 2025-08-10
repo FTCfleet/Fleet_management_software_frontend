@@ -18,6 +18,7 @@ import {
   InputLabel,
   Modal,
   CircularProgress,
+  Checkbox
 } from "@mui/material";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import ledger from "../assets/ledger.jpg";
@@ -44,6 +45,7 @@ export default function ViewLedgerPage() {
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
+  const [counter, setCounter] = useState(0);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const { isAdmin, isSource } = useAuth();
   const navigate = useNavigate();
@@ -89,7 +91,7 @@ export default function ViewLedgerPage() {
       return;
     }
     if (!data.flag) {
-      alert("No such Ledger found");
+      alert("No such Memo found");
       setIsLoading1(false);
       return;
     }
@@ -229,6 +231,18 @@ export default function ViewLedgerPage() {
     setQrCodeModalOpen(false);
   };
 
+  const handleCheckboxChange = (value) => {
+    console.log(value);
+    if (value){
+      // counter++;
+      setCounter((prev) => prev+1);
+    }
+    else{
+      setCounter((prev) => prev-1);
+      // counter--;
+    }
+  }
+
   return (
     <Box
       sx={{
@@ -237,7 +251,7 @@ export default function ViewLedgerPage() {
         minHeight: "100vh",
       }}
     >
-      {/* Top Section: Ledger Details + Image */}
+      {/* Top Section: Memo Details + Image */}
       <Box
         sx={{
           display: "flex",
@@ -256,7 +270,7 @@ export default function ViewLedgerPage() {
             variant="h5"
             sx={{ marginBottom: "10px", ...headerStyle }}
           >
-            Ledger Details
+            Memo Details
           </Typography>
 
           {/* Conditional Loader for Data */}
@@ -274,7 +288,7 @@ export default function ViewLedgerPage() {
           ) : (
             <>
               <Typography sx={rowStyle}>
-                <strong>Ledger No:</strong> {ledgerData.ledgerId}
+                <strong>Memo No:</strong> {ledgerData.ledgerId}
               </Typography>
               <Typography sx={rowStyle}>
                 <strong>Truck No:</strong> {ledgerData.vehicleNo}
@@ -358,23 +372,24 @@ export default function ViewLedgerPage() {
         <Box sx={{ flex: "0 0 150px", marginLeft: "20px" }}>
           <img
             src={ledger}
-            alt="Ledger"
+            alt="Memo"
             style={{ width: "100%", height: "auto", borderRadius: "8px" }}
           />
         </Box>
       </Box>
 
-      {/* Ledger Table */}
+      {/* Memo Table */}
       <TableContainer
         component={Paper}
         sx={{ backgroundColor: "#ffffff", borderRadius: "8px" }}
       >
         <Typography variant="h6" sx={{ padding: "16px", ...headerStyle }}>
-          Ledger orders
+          Memo orders ({counter}/{orders.length})
         </Typography>
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell sx={headerStyle}></TableCell>
               <TableCell sx={headerStyle}>Order No</TableCell>
               <TableCell sx={headerStyle}>LR No</TableCell>
               <TableCell sx={headerStyle}>Packages</TableCell>
@@ -404,6 +419,7 @@ export default function ViewLedgerPage() {
               orders.length !== 0 &&
               orders.map((order, index) => (
                 <TableRow key={order.trackingId}>
+                  <TableCell sx={rowStyle}><Checkbox onChange={(e) => handleCheckboxChange(e.target.checked)}/></TableCell>
                   <TableCell sx={rowStyle}>{index + 1}</TableCell>
                   <TableCell sx={rowStyle}>{order.trackingId}</TableCell>
                   <TableCell sx={rowStyle}>{order.items.length}</TableCell>
@@ -471,7 +487,7 @@ export default function ViewLedgerPage() {
           Dispatch Truck
         </button>
       )}
-      {(!isSource || isAdmin) && ledgerData.status === "verified" && (
+      {(!isSource || isAdmin) && ledgerData.status === "dispatched" && (
         <button className="button button-large" onClick={handleVerify}>
           <TbTruckDelivery size="19" style={{ marginRight: "8px" }} />
           Deliver Truck
@@ -481,7 +497,7 @@ export default function ViewLedgerPage() {
       <button className="button button-large" onClick={handlePrint}>
         {" "}
         <FaPrint style={{ marginRight: "8px" }} />
-        Download Ledger
+        Download Memo
       </button>
 
       {isAdmin && (
@@ -489,7 +505,7 @@ export default function ViewLedgerPage() {
           className="button button-large"
           onClick={() => setDeleteModalOpen(true)}
         >
-          <FaTrash style={{ marginRight: "8px" }} /> Delete Ledger
+          <FaTrash style={{ marginRight: "8px" }} /> Delete Memo
         </button>
       )}
 
@@ -524,7 +540,7 @@ export default function ViewLedgerPage() {
               color: "#d32f2f",
             }}
           >
-            Delete Ledger
+            Delete Memo
           </Typography>
           <Typography
             sx={{

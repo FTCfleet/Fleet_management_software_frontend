@@ -146,7 +146,11 @@ const AllLedgerPage = () => {
           fontWeight: "bold",
         }}
       >
-        {type.charAt(0).toUpperCase() + type.slice(1)} Ledgers
+        {(() => {
+          let heading = type;
+          if (type === 'dispatched')
+            heading = isAdmin ? "Dispatched" : isSource ? "Outgoing" : "Incoming";
+          return heading.charAt(0).toUpperCase() + heading.slice(1)})()} Memo
       </Typography>
 
       {/* Filters: Date and Search */}
@@ -197,7 +201,7 @@ const AllLedgerPage = () => {
         </Box>
       </Box>
 
-      {/* Ledger Entries Table */}
+      {/* Memo Entries Table */}
       <TableContainer component={Paper} sx={{ backgroundColor: "#ffffff" }}>
         <Table>
           <TableHead>
@@ -206,7 +210,7 @@ const AllLedgerPage = () => {
                 Sl No
               </TableCell>
               <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
-                Ledger No
+                Memo No
               </TableCell>
               <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
                 Vehicle No
@@ -229,7 +233,7 @@ const AllLedgerPage = () => {
                 Status
               </TableCell>
               <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold", textAlign: "center" }}>
-                View Ledger
+                View Memo
               </TableCell>
             </TableRow>
           </TableHead>

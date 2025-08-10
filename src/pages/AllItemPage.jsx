@@ -212,12 +212,13 @@ export default function AllItemPage() {
                     handleItemChange(idx, "name", e.target.value)
                   }
                   fullWidth
-                />
+                  />
               </TableCell>
               <TableCell>
                 <FormControl fullWidth>
                   <Select
                     value={item.type}
+                    disabled={!isAdding}
                     onChange={(e) =>
                       handleItemChange(idx, "type", e.target.value)
                     }

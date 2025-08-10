@@ -97,6 +97,7 @@ const AllOrderPage = () => {
       }
 
       const data = await response.json();
+      console.log(data);
       if (!data.flag) {
         alert("Please login first");
         return;

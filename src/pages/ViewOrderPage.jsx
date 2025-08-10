@@ -146,10 +146,10 @@ export default function ViewOrderPage() {
     setQrCodeModalOpen(false);
   };
 
-  const handleLRPrint = async () => {
+  const handleLRPrint = async (isAutoPdf) => {
     try {
       const response = await fetch(
-        `${BASE_URL}/api/parcel/generate-lr-receipt/${id}`
+        `${BASE_URL}/api/parcel/generate-lr-receipt/${id}?auto=${isAutoPdf}` 
       );
       const blob = await response.blob();
       const pdfURL = URL.createObjectURL(blob);
@@ -231,6 +231,9 @@ export default function ViewOrderPage() {
                   <Typography sx={rowCellStyle}>
                     <strong>Added by:</strong> {order.addedBy.name}
                   </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Created on:</strong> {order.placedAt}
+                  </Typography>
                 </Box>
                 <Box sx={{ marginLeft: "40px" }}>
                   <Typography sx={rowCellStyle}>
@@ -254,6 +257,12 @@ export default function ViewOrderPage() {
                   <Typography sx={rowCellStyle}>
                     <strong>Destination Warehouse:</strong>{" "}
                     {order.destinationWarehouse.name}
+                  </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Last Modified by:</strong> {order.lastModifiedBy?.name}
+                  </Typography>
+                  <Typography sx={rowCellStyle}>
+                    <strong>Last Modified On:</strong> {order.lastModifiedAt}
                   </Typography>
                 </Box>
                 <Box sx={{ marginLeft: "40px" }}>
@@ -372,8 +381,11 @@ export default function ViewOrderPage() {
       </TableContainer>
 
       <Box sx={{ marginTop: "20px", textAlign: "center" }}>
-        <button className="button" onClick={handleLRPrint}>
+        <button className="button" onClick={() => handleLRPrint(0)}>
           <FaPrint style={{ marginRight: "8px" }} /> Download LR Receipt
+        </button>
+        <button className="button" onClick={() => handleLRPrint(1)}>
+          <FaPrint style={{ marginRight: "8px" }} /> Download Auto LR Receipt
         </button>
 
         <Link
@@ -387,9 +399,9 @@ export default function ViewOrderPage() {
         <button className="button" onClick={handleOpenDeleteModal}>
           <FaTrash style={{ marginRight: "8px" }} /> Delete Order
         </button>
-        <button className="button" onClick={handleQrCodeModal}>
+        {/* <button className="button" onClick={handleQrCodeModal}>
           <FaQrcode style={{ marginRight: "8px" }} /> Download QR Code
-        </button>
+        </button> */}
 
         {/* Delete Confirmation Modal */}
         <Modal open={deleteModalOpen} onClose={handleCloseDeleteModal}>
