@@ -19,8 +19,8 @@ import { Edit, Delete, Close } from "@mui/icons-material";
 import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
 import "../css/main.css";
 
-const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
-const rowStyle = { color: "#25344E" };
+const headerStyle = { color: "#1E3A5F", fontWeight: "bold"};
+const rowStyle = { color: "#25344E"};
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function AllTruckPage() {
@@ -193,10 +193,10 @@ export default function AllTruckPage() {
           size="small"
         />
         <Button variant="contained" color="primary" onClick={applyFilter}>
-          Apply Filter
+          Apply
         </Button>
         <Button variant="outlined" color="secondary" onClick={clearFilter}>
-          Clear Filter
+          Clear
         </Button>
         <button className="button " onClick={handleAdd} style={{ margin: 0 }}>
           Add Truck
@@ -208,10 +208,11 @@ export default function AllTruckPage() {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell sx={headerStyle}>Sl No</TableCell>
               <TableCell sx={headerStyle}>Driver Name</TableCell>
               <TableCell sx={headerStyle}>Phone Number</TableCell>
               <TableCell sx={headerStyle}>Truck Number</TableCell>
-              <TableCell sx={headerStyle}>Actions</TableCell>
+              <TableCell sx={{...headerStyle, textAlign: "center"}}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -226,12 +227,13 @@ export default function AllTruckPage() {
                 </TableCell>
               </TableRow>
             ) : filteredTrucks.length > 0 ? (
-              filteredTrucks.map((truck) => (
+              filteredTrucks.map((truck, idx) => (
                 <TableRow key={truck.vehicleNo}>
+                  <TableCell sx={rowStyle}>{idx+1}.</TableCell>
                   <TableCell sx={rowStyle}>{truck.name}</TableCell>
                   <TableCell sx={rowStyle}>{truck.phoneNo}</TableCell>
                   <TableCell sx={rowStyle}>{truck.vehicleNo}</TableCell>
-                  <TableCell>
+                  <TableCell sx={{...rowStyle, textAlign: "center"}}>
                     <IconButton
                       color="primary"
                       onClick={() => handleEdit(truck)}

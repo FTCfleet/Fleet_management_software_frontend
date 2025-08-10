@@ -552,9 +552,6 @@ export default function AddOrderPage({}) {
                 Hamali
               </TableCell>
               <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                Statistical Charges
-              </TableCell>
-              <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
                 Amount
               </TableCell>
               <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
@@ -635,7 +632,7 @@ export default function AddOrderPage({}) {
                     >
                       <MenuItem value="C/B">C/B</MenuItem>
                       <MenuItem value="G/B">G/B</MenuItem>
-                      <MenuItem value="Bundle">Bundle</MenuItem>
+                      <MenuItem value="BUNDLE">Bundle</MenuItem>
                     </Select>
                   </FormControl>
                 </TableCell>
@@ -665,24 +662,6 @@ export default function AddOrderPage({}) {
                     value={item.freight}
                     onChange={(e) =>
                       handleInputChange(item.id, "freight", e.target.value)
-                    }
-                    variant="outlined"
-                    size="small"
-                    fullWidth
-                    sx={{
-                      "& .MuiInputBase-root": {
-                        fontSize: "14px",
-                        color: "#1b3655",
-                      },
-                    }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    type="text"
-                    value={item.hamali}
-                    onChange={(e) =>
-                      handleInputChange(item.id, "hamali", e.target.value)
                     }
                     variant="outlined"
                     size="small"

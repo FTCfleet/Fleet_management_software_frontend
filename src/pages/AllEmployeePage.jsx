@@ -207,10 +207,10 @@ const AllEmployeePage = () => {
           ))}
         </Select>
         <Button variant="contained" color="primary" onClick={applyFilter}>
-          Apply Filter
+          Apply
         </Button>
         <Button variant="outlined" color="secondary" onClick={clearFilter}>
-          Clear Filter
+          Clear
         </Button>
       </Box>
 
@@ -225,7 +225,7 @@ const AllEmployeePage = () => {
               <TableCell sx={headerStyle}>Role</TableCell>
               <TableCell sx={headerStyle}>Warehouse</TableCell>
               <TableCell sx={headerStyle}>Warehouse Code</TableCell>
-              <TableCell sx={headerStyle}>Actions</TableCell>
+              <TableCell sx={{...headerStyle, textAlign: "center"}}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -254,7 +254,7 @@ const AllEmployeePage = () => {
                       <TableCell sx={rowStyle}>
                         {employee.warehouseCode.warehouseID}
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{...rowStyle, textAlign: "center"}}>
                         <IconButton
                           color="primary"
                           onClick={() => handleEdit(employee)}

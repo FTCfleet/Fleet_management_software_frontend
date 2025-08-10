@@ -845,7 +845,7 @@ export default function EditOrderPage() {
                         >
                           <MenuItem value="C/B">C/B</MenuItem>
                           <MenuItem value="G/B">G/B</MenuItem>
-                          <MenuItem value="Bundle">Bundle</MenuItem>
+                          <MenuItem value="BUNDLE">Bundle</MenuItem>
                         </Select>
                       </FormControl>
                     </TableCell>

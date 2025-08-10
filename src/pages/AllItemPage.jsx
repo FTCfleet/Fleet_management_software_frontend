@@ -225,7 +225,7 @@ export default function AllItemPage() {
                   >
                     <MenuItem value="C/B">C/B</MenuItem>
                     <MenuItem value="G/B">G/B</MenuItem>
-                    <MenuItem value="Bundle">Bundle</MenuItem>
+                    <MenuItem value="BUNDLE">Bundle</MenuItem>
                   </Select>
                 </FormControl>
               </TableCell>
@@ -304,10 +304,10 @@ export default function AllItemPage() {
           size="small"
         />
         <Button variant="contained" color="primary" onClick={applyFilter}>
-          Apply Filter
+          Apply
         </Button>
         <Button variant="outlined" color="secondary" onClick={clearFilter}>
-          Clear Filter
+          Clear
         </Button>
         <button className="button " onClick={handleAdd} style={{ margin: 0 }}>
           Add Item

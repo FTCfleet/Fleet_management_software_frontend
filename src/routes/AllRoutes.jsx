@@ -11,6 +11,7 @@ import OtpPage from "../pages/Otpage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 import DashboardPage from "../pages/DahboardPage";
 import AddOrderPage from "../pages/AddOrderPage";
+import AddLedgerPage from "../pages/AddLedgerPage";
 import AllTruckPage from "../pages/AllTruckPage";
 import AllEmployeePage from "../pages/AllEmployeePage";
 import AllWarehousePage from "../pages/AllWarehousePage";
@@ -72,6 +73,7 @@ function AllRoutes() {
         <Route exact path="items" element={<AllItemPage />} />
         <Route exact path="warehouses" element={<AllWarehousePage />} />
         <Route exact path="add/order" element={<AddOrderPage />} />
+        <Route exact path="add/ledger" element={<AddLedgerPage />} />
         <Route exact path="order/:type" element={<AllOrderPage />} />
         <Route exact path="ledgers/:type" element={<AllLedgerPage />} />
         <Route exact path="view/*">

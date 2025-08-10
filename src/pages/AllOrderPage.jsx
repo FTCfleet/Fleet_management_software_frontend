@@ -14,6 +14,7 @@ import {
   MenuItem,
   Select,
   CircularProgress,
+  IconButton,
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import "../css/table.css";
@@ -40,7 +41,11 @@ const AllOrderPage = () => {
     fontWeight: "bold",
     textAlign: "center",
   };
-  const rowCellStyle = { color: "#25344E", textAlign: "center" };
+  const rowCellStyle = {
+    color: "#25344E",
+    textAlign: "center",
+    justifyContent: "center",
+  };
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -50,6 +55,27 @@ const AllOrderPage = () => {
   useEffect(() => {
     filterOrdersByTypeAndDate(type);
   }, [type, orders]);
+
+  useEffect(() => {
+    fetchWarehouses();
+  }, []);
+
+  const fetchWarehouses = async () => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${BASE_URL}/api/admin/get-all-warehouses`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data2 = await res.json();
+    setWarehouses(
+      data2.body.filter(
+        (warehouse) => warehouse.isSource !== isSource || isAdmin
+      )
+    );
+  };
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -76,19 +102,6 @@ const AllOrderPage = () => {
         return;
       }
       setOrders(data.body);
-      const res = await fetch(`${BASE_URL}/api/admin/get-all-warehouses`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data2 = await res.json();
-      setWarehouses(
-        data2.body.filter(
-          (warehouse) => warehouse.isSource !== isSource || isAdmin
-        )
-      );
     } catch (error) {
       alert("Error fetching orders:", error);
     }
@@ -110,8 +123,10 @@ const AllOrderPage = () => {
     if (nameFilter) {
       filtered = filtered.filter(
         (order) =>
-          order.sender.name.toLowerCase().includes(nameFilter.toLowerCase()) ||
-          order.receiver.name.toLowerCase().includes(nameFilter.toLowerCase())
+          order.sender.name
+            .toLowerCase()
+            .startsWith(nameFilter.toLowerCase()) ||
+          order.receiver.name.toLowerCase().startsWith(nameFilter.toLowerCase())
       );
     }
 
@@ -181,14 +196,13 @@ const AllOrderPage = () => {
           />
         </Box>
         <Box sx={{ display: "flex", gap: "10px", alignItems: "center" }}>
-
           <TextField
             label="Search by Customer Name"
             value={nameFilter}
             onChange={(e) => setNameFilter(e.target.value)}
             variant="outlined"
             size="small"
-            />
+          />
           <Select
             value={warehouseFilter}
             onChange={(e) => setWarehouseFilter(e.target.value)}
@@ -204,10 +218,10 @@ const AllOrderPage = () => {
             ))}
           </Select>
           <Button variant="contained" color="primary" onClick={applyFilter}>
-            Apply Filter
+            Apply
           </Button>
           <Button variant="outlined" color="secondary" onClick={clearFilter}>
-            Clear Filter
+            Clear
           </Button>
         </Box>
       </Box>
@@ -217,6 +231,7 @@ const AllOrderPage = () => {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell sx={cellStyle}>Sl No</TableCell>
               <TableCell sx={cellStyle}>Order ID</TableCell>
               <TableCell sx={cellStyle}>{"Sender's\nName"}</TableCell>
               <TableCell sx={cellStyle}>{"Receiver's Name"}</TableCell>
@@ -250,8 +265,9 @@ const AllOrderPage = () => {
                 </TableCell>
               </TableRow>
             ) : filteredOrders.length > 0 ? (
-              filteredOrders.map((order) => (
+              filteredOrders.map((order, idx) => (
                 <TableRow key={order.trackingId}>
+                  <TableCell sx={rowCellStyle}>{idx + 1}.</TableCell>
                   <TableCell sx={rowCellStyle}>{order.trackingId}</TableCell>
                   <TableCell sx={rowCellStyle}>{order.sender.name}</TableCell>
                   <TableCell sx={rowCellStyle}>{order.receiver.name}</TableCell>
@@ -272,26 +288,21 @@ const AllOrderPage = () => {
                         : order.sourceWarehouse.name}
                     </TableCell>
                   )}
-                  <TableCell>
+                  <TableCell sx={rowCellStyle}>
                     <span className={`table-status ${order.status}`}>
                       {order.status.charAt(0).toUpperCase() +
                         order.status.slice(1)}
                     </span>
                   </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outlined"
-                      sx={{
-                        textTransform: "none",
-                        color: "#1E3A5F",
-                        borderColor: "#1E3A5F",
-                      }}
+                  <TableCell sx={rowCellStyle}>
+                    <IconButton
+                      color="primary"
                       onClick={() =>
                         navigate(`/user/view/order/${order.trackingId}`)
                       }
                     >
                       <IoArrowForwardCircleOutline size={24} />
-                    </Button>
+                    </IconButton>
                   </TableCell>
                 </TableRow>
               ))

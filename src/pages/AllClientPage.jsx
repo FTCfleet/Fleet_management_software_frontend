@@ -448,10 +448,10 @@ export default function AllClientPage() {
           size="small"
         />
         <Button variant="contained" color="primary" onClick={applyFilter}>
-          Apply Filter
+          Apply
         </Button>
         <Button variant="outlined" color="secondary" onClick={clearFilter}>
-          Clear Filter
+          Clear
         </Button>
         <button className="button " onClick={handleAdd} style={{ margin: 0 }}>
           Add Client
@@ -463,13 +463,13 @@ export default function AllClientPage() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={headerStyle}>No</TableCell>
+              <TableCell sx={headerStyle}>Sl No</TableCell>
               <TableCell sx={headerStyle}>Client Name</TableCell>
               <TableCell sx={headerStyle}>Phone Number</TableCell>
               <TableCell sx={headerStyle}>Client Address</TableCell>
               <TableCell sx={headerStyle}>GST</TableCell>
-              <TableCell sx={headerStyle}>View Items</TableCell>
-              <TableCell sx={headerStyle}>Actions</TableCell>
+              <TableCell sx={{...headerStyle, textAlign: "center"}}>View Items</TableCell>
+              <TableCell sx={{...headerStyle, textAlign: "center"}}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -486,12 +486,12 @@ export default function AllClientPage() {
             ) : filteredClients.length > 0 ? (
               filteredClients.map((client, idx) => (
                 <TableRow key={idx}>
-                  <TableCell sx={rowStyle}>{idx + 1}</TableCell>
+                  <TableCell sx={rowStyle}>{idx + 1}.</TableCell>
                   <TableCell sx={rowStyle}>{client.name}</TableCell>
                   <TableCell sx={rowStyle}>{client.phoneNo}</TableCell>
                   <TableCell sx={rowStyle}>{client.address}</TableCell>
                   <TableCell sx={rowStyle}>{client.gst}</TableCell>
-                  <TableCell sx={rowStyle}>
+                  <TableCell sx={{...rowStyle, textAlign: "center"}}>
                     <IconButton
                       color="primary"
                       onClick={() => handleEditItems(client)}
@@ -499,7 +499,7 @@ export default function AllClientPage() {
                       <IoArrowForwardCircleOutline size={24} />
                     </IconButton>
                   </TableCell>
-                  <TableCell sx={{ display: "flex" }}>
+                  <TableCell sx={{...headerStyle, textAlign: "center"}}>
                     <IconButton
                       color="primary"
                       onClick={() => handleEdit(client)}

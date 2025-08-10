@@ -14,6 +14,7 @@ import {
   MenuItem,
   Select,
   CircularProgress,
+  IconButton,
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
@@ -111,7 +112,7 @@ const AllLedgerPage = () => {
 
     if (vehicleFilter) {
       filtered = filtered.filter((order) =>
-        order.vehicleNo.toLowerCase().includes(vehicleFilter.toLowerCase())
+        order.vehicleNo.toLowerCase().startsWith(vehicleFilter.toLowerCase())
       );
     }
     if (warehouseFilter) {
@@ -166,7 +167,7 @@ const AllLedgerPage = () => {
             onChange={handleDateChange}
           />
         </Box>
-        <Box sx={{ display: "flex", gap: "10px" }}>
+        <Box sx={{ display: "flex", gap: "10px", alignItems: "center" }}>
           <TextField
             label="Search by Vehicle No"
             value={vehicleFilter}
@@ -188,10 +189,10 @@ const AllLedgerPage = () => {
             ))}
           </Select>
           <Button variant="contained" color="primary" onClick={applyFilter}>
-            Apply Filter
+            Apply
           </Button>
           <Button variant="outlined" color="secondary" onClick={clearFilter}>
-            Clear Filter
+            Clear
           </Button>
         </Box>
       </Box>
@@ -227,7 +228,7 @@ const AllLedgerPage = () => {
               <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
                 Status
               </TableCell>
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold", textAlign: "center" }}>
                 View Ledger
               </TableCell>
             </TableRow>
@@ -246,7 +247,7 @@ const AllLedgerPage = () => {
             ) : filteredLedger.length > 0 ? (
               filteredLedger.map((entry, idx) => (
                 <TableRow key={entry.ledgerId}>
-                  <TableCell sx={{ color: "#25344E" }}>{idx + 1}</TableCell>
+                  <TableCell sx={{ color: "#25344E" }}>{idx + 1}.</TableCell>
                   <TableCell sx={{ color: "#25344E" }}>
                     {entry.ledgerId}
                   </TableCell>
@@ -277,20 +278,15 @@ const AllLedgerPage = () => {
                         entry.status.slice(1)}
                     </span>
                   </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outlined"
-                      sx={{
-                        textTransform: "none",
-                        color: "#1E3A5F",
-                        borderColor: "#1E3A5F",
-                      }}
+                  <TableCell sx={{textAlign: "center"}}>
+                    <IconButton
+                      color="primary"
                       onClick={() =>
                         navigate(`/user/view/ledger/${entry.ledgerId}`)
                       }
                     >
                       <IoArrowForwardCircleOutline size={24} />
-                    </Button>
+                    </IconButton>
                   </TableCell>
                 </TableRow>
               ))

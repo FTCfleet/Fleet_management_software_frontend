@@ -22,9 +22,14 @@ import {
 import { useParams, useNavigate, Link } from "react-router-dom";
 import ledger from "../assets/ledger.jpg";
 import { useAuth } from "../routes/AuthContext";
-import { FaTrash, FaExclamationTriangle, FaTruckLoading, FaPrint } from "react-icons/fa";
+import {
+  FaTrash,
+  FaExclamationTriangle,
+  FaTruckLoading,
+  FaPrint,
+} from "react-icons/fa";
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
-import { TbTruckDelivery  } from "react-icons/tb";
+import { TbTruckDelivery } from "react-icons/tb";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 let delOrders = [];
@@ -39,7 +44,6 @@ export default function ViewLedgerPage() {
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
-  const [isLoading2, setIsLoading2] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const { isAdmin, isSource } = useAuth();
   const navigate = useNavigate();
@@ -243,7 +247,7 @@ export default function ViewLedgerPage() {
           padding: "20px",
           borderRadius: "8px",
           marginBottom: "20px",
-          minHeight: "150px", 
+          minHeight: "150px",
         }}
       >
         {/* Left Section - Text Content */}
@@ -291,21 +295,21 @@ export default function ViewLedgerPage() {
                     {ledgerData.sourceWarehouse.name}
                   </Typography>
                 ) : (
-                    <Select
-                      label="Source Warehouse"
-                      value={sourceWarehouse}
-                      onChange={(e) => setSourceWarehouse(e.target.value)}
-                      sx={{ minWidth: "250px" }}
-                      size="small"
-                    >
-                      {allWarehouse
-                        .filter((w) => !w.isSource)
-                        .map((w) => (
-                          <MenuItem key={w.warehouseID} value={w.warehouseID}>
-                            {w.name}
-                          </MenuItem>
-                        ))}
-                    </Select>
+                  <Select
+                    label="Source Warehouse"
+                    value={sourceWarehouse}
+                    onChange={(e) => setSourceWarehouse(e.target.value)}
+                    sx={{ minWidth: "250px" }}
+                    size="small"
+                  >
+                    {allWarehouse
+                      .filter((w) => !w.isSource)
+                      .map((w) => (
+                        <MenuItem key={w.warehouseID} value={w.warehouseID}>
+                          {w.name}
+                        </MenuItem>
+                      ))}
+                  </Select>
                 )}
               </div>
               <div
@@ -324,21 +328,21 @@ export default function ViewLedgerPage() {
                     {ledgerData.destinationWarehouse.name}
                   </Typography>
                 ) : (
-                    <Select
-                      label="Destination Warehouse"
-                      value={destinationWarehouse}
-                      onChange={(e) => setDestinationWarehouse(e.target.value)}
-                      sx={{ minWidth: "250px" }}
-                      size="small"
-                    >
-                      {allWarehouse
-                        .filter((w) => !w.isSource)
-                        .map((w) => (
-                          <MenuItem key={w.warehouseID} value={w.warehouseID}>
-                            {w.name}
-                          </MenuItem>
-                        ))}
-                    </Select>
+                  <Select
+                    label="Destination Warehouse"
+                    value={destinationWarehouse}
+                    onChange={(e) => setDestinationWarehouse(e.target.value)}
+                    sx={{ minWidth: "250px" }}
+                    size="small"
+                  >
+                    {allWarehouse
+                      .filter((w) => !w.isSource)
+                      .map((w) => (
+                        <MenuItem key={w.warehouseID} value={w.warehouseID}>
+                          {w.name}
+                        </MenuItem>
+                      ))}
+                  </Select>
                 )}
               </div>
               <Typography sx={rowStyle}>
@@ -406,25 +410,13 @@ export default function ViewLedgerPage() {
                   <TableCell sx={rowStyle}>{order.sender.name}</TableCell>
                   <TableCell sx={rowStyle}>{order.receiver.name}</TableCell>
                   <TableCell sx={rowStyle}>
-                    <TextField
-                      type="text"
-                      size="small"
-                      value={order.freight}
-                    />
+                    <TextField type="text" size="small" value={order.freight} />
                   </TableCell>
                   <TableCell sx={rowStyle}>
-                    <TextField
-                      type="text"
-                      size="small"
-                      value={order.hamali}
-                    />
+                    <TextField type="text" size="small" value={order.hamali} />
                   </TableCell>
                   <TableCell sx={rowStyle}>
-                    <TextField
-                      type="text"
-                      size="small"
-                      value={order.charges}
-                    />
+                    <TextField type="text" size="small" value={order.charges} />
                   </TableCell>
                   {ledgerData.status === "pending" && (
                     <TableCell>
@@ -432,23 +424,18 @@ export default function ViewLedgerPage() {
                         color="error"
                         onClick={(e) => handleDelete(index)}
                       >
-                        <FaTrash size={20}/>
+                        <FaTrash size={20} />
                       </IconButton>
                     </TableCell>
                   )}
                   <TableCell>
-                    <Button
-                      variant="outlined"
-                      sx={{
-                        textTransform: "none",
-                        color: "#1E3A5F",
-                        borderColor: "#1E3A5F",
-                      }}
+                    <IconButton
+                      color="primary"
                       target="_blank"
                       href={`/user/view/order/${order.trackingId}`}
                     >
                       <IoArrowForwardCircleOutline size={24} />
-                    </Button>
+                    </IconButton>
                   </TableCell>
                 </TableRow>
               ))
@@ -480,23 +467,31 @@ export default function ViewLedgerPage() {
       </TableContainer>
       {(isSource || isAdmin) && ledgerData.status === "pending" && (
         <button className="button button-large" onClick={handleDispatch}>
-          <FaTruckLoading style={{ marginRight: "8px" }} />Dispatch Truck
+          <FaTruckLoading style={{ marginRight: "8px" }} />
+          Dispatch Truck
         </button>
       )}
       {(!isSource || isAdmin) && ledgerData.status === "verified" && (
         <button className="button button-large" onClick={handleVerify}>
-          <TbTruckDelivery  size="19" style={{ marginRight: "8px" }} />Deliver Truck
+          <TbTruckDelivery size="19" style={{ marginRight: "8px" }} />
+          Deliver Truck
         </button>
       )}
-      
-        <button className="button button-large" onClick={handlePrint}> <FaPrint style={{ marginRight: "8px" }} />Download Ledger</button>
-      
-      <button
-        className="button button-large"
-        onClick={() => setDeleteModalOpen(true)}
-      >
-        <FaTrash style={{ marginRight: "8px" }} /> Delete Ledger
+
+      <button className="button button-large" onClick={handlePrint}>
+        {" "}
+        <FaPrint style={{ marginRight: "8px" }} />
+        Download Ledger
       </button>
+
+      {isAdmin && (
+        <button
+          className="button button-large"
+          onClick={() => setDeleteModalOpen(true)}
+        >
+          <FaTrash style={{ marginRight: "8px" }} /> Delete Ledger
+        </button>
+      )}
 
       {/* Delete Confirmation Modal */}
       <Modal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)}>

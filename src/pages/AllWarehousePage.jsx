@@ -222,7 +222,7 @@ export default function AllWarehousePage() {
               <TableCell sx={headerStyle}>Warehouse Address</TableCell>
               <TableCell sx={headerStyle}>Warehouse Code</TableCell>
               <TableCell sx={headerStyle}>Type</TableCell>
-              <TableCell sx={headerStyle}>Actions</TableCell>
+              <TableCell sx={{...headerStyle, textAlign: "center"}}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -247,7 +247,7 @@ export default function AllWarehousePage() {
                   <TableCell sx={rowStyle}>
                     {warehouse.isSource ? "Source" : "Destination"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{...rowStyle, textAlign: "center"}}>
                     <IconButton
                       color="primary"
                       onClick={() => handleEdit(warehouse)}

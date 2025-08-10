@@ -25,8 +25,8 @@ const UserTemplate = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAddOrderPage =
-    location.pathname.startsWith("/user/add/order/") ||
-    location.pathname.startsWith("/user/edit/order/") ||
+    location.pathname.startsWith("/user/add") ||
+    location.pathname.startsWith("/user/edit") ||
     !isSource;
 
   const { setLastUserPage } = useAuth();
@@ -265,6 +265,14 @@ const UserTemplate = () => {
               onMouseOut={(e) => (e.target.style.backgroundColor = "#1E3A5F")}
             >
               <FaPlus style={{ marginRight: "8px" }} /> Add Order
+            </button>
+            <button
+              className="button"
+              onClick={() => navigate("/user/add/ledger/")}
+              onMouseOver={(e) => (e.target.style.backgroundColor = "#25344e")}
+              onMouseOut={(e) => (e.target.style.backgroundColor = "#1E3A5F")}
+            >
+              <FaPlus style={{ marginRight: "8px" }} /> Create Ledger
             </button>
           </Box>
         )}
