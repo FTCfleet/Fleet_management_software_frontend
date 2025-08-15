@@ -68,6 +68,7 @@ export default function EditOrderPage() {
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [allWarehouse, setAllWarehouse] = useState([]);
+  const [doorDeliveryCharge, setDoorDeliveryCharge] = useState(0);
   const [error, setError] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(true);
@@ -137,13 +138,13 @@ export default function EditOrderPage() {
 
   const fetchData = async () => {
     const token = localStorage.getItem("token");
-    const response  =  await fetch(`${BASE_URL}/api/parcel/track/${id}`, {
+    const response = await fetch(`${BASE_URL}/api/parcel/track/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
     });
-    
+
     if (!response.ok) {
       alert("Error occurred");
       return;
@@ -152,7 +153,7 @@ export default function EditOrderPage() {
       alert("No such Order");
       return;
     }
-    
+
     const data = (await response.json()).body;
     setSenderDetails(data.sender);
     setReceiverDetails(data.receiver);
@@ -160,7 +161,8 @@ export default function EditOrderPage() {
     setDestinationWarehouse(data.destinationWarehouse.warehouseID);
     setFreightOld(data.freight || 0);
     setHamaliOld(data.hamali || 0);
-    setIsDoorDelivery(data.doorDelivery);
+    setIsDoorDelivery(data.isDoorDelivery);
+    setDoorDeliveryCharge(data.doorDeliveryCharge || 0);
     setPayemnt(data.payment);
     setOldItems(data.items);
     setStatus(data.status);
@@ -292,9 +294,7 @@ export default function EditOrderPage() {
       if (!item) {
         setNewItems((prevItems) =>
           prevItems.map((prevItem) =>
-            prevItem.itemId === id
-              ? { ...prevItem, name: value }
-              : prevItem
+            prevItem.itemId === id ? { ...prevItem, name: value } : prevItem
           )
         );
         return;
@@ -302,7 +302,9 @@ export default function EditOrderPage() {
       item.quantity = 1;
       setNewItems((prevItems) =>
         prevItems.map((prevItem) =>
-          prevItem.itemId === id ? { ...prevItem, ...item, name: value } : prevItem
+          prevItem.itemId === id
+            ? { ...prevItem, ...item, name: value }
+            : prevItem
         )
       );
       fixCharges(id, item.quantity, item.freight, item.hamali);
@@ -376,8 +378,9 @@ export default function EditOrderPage() {
         freight: freight + freightOld,
         sourceWarehouse,
         destinationWarehouse,
-        doorDelivery: isDoorDelivery,
+        isDoorDelivery,
         payment,
+        doorDeliveryCharge,
         ...(isAdmin ? { status } : {}),
       }),
     })
@@ -652,6 +655,16 @@ export default function EditOrderPage() {
               style={{ justifyContent: "center" }}
               label="Door Delivery"
             />
+            {isDoorDelivery && (
+              <TextField
+                label="Door Delivery Charge"
+                value={doorDeliveryCharge}
+                onChange={(e) =>
+                  setDoorDeliveryCharge(parseInt(e.target.value) || 0)
+                }
+                type="text"
+              />
+            )}
           </Box>
 
           <Box sx={{ marginTop: "30px" }}>

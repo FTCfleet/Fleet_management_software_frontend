@@ -54,6 +54,7 @@ export default function AddOrderPage({}) {
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [payment, setPayemnt] = useState("To Pay");
   const [isDoorDelivery, setIsDoorDelivery] = useState(false);
+  const [doorDeliveryCharge, setDoorDeliveryCharge] = useState(0);
   const { isAdmin } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -185,10 +186,8 @@ export default function AddOrderPage({}) {
       if (!item) {
         setItems((prevItems) =>
           prevItems.map((prevItem) =>
-            prevItem.id === id
-        ? { ...prevItem, name: value}
-              : prevItem
-            )
+            prevItem.id === id ? { ...prevItem, name: value } : prevItem
+          )
         );
         return;
       }
@@ -262,7 +261,8 @@ export default function AddOrderPage({}) {
           hamali,
           freight,
           payment,
-          doorDelivery: isDoorDelivery,
+          isDoorDelivery,
+          doorDeliveryCharge,
           ...(isAdmin ? { sourceWarehouse } : {}),
         }),
       });
@@ -362,9 +362,12 @@ export default function AddOrderPage({}) {
           })}
           onBlur={(event, newValue) => handleSenderChange(event, newValue)}
           getOptionLabel={(option) => option || senderDetails.name}
-          
           renderInput={(params) => (
-            <TextField {...params} label="Sender's Name" error={error && !senderDetails.name}/>
+            <TextField
+              {...params}
+              label="Sender's Name"
+              error={error && !senderDetails.name}
+            />
           )}
           disableClearable
           slots={{
@@ -416,7 +419,11 @@ export default function AddOrderPage({}) {
           })}
           getOptionLabel={(option) => option || receiverDetails.name}
           renderInput={(params) => (
-            <TextField {...params} label="Receiver's Name" error={error && !receiverDetails.name} />
+            <TextField
+              {...params}
+              label="Receiver's Name"
+              error={error && !receiverDetails.name}
+            />
           )}
           disableClearable
           slots={{
@@ -517,6 +524,16 @@ export default function AddOrderPage({}) {
           style={{ justifyContent: "center" }}
           label="Door Delivery"
         />
+        {isDoorDelivery && (
+          <TextField
+            label="Door Delivery Charge"
+            value={doorDeliveryCharge}
+            onChange={(e) =>
+              setDoorDeliveryCharge(parseInt(e.target.value) || 0)
+            }
+            type="text"
+          />
+        )}
       </Box>
 
       <Box sx={{ marginTop: "30px" }}>
@@ -596,7 +613,7 @@ export default function AddOrderPage({}) {
                         variant="outlined"
                         size="small"
                         error={error && !item.name}
-                        helperText={error && !item.name ? "Required" : ""}
+                        // helperText={error && !item.name ? "Required" : ""}
                         sx={{
                           "& .MuiInputBase-root": {
                             fontSize: "14px",
@@ -648,7 +665,7 @@ export default function AddOrderPage({}) {
                     size="small"
                     fullWidth
                     error={error && !item.hamali}
-                    helperText={error && !item.hamali ? "Required" : ""}
+                    // helperText={error && !item.hamali ? "Required" : ""}
                     sx={{
                       "& .MuiInputBase-root": {
                         fontSize: "14px",

@@ -300,14 +300,11 @@ export default function ViewOrderPage() {
                     <strong>Hamali:</strong> {order.hamali}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Statistical Charges:</strong> {order.hamali}
-                  </Typography>
-                  <Typography sx={rowCellStyle}>
                     <strong>Packages:</strong> {order.items?.reduce((sum, x) => sum + x.quantity, 0)}
                   </Typography>
                   <Typography sx={rowCellStyle}>
                     <strong>Door Delivery:</strong>
-                    {order.doorDelivery ? " Yes" : " No"}
+                    {order.isDoorDelivery ? order.doorDeliveryCharge : " No"}
                   </Typography>
                 </Box>
                 <Box

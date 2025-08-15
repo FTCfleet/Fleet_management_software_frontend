@@ -107,6 +107,7 @@ export default function ViewLedgerPage() {
       return;
     }
     setLedgerData(data.body);
+    console.log(data.body);
     if (data.body.sourceWarehouse)
       setSourceWarehouse(data.body.sourceWarehouse.warehouseID);
     if (data.body.destinationWarehouse)
@@ -153,7 +154,6 @@ export default function ViewLedgerPage() {
       alert("Select Warehouse location");
       return;
     }
-    handleModalOpen();
     setIsScreenLoading(true);
     setIsScreenLoadingText("Loading Please wait...");
     const token = localStorage.getItem("token");
@@ -180,6 +180,10 @@ export default function ViewLedgerPage() {
     } else {
       alert("Error occurred");
     }
+    setModalOpen(false);
+    fetchData();
+    setCounter(0);
+    // window.location.reload();
   };
   
   const handleVerify = async () => {
@@ -203,8 +207,14 @@ export default function ViewLedgerPage() {
     const data = await response.json();
     setIsScreenLoadingText("");
     setIsScreenLoading(false);
-    alert("Orders delivered successfully");
-    // navigate("/user/ledgers/all");
+    if (!data.flag) {
+      alert("Error occurred "+ data.message);
+    }else{
+      alert("Orders delivered successfully");
+      setModalOpen(false);
+      setCounter(0);
+      fetchData();
+    }
   };
 
   const handleDeleteLedger = async () => {
@@ -227,7 +237,7 @@ export default function ViewLedgerPage() {
     if (data.flag) {
       navigate("/user/ledgers/all");
     } else {
-      alert("Error occurred");
+      alert("Error occurred "+ data.message);
     }
   };
 
@@ -461,7 +471,7 @@ export default function ViewLedgerPage() {
                 Total
               </TableCell>
               <TableCell sx={{ ...rowStyle, fontWeight: "bold" }}>
-                {orders.length}
+                {orders.reduce((sum, order) => sum + order.items.length, 0)}
               </TableCell>
               <TableCell sx={rowStyle}></TableCell>
               <TableCell sx={rowStyle}></TableCell>
@@ -506,7 +516,7 @@ export default function ViewLedgerPage() {
       {isAdmin && (
         <button
           className="button button-large"
-          onClick={() => handleModalOpen("Delete Memo", "Are you sure you want to delete this?", "Delete", "#d32f2f", handleDelete)}
+          onClick={() => handleModalOpen("Delete Memo", "Are you sure you want to delete this?", "Delete", "#d32f2f", handleDeleteLedger)}
         >
           <FaTrash style={{ marginRight: "8px" }} /> Delete Memo
         </button>
