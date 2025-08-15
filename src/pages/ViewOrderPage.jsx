@@ -228,7 +228,7 @@ export default function ViewOrderPage() {
           ) : (
             <>
               <Box sx={{ display: "flex", marginBottom: "10px" }}>
-                <Box>
+                <Box sx={{flex: "40%"}}>
                   <Typography sx={rowCellStyle}>
                     <strong>Order ID:</strong> {id}
                   </Typography>
@@ -255,7 +255,7 @@ export default function ViewOrderPage() {
                     <strong>Created on:</strong> {dateFormatter(order.placedAt)}
                   </Typography>
                 </Box>
-                <Box sx={{ marginLeft: "40px" }}>
+                <Box sx={{ flex: "40%", marginLeft: "40px" }}>
                   <Typography sx={rowCellStyle}>
                     <strong>Status:</strong>{" "}
                     {order.status?.charAt(0).toUpperCase() +
@@ -307,7 +307,7 @@ export default function ViewOrderPage() {
                     {order.isDoorDelivery ? order.doorDeliveryCharge : " No"}
                   </Typography>
                 </Box>
-                <Box
+                {/* <Box
                   sx={{
                     boxSizing: "border-box",
                     alignContent: "center",
@@ -327,7 +327,7 @@ export default function ViewOrderPage() {
                       position: "relative",
                     }}
                   />
-                </Box>
+                </Box> */}
               </Box>
             </>
           )}
