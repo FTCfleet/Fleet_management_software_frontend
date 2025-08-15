@@ -194,6 +194,7 @@ const AllOrderPage = () => {
             onKeyDown={(e) => e.preventDefault()}
             value={selectedDate}
             onChange={handleDateChange}
+            disabled={isLoading}
           />
         </Box>
         <Box sx={{ display: "flex", gap: "10px", alignItems: "center" }}>
@@ -218,10 +219,10 @@ const AllOrderPage = () => {
               </MenuItem>
             ))}
           </Select>
-          <Button variant="contained" color="primary" onClick={applyFilter}>
+          <Button variant="contained" color="primary" onClick={applyFilter} disabled={isLoading}>
             Apply
           </Button>
-          <Button variant="outlined" color="secondary" onClick={clearFilter}>
+          <Button variant="outlined" color="secondary" onClick={clearFilter} disabled={isLoading}>
             Clear
           </Button>
         </Box>

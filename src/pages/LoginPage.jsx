@@ -82,7 +82,7 @@ const LoginPage = () => {
             {passwordVisible ? <FaEyeSlash /> : <FaEye />}
           </button>
         </div>
-        <div>
+        {/* <div>
           Forgot Password?
           <a href="/auth/forget" className={styles.forgotPassword}>
             {" Reset"}
@@ -93,7 +93,7 @@ const LoginPage = () => {
           <a href="/auth/register" className={styles.forgotPassword}>
             {" Sign Up"}
           </a>
-        </div>
+        </div> */}
         <button className={styles.loginButton} onClick={handleLogin}>
           Login  {isLoading && (
                       <CircularProgress

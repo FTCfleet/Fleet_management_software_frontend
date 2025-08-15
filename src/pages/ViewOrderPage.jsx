@@ -14,7 +14,7 @@ import {
   CircularProgress,
   TextField,
 } from "@mui/material";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useOutletContext, useParams } from "react-router-dom";
 import {
   FaEdit,
   FaTrash,
@@ -51,9 +51,9 @@ export default function ViewOrderPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
-  const { isAdmin } = useAuth();
   const cellStyle = { color: "#1E3A5F", fontWeight: "bold" };
   const rowCellStyle = { color: "#25344E" };
+  const {setIsScreenLoading, setIsScreenLoadingText} = useOutletContext();
 
   useEffect(() => {
     fetchData();
@@ -146,10 +146,12 @@ export default function ViewOrderPage() {
     setQrCodeModalOpen(false);
   };
 
-  const handleLRPrint = async (isAutoPdf) => {
+  const handleLRPrint = async () => {
     try {
+      setIsScreenLoadingText("Generating LR Receipt...");
+      setIsScreenLoading(true);
       const response = await fetch(
-        `${BASE_URL}/api/parcel/generate-lr-receipt/${id}?auto=${isAutoPdf}` 
+        `${BASE_URL}/api/parcel/generate-lr-receipt/${id}` 
       );
       const blob = await response.blob();
       const pdfURL = URL.createObjectURL(blob);
@@ -167,7 +169,25 @@ export default function ViewOrderPage() {
     } catch (error) {
       alert("Failed to load or print the PDF.");
     }
+    setIsScreenLoadingText("");
+    setIsScreenLoading(false);
   };
+
+  const dateFormatter = (dateString) => {
+    if (!dateString) return "N/A"; 
+    const year = dateString.substring(0, 4);
+    const month = dateString.substring(5, 7);
+    const day = dateString.substring(8, 10);
+    const hour24 = parseInt(dateString.substring(11, 13));
+    const minute = dateString.substring(14, 16);
+
+    let ampm = hour24 >= 12 ? 'PM' : 'AM';
+    let hour12 = hour24 % 12;
+    hour12 = hour12 === 0 ? 12 : hour12; 
+
+    const formattedDate = `${day}/${month}/${year}, ${hour12}:${minute} ${ampm}`;
+    return (formattedDate); 
+  }
 
   return (
     <Box
@@ -213,56 +233,56 @@ export default function ViewOrderPage() {
                     <strong>Order ID:</strong> {id}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Sender's Name:</strong> {order.sender.name}
+                    <strong>Sender's Name:</strong> {order.sender?.name}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Sender's Phone:</strong> {order.sender.phoneNo}
+                    <strong>Sender's Phone:</strong> {order.sender?.phoneNo}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Sender's Address:</strong> {order.sender.address}
+                    <strong>Sender's Address:</strong> {order.sender?.address}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Sender's GST:</strong> {order.sender.gst}
+                    <strong>Sender's GST:</strong> {order.sender?.gst}
                   </Typography>
                   <Typography sx={rowCellStyle}>
                     <strong>Source Warehouse:</strong>{" "}
-                    {order.sourceWarehouse.name}
+                    {order.sourceWarehouse?.name}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Added by:</strong> {order.addedBy.name}
+                    <strong>Added by:</strong> {order.addedBy?.name}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Created on:</strong> {order.placedAt}
+                    <strong>Created on:</strong> {dateFormatter(order.placedAt)}
                   </Typography>
                 </Box>
                 <Box sx={{ marginLeft: "40px" }}>
                   <Typography sx={rowCellStyle}>
                     <strong>Status:</strong>{" "}
-                    {order.status.charAt(0).toUpperCase() +
-                      order.status.slice(1)}
+                    {order.status?.charAt(0).toUpperCase() +
+                      order.status?.slice(1)}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Receiver's Name:</strong> {order.receiver.name}
+                    <strong>Receiver's Name:</strong> {order.receiver?.name}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Receiver's Phone:</strong> {order.receiver.phoneNo}
+                    <strong>Receiver's Phone:</strong> {order.receiver?.phoneNo}
                   </Typography>
                   <Typography sx={rowCellStyle}>
                     <strong>Receiver's Address:</strong>{" "}
-                    {order.receiver.address}
+                    {order.receiver?.address}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Receiver's GST:</strong> {order.receiver.gst}
+                    <strong>Receiver's GST:</strong> {order.receiver?.gst}
                   </Typography>
                   <Typography sx={rowCellStyle}>
                     <strong>Destination Warehouse:</strong>{" "}
-                    {order.destinationWarehouse.name}
+                    {order.destinationWarehouse?.name}
                   </Typography>
                   <Typography sx={rowCellStyle}>
                     <strong>Last Modified by:</strong> {order.lastModifiedBy?.name}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Last Modified On:</strong> {order.lastModifiedAt}
+                    <strong>Last Modified On:</strong> {dateFormatter(order.lastModifiedAt)}
                   </Typography>
                 </Box>
                 <Box sx={{ marginLeft: "40px" }}>
@@ -283,7 +303,7 @@ export default function ViewOrderPage() {
                     <strong>Statistical Charges:</strong> {order.hamali}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Packages:</strong> {order.items.length}
+                    <strong>Packages:</strong> {order.items?.reduce((sum, x) => sum + x.quantity, 0)}
                   </Typography>
                   <Typography sx={rowCellStyle}>
                     <strong>Door Delivery:</strong>
@@ -370,7 +390,7 @@ export default function ViewOrderPage() {
               <TableCell sx={rowCellStyle}/>
               <TableCell sx={rowCellStyle}/>
               <TableCell sx={rowCellStyle}><strong>Total</strong></TableCell>
-              <TableCell sx={rowCellStyle}>{order.items.reduce((prev, item) => prev + item.quantity, 0)}</TableCell>
+              <TableCell sx={rowCellStyle}>{order.items?.reduce((prev, item) => prev + item.quantity, 0)}</TableCell>
               <TableCell sx={rowCellStyle}>{order.freight}</TableCell>
               <TableCell sx={rowCellStyle}>{order.hamali}</TableCell>
               <TableCell sx={rowCellStyle}>{order.hamali}</TableCell>
@@ -383,9 +403,6 @@ export default function ViewOrderPage() {
       <Box sx={{ marginTop: "20px", textAlign: "center" }}>
         <button className="button" onClick={() => handleLRPrint(0)}>
           <FaPrint style={{ marginRight: "8px" }} /> Download LR Receipt
-        </button>
-        <button className="button" onClick={() => handleLRPrint(1)}>
-          <FaPrint style={{ marginRight: "8px" }} /> Download Auto LR Receipt
         </button>
 
         <Link

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Typography,
@@ -18,9 +18,9 @@ import {
   InputLabel,
   Modal,
   CircularProgress,
-  Checkbox
+  Checkbox,
 } from "@mui/material";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useOutletContext } from "react-router-dom";
 import ledger from "../assets/ledger.jpg";
 import { useAuth } from "../routes/AuthContext";
 import {
@@ -31,6 +31,8 @@ import {
 } from "react-icons/fa";
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
 import { TbTruckDelivery } from "react-icons/tb";
+// import { Delete } from "react-feather";
+// import { Memory } from "@mui/icons-material";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 let delOrders = [];
@@ -42,19 +44,28 @@ export default function ViewLedgerPage() {
   const [totals, setTotals] = useState({ freight: 0, hamali: 0, charges: 0 });
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
-  const [allWarehouse, setAllWarehouse] = useState([]);
+  // const [allWarehouse, setAllWarehouse] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
   const [counter, setCounter] = useState(0);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const modalData = useRef({
+    headingText: "",
+    text: "",
+    textColor: "",
+    icon: "",
+    buttonText: "",
+    func: () => {},
+  });
   const { isAdmin, isSource } = useAuth();
   const navigate = useNavigate();
+  const { setIsScreenLoading, setIsScreenLoadingText } = useOutletContext();
 
   const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
   const rowStyle = { color: "#25344E" };
 
   useEffect(() => {
-    fetchWarehouse();
+    // fetchWarehouse();
     fetchData();
   }, []);
 
@@ -104,27 +115,29 @@ export default function ViewLedgerPage() {
     setIsLoading1(false);
   };
 
-  const fetchWarehouse = async () => {
-    const response = await fetch(`${BASE_URL}/api/warehouse/get-all`);
-    if (response.ok) {
-      const data = await response.json();
-      setAllWarehouse(data.body);
-    }
-  };
-
-  const handleUpdate = (value, index, type) => {
-    value = parseInt(value) || 0;
-    if (type === "freight") orders[index].freight = value;
-    else if (type === "hamali") orders[index].hamali = value;
-    else orders[index].charges = value;
-    const updated = [...orders];
-    setOrders(updated);
-  };
+  // const fetchWarehouse = async () => {
+  //   const response = await fetch(`${BASE_URL}/api/warehouse/get-all`);
+  //   if (response.ok) {
+  //     const data = await response.json();
+  //     setAllWarehouse(data.body);
+  //   }
+  // };
 
   const handleDelete = (index) => {
     delOrders.push(orders[index]._id);
     orders.splice(index, 1);
     setOrders([...orders]);
+  };
+
+  const handleModalOpen = (headingText, text, buttonText, textColor, func) => { 
+    modalData.current.headingText = headingText;
+    modalData.current.text = text;
+    modalData.current.textColor = textColor;
+    modalData.current.buttonText = buttonText;
+    modalData.current.func = func;
+    setModalOpen(true);
+    // setIsScreenLoading(true);
+    // setIsScreenLoadingText("Dispatching Memo...");
   };
 
   const handleDispatch = async () => {
@@ -140,6 +153,9 @@ export default function ViewLedgerPage() {
       alert("Select Warehouse location");
       return;
     }
+    handleModalOpen();
+    setIsScreenLoading(true);
+    setIsScreenLoadingText("Loading Please wait...");
     const token = localStorage.getItem("token");
     const response = await fetch(`${BASE_URL}/api/ledger/edit/${id}`, {
       method: "PUT",
@@ -156,15 +172,19 @@ export default function ViewLedgerPage() {
         ...(isAdmin ? { sourceWarehouse: sourceWarehouse } : {}),
       }),
     });
+    setIsScreenLoadingText("");
+    setIsScreenLoading(false);
     if (response.ok) {
-      alert("orders dispatched successfully");
-      navigate("/user/ledgers/all");
+      alert("Orders dispatched successfully");
+      // navigate("/user/ledgers/all");
     } else {
       alert("Error occurred");
     }
   };
-
+  
   const handleVerify = async () => {
+    setIsScreenLoading(true);
+    setIsScreenLoadingText("Loading Please Wait...");
     const token = localStorage.getItem("token");
     const response = await fetch(
       `${BASE_URL}/api/ledger/verify-deliver/${id}`,
@@ -178,9 +198,13 @@ export default function ViewLedgerPage() {
     );
     if (!response.ok) {
       alert("Error occurred");
+      return;
     }
     const data = await response.json();
-    navigate("/user/ledgers/all");
+    setIsScreenLoadingText("");
+    setIsScreenLoading(false);
+    alert("Orders delivered successfully");
+    // navigate("/user/ledgers/all");
   };
 
   const handleDeleteLedger = async () => {
@@ -199,7 +223,7 @@ export default function ViewLedgerPage() {
 
     const data = await res.json();
     setIsLoading(false);
-    setDeleteModalOpen(false);
+    setModalOpen(false);
     if (data.flag) {
       navigate("/user/ledgers/all");
     } else {
@@ -209,6 +233,8 @@ export default function ViewLedgerPage() {
 
   const handlePrint = async () => {
     try {
+      setIsScreenLoading(true);
+      setIsScreenLoadingText("Generating Memo Receipt...");
       const response = await fetch(
         `${BASE_URL}/api/ledger/generate-ledger-receipt/${id}`
       );
@@ -228,20 +254,20 @@ export default function ViewLedgerPage() {
     } catch (error) {
       alert("Failed to load or print the PDF.");
     }
-    setQrCodeModalOpen(false);
+    setIsScreenLoadingText("");
+    setIsScreenLoading(false);
   };
 
   const handleCheckboxChange = (value) => {
-    console.log(value);
-    if (value){
+    // console.log(value);
+    if (value) {
       // counter++;
-      setCounter((prev) => prev+1);
-    }
-    else{
-      setCounter((prev) => prev-1);
+      setCounter((prev) => prev + 1);
+    } else {
+      setCounter((prev) => prev - 1);
       // counter--;
     }
-  }
+  };
 
   return (
     <Box
@@ -304,27 +330,9 @@ export default function ViewLedgerPage() {
                 <Typography sx={rowStyle}>
                   <strong>Source Warehouse:</strong>{" "}
                 </Typography>
-                {ledgerData.sourceWarehouse ? (
-                  <Typography sx={rowStyle}>
-                    {ledgerData.sourceWarehouse.name}
-                  </Typography>
-                ) : (
-                  <Select
-                    label="Source Warehouse"
-                    value={sourceWarehouse}
-                    onChange={(e) => setSourceWarehouse(e.target.value)}
-                    sx={{ minWidth: "250px" }}
-                    size="small"
-                  >
-                    {allWarehouse
-                      .filter((w) => !w.isSource)
-                      .map((w) => (
-                        <MenuItem key={w.warehouseID} value={w.warehouseID}>
-                          {w.name}
-                        </MenuItem>
-                      ))}
-                  </Select>
-                )}
+                <Typography sx={rowStyle}>
+                  {ledgerData.sourceWarehouse?.name}
+                </Typography>
               </div>
               <div
                 style={{
@@ -337,28 +345,13 @@ export default function ViewLedgerPage() {
                 <Typography sx={rowStyle}>
                   <strong>Destination Warehouse:</strong>{" "}
                 </Typography>
-                {ledgerData.destinationWarehouse ? (
-                  <Typography sx={rowStyle}>
-                    {ledgerData.destinationWarehouse.name}
-                  </Typography>
-                ) : (
-                  <Select
-                    label="Destination Warehouse"
-                    value={destinationWarehouse}
-                    onChange={(e) => setDestinationWarehouse(e.target.value)}
-                    sx={{ minWidth: "250px" }}
-                    size="small"
-                  >
-                    {allWarehouse
-                      .filter((w) => !w.isSource)
-                      .map((w) => (
-                        <MenuItem key={w.warehouseID} value={w.warehouseID}>
-                          {w.name}
-                        </MenuItem>
-                      ))}
-                  </Select>
-                )}
+                <Typography sx={rowStyle}>
+                  {ledgerData.destinationWarehouse?.name}
+                </Typography>
               </div>
+              <Typography sx={rowStyle}>
+                <strong>Lorry Freight: </strong>{ledgerData.lorryFreight}
+              </Typography>
               <Typography sx={rowStyle}>
                 <strong>Status:</strong>{" "}
                 {ledgerData.status?.charAt(0).toUpperCase() +
@@ -390,8 +383,8 @@ export default function ViewLedgerPage() {
           <TableHead>
             <TableRow>
               <TableCell sx={headerStyle}></TableCell>
-              <TableCell sx={headerStyle}>Order No</TableCell>
-              <TableCell sx={headerStyle}>LR No</TableCell>
+              <TableCell sx={headerStyle}>Sl No.</TableCell>
+              <TableCell sx={headerStyle}>LR No.</TableCell>
               <TableCell sx={headerStyle}>Packages</TableCell>
               <TableCell sx={headerStyle}>Sender</TableCell>
               <TableCell sx={headerStyle}>Receiver</TableCell>
@@ -419,8 +412,12 @@ export default function ViewLedgerPage() {
               orders.length !== 0 &&
               orders.map((order, index) => (
                 <TableRow key={order.trackingId}>
-                  <TableCell sx={rowStyle}><Checkbox onChange={(e) => handleCheckboxChange(e.target.checked)}/></TableCell>
-                  <TableCell sx={rowStyle}>{index + 1}</TableCell>
+                  <TableCell sx={rowStyle}>
+                    <Checkbox
+                      onChange={(e) => handleCheckboxChange(e.target.checked)}
+                    />
+                  </TableCell>
+                  <TableCell sx={rowStyle}>{index + 1}.</TableCell>
                   <TableCell sx={rowStyle}>{order.trackingId}</TableCell>
                   <TableCell sx={rowStyle}>{order.items.length}</TableCell>
                   <TableCell sx={rowStyle}>{order.sender.name}</TableCell>
@@ -459,6 +456,7 @@ export default function ViewLedgerPage() {
 
             {/* Totals Row */}
             <TableRow>
+              <TableCell sx={rowStyle}></TableCell>
               <TableCell colSpan={2} sx={{ ...headerStyle }}>
                 Total
               </TableCell>
@@ -481,14 +479,19 @@ export default function ViewLedgerPage() {
           </TableBody>
         </Table>
       </TableContainer>
+      
       {(isSource || isAdmin) && ledgerData.status === "pending" && (
-        <button className="button button-large" onClick={handleDispatch}>
+        <button className="button button-large"
+          onClick={() => handleModalOpen("Dispatch Truck", "", "Confirm", "#25344e", handleDispatch)}
+        >
           <FaTruckLoading style={{ marginRight: "8px" }} />
           Dispatch Truck
         </button>
       )}
       {(!isSource || isAdmin) && ledgerData.status === "dispatched" && (
-        <button className="button button-large" onClick={handleVerify}>
+        <button className="button button-large"
+          onClick={() => handleModalOpen("Deliver Truck", "", "Confirm", "#25344e", handleVerify)}
+        >
           <TbTruckDelivery size="19" style={{ marginRight: "8px" }} />
           Deliver Truck
         </button>
@@ -503,14 +506,14 @@ export default function ViewLedgerPage() {
       {isAdmin && (
         <button
           className="button button-large"
-          onClick={() => setDeleteModalOpen(true)}
+          onClick={() => handleModalOpen("Delete Memo", "Are you sure you want to delete this?", "Delete", "#d32f2f", handleDelete)}
         >
           <FaTrash style={{ marginRight: "8px" }} /> Delete Memo
         </button>
       )}
 
-      {/* Delete Confirmation Modal */}
-      <Modal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)}>
+      {/* Confirmation Modal */}
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
         <Box
           sx={{
             position: "absolute",
@@ -527,7 +530,7 @@ export default function ViewLedgerPage() {
         >
           <FaExclamationTriangle
             style={{
-              color: "#d32f2f",
+              color: modalData.current.textColor,
               fontSize: "36px",
               marginBottom: "12px",
             }}
@@ -537,10 +540,10 @@ export default function ViewLedgerPage() {
             sx={{
               fontWeight: "bold",
               marginBottom: "12px",
-              color: "#d32f2f",
+              color: modalData.current.textColor,
             }}
           >
-            Delete Memo
+            {modalData.current.headingText}
           </Typography>
           <Typography
             sx={{
@@ -549,23 +552,22 @@ export default function ViewLedgerPage() {
               fontSize: "15px",
             }}
           >
-            This action cannot be undone. Are you sure you want to proceed?
+            {modalData.current.text}
           </Typography>
           <Box sx={{ display: "flex", justifyContent: "center", gap: "12px" }}>
             <Button
               variant="outlined"
               sx={{ borderColor: "#1E3A5F", color: "#1E3A5F" }}
-              onClick={() => setDeleteModalOpen(false)}
+              onClick={() => setModalOpen(false)}
             >
               Cancel
             </Button>
             <Button
               variant="contained"
-              sx={{ backgroundColor: "#d32f2f" }}
-              startIcon={<FaTrash />}
-              onClick={handleDeleteLedger}
+              sx={{ backgroundColor: modalData.current.textColor, display: "flex", gap: "8px" }}
+              onClick={modalData.current.func}
             >
-              Delete
+              {modalData.current.buttonText}
               {isLoading && (
                 <CircularProgress
                   size={15}
