@@ -418,11 +418,20 @@ export default function EditOrderPage() {
       }}
     >
       {isPageLoading ? (
-        <CircularProgress
-          size={80}
-          className="spinner"
-          sx={{ color: "#1d3557", animation: "none !important", ml: 1 }}
-        />
+        <div
+          style={{
+            position: "fixed",
+            top: "40%",
+            left: "55%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 9999,
+          }}
+        >
+          <CircularProgress size={60} />
+          <Typography color="black" fontSize={25}>
+            Loading...
+          </Typography>
+        </div>
       ) : (
         <>
           <Typography

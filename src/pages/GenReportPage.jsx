@@ -1,4 +1,4 @@
-import { React, useState } from "react";
+import { React, useEffect, useRef, useState } from "react";
 import {
   TextField,
   Button,
@@ -12,6 +12,7 @@ import {
   InputLabel,
   Modal,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import { FaDownload, FaTruck } from "react-icons/fa";
 import { Close } from "@mui/icons-material";
@@ -21,45 +22,42 @@ import "../css/main.css";
 import "../css/calendar.css";
 
 export default function GenReportPage() {
-  const [dateRange, setDateRange] = useState("custom");
-  const [truckNo, setTruckNo] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [warehouses, setWarehouses] = useState([]);
+  const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [monthly, setMonthly] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [sDate, setSDate] = useState("");
-  const [eDate, setEDate] = useState("");
+  const lastFourMonths = useRef([]);
 
   const handleOpenModal = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
 
-  const handleMonthAndYearChange = (newVal) => {
-    const newMonth = newVal.split("-")[0];
-    const newYear = newVal.split("-")[1];
-    const today = new Date();
-    setMonthly(newVal);
-    const start = `01${newMonth.toString().padStart(2, "0")}${newYear}`;
-    today.setHours(23, 59, 59, 999);
-    let lastDay = new Date(newYear, newMonth, 0);
-    let t = today.getDate();
-    if (lastDay.getMonth() === today.getMonth() && t < lastDay.getDate()) {
-      lastDay = t;
-    } else {
-      lastDay = lastDay.getDate();
-    }
+  useEffect(() => {
+    fetchData();
+    lastFourMonths.current = getLastFourMonths();
+  }, []);
 
-    const end = `${lastDay}${newMonth.toString().padStart(2, "0")}${newYear}`;
-    setStartDate(start);
-    setEndDate(end);
+  const fetchData = async () => {
+    setIsLoading(true);
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${BASE_URL}/api/admin/get-all-warehouses`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    console.log(data);
+    setWarehouses(data.body.filter((a) => a.isSource === false));
+    setIsLoading(false);
   };
 
+
   const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, "0");
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}${month}${year}`;
+    const newMonth = dateString.split("-")[0];
+    const newYear = dateString.split("-")[1];
+    return `${newYear}${newMonth.toString().padStart(2, "0")}`;
   };
 
   const getLastFourMonths = () => {
@@ -76,181 +74,76 @@ export default function GenReportPage() {
         value: `${date.getMonth() + 1}-${date.getFullYear()}`,
       });
     }
-
     return months;
   };
 
-  const lastFourMonths = getLastFourMonths();
-
-  const handleDateChange = (type, value) => {
-    if (!value) return;
-
-    const selectedDate = new Date(value);
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-    const earlyDate = new Date(today.getFullYear(), today.getMonth() - 3, 1);
-    earlyDate.setHours(0, 0, 0, 0);
-    if (type === "start") {
-      if (selectedDate < earlyDate) {
-        alert("Start date cannot be earlier than the last 4 months.");
-        return;
-      }
-      if (selectedDate > today) {
-        alert("Start date cannot be in the future.");
-        return;
-      }
-      if (eDate && selectedDate > new Date(eDate)) {
-        alert("Start date cannot be later than the selected end date.");
-        return;
-      }
-      setSDate(value);
-      setStartDate(formatDate(value));
-    } else if (type === "end") {
-      if (selectedDate < earlyDate) {
-        alert("End date cannot be earlier than the last 4 months.");
-        return;
-      }
-      if (selectedDate > today) {
-        alert("End date cannot be in the future.");
-        return;
-      }
-      if (sDate && selectedDate < new Date(sDate)) {
-        alert("End date cannot be earlier than the selected start date.");
-        return;
-      }
-      setEDate(value);
-      setEndDate(formatDate(value));
-    }
-  };
-
-  const handleDateRangeChange = (event, newRange) => {
-    if (newRange !== null) {
-      setDateRange(newRange);
-      switch (newRange) {
-        case "today":
-          const today = new Date();
-          const formattedToday = `${today
-            .getDate()
-            .toString()
-            .padStart(2, "0")}${(today.getMonth() + 1)
-            .toString()
-            .padStart(2, "0")}${today.getFullYear()}`;
-          setStartDate(formattedToday);
-          setEndDate(formattedToday);
-          break;
-        case "weekly":
-          const end = new Date();
-          const start = new Date();
-          start.setDate(end.getDate() - 6);
-          setStartDate(
-            `${start.getDate().toString().padStart(2, "0")}${(
-              start.getMonth() + 1
-            )
-              .toString()
-              .padStart(2, "0")}${start.getFullYear()}`
-          );
-          setEndDate(
-            `${end.getDate().toString().padStart(2, "0")}${(end.getMonth() + 1)
-              .toString()
-              .padStart(2, "0")}${end.getFullYear()}`
-          );
-          break;
-        case "monthly":
-          handleMonthAndYearChange(lastFourMonths[3].value);
-          break;
-        case "custom":
-          setSDate("");
-          setEDate("");
-          setStartDate("");
-          setEndDate("");
-          break;
-        default:
-          break;
-      }
-    }
-  };
-
-  return (
+  return isLoading ? (
+    <div
+      style={{
+        position: "fixed",
+        top: "40%",
+        left: "55%",
+        transform: "translate(-50%, -50%)",
+        zIndex: 9999,
+      }}
+    >
+      <CircularProgress size={60} />
+      <Typography color="black" fontSize={25}>Loading...</Typography>
+    </div>
+  ) : (
     <Box sx={{ maxWidth: 600, margin: "0 auto", padding: 5 }}>
       <Typography
         variant="h4"
-        sx={{ color: "#1E3A5F", fontWeight: "bold", textAlign: "center" }}
+        sx={{
+          color: "#1E3A5F",
+          fontWeight: "bold",
+          textAlign: "center",
+          marginBottom: 4,
+        }}
       >
         Memo Generation
       </Typography>
-      <TextField
-        label="Truck Number"
-        variant="outlined"
-        fullWidth
-        margin="normal"
-        value={truckNo}
-        placeholder="Enter truck no."
-        onChange={(e) => setTruckNo(e.target.value.toUpperCase())}
-      />
-      <ToggleButtonGroup
-        value={dateRange}
-        exclusive
-        onChange={handleDateRangeChange}
-        aria-label="date range"
-        sx={{ display: "flex", justifyContent: "center", marginBottom: 2 }}
-      >
-        <ToggleButton value="today">Today</ToggleButton>
-        <ToggleButton value="weekly">Weekly</ToggleButton>
-        <ToggleButton value="monthly">Monthly</ToggleButton>
-        <ToggleButton value="custom">Custom</ToggleButton>
-      </ToggleButtonGroup>
+      <FormControl fullWidth>
+        <InputLabel>Select Warehouse</InputLabel>
+        <Select
+          label="Select Warehouse"
+          value={destinationWarehouse}
+          onChange={(e) => setDestinationWarehouse(e.target.value)}
+        >
+          {warehouses.map((w) => (
+            <MenuItem key={w.warehouseID} value={w.warehouseID}>
+              {w.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
-      {dateRange === "monthly" && (
-        <Box display="flex" gap={2} marginTop={2}>
-          <FormControl fullWidth>
-            <InputLabel id="month-year-label">Month & Year</InputLabel>
-            <Select
-              label="Month & Year"
-              labelId="month-year-label"
-              value={monthly}
-              onChange={(e) => handleMonthAndYearChange(e.target.value)}
-            >
-              {lastFourMonths.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
-      )}
-
-      {dateRange === "custom" && (
-        <Box display="flex" justifyContent="center" gap={2} marginTop={2}>
-          <Box className="calendar-input">
-            <input
-              type="date"
-              onClick={(e) => e.target.showPicker()}
-              onKeyDown={(e) => e.preventDefault()}
-              value={sDate}
-              onChange={(e) => handleDateChange("start", e.target.value)}
-            />
-          </Box>
-          <Box className="calendar-input">
-            <input
-              type="date"
-              onClick={(e) => e.target.showPicker()}
-              onKeyDown={(e) => e.preventDefault()}
-              value={eDate}
-              onChange={(e) => handleDateChange("end", e.target.value)}
-            />
-          </Box>
-        </Box>
-      )}
+      <Box display="flex" gap={2} marginTop={2}>
+        <FormControl fullWidth>
+          <InputLabel id="month-year-label">Month & Year</InputLabel>
+          <Select
+            label="Month & Year"
+            labelId="month-year-label"
+            value={monthly}
+            onChange={(e) => setMonthly(e.target.value)}
+          >
+            {lastFourMonths.current.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
 
       <button
         className="button button-large"
         style={{
-          backgroundColor: !startDate || !endDate ? "#B0B0B0" : "",
-          cursor: !startDate || !endDate ? "not-allowed" : "pointer",
+          backgroundColor: destinationWarehouse === "" || monthly === "" ? "grey" : "",
+          cursor: destinationWarehouse === "" || monthly === ""? "not-allowed" : "pointer",
           color: "white",
         }}
-        disabled={!startDate || !endDate}
+        disabled={destinationWarehouse === "" || monthly === ""}
         onClick={handleOpenModal}
       >
         <FaDownload /> Download
@@ -292,100 +185,58 @@ export default function GenReportPage() {
             }}
           />
 
-          {/* Perform calculations inside the modal */}
-          {(() => {
-            const formatDate = (date) => {
-              return date
-                ? `${date.substring(0, 2)}-${date.substring(
-                    2,
-                    4
-                  )}-${date.substring(4)}`
-                : "";
-            };
-            const formatDateUrl = (date) => {
-              return date
-                ? `${date.substring(4)}${date.substring(2, 4)}${date.substring(
-                    0,
-                    2
-                  )}`
-                : "";
-            };
+          {/* Modal Title */}
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: "bold",
+              marginBottom: "12px",
+              color: "#374151",
+            }}
+          >
+            Download Memo Report
+          </Typography>
 
-            const formattedStartDate = formatDate(startDate);
-            const formattedEndDate = formatDate(endDate);
-            const truckLabel = truckNo
-              ? `Vehicle No: ${truckNo}`
-              : "All Trucks";
-            const downloadUrl = `${BASE_URL}/api/ledger/generate-excel/${formatDateUrl(
-              startDate
-            )}${formatDateUrl(endDate)}${
-              truckNo ? `?vehicleNo=${truckNo}` : ""
-            }`;
+          {/* Report Info */}
+          <Typography
+            sx={{
+              marginBottom: "12px",
+              color: "#374151",
+              fontSize: "15px",
+            }}
+          >
+            <strong>Warehouse:</strong> {warehouses.find(w => w.warehouseID === destinationWarehouse)?.name || ''}
+          </Typography>
+          <Typography
+            sx={{
+              marginBottom: "12px",
+              color: "#374151",
+              fontSize: "15px",
+            }}
+          >
+            <strong>Month Date:</strong> {lastFourMonths.current.find(m => m.value === monthly)?.label || ''}
+          </Typography>
 
-            return (
-              <>
-                {/* Modal Title */}
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: "bold",
-                    marginBottom: "12px",
-                    color: "#374151",
-                  }}
-                >
-                  Download Memo Report
-                </Typography>
-
-                {/* Report Info */}
-                <Typography
-                  sx={{
-                    marginBottom: "12px",
-                    color: "#374151",
-                    fontSize: "15px",
-                  }}
-                >
-                  <strong>Start Date:</strong> {formattedStartDate}
-                </Typography>
-                <Typography
-                  sx={{
-                    marginBottom: "12px",
-                    color: "#374151",
-                    fontSize: "15px",
-                  }}
-                >
-                  <strong>End Date:</strong> {formattedEndDate}
-                </Typography>
-                <Typography
-                  sx={{
-                    marginBottom: "20px",
-                    color: "#374151",
-                    fontSize: "15px",
-                  }}
-                >
-                  <strong>{truckLabel}</strong>
-                </Typography>
-
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    gap: "12px",
-                  }}
-                >
-                  <Button
-                    variant="contained"
-                    sx={{ backgroundColor: "#1976D2" }}
-                    startIcon={<FaDownload />}
-                    href={downloadUrl}
-                    target="_blank"
-                    onClick={() => setModalOpen(false)}
-                  >
-                    Confirm Download
-                  </Button>
-                </Box>
-              </>
-            );
-          })()}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "12px",
+            }}
+          >
+            <Button
+              variant="contained"
+              sx={{ backgroundColor: "#1976D2" }}
+              startIcon={<FaDownload />}
+              href={`${BASE_URL}/api/ledger/generate-excel/${destinationWarehouse}/${formatDate(
+                monthly
+              )}`}
+              target="_blank"
+              onClick={() => setModalOpen(false)}
+            >
+              Confirm Download
+            </Button>
+          </Box>
         </Box>
       </Modal>
     </Box>

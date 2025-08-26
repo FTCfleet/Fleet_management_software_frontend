@@ -127,7 +127,8 @@ const AllOrderPage = () => {
           order.sender.name
             .toLowerCase()
             .startsWith(nameFilter.toLowerCase()) ||
-          order.receiver.name.toLowerCase().startsWith(nameFilter.toLowerCase())
+          order.receiver.name.toLowerCase().startsWith(nameFilter.toLowerCase()) || 
+          order.trackingId.startsWith(nameFilter)
       );
     }
 
@@ -199,7 +200,7 @@ const AllOrderPage = () => {
         </Box>
         <Box sx={{ display: "flex", gap: "10px", alignItems: "center" }}>
           <TextField
-            label="Search by Customer Name"
+            label="Search by ID/Name"
             value={nameFilter}
             onChange={(e) => setNameFilter(e.target.value)}
             variant="outlined"

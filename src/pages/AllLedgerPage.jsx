@@ -32,7 +32,7 @@ const AllLedgerPage = () => {
   );
   const navigate = useNavigate();
   const { isAdmin, isSource } = useAuth();
-  const [vehicleFilter, setVehicleFilter] = useState("");
+  const [nameFilter, setNameFilter] = useState("");
   const [warehouseFilter, setWarehouseFilter] = useState("");
   const [warehouses, setWarehouses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -110,9 +110,10 @@ const AllLedgerPage = () => {
       (order) => order.status === type || type === "all"
     );
 
-    if (vehicleFilter) {
+    if (nameFilter) {
       filtered = filtered.filter((order) =>
-        order.vehicleNo.toLowerCase().startsWith(vehicleFilter.toLowerCase())
+        order.vehicleNo.toLowerCase().replaceAll(" ","").startsWith(nameFilter.toLowerCase()) || 
+        order.ledgerId.startsWith(nameFilter)
       );
     }
     if (warehouseFilter) {
@@ -126,7 +127,7 @@ const AllLedgerPage = () => {
   };
 
   const clearFilter = () => {
-    setVehicleFilter("");
+    setNameFilter("");
     setWarehouseFilter("");
     let filtered = ledgerEntries.filter(
       (order) => order.status === type || type === "all"
@@ -174,9 +175,9 @@ const AllLedgerPage = () => {
         </Box>
         <Box sx={{ display: "flex", gap: "10px", alignItems: "center" }}>
           <TextField
-            label="Search by Vehicle No"
-            value={vehicleFilter}
-            onChange={(e) => setVehicleFilter(e.target.value)}
+            label="Search by ID/Vehicle No"
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
             variant="outlined"
             size="small"
           />
