@@ -43,6 +43,9 @@ export const AuthProvider = ({ children }) => {
 
       setIsLoggedIn(true);
       user_data = data.user;
+      // user_data = data.user.role;
+      // user_data = data.user.warehouseCode;
+      // user_data = data.user.isSource;
       setIsAdmin(data.user.role === "admin");
       setIsSource(data.user.isSource);
       setStationCode(data.user.warehouseCode);

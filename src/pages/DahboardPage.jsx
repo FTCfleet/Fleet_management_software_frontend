@@ -37,6 +37,7 @@ const DashboardPage = () => {
   useEffect(() => {
     checkAuthStatus().then((data) => {
       setUser(data.user_data);
+      setNewWarehouse(data.user_data.warehouseCode);
     });
     fetchWarehouse();
   }, []);
@@ -92,6 +93,38 @@ const DashboardPage = () => {
     alert("Password Changed Successfully");
     window.location.reload();
   };
+
+  const handleChangeWarehouse = async () => {
+    if (newWarehouse.length === 0) {
+      alert("Please select a warehouse");
+      return;
+    }
+    const token = localStorage.getItem("token");
+    const response = await fetch(
+      `${BASE_URL}/api/warehouse/edit/${newWarehouse}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        method: "PUT",
+      }
+    );
+    if (!response.ok) {
+      alert("Error occurred");
+      return;
+    }
+    const data = await response.json();
+    console.log(data);
+    if (!data.flag) {
+      alert("Inavlid Credentials!!");
+      return;
+    }
+    checkAuthStatus().then((data) => {
+      setUser(data.user_data);
+    });
+    setStationModal(false);
+  }
 
   const handleCloseModal = () => {
     setOpenModal(false);
@@ -306,7 +339,7 @@ const DashboardPage = () => {
             </Button>
             <Button
               variant="contained"
-              onClick={() => alert("Change Station to " + newWarehouse)}
+              onClick={handleChangeWarehouse}
               sx={{ mt: 2, ml: 2 }}
             >
               Save
