@@ -151,7 +151,7 @@ export default function ViewLedgerPage() {
     });
 
     if (!destinationWarehouse || (isAdmin && !sourceWarehouse)) {
-      alert("Select Warehouse location");
+      alert("Select Station location");
       return;
     }
     setIsScreenLoading(true);
@@ -338,7 +338,7 @@ export default function ViewLedgerPage() {
                 }}
               >
                 <Typography sx={rowStyle}>
-                  <strong>Source Warehouse:</strong>{" "}
+                  <strong>Source Station:</strong>{" "}
                 </Typography>
                 <Typography sx={rowStyle}>
                   {ledgerData.sourceWarehouse?.name}
@@ -353,7 +353,7 @@ export default function ViewLedgerPage() {
                 }}
               >
                 <Typography sx={rowStyle}>
-                  <strong>Destination Warehouse:</strong>{" "}
+                  <strong>Destination Station:</strong>{" "}
                 </Typography>
                 <Typography sx={rowStyle}>
                   {ledgerData.destinationWarehouse?.name}

@@ -74,7 +74,7 @@ export default function ViewOrderPage() {
       return;
     }
     if (response.status === 201) {
-      alert("No such Order");
+      alert("No such LR");
       setIsLoading1(false);
       return;
     }
@@ -230,7 +230,7 @@ export default function ViewOrderPage() {
               <Box sx={{ display: "flex", marginBottom: "10px" }}>
                 <Box sx={{flex: "40%"}}>
                   <Typography sx={rowCellStyle}>
-                    <strong>Order ID:</strong> {id}
+                    <strong>LR ID:</strong> {id}
                   </Typography>
                   <Typography sx={rowCellStyle}>
                     <strong>Sender's Name:</strong> {order.sender?.name}
@@ -245,7 +245,7 @@ export default function ViewOrderPage() {
                     <strong>Sender's GST:</strong> {order.sender?.gst}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Source Warehouse:</strong>{" "}
+                    <strong>Source Station:</strong>{" "}
                     {order.sourceWarehouse?.name}
                   </Typography>
                   <Typography sx={rowCellStyle}>
@@ -275,7 +275,7 @@ export default function ViewOrderPage() {
                     <strong>Receiver's GST:</strong> {order.receiver?.gst}
                   </Typography>
                   <Typography sx={rowCellStyle}>
-                    <strong>Destination Warehouse:</strong>{" "}
+                    <strong>Destination Station:</strong>{" "}
                     {order.destinationWarehouse?.name}
                   </Typography>
                   <Typography sx={rowCellStyle}>
@@ -407,11 +407,11 @@ export default function ViewOrderPage() {
           style={{ color: "inherit", textDecoration: "none" }}
         >
           <button className="button">
-            <FaEdit style={{ marginRight: "8px" }} /> Edit Order
+            <FaEdit style={{ marginRight: "8px" }} /> Edit LR
           </button>
         </Link>
         <button className="button" onClick={handleOpenDeleteModal}>
-          <FaTrash style={{ marginRight: "8px" }} /> Delete Order
+          <FaTrash style={{ marginRight: "8px" }} /> Delete LR
         </button>
         {/* <button className="button" onClick={handleQrCodeModal}>
           <FaQrcode style={{ marginRight: "8px" }} /> Download QR Code
@@ -448,7 +448,7 @@ export default function ViewOrderPage() {
                 color: "#d32f2f",
               }}
             >
-              Delete Order
+              Delete LR
             </Typography>
             <Typography
               sx={{

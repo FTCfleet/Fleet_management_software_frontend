@@ -104,9 +104,9 @@ export default function GenReportPage() {
         Memo Generation
       </Typography>
       <FormControl fullWidth>
-        <InputLabel>Select Warehouse</InputLabel>
+        <InputLabel>Select Station</InputLabel>
         <Select
-          label="Select Warehouse"
+          label="Select Station"
           value={destinationWarehouse}
           onChange={(e) => setDestinationWarehouse(e.target.value)}
         >
@@ -205,7 +205,7 @@ export default function GenReportPage() {
               fontSize: "15px",
             }}
           >
-            <strong>Warehouse:</strong> {warehouses.find(w => w.warehouseID === destinationWarehouse)?.name || ''}
+            <strong>Station:</strong> {warehouses.find(w => w.warehouseID === destinationWarehouse)?.name || ''}
           </Typography>
           <Typography
             sx={{

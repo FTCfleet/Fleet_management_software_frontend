@@ -223,8 +223,8 @@ const AllEmployeePage = () => {
               <TableCell sx={headerStyle}>Username</TableCell>
               <TableCell sx={headerStyle}>Phone No</TableCell>
               <TableCell sx={headerStyle}>Role</TableCell>
-              <TableCell sx={headerStyle}>Warehouse</TableCell>
-              <TableCell sx={headerStyle}>Warehouse Code</TableCell>
+              <TableCell sx={headerStyle}>Station</TableCell>
+              <TableCell sx={headerStyle}>Station Code</TableCell>
               <TableCell sx={{...headerStyle, textAlign: "center"}}>Actions</TableCell>
             </TableRow>
           </TableHead>

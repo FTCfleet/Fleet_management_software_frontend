@@ -39,23 +39,23 @@ const UserTemplate = () => {
 
   const menuSections = [
     {
-      heading: "Orders",
+      heading: "LRs",
       path: "/user/order",
       headingIcon: <FaBoxOpen style={{ marginRight: "8px" }} />,
       items: [
-        { text: "All Orders", path: "/user/order/all", icon: <FaRegFileAlt /> },
+        { text: "All LRs", path: "/user/order/all", icon: <FaRegFileAlt /> },
         {
-          text: `${isSource || isAdmin ? "Arrived" : "Incoming"} Orders`,
+          text: `${isSource || isAdmin ? "Arrived" : "Incoming"} LRs`,
           path: "/user/order/arrived",
           icon: <FaRegFileAlt />,
         },
         {
-          text: "Dispatched Orders",
+          text: "Dispatched LRs",
           path: "/user/order/dispatched",
           icon: <FaRegFileAlt />,
         },
         {
-          text: "Delivered  Orders",
+          text: "Delivered  LRs",
           path: "/user/order/delivered",
           icon: <FaRegFileAlt />,
         },
@@ -107,7 +107,7 @@ const UserTemplate = () => {
             headingIcon: <FaMoneyCheckAlt style={{ marginRight: "8px" }} />,
             items: [
               {
-                text: "Memo Generation",
+                text: "Monthly Report Generation",
                 path: "/user/gen-report/",
                 icon: <FaMoneyCheckAlt />,
               },
@@ -129,7 +129,7 @@ const UserTemplate = () => {
                 icon: <FaMoneyCheckAlt />,
               },
               {
-                text: "Warehouse List",
+                text: "Station List",
                 path: "/user/warehouses",
                 icon: <FaMoneyCheckAlt />,
               },
@@ -311,7 +311,7 @@ const UserTemplate = () => {
                     (e.target.style.backgroundColor = "#1E3A5F")
                   }
                 >
-                  <FaPlus style={{ marginRight: "8px" }} /> Add Order
+                  <FaPlus style={{ marginRight: "8px" }} /> Create L.R.
                 </button>
                 <button
                   className="button"

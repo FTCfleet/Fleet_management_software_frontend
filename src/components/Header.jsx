@@ -1,4 +1,4 @@
-import { AppBar, Box, Button, ButtonGroup } from "@mui/material";
+import { AppBar, Box, Button, ButtonGroup, Typography } from "@mui/material";
 import { Link, NavLink } from "react-router-dom";
 import logoImg from "../assets/logo.png";
 import "../css/header.css";
@@ -159,7 +159,7 @@ const HeaderTabs = () => {
 const Header = () => {
   const theme = useTheme();
   const mobileView = useMediaQuery(theme.breakpoints.down(470));
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, stationCode } = useAuth();
 
   return (
     <div className="header-box">
@@ -190,6 +190,8 @@ const Header = () => {
           >
             <img src={logoImg} height="50px"></img>
           </Link>
+          
+          {stationCode && <Typography sx={{outline: "1px solid white", paddingX: '5px', borderRadius: "10px"}}>{stationCode}</Typography>}
           {/* {isLoggedIn && (
             <Link to="/user/dashboard">
               <RxAvatar size="30px" style={{ margin: "5 20 0 20" }} />

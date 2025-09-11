@@ -14,6 +14,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSource, setIsSource] = useState(true);
+  const [stationCode, setStationCode] = useState("");
   const [lastUserPage, setLastUserPage] = useState("/user/dashboard");
 
   const checkAuthStatus = async () => {
@@ -44,6 +45,7 @@ export const AuthProvider = ({ children }) => {
       user_data = data.user;
       setIsAdmin(data.user.role === "admin");
       setIsSource(data.user.isSource);
+      setStationCode(data.user.warehouseCode);
     } catch (error) {
       console.error("Auth check failed:");
     } finally {
@@ -79,7 +81,9 @@ export const AuthProvider = ({ children }) => {
         isSource,
         setIsSource,
         lastUserPage,
-        setLastUserPage
+        setLastUserPage,
+        stationCode,
+        setStationCode
       }}
     >
       {children}

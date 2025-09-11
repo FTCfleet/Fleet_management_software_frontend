@@ -176,7 +176,7 @@ const AllOrderPage = () => {
           fontWeight: "bold",
         }}
       >
-        {type.charAt(0).toUpperCase() + type.slice(1)} Orders
+        {type.charAt(0).toUpperCase() + type.slice(1)} LRs
       </Typography>
 
       {/* Filters: Date and Search */}
@@ -235,25 +235,25 @@ const AllOrderPage = () => {
           <TableHead>
             <TableRow>
               <TableCell sx={cellStyle}>Sl No</TableCell>
-              <TableCell sx={cellStyle}>Order ID</TableCell>
+              <TableCell sx={cellStyle}>LR ID</TableCell>
               <TableCell sx={cellStyle}>{"Sender's\nName"}</TableCell>
               <TableCell sx={cellStyle}>{"Receiver's Name"}</TableCell>
               {isAdmin ? (
                 <>
                   <TableCell sx={cellStyle}>
-                    {"Source" + "\n" + "Warehouse"}
+                    {"Source" + "\n" + "Station"}
                   </TableCell>
                   <TableCell sx={cellStyle}>
-                    {"Destination" + "\n" + "Warehouse"}
+                    {"Destination" + "\n" + "Station"}
                   </TableCell>
                 </>
               ) : (
                 <TableCell sx={cellStyle}>
-                  {(isSource ? "Destination" : "Source") + "\n" + "Warehouse"}
+                  {(isSource ? "Destination" : "Source") + "\n" + "Station"}
                 </TableCell>
               )}
               <TableCell sx={cellStyle}>Status</TableCell>
-              <TableCell sx={cellStyle}>View Order</TableCell>
+              <TableCell sx={cellStyle}>View LR</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

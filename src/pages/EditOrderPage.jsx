@@ -150,7 +150,7 @@ export default function EditOrderPage() {
       return;
     }
     if (response.status === 201) {
-      alert("No such Order");
+      alert("No such LR");
       return;
     }
 
@@ -391,7 +391,7 @@ export default function EditOrderPage() {
           alert("Error occurred");
         } else {
           setIsLoading(false);
-          alert("Order Updated Successfully");
+          alert("LR Updated Successfully");
           navigate(`/user/view/order/${id}`);
         }
       });
@@ -438,7 +438,7 @@ export default function EditOrderPage() {
             variant="h4"
             sx={{ marginBottom: "20px", textAlign: "center", color: "#1c3553" }}
           >
-            Edit Order
+            Edit LR
           </Typography>
 
           <Box
@@ -588,9 +588,9 @@ export default function EditOrderPage() {
             {/* Warehouse Selection */}
             {isAdmin && (
               <FormControl>
-                <InputLabel>Source Warehouse</InputLabel>
+                <InputLabel>Source Station</InputLabel>
                 <Select
-                  label="Source Warehouse"
+                  label="Source Station"
                   value={sourceWarehouse}
                   error={error && !sourceWarehouse}
                   onChange={(e) => setSourceWarehouse(e.target.value)}
@@ -607,9 +607,9 @@ export default function EditOrderPage() {
             )}
 
             <FormControl>
-              <InputLabel>Destination Warehouse</InputLabel>
+              <InputLabel>Destination Station</InputLabel>
               <Select
-                label="Destination Warehouse"
+                label="Destination Station"
                 value={destinationWarehouse}
                 error={error && !destinationWarehouse}
                 onChange={(e) => setDestinationWarehouse(e.target.value)}

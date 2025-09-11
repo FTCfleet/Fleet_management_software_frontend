@@ -219,12 +219,12 @@ const AllLedgerPage = () => {
               </TableCell>
               {isAdmin || !isSource ? (
                 <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
-                  Source Warehouse
+                  Source Station
                 </TableCell>
               ) : null}
               {isAdmin || isSource ? (
                 <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
-                  Destination Warehouse
+                  Destination Station
                 </TableCell>
               ) : null}
 

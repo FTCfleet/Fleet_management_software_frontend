@@ -28,35 +28,18 @@ import { useAuth } from "../routes/AuthContext";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-function OrderCheckbox({ trackingId, selectedOrdersRef, forceRender }) {
-  
-
-  return (
-    <Checkbox
-      checked={selectedOrdersRef.current.has(trackingId)}
-      onChange={handleChange}
-    />
-  );
-}
-
-export default function AddOrderPage({}) {
+export default function AddLedgerPage({}) {
   const [truckNo, setTruckNo] = useState("");
   const [allTruckDetails, setAllTruckDetails] = useState([]);
   const [error, setError] = useState(false);
   const [lorryFreight, setLorryFreight] = useState(0);
-  // const [hamali, setHamali] = useState(0)
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [orders, setOrders] = useState([]);
-  //   const [regClients, setRegClients] = useState([]);
-  //   const [regClientItems, setRegClientItems] = useState([]);
-  //   const [regItems, setregItems] = useState([]);
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [nameFilter, setNameFilter] = useState("");
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [isAllSelected, setIsAllSelected] = useState(false);
-  //   const [payment, setPayemnt] = useState("To Pay");
-  //   const [isDoorDelivery, setIsDoorDelivery] = useState(false);
   const [,setRender] = useState(false);
   const forceRender = () => setRender((prev) => !prev);
 
@@ -354,9 +337,9 @@ export default function AddOrderPage({}) {
         />
         {isAdmin && (
           <FormControl>
-            <InputLabel>Source Warehouse</InputLabel>
+            <InputLabel>Source Station</InputLabel>
             <Select
-              label="Source Warehouse"
+              label="Source Station"
               value={sourceWarehouse}
               onChange={(e) => handleWarehouseChange(e.target.value, "source")}
               error={error && !sourceWarehouse}
@@ -372,9 +355,9 @@ export default function AddOrderPage({}) {
           </FormControl>
         )}
         <FormControl>
-          <InputLabel>Destination Warehouse</InputLabel>
+          <InputLabel>Destination Station</InputLabel>
           <Select
-            label="Destination Warehouse"
+            label="Destination Station"
             value={destinationWarehouse}
             onChange={(e) =>
               handleWarehouseChange(e.target.value, "destination")
@@ -427,7 +410,7 @@ export default function AddOrderPage({}) {
                   />
                 </Box>
                 <TextField
-                  label="Search by Order-ID / Customer Name"
+                  label="Search by Ledger-ID / Customer Name"
                   value={nameFilter}
                   onChange={(e) => setNameFilter(e.target.value)}
                   variant="outlined"
@@ -472,26 +455,26 @@ export default function AddOrderPage({}) {
                           onChange={handleAllSelect}
                         />
                       </TableCell>
-                      <TableCell sx={cellStyle}>Order ID</TableCell>
+                      <TableCell sx={cellStyle}>LR ID</TableCell>
                       <TableCell sx={cellStyle}>{"Sender's\nName"}</TableCell>
                       <TableCell sx={cellStyle}>{"Receiver's Name"}</TableCell>
                       {isAdmin ? (
                         <>
                           <TableCell sx={cellStyle}>
-                            {"Source" + "\n" + "Warehouse"}
+                            {"Source" + "\n" + "Station"}
                           </TableCell>
                           <TableCell sx={cellStyle}>
-                            {"Destination" + "\n" + "Warehouse"}
+                            {"Destination" + "\n" + "Station"}
                           </TableCell>
                         </>
                       ) : (
                         <TableCell sx={cellStyle}>
                           {(isSource ? "Destination" : "Source") +
                             "\n" +
-                            "Warehouse"}
+                            "Station"}
                         </TableCell>
                       )}
-                      <TableCell sx={cellStyle}>View Order</TableCell>
+                      <TableCell sx={cellStyle}>View LR</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>

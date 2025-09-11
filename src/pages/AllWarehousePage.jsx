@@ -176,7 +176,7 @@ export default function AllWarehousePage() {
   return (
     <Box sx={{ padding: "20px" }}>
       <Typography variant="h4" sx={{ marginBottom: "20px", ...headerStyle }}>
-        Warehouse Details
+        Station Details
       </Typography>
 
       {/* Filters */}
@@ -207,7 +207,7 @@ export default function AllWarehousePage() {
           onClick={handleAdd}
           style={{ margin: "0px" }}
         >
-          Add Warehouse
+          Add Station
         </button>
       </Box>
 
@@ -217,10 +217,10 @@ export default function AllWarehousePage() {
           <TableHead>
             <TableRow>
               <TableCell sx={headerStyle}>Sl No.</TableCell>
-              <TableCell sx={headerStyle}>Warehouse Name</TableCell>
+              <TableCell sx={headerStyle}>Station Name</TableCell>
               <TableCell sx={headerStyle}>Phone Number</TableCell>
-              <TableCell sx={headerStyle}>Warehouse Address</TableCell>
-              <TableCell sx={headerStyle}>Warehouse Code</TableCell>
+              <TableCell sx={headerStyle}>Station Address</TableCell>
+              <TableCell sx={headerStyle}>Station Code</TableCell>
               <TableCell sx={headerStyle}>Type</TableCell>
               <TableCell sx={{...headerStyle, textAlign: "center"}}>Actions</TableCell>
             </TableRow>
@@ -294,13 +294,13 @@ export default function AllWarehousePage() {
             variant="h6"
             sx={{ marginBottom: "16px", textAlign: "center", ...headerStyle }}
           >
-            {isAdding ? "Add Warehouse" : "Edit Warehouse Details"}
+            {isAdding ? "Add Station" : "Edit Station Details"}
           </Typography>
           {currentWarehouse && (
             <Box>
               <TextField
                 fullWidth
-                label="Warehouse Name"
+                label="Station Name"
                 value={currentWarehouse.name}
                 onChange={(e) => handleFieldChange("name", e.target.value)}
                 sx={{ marginBottom: "16px" }}
@@ -364,7 +364,7 @@ export default function AllWarehousePage() {
               </ToggleButtonGroup>
               <TextField
                 fullWidth
-                label="Warehouse Code"
+                label="Station Code"
                 value={currentWarehouse.warehouseID}
                 onChange={(e) =>
                   handleFieldChange("warehouseID", e.target.value.toUpperCase())
@@ -432,7 +432,7 @@ export default function AllWarehousePage() {
               color: "#d32f2f",
             }}
           >
-            Delete Warehouse
+            Delete Station
           </Typography>
           <Typography
             sx={{

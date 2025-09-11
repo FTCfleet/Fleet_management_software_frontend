@@ -272,7 +272,7 @@ export default function AddOrderPage({}) {
       if (!response.ok || !data.flag) {
         alert("Error occurred");
       } else {
-        alert("Order Added Successfully");
+        alert("LR Created Successfully");
         navigate(`/user/view/order/${data.body}`);
       }
     } catch (error) {
@@ -342,7 +342,7 @@ export default function AddOrderPage({}) {
         variant="h4"
         sx={{ marginBottom: "20px", textAlign: "center", color: "#1c3553" }}
       >
-        Add Order
+        Create L.R.
       </Typography>
 
       <Box
@@ -469,9 +469,9 @@ export default function AddOrderPage({}) {
         <TextField label="Statistical Charges" type="text" value={hamali} />
         {isAdmin && (
           <FormControl>
-            <InputLabel>Source Warehouse</InputLabel>
+            <InputLabel>Source Station</InputLabel>
             <Select
-              label="Source Warehouse"
+              label="Source Station"
               value={sourceWarehouse}
               onChange={(e) => setSourceWarehouse(e.target.value)}
               error={error && !sourceWarehouse}
@@ -487,9 +487,9 @@ export default function AddOrderPage({}) {
           </FormControl>
         )}
         <FormControl>
-          <InputLabel>Destination Warehouse</InputLabel>
+          <InputLabel>Destination Station</InputLabel>
           <Select
-            label="Destination Warehouse"
+            label="Destination Station"
             value={destinationWarehouse}
             onChange={(e) => setDestinationWarehouse(e.target.value)}
             error={error && !destinationWarehouse}
@@ -756,7 +756,7 @@ export default function AddOrderPage({}) {
           onClick={handleAddOrder}
           disabled={isLoading}
         >
-          Add Order
+          Save & Print
           {isLoading && (
             <CircularProgress
               size={22}
