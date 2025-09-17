@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Box,
   Typography,
@@ -94,9 +94,10 @@ export default function ViewOrderPage() {
     setOrder(data.body);
     setQrCode(data.qrCode);
     setIsLoading1(false);
-    if (location.state.print) {
+    if (location.state?.print && !hasTriggered.current) {
+      navigate(location.pathname, { replace: true, state: null });
+      hasTriggered.current = true;
       handleLRPrint();
-      location.state.print = false;
     }
   };
 

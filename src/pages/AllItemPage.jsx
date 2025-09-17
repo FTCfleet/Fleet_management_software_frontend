@@ -271,7 +271,7 @@ export default function AllItemPage() {
           ))}
         </TableBody>
       </Table>
-      {isAdding ? <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+      {/* {isAdding ? <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
         <Button
           variant="outlined"
           size="small"
@@ -279,7 +279,7 @@ export default function AllItemPage() {
         >
           + Add Row
         </Button>
-      </Box> : null}
+      </Box> : null} */}
       <Box sx={{ display: "flex", justifyContent: "center", mt: 2, gap: 12 }}>
         <Button variant="contained" onClick={handleSaveOrAdd}>
           {isAdding ? "Add Item" : "Save Changes"}
@@ -406,7 +406,7 @@ export default function AllItemPage() {
             variant="h6"
             sx={{ marginBottom: "16px", textAlign: "center", ...headerStyle }}
           >
-            {isAdding ? "Add Items" : "Edit Item"}
+            {isAdding ? "Add Item" : "Edit Item"}
           </Typography>
           {currentItemList && (
             <Box>{renderPage2()}</Box>

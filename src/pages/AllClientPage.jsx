@@ -524,6 +524,7 @@ export default function AllClientPage() {
           <Select
             label="Choose"
             value={clientType}
+            size="small"
             onChange={(e) => setClientType(e.target.value)}
           >
             <MenuItem value="all">All Clients</MenuItem>

@@ -26,6 +26,12 @@ export default function GenReportPage() {
   const [warehouses, setWarehouses] = useState([]);
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [monthly, setMonthly] = useState("");
+  const [selectedStartDate, setSelectedStartDate] = useState(
+    () => new Date().toISOString().split("T")[0]
+  );
+  const [selectedEndDate, setSelectedEndDate] = useState(
+    () => new Date().toISOString().split("T")[0]
+  );
   const [modalOpen, setModalOpen] = useState(false);
   const lastFourMonths = useRef([]);
 
@@ -53,7 +59,6 @@ export default function GenReportPage() {
     setIsLoading(false);
   };
 
-
   const formatDate = (dateString) => {
     const newMonth = dateString.split("-")[0];
     const newYear = dateString.split("-")[1];
@@ -77,6 +82,20 @@ export default function GenReportPage() {
     return months;
   };
 
+  const handleDateChange = (event, type) => {
+    // setIsLoading(true);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    const newDate = new Date(event.target.value);
+    if (newDate <= today) {
+      const date = newDate.toISOString().split("T")[0];
+      // filterOrdersByTypeAndDate(type);
+      if (type === "start") setSelectedStartDate(date);
+      else setSelectedEndDate(date);
+    }
+    // setIsLoading(false);
+  };
+
   return isLoading ? (
     <div
       style={{
@@ -88,7 +107,9 @@ export default function GenReportPage() {
       }}
     >
       <CircularProgress size={60} />
-      <Typography color="black" fontSize={25}>Loading...</Typography>
+      <Typography color="black" fontSize={25}>
+        Loading...
+      </Typography>
     </div>
   ) : (
     <Box sx={{ maxWidth: 600, margin: "0 auto", padding: 5 }}>
@@ -103,44 +124,72 @@ export default function GenReportPage() {
       >
         Memo Generation
       </Typography>
-      <FormControl fullWidth>
-        <InputLabel>Select Station</InputLabel>
-        <Select
-          label="Select Station"
-          value={destinationWarehouse}
-          onChange={(e) => setDestinationWarehouse(e.target.value)}
-        >
-          {warehouses.map((w) => (
-            <MenuItem key={w.warehouseID} value={w.warehouseID}>
-              {w.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-
-      <Box display="flex" gap={2} marginTop={2}>
-        <FormControl fullWidth>
-          <InputLabel id="month-year-label">Month & Year</InputLabel>
+      <Box>
+        <FormControl sx={{ width: "100%" }}>
+          <InputLabel>Select Station</InputLabel>
           <Select
-            label="Month & Year"
-            labelId="month-year-label"
-            value={monthly}
-            onChange={(e) => setMonthly(e.target.value)}
+            label="Select Station"
+            value={destinationWarehouse}
+            onChange={(e) => setDestinationWarehouse(e.target.value)}
           >
-            {lastFourMonths.current.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
+            {warehouses.map((w) => (
+              <MenuItem key={w.warehouseID} value={w.warehouseID}>
+                {w.name}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
+
+        {/* <Box display="flex" gap={2} marginTop={2}>
+        <FormControl fullWidth>
+        <InputLabel id="month-year-label">Month & Year</InputLabel>
+        <Select
+        label="Month & Year"
+        labelId="month-year-label"
+        value={monthly}
+        onChange={(e) => setMonthly(e.target.value)}
+        >
+        {lastFourMonths.current.map((option) => (
+          <MenuItem key={option.value} value={option.value}>
+          {option.label}
+          </MenuItem>
+          ))}
+          </Select>
+          </FormControl>
+          </Box> */}
+        <Box sx={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+          <Box className="calendar-input">
+            <input
+              type="date"
+              onClick={(e) => e.target.showPicker()}
+              onKeyDown={(e) => e.preventDefault()}
+              value={selectedStartDate}
+              onChange={(e) => handleDateChange(e, "start")}
+              // disabled={isLoading}
+            />
+          </Box>
+          <Box className="calendar-input">
+            <input
+              type="date"
+              onClick={(e) => e.target.showPicker()}
+              onKeyDown={(e) => e.preventDefault()}
+              value={selectedEndDate}
+              onChange={(e) => handleDateChange(e, "end")}
+              // disabled={isLoading}
+            />
+          </Box>
+        </Box>
       </Box>
 
       <button
         className="button button-large"
         style={{
-          backgroundColor: destinationWarehouse === "" || monthly === "" ? "grey" : "",
-          cursor: destinationWarehouse === "" || monthly === ""? "not-allowed" : "pointer",
+          backgroundColor:
+            destinationWarehouse === "" || monthly === "" ? "grey" : "",
+          cursor:
+            destinationWarehouse === "" || monthly === ""
+              ? "not-allowed"
+              : "pointer",
           color: "white",
         }}
         disabled={destinationWarehouse === "" || monthly === ""}
@@ -205,7 +254,9 @@ export default function GenReportPage() {
               fontSize: "15px",
             }}
           >
-            <strong>Station:</strong> {warehouses.find(w => w.warehouseID === destinationWarehouse)?.name || ''}
+            <strong>Station:</strong>{" "}
+            {warehouses.find((w) => w.warehouseID === destinationWarehouse)
+              ?.name || ""}
           </Typography>
           <Typography
             sx={{
@@ -214,7 +265,9 @@ export default function GenReportPage() {
               fontSize: "15px",
             }}
           >
-            <strong>Month Date:</strong> {lastFourMonths.current.find(m => m.value === monthly)?.label || ''}
+            <strong>Month Date:</strong>{" "}
+            {lastFourMonths.current.find((m) => m.value === monthly)?.label ||
+              ""}
           </Typography>
 
           <Box
