@@ -80,6 +80,7 @@ export default function AllItemPage() {
   };
 
   const handleEdit = (Item) => {
+    Item.name = Item.name.split("(")[0].trim();
     setCurrentItemList([Item]);
     setIsModalOpen(true);
     setIsAdding(false);
@@ -148,11 +149,16 @@ export default function AllItemPage() {
       },
       body: JSON.stringify(body),
     });
-
-    const data = await res.json();
-    fetchData();
+    if (res.status === 409){
+      alert("Item already exists");
+      setIsLoading1(false);
+      setIsModalOpen(false);
+      return;
+    }
     setIsLoading1(false);
     setIsModalOpen(false);
+    const data = await res.json();
+    fetchData();
   };
 
   const handleClose = () => {
@@ -207,10 +213,10 @@ export default function AllItemPage() {
                 <TextField
                   value={item.name}
                   size="small"
-                  disabled={!isAdding}
                   onChange={(e) =>
                     handleItemChange(idx, "name", e.target.value)
                   }
+                  placeholder="Item Name"
                   fullWidth
                   />
               </TableCell>
@@ -218,7 +224,6 @@ export default function AllItemPage() {
                 <FormControl fullWidth>
                   <Select
                     value={item.type}
-                    disabled={!isAdding}
                     onChange={(e) =>
                       handleItemChange(idx, "type", e.target.value)
                     }

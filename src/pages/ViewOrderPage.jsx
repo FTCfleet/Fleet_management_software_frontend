@@ -14,7 +14,7 @@ import {
   CircularProgress,
   TextField,
 } from "@mui/material";
-import { Link, Navigate, useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useOutletContext, useParams, useLocation } from "react-router-dom";
 import {
   FaEdit,
   FaTrash,
@@ -54,10 +54,22 @@ export default function ViewOrderPage() {
   const cellStyle = { color: "#1E3A5F", fontWeight: "bold" };
   const rowCellStyle = { color: "#25344E" };
   const {setIsScreenLoading, setIsScreenLoadingText} = useOutletContext();
-
+  const location = useLocation();
   useEffect(() => {
     fetchData();
   }, []);
+
+  const hasTriggered = useRef(false);
+
+  // useEffect(() => {
+  //   if (!hasTriggered.current) {
+  //     hasTriggered.current = true;
+  //     return;
+  //   }
+
+  //   // console.log("Triggered on navigation:", location.pathname);
+  //   handleLRPrint();
+  // }, [location]);
 
   const fetchData = async () => {
     setIsLoading1(true);
@@ -82,6 +94,10 @@ export default function ViewOrderPage() {
     setOrder(data.body);
     setQrCode(data.qrCode);
     setIsLoading1(false);
+    if (location.state.print) {
+      handleLRPrint();
+      location.state.print = false;
+    }
   };
 
   const handleOpenDeleteModal = () => {

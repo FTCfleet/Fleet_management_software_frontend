@@ -16,6 +16,12 @@ import {
   CircularProgress,
   Autocomplete,
   createFilterOptions,
+  ToggleButton,
+  ToggleButtonGroup,
+  FormControl,
+  Select,
+  MenuItem,
+  InputLabel
 } from "@mui/material";
 import { Edit, Delete, Close } from "@mui/icons-material";
 import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
@@ -33,6 +39,7 @@ export default function AllClientPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [currentClient, setCurrentClient] = useState(null);
+  const [clientType, setClientType] = useState("all");
   const [isAdding, setIsAdding] = useState(false);
   const [nameFilter, setNameFilter] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -81,16 +88,30 @@ export default function AllClientPage() {
   };
 
   const applyFilter = () => {
-    const filtered = clients.filter((client) => {
-      return nameFilter
-        ? client.name.toLowerCase().startsWith(nameFilter.toLowerCase())
-        : true;
-    });
+    let filtered = clients;
+    if (nameFilter) {
+      filtered = filtered.filter(
+        (client) =>
+          client.name
+            .toLowerCase()
+            .startsWith(nameFilter.toLowerCase())
+      );
+    }
+
+    if (clientType !== "all") {
+      filtered = filtered.filter(
+        (client) => 
+          clientType === "sender" && client.isSender || 
+          clientType === "receiver" && !client.isSender
+      );
+    }
     setFilteredClients(filtered);
+    // setFilteredClients(filtered);
   };
 
   const clearFilter = () => {
     setNameFilter("");
+    setClientType("all");
     setFilteredClients(clients);
   };
 
@@ -196,12 +217,15 @@ export default function AllClientPage() {
           hamali: parseInt(item.hamali) || 0,
           statisticalCharges: parseInt(item.hamali) || 0,
         })),
+        isSender: currentClient.isSender
       };
     } else {
       method = "PUT";
       body = {
         id: currentClient._id,
         updates: {
+          name: currentClient.name.toUpperCase(),
+          isSender: currentClient.isSender,
           phoneNo: currentClient.phoneNo ? currentClient.phoneNo : "NA",
           address: currentClient.address ? currentClient.address : "NA",
           gst: currentClient.gst ? currentClient.gst : "NA",
@@ -222,7 +246,12 @@ export default function AllClientPage() {
       },
       body: JSON.stringify(body),
     });
-
+    if (res.status === 409){
+      alert("Client already exists");
+      setIsLoading1(false);
+      setIsModalOpen(false);
+      return;
+    }
     const data = await res.json();
     if (data.error?.includes("duplicate")){
       alert("Client exists");
@@ -282,7 +311,6 @@ export default function AllClientPage() {
           handleFieldChange("name", e.target.value.toUpperCase())
         }
         sx={{ marginBottom: "16px" }}
-        disabled={!isAdding}
       />
       <TextField
         fullWidth
@@ -307,6 +335,50 @@ export default function AllClientPage() {
         onChange={(e) => handleFieldChange("gst", e.target.value.toUpperCase())}
         sx={{ marginBottom: "16px" }}
       />
+      
+      <ToggleButtonGroup
+        value={currentClient.isSender}
+        exclusive
+        onChange={(e, newValue) => {
+          if (newValue !== null) {
+            handleFieldChange("isSender", newValue);
+          }
+        }}
+        sx={{ display: "flex", marginBottom: "16px" }}
+      >
+        <ToggleButton
+          value={true}
+          sx={{
+            flex: 1,
+            backgroundColor: currentClient.isSender
+              ? "#003366"
+              : "inherit",
+            color: currentClient.isSender ? "white" : "black",
+            "&.Mui-selected, &.Mui-selected:hover": {
+              backgroundColor: "#003366",
+              color: "white",
+            },
+          }}
+        >
+          Sender
+        </ToggleButton>
+        <ToggleButton
+          value={false}
+          sx={{
+            flex: 1,
+            backgroundColor: !currentClient.isSender
+              ? "#003366"
+              : "inherit",
+            color: !currentClient.isSender ? "white" : "black",
+            "&.Mui-selected, &.Mui-selected:hover": {
+              backgroundColor: "#003366",
+              color: "white",
+            },
+          }}
+        >
+          Receiver
+        </ToggleButton>
+      </ToggleButtonGroup>
       <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
         {isAdding ? (
           <Button variant="contained" onClick={() => {setPage(2); setCurrentClient({ ...currentClient, items: [] }); handleAddItemRow();}}>
@@ -447,6 +519,18 @@ export default function AllClientPage() {
           variant="outlined"
           size="small"
         />
+        <FormControl>
+          <InputLabel>Client Type</InputLabel>
+          <Select
+            label="Choose"
+            value={clientType}
+            onChange={(e) => setClientType(e.target.value)}
+          >
+            <MenuItem value="all">All Clients</MenuItem>
+            <MenuItem value="sender">Sender</MenuItem>
+            <MenuItem value="receiver">Receiver</MenuItem>
+          </Select>
+        </FormControl>
         <Button variant="contained" color="primary" onClick={applyFilter}>
           Apply
         </Button>
@@ -468,6 +552,7 @@ export default function AllClientPage() {
               <TableCell sx={headerStyle}>Phone Number</TableCell>
               <TableCell sx={headerStyle}>Client Address</TableCell>
               <TableCell sx={headerStyle}>GST</TableCell>
+              <TableCell sx={headerStyle}>Client Type</TableCell>
               <TableCell sx={{...headerStyle, textAlign: "center"}}>View Items</TableCell>
               <TableCell sx={{...headerStyle, textAlign: "center"}}>Actions</TableCell>
             </TableRow>
@@ -491,6 +576,7 @@ export default function AllClientPage() {
                   <TableCell sx={rowStyle}>{client.phoneNo}</TableCell>
                   <TableCell sx={rowStyle}>{client.address}</TableCell>
                   <TableCell sx={rowStyle}>{client.gst}</TableCell>
+                  <TableCell sx={rowStyle}>{client.isSender ? "Sender" : "Receiver"}</TableCell>
                   <TableCell sx={{...rowStyle, textAlign: "center"}}>
                     <IconButton
                       color="primary"

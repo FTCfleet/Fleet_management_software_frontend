@@ -175,7 +175,7 @@ export default function EditOrderPage() {
     } else {
       selectedOption = selectedOption.toUpperCase();
     }
-    let client = clients.find((client) => client.name === selectedOption);
+    let client = clients.find((client) => client.name === selectedOption && client.isSender);
     if (!client) {
       setSenderDetails({
         ...senderDetails,
@@ -198,7 +198,7 @@ export default function EditOrderPage() {
     } else {
       selectedOption = selectedOption.toUpperCase();
     }
-    let client = clients.find((client) => client.name === selectedOption);
+    let client = clients.find((client) => client.name === selectedOption && !client.isSender);
     if (!client) {
       setReceiverDetails({
         ...receiverDetails,
@@ -452,7 +452,7 @@ export default function EditOrderPage() {
             <Autocomplete
               freeSolo
               value={senderDetails.name}
-              options={clients.map((client) => client.name)}
+              options={clients.filter(client => client.isSender).map((client) => client.name)}
               onChange={(event, newValue) =>
                 handleSenderChange(event, newValue)
               }
@@ -510,7 +510,7 @@ export default function EditOrderPage() {
             <Autocomplete
               freeSolo
               value={receiverDetails.name}
-              options={clients.map((client) => client.name)}
+              options={clients.filter(client => !client.isSender).map((client) => client.name)}
               onChange={(event, newValue) =>
                 handleReceiverChange(event, newValue)
               }

@@ -215,23 +215,24 @@ export default function AddOrderPage({}) {
   };
 
   const validateOrder = () => {
-    if (senderDetails.name === "" || receiverDetails.name === "") {
-      alert("Please fill all the required fields");
+    if (receiverDetails.name === "") {
+      alert("Please fill all the receiver details");
       return false;
     }
     if (!destinationWarehouse || (isAdmin && !sourceWarehouse)) {
-      alert("Please fill all the required fields");
+      alert("Please fill all the stations");
       return false;
     }
     if (items.length === 0 || items.some((item) => !item.name)) {
       if (items.length === 0) alert("Add items");
-      alert("Please fill all the required fields");
+      alert("Please fill the items");
       return false;
     }
     return true;
   };
 
   const handleEmptyDetails = (details) => {
+    if (!details.name || details.name == "") details.name = "NA";
     if (!details.phoneNo || details.phoneNo == "") details.phoneNo = "NA";
     if (!details.address || details.address == "") details.address = "NA";
     if (!details.gst || details.gst == "") details.gst = "NA";
@@ -273,7 +274,9 @@ export default function AddOrderPage({}) {
         alert("Error occurred");
       } else {
         alert("LR Created Successfully");
-        navigate(`/user/view/order/${data.body}`);
+        navigate(`/user/view/order/${data.body}`, {
+          state: {print: true},
+        });
       }
     } catch (error) {
       alert("Network error occurred");
@@ -288,7 +291,7 @@ export default function AddOrderPage({}) {
     } else {
       selectedOption = selectedOption.toUpperCase();
     }
-    let client = regClients.find((client) => client.name === selectedOption);
+    let client = regClients.find((client) => client.name === selectedOption && client.isSender);
     if (!client) {
       setSenderDetails({
         ...senderDetails,
@@ -311,7 +314,7 @@ export default function AddOrderPage({}) {
     } else {
       selectedOption = selectedOption.toUpperCase();
     }
-    let client = regClients.find((client) => client.name === selectedOption);
+    let client = regClients.find((client) => client.name === selectedOption && !client.isSender);
     if (!client) {
       setReceiverDetails({
         ...receiverDetails,
@@ -355,7 +358,7 @@ export default function AddOrderPage({}) {
         <Autocomplete
           freeSolo
           value={senderDetails.name}
-          options={regClients.map((client) => client.name)}
+          options={regClients.filter(client => client.isSender).map((client) => client.name)}
           onChange={(event, newValue) => handleSenderChange(event, newValue)}
           filterOptions={createFilterOptions({
             matchFrom: "start",
@@ -411,7 +414,7 @@ export default function AddOrderPage({}) {
         <Autocomplete
           freeSolo
           value={receiverDetails.name}
-          options={regClients.map((client) => client.name)}
+          options={regClients.filter(client => !client.isSender).map((client) => client.name)}
           onChange={(event, newValue) => handleReceiverChange(event, newValue)}
           onBlur={(event, newValue) => handleReceiverChange(event, newValue)}
           filterOptions={createFilterOptions({
