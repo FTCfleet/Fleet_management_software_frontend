@@ -35,7 +35,14 @@ export default function GenReportPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const lastFourMonths = useRef([]);
 
-  const handleOpenModal = () => setModalOpen(true);
+  const handleOpenModal = () => {
+    if (selectedEndDate < selectedStartDate){
+      alert("End date can't be lesser than Start date.");
+      return;
+    }
+    setModalOpen(true);
+
+  }
   const handleCloseModal = () => setModalOpen(false);
 
   useEffect(() => {
@@ -124,8 +131,8 @@ export default function GenReportPage() {
       >
         Memo Generation
       </Typography>
-      <Box>
-        <FormControl sx={{ width: "100%" }}>
+        <FormControl fullWidth>
+        {/* <FormControl sx={{ width: "340px" }}> */}
           <InputLabel>Select Station</InputLabel>
           <Select
             label="Select Station"
@@ -140,7 +147,7 @@ export default function GenReportPage() {
           </Select>
         </FormControl>
 
-        {/* <Box display="flex" gap={2} marginTop={2}>
+        <Box display="flex" gap={2} marginTop={2}>
         <FormControl fullWidth>
         <InputLabel id="month-year-label">Month & Year</InputLabel>
         <Select
@@ -156,8 +163,8 @@ export default function GenReportPage() {
           ))}
           </Select>
           </FormControl>
-          </Box> */}
-        <Box sx={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+          </Box>
+        {/* <Box sx={{ display: "flex", gap: "10px", justifyContent: "center", my: "20px" }}>
           <Box className="calendar-input">
             <input
               type="date"
@@ -178,21 +185,20 @@ export default function GenReportPage() {
               // disabled={isLoading}
             />
           </Box>
-        </Box>
-      </Box>
+        </Box> */}
 
       <button
         className="button button-large"
         style={{
           backgroundColor:
-            destinationWarehouse === "" || monthly === "" ? "grey" : "",
+            destinationWarehouse === ""? "grey" : "",
           cursor:
-            destinationWarehouse === "" || monthly === ""
+            destinationWarehouse === ""
               ? "not-allowed"
               : "pointer",
           color: "white",
         }}
-        disabled={destinationWarehouse === "" || monthly === ""}
+        disabled={destinationWarehouse === ""}
         onClick={handleOpenModal}
       >
         <FaDownload /> Download
@@ -281,9 +287,8 @@ export default function GenReportPage() {
               variant="contained"
               sx={{ backgroundColor: "#1976D2" }}
               startIcon={<FaDownload />}
-              href={`${BASE_URL}/api/ledger/generate-excel/${destinationWarehouse}/${formatDate(
-                monthly
-              )}`}
+              // href={`${BASE_URL}/api/ledger/generate-excel/${destinationWarehouse}/${formatDate(setSelectedStartDate)}${formatDate(setSelectedEndDate)}`}
+              href={`${BASE_URL}/api/ledger/generate-excel/${destinationWarehouse}/${formatDate(monthly)}`}
               target="_blank"
               onClick={() => setModalOpen(false)}
             >

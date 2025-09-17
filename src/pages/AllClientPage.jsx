@@ -21,7 +21,7 @@ import {
   FormControl,
   Select,
   MenuItem,
-  InputLabel
+  InputLabel,
 } from "@mui/material";
 import { Edit, Delete, Close } from "@mui/icons-material";
 import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
@@ -90,19 +90,16 @@ export default function AllClientPage() {
   const applyFilter = () => {
     let filtered = clients;
     if (nameFilter) {
-      filtered = filtered.filter(
-        (client) =>
-          client.name
-            .toLowerCase()
-            .startsWith(nameFilter.toLowerCase())
+      filtered = filtered.filter((client) =>
+        client.name.toLowerCase().startsWith(nameFilter.toLowerCase())
       );
     }
 
     if (clientType !== "all") {
       filtered = filtered.filter(
-        (client) => 
-          clientType === "sender" && client.isSender || 
-          clientType === "receiver" && !client.isSender
+        (client) =>
+          (clientType === "sender" && client.isSender) ||
+          (clientType === "receiver" && !client.isSender)
       );
     }
     setFilteredClients(filtered);
@@ -196,14 +193,16 @@ export default function AllClientPage() {
       }
     );
     const data = await res.json();
-    setCurrentClient((prev) => ({...prev, items: data.body }));
+    setCurrentClient((prev) => ({ ...prev, items: data.body }));
   };
 
   const handleSaveOrAdd = async () => {
     setIsLoading1(true);
     const token = localStorage.getItem("token");
     let method, body;
-    currentClient.items = currentClient.items.filter((item) => item.itemDetails._id);
+    currentClient.items = currentClient.items.filter(
+      (item) => item.itemDetails._id
+    );
     if (isAdding) {
       method = "POST";
       body = {
@@ -217,7 +216,7 @@ export default function AllClientPage() {
           hamali: parseInt(item.hamali) || 0,
           statisticalCharges: parseInt(item.hamali) || 0,
         })),
-        isSender: currentClient.isSender
+        isSender: currentClient.isSender,
       };
     } else {
       method = "PUT";
@@ -246,14 +245,14 @@ export default function AllClientPage() {
       },
       body: JSON.stringify(body),
     });
-    if (res.status === 409){
+    if (res.status === 409) {
       alert("Client already exists");
       setIsLoading1(false);
       setIsModalOpen(false);
       return;
     }
     const data = await res.json();
-    if (data.error?.includes("duplicate")){
+    if (data.error?.includes("duplicate")) {
       alert("Client exists");
     }
     fetchData();
@@ -280,8 +279,7 @@ export default function AllClientPage() {
       updatedItems[index].hamali = selectedItem.hamali;
       setCurrentClient({ ...currentClient, items: updatedItems });
       return;
-    }
-    else if (field === "freight" || field === "hamali") {
+    } else if (field === "freight" || field === "hamali") {
       value = parseInt(value) || 0;
     }
     updatedItems[index][field] = value;
@@ -291,7 +289,10 @@ export default function AllClientPage() {
   const handleAddItemRow = () => {
     setCurrentClient((prev) => ({
       ...prev,
-      items: [...prev.items, { name: "", freight: 0, hamali: 0, _id: "", itemDetails: {} }],
+      items: [
+        ...prev.items,
+        { name: "", freight: 0, hamali: 0, _id: "", itemDetails: {} },
+      ],
     }));
   };
 
@@ -335,7 +336,7 @@ export default function AllClientPage() {
         onChange={(e) => handleFieldChange("gst", e.target.value.toUpperCase())}
         sx={{ marginBottom: "16px" }}
       />
-      
+
       <ToggleButtonGroup
         value={currentClient.isSender}
         exclusive
@@ -350,9 +351,7 @@ export default function AllClientPage() {
           value={true}
           sx={{
             flex: 1,
-            backgroundColor: currentClient.isSender
-              ? "#003366"
-              : "inherit",
+            backgroundColor: currentClient.isSender ? "#003366" : "inherit",
             color: currentClient.isSender ? "white" : "black",
             "&.Mui-selected, &.Mui-selected:hover": {
               backgroundColor: "#003366",
@@ -366,9 +365,7 @@ export default function AllClientPage() {
           value={false}
           sx={{
             flex: 1,
-            backgroundColor: !currentClient.isSender
-              ? "#003366"
-              : "inherit",
+            backgroundColor: !currentClient.isSender ? "#003366" : "inherit",
             color: !currentClient.isSender ? "white" : "black",
             "&.Mui-selected, &.Mui-selected:hover": {
               backgroundColor: "#003366",
@@ -381,7 +378,14 @@ export default function AllClientPage() {
       </ToggleButtonGroup>
       <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
         {isAdding ? (
-          <Button variant="contained" onClick={() => {setPage(2); setCurrentClient({ ...currentClient, items: [] }); handleAddItemRow();}}>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setPage(2);
+              setCurrentClient({ ...currentClient, items: [] });
+              handleAddItemRow();
+            }}
+          >
             Next
           </Button>
         ) : (
@@ -511,7 +515,14 @@ export default function AllClientPage() {
       </Typography>
 
       {/* Filters */}
-      <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: "16px",
+          marginBottom: "20px",
+          alignItems: "center",
+        }}
+      >
         <TextField
           label="Search by Client Name"
           value={nameFilter}
@@ -519,19 +530,16 @@ export default function AllClientPage() {
           variant="outlined"
           size="small"
         />
-        <FormControl>
-          <InputLabel>Client Type</InputLabel>
-          <Select
-            label="Choose"
-            value={clientType}
-            size="small"
-            onChange={(e) => setClientType(e.target.value)}
-          >
-            <MenuItem value="all">All Clients</MenuItem>
-            <MenuItem value="sender">Sender</MenuItem>
-            <MenuItem value="receiver">Receiver</MenuItem>
-          </Select>
-        </FormControl>
+        <Select
+          label="Choose"
+          value={clientType}
+          size="small"
+          onChange={(e) => setClientType(e.target.value)}
+        >
+          <MenuItem value="all">All Clients</MenuItem>
+          <MenuItem value="sender">Sender</MenuItem>
+          <MenuItem value="receiver">Receiver</MenuItem>
+        </Select>
         <Button variant="contained" color="primary" onClick={applyFilter}>
           Apply
         </Button>
@@ -554,8 +562,12 @@ export default function AllClientPage() {
               <TableCell sx={headerStyle}>Client Address</TableCell>
               <TableCell sx={headerStyle}>GST</TableCell>
               <TableCell sx={headerStyle}>Client Type</TableCell>
-              <TableCell sx={{...headerStyle, textAlign: "center"}}>View Items</TableCell>
-              <TableCell sx={{...headerStyle, textAlign: "center"}}>Actions</TableCell>
+              <TableCell sx={{ ...headerStyle, textAlign: "center" }}>
+                View Items
+              </TableCell>
+              <TableCell sx={{ ...headerStyle, textAlign: "center" }}>
+                Actions
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -577,8 +589,10 @@ export default function AllClientPage() {
                   <TableCell sx={rowStyle}>{client.phoneNo}</TableCell>
                   <TableCell sx={rowStyle}>{client.address}</TableCell>
                   <TableCell sx={rowStyle}>{client.gst}</TableCell>
-                  <TableCell sx={rowStyle}>{client.isSender ? "Sender" : "Receiver"}</TableCell>
-                  <TableCell sx={{...rowStyle, textAlign: "center"}}>
+                  <TableCell sx={rowStyle}>
+                    {client.isSender ? "Sender" : "Receiver"}
+                  </TableCell>
+                  <TableCell sx={{ ...rowStyle, textAlign: "center" }}>
                     <IconButton
                       color="primary"
                       onClick={() => handleEditItems(client)}
@@ -586,7 +600,7 @@ export default function AllClientPage() {
                       <IoArrowForwardCircleOutline size={24} />
                     </IconButton>
                   </TableCell>
-                  <TableCell sx={{...headerStyle, textAlign: "center"}}>
+                  <TableCell sx={{ ...headerStyle, textAlign: "center" }}>
                     <IconButton
                       color="primary"
                       onClick={() => handleEdit(client)}
