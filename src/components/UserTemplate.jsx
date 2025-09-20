@@ -71,15 +71,6 @@ const UserTemplate = () => {
           path: "/user/ledgers/all",
           icon: <FaTruckMoving />,
         },
-        ...(isAdmin || isSource
-          ? [
-              {
-                text: "Pending Memo",
-                path: "/user/ledgers/pending",
-                icon: <FaTruckMoving />,
-              },
-            ]
-          : []),
         {
           text: `${
             isAdmin ? "Dispatched" : isSource ? "Outgoing" : "Incoming"

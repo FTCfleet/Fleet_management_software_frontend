@@ -80,8 +80,9 @@ export default function AllItemPage() {
   };
 
   const handleEdit = (Item) => {
-    Item.name = Item.name.split("(")[0].trim();
-    setCurrentItemList([Item]);
+    const curItem = {...Item};
+    curItem.name = Item.name.split("(")[0].trim();
+    setCurrentItemList([curItem]);
     setIsModalOpen(true);
     setIsAdding(false);
   };

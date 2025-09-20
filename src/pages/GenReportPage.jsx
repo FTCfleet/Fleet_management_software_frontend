@@ -36,13 +36,12 @@ export default function GenReportPage() {
   const lastFourMonths = useRef([]);
 
   const handleOpenModal = () => {
-    if (selectedEndDate < selectedStartDate){
+    if (selectedEndDate < selectedStartDate) {
       alert("End date can't be lesser than Start date.");
       return;
     }
     setModalOpen(true);
-
-  }
+  };
   const handleCloseModal = () => setModalOpen(false);
 
   useEffect(() => {
@@ -66,10 +65,17 @@ export default function GenReportPage() {
     setIsLoading(false);
   };
 
-  const formatDate = (dateString) => {
-    const newMonth = dateString.split("-")[0];
-    const newYear = dateString.split("-")[1];
-    return `${newYear}${newMonth.toString().padStart(2, "0")}`;
+  const formatDate = (dateString, type) => {
+    // console.log(selectedStartDate);
+    // console.log(dateString);
+    // return dateString;
+    const newYear = dateString.split("-")[0];
+    const newMonth = dateString.split("-")[1];
+    const newDay = dateString.split("-")[2];
+    if (type === 'show'){
+      return `${newDay}/${newMonth}/${newYear}`;
+    }
+    return `${newDay}${newMonth}${newYear}`;
   };
 
   const getLastFourMonths = () => {
@@ -131,23 +137,22 @@ export default function GenReportPage() {
       >
         Memo Generation
       </Typography>
-        <FormControl fullWidth>
-        {/* <FormControl sx={{ width: "340px" }}> */}
-          <InputLabel>Select Station</InputLabel>
-          <Select
-            label="Select Station"
-            value={destinationWarehouse}
-            onChange={(e) => setDestinationWarehouse(e.target.value)}
-          >
-            {warehouses.map((w) => (
-              <MenuItem key={w.warehouseID} value={w.warehouseID}>
-                {w.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+      <FormControl sx={{ width: "340px" }}>
+        <InputLabel>Select Station</InputLabel>
+        <Select
+          label="Select Station"
+          value={destinationWarehouse}
+          onChange={(e) => setDestinationWarehouse(e.target.value)}
+        >
+          {warehouses.map((w) => (
+            <MenuItem key={w.warehouseID} value={w.warehouseID}>
+              {w.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
-        <Box display="flex" gap={2} marginTop={2}>
+      {/* <Box display="flex" gap={2} marginTop={2}>
         <FormControl fullWidth>
         <InputLabel id="month-year-label">Month & Year</InputLabel>
         <Select
@@ -163,39 +168,42 @@ export default function GenReportPage() {
           ))}
           </Select>
           </FormControl>
-          </Box>
-        {/* <Box sx={{ display: "flex", gap: "10px", justifyContent: "center", my: "20px" }}>
-          <Box className="calendar-input">
-            <input
-              type="date"
-              onClick={(e) => e.target.showPicker()}
-              onKeyDown={(e) => e.preventDefault()}
-              value={selectedStartDate}
-              onChange={(e) => handleDateChange(e, "start")}
-              // disabled={isLoading}
-            />
-          </Box>
-          <Box className="calendar-input">
-            <input
-              type="date"
-              onClick={(e) => e.target.showPicker()}
-              onKeyDown={(e) => e.preventDefault()}
-              value={selectedEndDate}
-              onChange={(e) => handleDateChange(e, "end")}
-              // disabled={isLoading}
-            />
-          </Box>
-        </Box> */}
+          </Box> */}
+      <Box
+        sx={{
+          display: "flex",
+          gap: "10px",
+          justifyContent: "center",
+          my: "20px",
+        }}
+      >
+        <Box className="calendar-input">
+          <input
+            type="date"
+            onClick={(e) => e.target.showPicker()}
+            onKeyDown={(e) => e.preventDefault()}
+            value={selectedStartDate}
+            onChange={(e) => handleDateChange(e, "start")}
+            // disabled={isLoading}
+          />
+        </Box>
+        <Box className="calendar-input">
+          <input
+            type="date"
+            onClick={(e) => e.target.showPicker()}
+            onKeyDown={(e) => e.preventDefault()}
+            value={selectedEndDate}
+            onChange={(e) => handleDateChange(e, "end")}
+            // disabled={isLoading}
+          />
+        </Box>
+      </Box>
 
       <button
         className="button button-large"
         style={{
-          backgroundColor:
-            destinationWarehouse === ""? "grey" : "",
-          cursor:
-            destinationWarehouse === ""
-              ? "not-allowed"
-              : "pointer",
+          backgroundColor: destinationWarehouse === "" ? "grey" : "",
+          cursor: destinationWarehouse === "" ? "not-allowed" : "pointer",
           color: "white",
         }}
         disabled={destinationWarehouse === ""}
@@ -271,9 +279,8 @@ export default function GenReportPage() {
               fontSize: "15px",
             }}
           >
-            <strong>Month Date:</strong>{" "}
-            {lastFourMonths.current.find((m) => m.value === monthly)?.label ||
-              ""}
+            <strong>Date Range:</strong>
+            {` ${formatDate(selectedStartDate, 'show')} to ${formatDate(selectedEndDate, 'show')}`}
           </Typography>
 
           <Box
@@ -287,8 +294,10 @@ export default function GenReportPage() {
               variant="contained"
               sx={{ backgroundColor: "#1976D2" }}
               startIcon={<FaDownload />}
-              // href={`${BASE_URL}/api/ledger/generate-excel/${destinationWarehouse}/${formatDate(setSelectedStartDate)}${formatDate(setSelectedEndDate)}`}
-              href={`${BASE_URL}/api/ledger/generate-excel/${destinationWarehouse}/${formatDate(monthly)}`}
+              href={`${BASE_URL}/api/ledger/generate-excel/${destinationWarehouse}/${formatDate(
+                selectedStartDate
+              )}-${formatDate(selectedEndDate)}`}
+              // href={`${BASE_URL}/api/ledger/generate-excel/${destinationWarehouse}/${formatDate(monthly)}`}
               target="_blank"
               onClick={() => setModalOpen(false)}
             >
