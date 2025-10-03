@@ -135,7 +135,7 @@ const UserTemplate = () => {
                 icon: <FaMoneyCheckAlt />,
               },
               {
-                text: "Item Types",
+                text: "Item Types List",
                 path: "/user/item-types",
                 icon: <FaMoneyCheckAlt />,
               },

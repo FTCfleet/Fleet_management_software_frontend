@@ -23,7 +23,7 @@ const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
 const rowStyle = { color: "#25344E" };
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-export default function ItemTypeManagementPage() {
+export default function AllIte() {
   const [itemTypes, setItemTypes] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
@@ -89,9 +89,7 @@ export default function ItemTypeManagementPage() {
 
     setIsSaving(true);
     const token = localStorage.getItem("token");
-    const payloadName = currentItemType.name.trim();
-    const itemTypeId =
-      currentItemType._id || currentItemType.itemTypeId || currentItemType.id;
+    const newItemName = currentItemType.name.trim();
 
     const requestConfig = {
       method: isAdding ? "POST" : "PUT",
@@ -101,13 +99,13 @@ export default function ItemTypeManagementPage() {
       },
       body: JSON.stringify(
         isAdding
-          ? { name: payloadName }
-          : { itemTypeId, updates: { name: payloadName } }
+          ? { name: newItemName }
+          : { id: currentItemType._id, name: newItemName }
       ),
     };
 
     try {
-      if (!isAdding && !itemTypeId) {
+      if (!isAdding && !currentItemType._id) {
         throw new Error("Missing item type identifier");
       }
 
@@ -126,7 +124,7 @@ export default function ItemTypeManagementPage() {
       }
 
       await response.json();
-      await fetchItemTypes();
+      fetchItemTypes();
       setIsModalOpen(false);
     } catch (error) {
       console.error(error);
@@ -146,7 +144,6 @@ export default function ItemTypeManagementPage() {
 
     setIsDeleting(true);
     const token = localStorage.getItem("token");
-
     try {
       const response = await fetch(`${BASE_URL}/api/admin/manage/item-type`, {
         method: "DELETE",
@@ -154,7 +151,7 @@ export default function ItemTypeManagementPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ itemTypeId: itemTypeToDelete }),
+        body: JSON.stringify({ id: itemTypeToDelete }),
       });
 
       if (!response.ok) {
@@ -162,7 +159,7 @@ export default function ItemTypeManagementPage() {
       }
 
       await response.json();
-      await fetchItemTypes();
+      fetchItemTypes();
       setDeleteModalOpen(false);
       setItemTypeToDelete(null);
     } catch (error) {
@@ -184,7 +181,7 @@ export default function ItemTypeManagementPage() {
         Item Types
       </Typography>
 
-      <Box sx={{ display: "flex", justifyContent: "flex-end", marginBottom: "16px" }}>
+      <Box sx={{ display: "flex", justifyContent: "flex-start", marginBottom: "16px" }}>
         <button className="button" onClick={handleAdd}>
           Add Item Type
         </button>
@@ -197,9 +194,7 @@ export default function ItemTypeManagementPage() {
         <Table>
           <TableHead sx={{ backgroundColor: "#f1f5f9" }}>
             <TableRow>
-              <TableCell sx={{ ...headerStyle }}>No.</TableCell>
-              <TableCell sx={{ ...headerStyle }}>Name</TableCell>
-              <TableCell sx={{ ...headerStyle }}>Actions</TableCell>
+              <TableCell sx={{ ...headerStyle, textAlign: "center" }} colSpan={9}>All Item Types ({itemTypes.length})</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -210,23 +205,29 @@ export default function ItemTypeManagementPage() {
                 </TableCell>
               </TableRow>
             ) : itemTypes.length > 0 ? (
-              itemTypes.map((itemType, index) => (
-                <TableRow key={itemType._id || itemType.itemTypeId || index}>
-                  <TableCell sx={rowStyle}>{index + 1}</TableCell>
-                  <TableCell sx={rowStyle}>{itemType.name}</TableCell>
-                  <TableCell>
-                    <IconButton color="primary" onClick={() => handleEdit(itemType)}>
-                      <Edit />
-                    </IconButton>
-                    <IconButton
-                      color="error"
-                      onClick={() =>
-                        handleDelete(itemType._id || itemType.itemTypeId || itemType.id)
-                      }
-                    >
-                      <Delete />
-                    </IconButton>
-                  </TableCell>
+              itemTypes.reduce((rows, item, index) => {
+                if (index % 3 === 0) rows.push([]);
+                rows[rows.length - 1].push(item);
+                return rows;
+              }, []).map((row, rowIndex) => (
+                <TableRow key={rowIndex} >
+                  {row.map((itemType, colIndex) => (
+                    <React.Fragment key={itemType._id}>
+                      <TableCell sx={rowStyle}>{rowIndex * 3 + colIndex + 1}.</TableCell>
+                      <TableCell sx={rowStyle}>{itemType.name}</TableCell>
+                      <TableCell  sx={{borderRight: "1px solid #ddd"}}>
+                        <IconButton color="primary" onClick={() => handleEdit(itemType)}>
+                          <Edit />
+                        </IconButton>
+                        <IconButton
+                          color="error"
+                          onClick={() => handleDelete(itemType._id)}
+                        >
+                          <Delete />
+                        </IconButton>
+                      </TableCell>
+                    </React.Fragment>
+                  ))}
                 </TableRow>
               ))
             ) : (
@@ -272,7 +273,7 @@ export default function ItemTypeManagementPage() {
             label="Item Type Name"
             value={currentItemType.name}
             onChange={(e) =>
-              setCurrentItemType({ ...currentItemType, name: e.target.value })
+              setCurrentItemType({ ...currentItemType, name: e.target.value.toUpperCase() })
             }
             sx={{ marginBottom: "16px" }}
           />

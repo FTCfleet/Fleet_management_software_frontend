@@ -47,6 +47,7 @@ export default function AddOrderPage({}) {
   const [freight, setFreight] = useState(0);
   const [hamali, setHamali] = useState(0);
   const [allWarehouse, setAllWarehouse] = useState([]);
+  const [itemTypes, setItemTypes] = useState([]);
   const [regClients, setRegClients] = useState([]);
   const [regClientItems, setRegClientItems] = useState([]);
   const [regItems, setregItems] = useState([]);
@@ -63,6 +64,7 @@ export default function AddOrderPage({}) {
     fetchClients();
     fetchWarehouse();
     fetchItems();
+    fetchItemTypes();
   }, []);
 
   const fetchRegClientItems = async (clientId) => {
@@ -115,6 +117,18 @@ export default function AddOrderPage({}) {
       const data = await response.json();
       setAllWarehouse(data.body);
     }
+  };
+
+  const fetchItemTypes = async () => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${BASE_URL}/api/admin/manage/item-type`,{
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    setItemTypes(data.body);
   };
 
   const handleAddRow = () => {
@@ -650,10 +664,17 @@ export default function AddOrderPage({}) {
                         handleInputChange(item.id, "type", e.target.value)
                       }
                       size="small"
+                      MenuProps={{
+                      PaperProps: {
+                        style: {
+                          maxHeight: 200
+                        },
+                      },
+                    }}
                     >
-                      <MenuItem value="C/B">C/B</MenuItem>
-                      <MenuItem value="G/B">G/B</MenuItem>
-                      <MenuItem value="BUNDLE">Bundle</MenuItem>
+                      {itemTypes.map((type) => (
+                        <MenuItem key={type._id} value={type.name}>{type.name}</MenuItem>
+                      ))}
                     </Select>
                   </FormControl>
                 </TableCell>

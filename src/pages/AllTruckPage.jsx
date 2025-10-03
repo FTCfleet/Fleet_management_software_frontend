@@ -208,7 +208,7 @@ export default function AllTruckPage() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={headerStyle}>Sl No</TableCell>
+              <TableCell sx={headerStyle}>Sl No.</TableCell>
               <TableCell sx={headerStyle}>Driver Name</TableCell>
               <TableCell sx={headerStyle}>Phone Number</TableCell>
               <TableCell sx={headerStyle}>Truck Number</TableCell>

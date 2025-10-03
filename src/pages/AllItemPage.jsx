@@ -33,6 +33,7 @@ export default function AllItemPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentItemList, setCurrentItemList] = useState(null);
   const [currentItem, setCurrentItem] = useState(null);
+  const [itemTypes, setItemTypes] = useState([]);
   const [isAdding, setIsAdding] = useState(false);
   const [nameFilter, setNameFilter] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -43,6 +44,7 @@ export default function AllItemPage() {
 
   useEffect(() => {
     fetchData();
+    fetchItemTypes();
   }, []);
 
   useEffect(() => {
@@ -65,6 +67,18 @@ export default function AllItemPage() {
     setIsLoading(false);
   };
 
+  const fetchItemTypes = async () => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${BASE_URL}/api/admin/manage/item-type`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    setItemTypes(data.body);
+  };
+
   const applyFilter = () => {
     const filtered = items.filter((item) => {
       return nameFilter
@@ -80,13 +94,12 @@ export default function AllItemPage() {
   };
 
   const handleEdit = (Item) => {
-    const curItem = {...Item};
+    const curItem = { ...Item };
     curItem.name = Item.name.split("(")[0].trim();
     setCurrentItemList([curItem]);
     setIsModalOpen(true);
     setIsAdding(false);
   };
-
 
   const handleDelete = (id) => {
     setItemToDelete(id);
@@ -121,12 +134,14 @@ export default function AllItemPage() {
   };
 
   const handleAdd = () => {
-    setCurrentItemList([{
-      name: "",
-      freight: 0,
-      hamali: 0,
-      type: "C/B",
-    }]);
+    setCurrentItemList([
+      {
+        name: "",
+        freight: 0,
+        hamali: 0,
+        type: "C/B",
+      },
+    ]);
     setIsModalOpen(true);
     setIsAdding(true);
   };
@@ -137,10 +152,10 @@ export default function AllItemPage() {
     let method, body;
     if (isAdding) {
       method = "POST";
-      body = {items: currentItemList}
+      body = { items: currentItemList };
     } else {
       method = "PUT";
-      body = {items: currentItemList };
+      body = { items: currentItemList };
     }
     const res = await fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
       method: method,
@@ -150,7 +165,7 @@ export default function AllItemPage() {
       },
       body: JSON.stringify(body),
     });
-    if (res.status === 409){
+    if (res.status === 409 || res.status === 406 || res.status === 407) {
       alert("Item already exists");
       setIsLoading1(false);
       setIsModalOpen(false);
@@ -180,20 +195,18 @@ export default function AllItemPage() {
     setCurrentItemList(updatedItems);
   };
 
-  const handleAddItemRow = () => {
-    setCurrentItemList((prev) =>
-      [...prev,
-      { name: "", freight: 0, hamali: 0, type: "C/B" }],
-    );
-  };
+  // const handleAddItemRow = () => {
+  //   setCurrentItemList((prev) => [
+  //     ...prev,
+  //     { name: "", freight: 0, hamali: 0, type: "C/B" },
+  //   ]);
+  // };
 
   const handleRemove = (index) => {
     const updatedItems = [...currentItemList];
     updatedItems.splice(index, 1);
     setCurrentItemList(updatedItems);
   };
-
-
 
   const renderPage2 = () => (
     <>
@@ -219,7 +232,7 @@ export default function AllItemPage() {
                   }
                   placeholder="Item Name"
                   fullWidth
-                  />
+                />
               </TableCell>
               <TableCell>
                 <FormControl fullWidth>
@@ -229,10 +242,22 @@ export default function AllItemPage() {
                       handleItemChange(idx, "type", e.target.value)
                     }
                     size="small"
+                    MenuProps={{
+                      PaperProps: {
+                        style: {
+                          maxHeight: 200
+                        },
+                      },
+                    }}
                   >
-                    <MenuItem value="C/B">C/B</MenuItem>
+                    {itemTypes.map((type) => (
+                      <MenuItem key={type._id} value={type.name}>
+                        {type.name}
+                      </MenuItem>
+                    ))}
+                    {/* <MenuItem value="C/B">C/B</MenuItem>
                     <MenuItem value="G/B">G/B</MenuItem>
-                    <MenuItem value="BUNDLE">Bundle</MenuItem>
+                    <MenuItem value="BUNDLE">Bundle</MenuItem> */}
                   </Select>
                 </FormControl>
               </TableCell>
@@ -258,16 +283,13 @@ export default function AllItemPage() {
                   fullWidth
                 />
               </TableCell>
-              {isAdding ? <TableCell>
-
-                <IconButton
-                  color="error"
-                  onClick={() => handleRemove(idx)}
-                >
-                  <Delete />
-                </IconButton>
-              </TableCell> : null}
-
+              {isAdding ? (
+                <TableCell>
+                  <IconButton color="error" onClick={() => handleRemove(idx)}>
+                    <Delete />
+                  </IconButton>
+                </TableCell>
+              ) : null}
             </TableRow>
           ))}
         </TableBody>
@@ -285,10 +307,7 @@ export default function AllItemPage() {
         <Button variant="contained" onClick={handleSaveOrAdd}>
           {isAdding ? "Add Item" : "Save Changes"}
           {isLoading1 && (
-            <CircularProgress
-              size={22}
-              sx={{ color: "#fff", ml: 1 }}
-            />
+            <CircularProgress size={22} sx={{ color: "#fff", ml: 1 }} />
           )}
         </Button>
       </Box>
@@ -302,7 +321,14 @@ export default function AllItemPage() {
       </Typography>
 
       {/* Filters */}
-      <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: "16px",
+          marginBottom: "20px",
+          alignItems: "center",
+        }}
+      >
         <TextField
           label="Search by Item Name"
           value={nameFilter}
@@ -345,12 +371,12 @@ export default function AllItemPage() {
                   />
                 </TableCell>
               </TableRow>
-            ) : (filteredItems.length > 0 ?
+            ) : filteredItems.length > 0 ? (
               filteredItems.map((item, idx) => (
                 <TableRow key={idx}>
-                  <TableCell sx={rowStyle}>{idx+1}</TableCell>
+                  <TableCell sx={rowStyle}>{idx + 1}.</TableCell>
                   <TableCell sx={rowStyle}>{item.name}</TableCell>
-                  <TableCell sx={rowStyle}>{item.type}</TableCell>
+                  <TableCell sx={rowStyle}>{item.itemType.name}</TableCell>
                   <TableCell sx={rowStyle}>{item.freight}</TableCell>
                   <TableCell sx={rowStyle}>{item.hamali}</TableCell>
                   <TableCell>
@@ -368,7 +394,8 @@ export default function AllItemPage() {
                     </IconButton>
                   </TableCell>
                 </TableRow>
-              )) :
+              ))
+            ) : (
               <TableRow>
                 <TableCell colSpan={6} align="center">
                   No data to display
@@ -409,9 +436,7 @@ export default function AllItemPage() {
           >
             {isAdding ? "Add Item" : "Edit Item"}
           </Typography>
-          {currentItemList && (
-            <Box>{renderPage2()}</Box>
-          )}
+          {currentItemList && <Box>{renderPage2()}</Box>}
         </Box>
       </Modal>
       {/* Modal for Delete Confirmation */}

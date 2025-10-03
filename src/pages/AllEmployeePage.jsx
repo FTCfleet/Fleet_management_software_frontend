@@ -219,10 +219,11 @@ const AllEmployeePage = () => {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell sx={headerStyle}>Sl No.</TableCell>
               <TableCell sx={headerStyle}>Name</TableCell>
               <TableCell sx={headerStyle}>Username</TableCell>
               <TableCell sx={headerStyle}>Phone No</TableCell>
-              <TableCell sx={headerStyle}>Role</TableCell>
+              {/* <TableCell sx={headerStyle}>Role</TableCell> */}
               <TableCell sx={headerStyle}>Station</TableCell>
               <TableCell sx={headerStyle}>Station Code</TableCell>
               <TableCell sx={{...headerStyle, textAlign: "center"}}>Actions</TableCell>
@@ -244,10 +245,11 @@ const AllEmployeePage = () => {
                 (employee, index) =>
                   employee.role !== "admin" && (
                     <TableRow key={index}>
+                      <TableCell sx={rowStyle}>{index + 1}.</TableCell>
                       <TableCell sx={rowStyle}>{employee.name}</TableCell>
                       <TableCell sx={rowStyle}>{employee.username}</TableCell>
                       <TableCell sx={rowStyle}>{employee.phoneNo}</TableCell>
-                      <TableCell sx={rowStyle}>{employee.role}</TableCell>
+                      {/* <TableCell sx={rowStyle}>{employee.role}</TableCell> */}
                       <TableCell sx={rowStyle}>
                         {employee.warehouseCode.name}
                       </TableCell>

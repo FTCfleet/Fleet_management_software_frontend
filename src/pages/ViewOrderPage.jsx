@@ -389,7 +389,7 @@ export default function ViewOrderPage() {
                 <TableRow key={idx}>
                   <TableCell sx={rowCellStyle}>{idx + 1}</TableCell>
                   <TableCell sx={rowCellStyle}>{item.name}</TableCell>
-                  <TableCell sx={rowCellStyle}>{item.type}</TableCell>
+                  <TableCell sx={rowCellStyle}>{item.itemType.name}</TableCell>
                   <TableCell sx={rowCellStyle}>{item.quantity}</TableCell>
                   <TableCell sx={rowCellStyle}>{item.freight}</TableCell>
                   <TableCell sx={rowCellStyle}>{item.hamali}</TableCell>

@@ -63,6 +63,7 @@ export default function EditOrderPage() {
   const [clients, setClients] = useState([]);
   const [regItems, setRegItems] = useState([]);
   const [regClientItems, setRegClientItems] = useState([]);
+  const [itemTypes, setItemTypes] = useState([]);
   const [status, setStatus] = useState("");
   const [counter, setCounter] = useState(1);
   const [sourceWarehouse, setSourceWarehouse] = useState("");
@@ -82,6 +83,7 @@ export default function EditOrderPage() {
     fetchData();
     fetchClients();
     fetchItems();
+    fetchItemTypes();
   }, []);
 
   const fetchRegClientItems = async (clientId) => {
@@ -167,6 +169,18 @@ export default function EditOrderPage() {
     setOldItems(data.items);
     setStatus(data.status);
     setIsPageLoading(false);
+  };
+
+  const fetchItemTypes = async () => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${BASE_URL}/api/admin/manage/item-type`,{
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    setItemTypes(data.body);
   };
 
   const handleSenderChange = (event, selectedOption) => {
@@ -725,7 +739,7 @@ export default function EditOrderPage() {
                   <TableRow key={idx}>
                     <TableCell>{idx + 1}</TableCell>
                     <TableCell>{item.name}</TableCell>
-                    <TableCell>{item.type}</TableCell>
+                    <TableCell>{item.itemType.name}</TableCell>
                     <TableCell>{item.quantity}</TableCell>
                     <TableCell>{item.freight}</TableCell>
                     <TableCell>{item.hamali}</TableCell>
@@ -864,10 +878,20 @@ export default function EditOrderPage() {
                             )
                           }
                           size="small"
+                          MenuProps={{
+                            PaperProps: {
+                              style: {
+                                maxHeight: 200
+                              },
+                            },
+                          }}
                         >
-                          <MenuItem value="C/B">C/B</MenuItem>
+                          {itemTypes.map((type) => (
+                            <MenuItem key={type._id} value={type.name}>{type.name}</MenuItem>
+                          ))}
+                          {/* <MenuItem value="C/B">C/B</MenuItem>
                           <MenuItem value="G/B">G/B</MenuItem>
-                          <MenuItem value="BUNDLE">Bundle</MenuItem>
+                          <MenuItem value="BUNDLE">Bundle</MenuItem> */}
                         </Select>
                       </FormControl>
                     </TableCell>

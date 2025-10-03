@@ -171,7 +171,7 @@ export default function AllClientPage() {
           itemDetails: {},
           freight: 0,
           hamali: 0,
-          type: "C/B",
+          type: "",
         },
       ],
     });
@@ -556,7 +556,7 @@ export default function AllClientPage() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={headerStyle}>Sl No</TableCell>
+              <TableCell sx={headerStyle}>Sl No.</TableCell>
               <TableCell sx={headerStyle}>Client Name</TableCell>
               <TableCell sx={headerStyle}>Phone Number</TableCell>
               <TableCell sx={headerStyle}>Client Address</TableCell>

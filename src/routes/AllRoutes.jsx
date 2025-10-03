@@ -17,7 +17,7 @@ import AllEmployeePage from "../pages/AllEmployeePage";
 import AllWarehousePage from "../pages/AllWarehousePage";
 import AllClientPage from "../pages/AllClientPage";
 import AllItemPage from "../pages/AllItemPage";
-import ItemTypeManagementPage from "../pages/ItemTypeManagementPage";
+import AllItemTypesPage from "../pages/AllItemTypesPage.jsx";
 import AllLedgerPage from "../pages/AllLedgerPage";
 import AllOrderPage from "../pages/AllOrderPage";
 import EditOrderPage from "../pages/EditOrderPage";
@@ -72,7 +72,7 @@ function AllRoutes() {
         <Route exact path="trucks" element={<AllTruckPage />} />
         <Route exact path="clients" element={<AllClientPage />} />
         <Route exact path="items" element={<AllItemPage />} />
-        <Route exact path="item-types" element={<ItemTypeManagementPage />} />
+        <Route exact path="item-types" element={<AllItemTypesPage />} />
         <Route exact path="warehouses" element={<AllWarehousePage />} />
         <Route exact path="add/order" element={<AddOrderPage />} />
         <Route exact path="add/ledger" element={<AddLedgerPage />} />
