@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -132,6 +132,11 @@ const UserTemplate = () => {
               {
                 text: "Items List",
                 path: "/user/items",
+                icon: <FaMoneyCheckAlt />,
+              },
+              {
+                text: "Item Types",
+                path: "/user/item-types",
                 icon: <FaMoneyCheckAlt />,
               },
             ],
