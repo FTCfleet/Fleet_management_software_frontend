@@ -20,7 +20,12 @@ import {
   CircularProgress,
   Checkbox,
 } from "@mui/material";
-import { useParams, useNavigate, Link, useOutletContext } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+  Link,
+  useOutletContext,
+} from "react-router-dom";
 import ledger from "../assets/ledger.jpg";
 import { useAuth } from "../routes/AuthContext";
 import {
@@ -130,7 +135,7 @@ export default function ViewLedgerPage() {
     setOrders([...orders]);
   };
 
-  const handleModalOpen = (headingText, text, buttonText, textColor, func) => { 
+  const handleModalOpen = (headingText, text, buttonText, textColor, func) => {
     modalData.current.headingText = headingText;
     modalData.current.text = text;
     modalData.current.textColor = textColor;
@@ -185,7 +190,7 @@ export default function ViewLedgerPage() {
     setCounter(0);
     // window.location.reload();
   };
-  
+
   const handleVerify = async () => {
     setIsScreenLoading(true);
     setIsScreenLoadingText("Loading Please Wait...");
@@ -208,8 +213,8 @@ export default function ViewLedgerPage() {
     setIsScreenLoadingText("");
     setIsScreenLoading(false);
     if (!data.flag) {
-      alert("Error occurred "+ data.message);
-    }else{
+      alert("Error occurred " + data.message);
+    } else {
       alert("Orders delivered successfully");
       setModalOpen(false);
       setCounter(0);
@@ -237,7 +242,7 @@ export default function ViewLedgerPage() {
     if (data.flag) {
       navigate("/user/ledgers/all");
     } else {
-      alert("Error occurred "+ data.message);
+      alert("Error occurred " + data.message);
     }
   };
 
@@ -267,6 +272,22 @@ export default function ViewLedgerPage() {
     setIsScreenLoadingText("");
     setIsScreenLoading(false);
   };
+
+  const dateFormatter = (dateString) => {
+    if (!dateString) return "N/A"; 
+    const year = dateString.substring(0, 4);
+    const month = dateString.substring(8, 10);
+    const day = dateString.substring(5, 7);
+    const hour24 = parseInt(dateString.substring(11, 13));
+    const minute = dateString.substring(14, 16);
+
+    let ampm = hour24 >= 12 ? 'PM' : 'AM';
+    let hour12 = hour24 % 12;
+    hour12 = hour12 === 0 ? 12 : hour12; 
+
+    const formattedDate = `${day}/${month}/${year}, ${hour12}:${minute} ${ampm}`;
+    return (formattedDate); 
+  }
 
   const handleCheckboxChange = (value) => {
     // console.log(value);
@@ -322,52 +343,66 @@ export default function ViewLedgerPage() {
               <CircularProgress />
             </Box>
           ) : (
-            <>
-              <Typography sx={rowStyle}>
-                <strong>Memo No:</strong> {ledgerData.ledgerId}
-              </Typography>
-              <Typography sx={rowStyle}>
-                <strong>Truck No:</strong> {ledgerData.vehicleNo}
-              </Typography>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  gap: "20px",
-                  alignItems: "center",
-                }}
-              >
+            <Box sx={{ display: "flex", gap: "40px" }}>
+              <Box>
                 <Typography sx={rowStyle}>
-                  <strong>Source Station:</strong>{" "}
+                  <strong>Memo No:</strong> {ledgerData.ledgerId}
+                </Typography>
+                
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    gap: "20px",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography sx={rowStyle}>
+                    <strong>Source Station:</strong>{" "}
+                  </Typography>
+                  <Typography sx={rowStyle}>
+                    {ledgerData.sourceWarehouse?.name}
+                  </Typography>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    gap: "20px",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography sx={rowStyle}>
+                    <strong>Destination Station:</strong>{" "}
+                  </Typography>
+                  <Typography sx={rowStyle}>
+                    {ledgerData.destinationWarehouse?.name}
+                  </Typography>
+                </div>
+                <Typography sx={rowStyle}>
+                  <strong>Status:</strong>{" "}
+                  {ledgerData.status?.charAt(0).toUpperCase() +
+                    ledgerData.status?.slice(1)}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography sx={rowStyle}>
+                  <strong>Truck No:</strong> {ledgerData.vehicleNo}
                 </Typography>
                 <Typography sx={rowStyle}>
-                  {ledgerData.sourceWarehouse?.name}
-                </Typography>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  gap: "20px",
-                  alignItems: "center",
-                }}
-              >
-                <Typography sx={rowStyle}>
-                  <strong>Destination Station:</strong>{" "}
+                  <strong>Lorry Freight: </strong>
+                  {ledgerData.lorryFreight}
                 </Typography>
                 <Typography sx={rowStyle}>
-                  {ledgerData.destinationWarehouse?.name}
+                  <strong>Created On: </strong>
+                  {dateFormatter(ledgerData.dispatchedAt)}
                 </Typography>
-              </div>
-              <Typography sx={rowStyle}>
-                <strong>Lorry Freight: </strong>{ledgerData.lorryFreight}
-              </Typography>
-              <Typography sx={rowStyle}>
-                <strong>Status:</strong>{" "}
-                {ledgerData.status?.charAt(0).toUpperCase() +
-                  ledgerData.status?.slice(1)}
-              </Typography>
-            </>
+                <Typography sx={rowStyle}>
+                  <strong>Delivered On: </strong>
+                  {dateFormatter(ledgerData.deliveredAt)}
+                </Typography>
+              </Box>
+            </Box>
           )}
         </Box>
 
@@ -489,18 +524,36 @@ export default function ViewLedgerPage() {
           </TableBody>
         </Table>
       </TableContainer>
-      
+
       {(isSource || isAdmin) && ledgerData.status === "pending" && (
-        <button className="button button-large"
-          onClick={() => handleModalOpen("Dispatch Truck", "", "Confirm", "#25344e", handleDispatch)}
+        <button
+          className="button button-large"
+          onClick={() =>
+            handleModalOpen(
+              "Dispatch Truck",
+              "",
+              "Confirm",
+              "#25344e",
+              handleDispatch
+            )
+          }
         >
           <FaTruckLoading style={{ marginRight: "8px" }} />
           Dispatch Truck
         </button>
       )}
       {(!isSource || isAdmin) && ledgerData.status === "dispatched" && (
-        <button className="button button-large"
-          onClick={() => handleModalOpen("Deliver Truck", "", "Confirm", "#25344e", handleVerify)}
+        <button
+          className="button button-large"
+          onClick={() =>
+            handleModalOpen(
+              "Deliver Truck",
+              "",
+              "Confirm",
+              "#25344e",
+              handleVerify
+            )
+          }
         >
           <TbTruckDelivery size="19" style={{ marginRight: "8px" }} />
           Deliver Truck
@@ -516,7 +569,15 @@ export default function ViewLedgerPage() {
       {isAdmin && (
         <button
           className="button button-large"
-          onClick={() => handleModalOpen("Delete Memo", "Are you sure you want to delete this?", "Delete", "#d32f2f", handleDeleteLedger)}
+          onClick={() =>
+            handleModalOpen(
+              "Delete Memo",
+              "Are you sure you want to delete this?",
+              "Delete",
+              "#d32f2f",
+              handleDeleteLedger
+            )
+          }
         >
           <FaTrash style={{ marginRight: "8px" }} /> Delete Memo
         </button>
@@ -574,7 +635,11 @@ export default function ViewLedgerPage() {
             </Button>
             <Button
               variant="contained"
-              sx={{ backgroundColor: modalData.current.textColor, display: "flex", gap: "8px" }}
+              sx={{
+                backgroundColor: modalData.current.textColor,
+                display: "flex",
+                gap: "8px",
+              }}
               onClick={modalData.current.func}
             >
               {modalData.current.buttonText}

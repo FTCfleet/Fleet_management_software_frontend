@@ -37,6 +37,7 @@ const DashboardPage = () => {
   useEffect(() => {
     checkAuthStatus().then((data) => {
       setUser(data.user_data);
+      console.log(data.user_data);
       setNewWarehouse(data.user_data.warehouseCode);
     });
     fetchWarehouse();
@@ -321,7 +322,7 @@ const DashboardPage = () => {
               onChange={(e) => setNewWarehouse(e.target.value)}
             >
               {allWarehouse
-                .filter((w) => w.isSource)
+                .filter((w) => w.isSource === user.isSource)
                 .map((w) => (
                   <MenuItem key={w.warehouseID} value={w.warehouseID}>
                     {w.name}

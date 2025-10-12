@@ -24,7 +24,6 @@ import {
 } from "@mui/material";
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
 import "../css/main.css";
-import { useAuth } from "../routes/AuthContext";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -48,7 +47,6 @@ export default function AddLedgerPage({}) {
   const [selectedDate, setSelectedDate] = useState(
     () => new Date().toISOString().split("T")[0]
   );
-  const { isAdmin, isSource } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const cellStyle = {
@@ -65,7 +63,6 @@ export default function AddLedgerPage({}) {
   useEffect(() => {
     fetchTrucks();
     fetchWarehouse();
-    // if (!isAdmin) fetchOrders(selectedDate, "NA", destinationWarehouse)
   }, []);
 
   useEffect(() => {
@@ -102,7 +99,7 @@ export default function AddLedgerPage({}) {
       alert("Please fill Truck Number");
       return false;
     }
-    if (!destinationWarehouse || (isAdmin && !sourceWarehouse)) {
+    if (!destinationWarehouse || (!sourceWarehouse)) {
       alert("Please fill all the required fields");
       return false;
     }
@@ -132,7 +129,7 @@ export default function AddLedgerPage({}) {
           destinationWarehouse,
           lorryFreight: lorryFreight,
           vehicleNo: truckNo,
-          ...(isAdmin ? { sourceWarehouse } : {}),
+          ...(sourceWarehouse !== 'all' ? {sourceWarehouse} : {}),
         }),
       });
 
@@ -233,13 +230,12 @@ export default function AddLedgerPage({}) {
   };
 
   const handleWarehouseChange = (value, type) => {
-    console.log(value);
     if (type === "destination") {
       setDestinationWarehouse(value);
       fetchOrders(selectedDate, sourceWarehouse, value);
       return;
     }
-    if (isAdmin) {
+    else {
       setSourceWarehouse(value);
       if (destinationWarehouse)
         fetchOrders(selectedDate, value, destinationWarehouse);
@@ -335,25 +331,24 @@ export default function AddLedgerPage({}) {
             setLorryFreight(parseInt(event.target.value) || 0)
           }
         />
-        {isAdmin && (
-          <FormControl>
-            <InputLabel>Source Station</InputLabel>
-            <Select
-              label="Source Station"
-              value={sourceWarehouse}
-              onChange={(e) => handleWarehouseChange(e.target.value, "source")}
-              error={error && !sourceWarehouse}
-            >
-              {allWarehouse
-                .filter((w) => w.isSource)
-                .map((w) => (
-                  <MenuItem key={w.warehouseID} value={w.warehouseID}>
-                    {w.name}
-                  </MenuItem>
-                ))}
-            </Select>
-          </FormControl>
-        )}
+        <FormControl>
+          <InputLabel>Source Station</InputLabel>
+          <Select
+            label="Source Station"
+            value={sourceWarehouse}
+            onChange={(e) => handleWarehouseChange(e.target.value, "source")}
+            error={error && !sourceWarehouse}
+          >
+            {allWarehouse
+              .filter((w) => w.isSource)
+              .map((w) => (
+                <MenuItem key={w.warehouseID} value={w.warehouseID}>
+                  {w.name}
+                </MenuItem>
+              ))}
+              <MenuItem value="all">All Stations</MenuItem>
+          </Select>
+        </FormControl>
         <FormControl>
           <InputLabel>Destination Station</InputLabel>
           <Select
@@ -387,7 +382,7 @@ export default function AddLedgerPage({}) {
         >
           Orders ({selectedOrders.current.size} selected)
         </Typography>
-        {(!isAdmin || (isAdmin && sourceWarehouse)) &&
+        {sourceWarehouse &&
           truckNo &&
           destinationWarehouse && (
             <div>
@@ -458,22 +453,12 @@ export default function AddLedgerPage({}) {
                       <TableCell sx={cellStyle}>LR ID</TableCell>
                       <TableCell sx={cellStyle}>{"Sender's\nName"}</TableCell>
                       <TableCell sx={cellStyle}>{"Receiver's Name"}</TableCell>
-                      {isAdmin ? (
-                        <>
-                          <TableCell sx={cellStyle}>
-                            {"Source" + "\n" + "Station"}
-                          </TableCell>
-                          <TableCell sx={cellStyle}>
-                            {"Destination" + "\n" + "Station"}
-                          </TableCell>
-                        </>
-                      ) : (
-                        <TableCell sx={cellStyle}>
-                          {(isSource ? "Destination" : "Source") +
-                            "\n" +
-                            "Station"}
-                        </TableCell>
-                      )}
+                      <TableCell sx={cellStyle}>
+                        {"Source" + "\n" + "Station"}
+                      </TableCell>
+                      <TableCell sx={cellStyle}>
+                        {"Destination" + "\n" + "Station"}
+                      </TableCell>
                       <TableCell sx={cellStyle}>View LR</TableCell>
                     </TableRow>
                   </TableHead>
@@ -497,8 +482,6 @@ export default function AddLedgerPage({}) {
                           <TableCell sx={rowCellStyle}>
                             <Checkbox checked={selectedOrders.current.has(order.trackingId)} onChange={(e) => handleChange(e,order.trackingId)}/>
                           </TableCell>
-                          {/* <TableCell sx={rowCellStyle}>
-                          {idx + 1}</TableCell> */}
                           <TableCell sx={rowCellStyle}>
                             {order.trackingId}
                           </TableCell>
@@ -508,23 +491,12 @@ export default function AddLedgerPage({}) {
                           <TableCell sx={rowCellStyle}>
                             {order.receiver.name}
                           </TableCell>
-
-                          {isAdmin ? (
-                            <>
-                              <TableCell sx={rowCellStyle}>
-                                {order.sourceWarehouse.name}
-                              </TableCell>
-                              <TableCell sx={rowCellStyle}>
-                                {order.destinationWarehouse.name}
-                              </TableCell>
-                            </>
-                          ) : (
-                            <TableCell sx={rowCellStyle}>
-                              {isSource
-                                ? order.destinationWarehouse.name
-                                : order.sourceWarehouse.name}
-                            </TableCell>
-                          )}
+                          <TableCell sx={rowCellStyle}>
+                            {order.sourceWarehouse.name}
+                          </TableCell>
+                          <TableCell sx={rowCellStyle}>
+                            {order.destinationWarehouse.name}
+                          </TableCell>
                           <TableCell sx={rowCellStyle}>
                             <IconButton
                               color="primary"

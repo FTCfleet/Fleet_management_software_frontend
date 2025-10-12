@@ -193,8 +193,8 @@ export default function ViewOrderPage() {
   const dateFormatter = (dateString) => {
     if (!dateString) return "N/A"; 
     const year = dateString.substring(0, 4);
-    const month = dateString.substring(5, 7);
-    const day = dateString.substring(8, 10);
+    const month = dateString.substring(8, 10);
+    const day = dateString.substring(5, 7);
     const hour24 = parseInt(dateString.substring(11, 13));
     const minute = dateString.substring(14, 16);
 
