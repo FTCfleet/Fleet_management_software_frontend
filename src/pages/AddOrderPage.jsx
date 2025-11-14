@@ -86,7 +86,7 @@ export default function AddOrderPage({}) {
   const fetchClients = async () => {
     const token = localStorage.getItem("token");
 
-    const res = await fetch(`${BASE_URL}/api/admin/manage/regular-client`, {
+    const res = await fetch(`${BASE_URL}/api/admin/regular-clients`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -100,7 +100,7 @@ export default function AddOrderPage({}) {
   const fetchItems = async () => {
     const token = localStorage.getItem("token");
 
-    const res = await fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
+    const res = await fetch(`${BASE_URL}/api/admin/regular-items`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
