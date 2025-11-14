@@ -193,10 +193,13 @@ export default function AddOrderPage({}) {
         value = event?.target.value.toUpperCase();
       }
       value = value.toUpperCase();
-      let item = regClientItems.find((item) => item.itemDetails.name === value);
-      if (!item) {
-        item = regItems.find((item) => item.name === value);
+      // let item = regClientItems.find((item) => item.itemDetails.name === value);
+      // if (!item) {
+      let item = regItems.find((item) => item.name === value);
+      if (item){
+        item.type = item.itemType.name;
       }
+      // }
       if (!item) {
         setItems((prevItems) =>
           prevItems.map((prevItem) =>

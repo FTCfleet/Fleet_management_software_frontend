@@ -195,13 +195,6 @@ export default function AllItemPage() {
     setCurrentItemList(updatedItems);
   };
 
-  // const handleAddItemRow = () => {
-  //   setCurrentItemList((prev) => [
-  //     ...prev,
-  //     { name: "", freight: 0, hamali: 0, type: "C/B" },
-  //   ]);
-  // };
-
   const handleRemove = (index) => {
     const updatedItems = [...currentItemList];
     updatedItems.splice(index, 1);
@@ -237,7 +230,7 @@ export default function AllItemPage() {
               <TableCell>
                 <FormControl fullWidth>
                   <Select
-                    value={item.type}
+                    value={item.itemType?.name || item.type}
                     onChange={(e) =>
                       handleItemChange(idx, "type", e.target.value)
                     }
@@ -255,9 +248,6 @@ export default function AllItemPage() {
                         {type.name}
                       </MenuItem>
                     ))}
-                    {/* <MenuItem value="C/B">C/B</MenuItem>
-                    <MenuItem value="G/B">G/B</MenuItem>
-                    <MenuItem value="BUNDLE">Bundle</MenuItem> */}
                   </Select>
                 </FormControl>
               </TableCell>
@@ -294,15 +284,6 @@ export default function AllItemPage() {
           ))}
         </TableBody>
       </Table>
-      {/* {isAdding ? <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={handleAddItemRow}
-        >
-          + Add Row
-        </Button>
-      </Box> : null} */}
       <Box sx={{ display: "flex", justifyContent: "center", mt: 2, gap: 12 }}>
         <Button variant="contained" onClick={handleSaveOrAdd}>
           {isAdding ? "Add Item" : "Save Changes"}
