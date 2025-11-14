@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -20,7 +20,6 @@ import {
 } from "@mui/material";
 import { Edit, Delete, Close } from "@mui/icons-material";
 import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
-import { IoArrowForwardCircleOutline } from "react-icons/io5";
 import "../css/main.css";
 
 const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
@@ -29,10 +28,8 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function AllItemPage() {
   const [items, setItems] = useState([]);
-  const [filteredItems, setFilteredItems] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentItemList, setCurrentItemList] = useState(null);
-  const [currentItem, setCurrentItem] = useState(null);
   const [itemTypes, setItemTypes] = useState([]);
   const [isAdding, setIsAdding] = useState(false);
   const [nameFilter, setNameFilter] = useState("");
@@ -41,56 +38,110 @@ export default function AllItemPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
   const [isLoading2, setIsLoading2] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalItems, setTotalItems] = useState(0);
+  const filtersRef = useRef({ name: "" });
+
+  const fetchItems = useCallback(
+    async ({ page = 1, name } = {}) => {
+      setIsLoading(true);
+      const searchName =
+        typeof name === "string" ? name.trim() : filtersRef.current.name;
+
+      filtersRef.current = {
+        name: searchName,
+      };
+
+      const token = localStorage.getItem("token");
+
+      try {
+        const params = new URLSearchParams({
+          page: String(page),
+          name: searchName,
+        });
+
+        const res = await fetch(
+          `${BASE_URL}/api/admin/manage/regular-item?${params.toString()}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch items");
+        }
+
+        const data = await res.json();
+        const {
+          items: serverItems = [],
+          page: serverPage = page,
+          pageSize: serverPageSize = serverItems.length,
+          totalPages: serverTotalPages = 0,
+          totalItems: serverTotalItems = serverItems.length,
+        } = data.body || {};
+
+        setItems(serverItems);
+        setCurrentPage(serverPage);
+        setPageSize(serverPageSize);
+        setTotalPages(serverTotalPages);
+        setTotalItems(serverTotalItems);
+      } catch (error) {
+        console.error("Failed to fetch items", error);
+        setItems([]);
+        setPageSize(0);
+        setTotalPages(0);
+        setTotalItems(0);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
-    fetchData();
-    fetchItemTypes();
+    fetchItems({ page: 1 });
+  }, [fetchItems]);
+
+  const fetchItemTypes = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`${BASE_URL}/api/admin/manage/item-type`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) {
+        throw new Error("Failed to fetch item types");
+      }
+      const data = await res.json();
+      setItemTypes(data.body);
+    } catch (error) {
+      console.error("Failed to fetch item types", error);
+      setItemTypes([]);
+    }
   }, []);
 
   useEffect(() => {
-    setFilteredItems(items);
-  }, [items]);
-
-  const fetchData = async () => {
-    setIsLoading(true);
-    const token = localStorage.getItem("token");
-
-    const res = await fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const data = await res.json();
-    setItems(data.body);
-    setIsLoading(false);
-  };
-
-  const fetchItemTypes = async () => {
-    const token = localStorage.getItem("token");
-    const res = await fetch(`${BASE_URL}/api/admin/manage/item-type`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const data = await res.json();
-    setItemTypes(data.body);
-  };
+    fetchItemTypes();
+  }, [fetchItemTypes]);
 
   const applyFilter = () => {
-    const filtered = items.filter((item) => {
-      return nameFilter
-        ? item.name.toLowerCase().startsWith(nameFilter.toLowerCase())
-        : true;
-    });
-    setFilteredItems(filtered);
+    const trimmedName = nameFilter.trim();
+    setCurrentPage(1);
+    fetchItems({ page: 1, name: trimmedName });
   };
 
   const clearFilter = () => {
     setNameFilter("");
-    setFilteredItems(items);
+    setCurrentPage(1);
+    fetchItems({ page: 1, name: "" });
   };
 
   const handleEdit = (Item) => {
@@ -120,12 +171,47 @@ export default function AllItemPage() {
       }),
     });
 
-    const data = await res.json();
-    fetchData();
+    await res.json();
+    const nextPage =
+      currentPage > 1 && items.length === 1 ? currentPage - 1 : currentPage;
+    await fetchItems({ page: nextPage });
     setIsLoading2(false);
     setDeleteModalOpen(false);
     setItemToDelete(null);
     return;
+  };
+
+  const goToPage = (pageNumber) => {
+    if (pageNumber < 1) {
+      return;
+    }
+
+    const computedTotalPages =
+      totalPages || (totalItems && pageSize ? Math.ceil(totalItems / pageSize) : 0);
+
+    if (computedTotalPages && pageNumber > computedTotalPages) {
+      return;
+    }
+
+    setCurrentPage(pageNumber);
+    fetchItems({ page: pageNumber });
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage <= 1) {
+      return;
+    }
+    goToPage(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    const computedTotalPages =
+      totalPages || (totalItems && pageSize ? Math.ceil(totalItems / pageSize) : 0);
+
+    if (computedTotalPages && currentPage >= computedTotalPages) {
+      return;
+    }
+    goToPage(currentPage + 1);
   };
 
   const handleCloseDeleteModal = () => {
@@ -171,10 +257,10 @@ export default function AllItemPage() {
       setIsModalOpen(false);
       return;
     }
+    await res.json();
+    await fetchItems({ page: currentPage });
     setIsLoading1(false);
     setIsModalOpen(false);
-    const data = await res.json();
-    fetchData();
   };
 
   const handleClose = () => {
@@ -200,6 +286,46 @@ export default function AllItemPage() {
     updatedItems.splice(index, 1);
     setCurrentItemList(updatedItems);
   };
+
+  const memoizedItems = useMemo(() => {
+    const perPage = pageSize || items.length || 0;
+    const offset = perPage ? (currentPage - 1) * perPage : 0;
+    return items.map((item, index) => ({
+      ...item,
+      serial: offset + index + 1,
+    }));
+  }, [items, currentPage, pageSize]);
+
+  const pairedItems = useMemo(() => {
+    const pairs = [];
+    for (let i = 0; i < memoizedItems.length; i += 2) {
+      pairs.push(memoizedItems.slice(i, i + 2));
+    }
+    return pairs;
+  }, [memoizedItems]);
+
+  const resolvedTotalPages = useMemo(() => {
+    if (totalPages) {
+      return totalPages;
+    }
+
+    if (totalItems && pageSize) {
+      return Math.ceil(totalItems / pageSize);
+    }
+
+    return totalItems > 0 ? 1 : 0;
+  }, [totalPages, totalItems, pageSize]);
+
+  const visibleRange = useMemo(() => {
+    if (!memoizedItems.length) {
+      return { start: 0, end: 0 };
+    }
+
+    return {
+      start: memoizedItems[0].serial,
+      end: memoizedItems[memoizedItems.length - 1].serial,
+    };
+  }, [memoizedItems]);
 
   const renderPage2 = () => (
     <>
@@ -333,18 +459,18 @@ export default function AllItemPage() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={headerStyle}>No</TableCell>
-              <TableCell sx={headerStyle}>Item Name</TableCell>
-              <TableCell sx={headerStyle}>Type</TableCell>
-              <TableCell sx={headerStyle}>Freight</TableCell>
-              <TableCell sx={headerStyle}>Hamali</TableCell>
-              <TableCell sx={headerStyle}>Actions</TableCell>
+              <TableCell
+                sx={{ ...headerStyle, textAlign: "center" }}
+                colSpan={2}
+              >
+                Items
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">
+                <TableCell colSpan={2} align="center">
                   <CircularProgress
                     size={22}
                     className="spinner"
@@ -352,33 +478,70 @@ export default function AllItemPage() {
                   />
                 </TableCell>
               </TableRow>
-            ) : filteredItems.length > 0 ? (
-              filteredItems.map((item, idx) => (
-                <TableRow key={idx}>
-                  <TableCell sx={rowStyle}>{idx + 1}.</TableCell>
-                  <TableCell sx={rowStyle}>{item.name}</TableCell>
-                  <TableCell sx={rowStyle}>{item.itemType.name}</TableCell>
-                  <TableCell sx={rowStyle}>{item.freight}</TableCell>
-                  <TableCell sx={rowStyle}>{item.hamali}</TableCell>
-                  <TableCell>
-                    <IconButton
-                      color="primary"
-                      onClick={() => handleEdit(item)}
-                    >
-                      <Edit />
-                    </IconButton>
-                    <IconButton
-                      color="error"
-                      onClick={() => handleDelete(item._id)}
-                    >
-                      <Delete />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))
+            ) : memoizedItems.length > 0 ? (
+              pairedItems.map((pair, rowIdx) => {
+                const rowKey =
+                  pair.map((item) => item._id || item.serial).join("-") ||
+                  rowIdx;
+                return (
+                  <TableRow key={rowKey}>
+                    {pair.map((item) => (
+                      <TableCell
+                        key={item._id || item.serial}
+                        sx={{ width: "50%", verticalAlign: "top" }}
+                      >
+                        <Box
+                          sx={{
+                            border: "1px solid #E5E7EB",
+                            borderRadius: 2,
+                            p: 2,
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 1,
+                            minHeight: 150,
+                          }}
+                        >
+                          <Typography
+                            variant="subtitle1"
+                            sx={{ ...headerStyle, fontSize: "1rem" }}
+                          >
+                            {`${item.serial}. ${item.name}`}
+                          </Typography>
+                          <Typography variant="body2" sx={rowStyle}>
+                            Type: {item.itemType?.name || "NA"}
+                          </Typography>
+                          <Typography variant="body2" sx={rowStyle}>
+                            Freight: {item.freight}
+                          </Typography>
+                          <Typography variant="body2" sx={rowStyle}>
+                            Hamali: {item.hamali}
+                          </Typography>
+                          <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+                            <IconButton
+                              color="primary"
+                              onClick={() => handleEdit(item)}
+                            >
+                              <Edit />
+                            </IconButton>
+                            <IconButton
+                              color="error"
+                              onClick={() => handleDelete(item._id)}
+                            >
+                              <Delete />
+                            </IconButton>
+                          </Box>
+                        </Box>
+                      </TableCell>
+                    ))}
+                    {pair.length === 1 && (
+                      <TableCell sx={{ width: "50%" }} />
+                    )}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={2} align="center">
                   No data to display
                 </TableCell>
               </TableRow>
@@ -386,6 +549,49 @@ export default function AllItemPage() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: "16px",
+          flexWrap: "wrap",
+          gap: "12px",
+        }}
+      >
+        <Typography variant="body2" sx={{ color: "#25344E" }}>
+          {memoizedItems.length > 0
+            ? `Showing ${visibleRange.start} - ${visibleRange.end} of ${totalItems} items`
+            : `Showing 0 of ${totalItems} items`}
+        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <Button
+            variant="outlined"
+            onClick={handlePreviousPage}
+            disabled={currentPage <= 1 || isLoading}
+          >
+            Previous
+          </Button>
+          <Typography
+            variant="body2"
+            sx={{ color: "#1E3A5F", fontWeight: "bold" }}
+          >
+            Page {resolvedTotalPages === 0 ? 0 : currentPage} of {resolvedTotalPages}
+          </Typography>
+          <Button
+            variant="outlined"
+            onClick={handleNextPage}
+            disabled={
+              resolvedTotalPages === 0 ||
+              currentPage >= resolvedTotalPages ||
+              isLoading
+            }
+          >
+            Next
+          </Button>
+        </Box>
+      </Box>
 
       {/* Modal for Add/Edit Item */}
       <Modal open={isModalOpen} onClose={handleClose}>
