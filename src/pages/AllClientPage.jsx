@@ -243,7 +243,7 @@ export default function AllClientPage() {
     if (res.status === 409) {
       alert("Client already exists");
       setIsLoading1(false);
-      setIsModalOpen(false);
+      // setIsModalOpen(false);
       return;
     }
     const data = await res.json();

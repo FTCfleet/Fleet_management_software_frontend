@@ -30,12 +30,12 @@ const modalContainerSx = {
 const ClientModal = memo(function ClientModal({
   open,
   onClose,
-  client,
+  client = null,
   onFieldChange,
   onSubmit,
   isAdding,
   isSubmitting,
-  titleSx,
+  titleSx = null,
 }) {
   if (!client) {
     return null;
@@ -171,11 +171,6 @@ ClientModal.propTypes = {
   isAdding: PropTypes.bool.isRequired,
   isSubmitting: PropTypes.bool.isRequired,
   titleSx: PropTypes.object,
-};
-
-ClientModal.defaultProps = {
-  client: null,
-  titleSx: null,
 };
 
 export default ClientModal;
