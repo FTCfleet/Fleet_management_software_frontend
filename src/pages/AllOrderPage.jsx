@@ -21,6 +21,7 @@ import "../css/table.css";
 import "../css/calendar.css";
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
 import { useAuth } from "../routes/AuthContext";
+import {getDate} from "../utils/dateFormatter"
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -28,9 +29,7 @@ const AllOrderPage = () => {
   const { type } = useParams();
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(
-    () => new Date().toISOString().split("T")[0]
-  );
+  const [selectedDate, setSelectedDate] = useState(getDate());
   const [warehouses, setWarehouses] = useState([]);
   const { isSource, isAdmin } = useAuth();
   const [nameFilter, setNameFilter] = useState("");

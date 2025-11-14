@@ -36,6 +36,7 @@ import {
 } from "react-icons/fa";
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
 import { TbTruckDelivery } from "react-icons/tb";
+import { dateFormatter } from "../utils/dateFormatter";
 // import { Delete } from "react-feather";
 // import { Memory } from "@mui/icons-material";
 
@@ -273,22 +274,6 @@ export default function ViewLedgerPage() {
     setIsScreenLoading(false);
   };
 
-  const dateFormatter = (dateString) => {
-    if (!dateString) return "N/A"; 
-    const year = dateString.substring(0, 4);
-    const month = dateString.substring(8, 10);
-    const day = dateString.substring(5, 7);
-    const hour24 = parseInt(dateString.substring(11, 13));
-    const minute = dateString.substring(14, 16);
-
-    let ampm = hour24 >= 12 ? 'PM' : 'AM';
-    let hour12 = hour24 % 12;
-    hour12 = hour12 === 0 ? 12 : hour12; 
-
-    const formattedDate = `${day}/${month}/${year}, ${hour12}:${minute} ${ampm}`;
-    return (formattedDate); 
-  }
-
   const handleCheckboxChange = (value) => {
     // console.log(value);
     if (value) {
@@ -348,37 +333,14 @@ export default function ViewLedgerPage() {
                 <Typography sx={rowStyle}>
                   <strong>Memo No:</strong> {ledgerData.ledgerId}
                 </Typography>
-                
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    gap: "20px",
-                    alignItems: "center",
-                  }}
-                >
-                  <Typography sx={rowStyle}>
-                    <strong>Source Station:</strong>{" "}
-                  </Typography>
-                  <Typography sx={rowStyle}>
-                    {ledgerData.sourceWarehouse?.name}
-                  </Typography>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    gap: "20px",
-                    alignItems: "center",
-                  }}
-                >
-                  <Typography sx={rowStyle}>
-                    <strong>Destination Station:</strong>{" "}
-                  </Typography>
-                  <Typography sx={rowStyle}>
-                    {ledgerData.destinationWarehouse?.name}
-                  </Typography>
-                </div>
+                <Typography sx={rowStyle}>
+                  <strong>Source Station:</strong>{" "}
+                  {ledgerData.sourceWarehouse?.name}
+                </Typography>
+                <Typography sx={rowStyle}>
+                  <strong>Destination Station:</strong>{" "}
+                  {ledgerData.destinationWarehouse?.name}
+                </Typography>
                 <Typography sx={rowStyle}>
                   <strong>Status:</strong>{" "}
                   {ledgerData.status?.charAt(0).toUpperCase() +

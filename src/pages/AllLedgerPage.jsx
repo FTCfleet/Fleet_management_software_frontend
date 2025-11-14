@@ -20,6 +20,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
 import { useAuth } from "../routes/AuthContext";
 import "../css/table.css";
+import { getDate } from "../utils/dateFormatter";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -27,9 +28,7 @@ const AllLedgerPage = () => {
   const { type } = useParams();
   const [ledgerEntries, setLedgerEntries] = useState([]);
   const [filteredLedger, setFilteredLedger] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(
-    () => new Date().toISOString().split("T")[0]
-  );
+  const [selectedDate, setSelectedDate] = useState(getDate());
   const navigate = useNavigate();
   const { isAdmin, isSource } = useAuth();
   const [nameFilter, setNameFilter] = useState("");

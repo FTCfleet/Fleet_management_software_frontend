@@ -24,6 +24,7 @@ import {
 } from "@mui/material";
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
 import "../css/main.css";
+import { getDate } from "../utils/dateFormatter";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -44,9 +45,7 @@ export default function AddLedgerPage({}) {
 
   const selectedOrders = useRef(new Set());
 
-  const [selectedDate, setSelectedDate] = useState(
-    () => new Date().toISOString().split("T")[0]
-  );
+  const [selectedDate, setSelectedDate] = useState(getDate());
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const cellStyle = {

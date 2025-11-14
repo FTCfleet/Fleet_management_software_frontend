@@ -20,18 +20,15 @@ import "react-calendar/dist/Calendar.css";
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 import "../css/main.css";
 import "../css/calendar.css";
+import { getDate } from "../utils/dateFormatter";
 
 export default function GenReportPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [warehouses, setWarehouses] = useState([]);
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [monthly, setMonthly] = useState("");
-  const [selectedStartDate, setSelectedStartDate] = useState(
-    () => new Date().toISOString().split("T")[0]
-  );
-  const [selectedEndDate, setSelectedEndDate] = useState(
-    () => new Date().toISOString().split("T")[0]
-  );
+  const [selectedStartDate, setSelectedStartDate] = useState(getDate());
+  const [selectedEndDate, setSelectedEndDate] = useState(getDate());
   const [modalOpen, setModalOpen] = useState(false);
   const lastFourMonths = useRef([]);
 

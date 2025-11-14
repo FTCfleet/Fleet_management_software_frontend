@@ -14,16 +14,14 @@ import {
   CircularProgress,
   TextField,
 } from "@mui/material";
-import { Link, Navigate, useNavigate, useOutletContext, useParams, useLocation } from "react-router-dom";
+import { Link, useNavigate, useOutletContext, useParams, useLocation } from "react-router-dom";
 import {
   FaEdit,
   FaTrash,
   FaPrint,
   FaExclamationTriangle,
-  FaQrcode,
 } from "react-icons/fa";
-import orders_img from "../assets/orders.png";
-import { useAuth } from "../routes/AuthContext";
+import { dateFormatter } from "../utils/dateFormatter";
 import "../css/table.css";
 import "../css/main.css";
 
@@ -189,22 +187,6 @@ export default function ViewOrderPage() {
     setIsScreenLoadingText("");
     setIsScreenLoading(false);
   };
-
-  const dateFormatter = (dateString) => {
-    if (!dateString) return "N/A"; 
-    const year = dateString.substring(0, 4);
-    const month = dateString.substring(8, 10);
-    const day = dateString.substring(5, 7);
-    const hour24 = parseInt(dateString.substring(11, 13));
-    const minute = dateString.substring(14, 16);
-
-    let ampm = hour24 >= 12 ? 'PM' : 'AM';
-    let hour12 = hour24 % 12;
-    hour12 = hour12 === 0 ? 12 : hour12; 
-
-    const formattedDate = `${day}/${month}/${year}, ${hour12}:${minute} ${ampm}`;
-    return (formattedDate); 
-  }
 
   return (
     <Box
