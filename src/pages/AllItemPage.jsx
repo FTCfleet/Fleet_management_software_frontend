@@ -296,12 +296,12 @@ export default function AllItemPage() {
     }));
   }, [items, currentPage, pageSize]);
 
-  const pairedItems = useMemo(() => {
-    const pairs = [];
-    for (let i = 0; i < memoizedItems.length; i += 2) {
-      pairs.push(memoizedItems.slice(i, i + 2));
+  const groupedItems = useMemo(() => {
+    const groups = [];
+    for (let i = 0; i < memoizedItems.length; i += 4) {
+      groups.push(memoizedItems.slice(i, i + 4));
     }
-    return pairs;
+    return groups;
   }, [memoizedItems]);
 
   const resolvedTotalPages = useMemo(() => {
@@ -454,6 +454,50 @@ export default function AllItemPage() {
         </button>
       </Box>
 
+      
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: "16px",
+          flexWrap: "wrap",
+          gap: "12px",
+        }}
+      >
+        <Typography variant="body2" sx={{ color: "#25344E" }}>
+          {memoizedItems.length > 0
+            ? `Showing ${visibleRange.start} - ${visibleRange.end} of ${totalItems} items`
+            : `Showing 0 of ${totalItems} items`}
+        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+          <Button
+            variant="outlined"
+            onClick={handlePreviousPage}
+            disabled={currentPage <= 1 || isLoading}
+          >
+            Previous
+          </Button>
+          <Typography
+            variant="body2"
+            sx={{ color: "#1E3A5F", fontWeight: "bold" }}
+          >
+            Page {resolvedTotalPages === 0 ? 0 : currentPage} of {resolvedTotalPages}
+          </Typography>
+          <Button
+            variant="outlined"
+            onClick={handleNextPage}
+            disabled={
+              resolvedTotalPages === 0 ||
+              currentPage >= resolvedTotalPages ||
+              isLoading
+            }
+          >
+            Next
+          </Button>
+        </Box>
+      </Box>
+
       {/* Item Table */}
       <TableContainer component={Paper}>
         <Table>
@@ -461,7 +505,7 @@ export default function AllItemPage() {
             <TableRow>
               <TableCell
                 sx={{ ...headerStyle, textAlign: "center" }}
-                colSpan={2}
+                colSpan={4}
               >
                 Items
               </TableCell>
@@ -479,16 +523,16 @@ export default function AllItemPage() {
                 </TableCell>
               </TableRow>
             ) : memoizedItems.length > 0 ? (
-              pairedItems.map((pair, rowIdx) => {
+              groupedItems.map((group, rowIdx) => {
                 const rowKey =
-                  pair.map((item) => item._id || item.serial).join("-") ||
+                  group.map((item) => item._id || item.serial).join("-") ||
                   rowIdx;
                 return (
                   <TableRow key={rowKey}>
-                    {pair.map((item) => (
+                    {group.map((item) => (
                       <TableCell
                         key={item._id || item.serial}
-                        sx={{ width: "50%", verticalAlign: "top" }}
+                        sx={{ width: "25%", verticalAlign: "top" }}
                       >
                         <Box
                           sx={{
@@ -533,9 +577,13 @@ export default function AllItemPage() {
                         </Box>
                       </TableCell>
                     ))}
-                    {pair.length === 1 && (
-                      <TableCell sx={{ width: "50%" }} />
-                    )}
+                    {group.length < 4 &&
+                      Array.from({ length: 4 - group.length }).map((_, idx) => (
+                        <TableCell
+                          key={`empty-${rowKey}-${idx}`}
+                          sx={{ width: "25%" }}
+                        />
+                      ))}
                   </TableRow>
                 );
               })
@@ -549,49 +597,6 @@ export default function AllItemPage() {
           </TableBody>
         </Table>
       </TableContainer>
-
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: "16px",
-          flexWrap: "wrap",
-          gap: "12px",
-        }}
-      >
-        <Typography variant="body2" sx={{ color: "#25344E" }}>
-          {memoizedItems.length > 0
-            ? `Showing ${visibleRange.start} - ${visibleRange.end} of ${totalItems} items`
-            : `Showing 0 of ${totalItems} items`}
-        </Typography>
-        <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <Button
-            variant="outlined"
-            onClick={handlePreviousPage}
-            disabled={currentPage <= 1 || isLoading}
-          >
-            Previous
-          </Button>
-          <Typography
-            variant="body2"
-            sx={{ color: "#1E3A5F", fontWeight: "bold" }}
-          >
-            Page {resolvedTotalPages === 0 ? 0 : currentPage} of {resolvedTotalPages}
-          </Typography>
-          <Button
-            variant="outlined"
-            onClick={handleNextPage}
-            disabled={
-              resolvedTotalPages === 0 ||
-              currentPage >= resolvedTotalPages ||
-              isLoading
-            }
-          >
-            Next
-          </Button>
-        </Box>
-      </Box>
 
       {/* Modal for Add/Edit Item */}
       <Modal open={isModalOpen} onClose={handleClose}>
