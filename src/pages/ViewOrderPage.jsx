@@ -22,6 +22,7 @@ import {
   FaExclamationTriangle,
 } from "react-icons/fa";
 import { dateFormatter } from "../utils/dateFormatter";
+import { useAuth } from "../routes/AuthContext"
 import "../css/table.css";
 import "../css/main.css";
 
@@ -53,6 +54,7 @@ export default function ViewOrderPage() {
   const rowCellStyle = { color: "#25344E" };
   const {setIsScreenLoading, setIsScreenLoadingText} = useOutletContext();
   const location = useLocation();
+  const {isAdmin} = useAuth();
   useEffect(() => {
     fetchData();
   }, []);
@@ -127,6 +129,7 @@ export default function ViewOrderPage() {
     });
 
     const data = await res.json();
+    console.log(data);
     if (data.flag) {
       setIsLoading(false);
       handleCloseDeleteModal();
@@ -409,9 +412,10 @@ export default function ViewOrderPage() {
             <FaEdit style={{ marginRight: "8px" }} /> Edit LR
           </button>
         </Link>
+        {isAdmin &&
         <button className="button" onClick={handleOpenDeleteModal}>
           <FaTrash style={{ marginRight: "8px" }} /> Delete LR
-        </button>
+        </button>}
         {/* <button className="button" onClick={handleQrCodeModal}>
           <FaQrcode style={{ marginRight: "8px" }} /> Download QR Code
         </button> */}
