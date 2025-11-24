@@ -146,7 +146,8 @@ export default function AllItemPage() {
 
   const handleEdit = (Item) => {
     const curItem = { ...Item };
-    curItem.name = Item.name.split("(")[0].trim();
+    // console.log(Item);
+    curItem.name = Item.name.replace(`(${Item.itemType.name})`, '');
     setCurrentItemList([curItem]);
     setIsModalOpen(true);
     setIsAdding(false);
