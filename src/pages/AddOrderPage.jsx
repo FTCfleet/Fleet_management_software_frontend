@@ -49,7 +49,6 @@ export default function AddOrderPage({}) {
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [itemTypes, setItemTypes] = useState([]);
   const [regClients, setRegClients] = useState([]);
-  const [regClientItems, setRegClientItems] = useState([]);
   const [regItems, setregItems] = useState([]);
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [sourceWarehouse, setSourceWarehouse] = useState("");
@@ -102,7 +101,6 @@ export default function AddOrderPage({}) {
       }
     );
     const data = await res.json();
-    setRegClientItems(data.body);
   };
 
   const fetchClients = async () => {

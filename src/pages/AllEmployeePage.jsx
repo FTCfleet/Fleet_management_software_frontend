@@ -80,11 +80,6 @@ const AllEmployeePage = () => {
     });
     const data = await res.json();
     setEmployees(data.body);
-    // setAllUsernames((prev) => {
-    //   const employeeUsernames = data.body.map((emp) => emp.username);
-    //   const merged = new Set([...prev, ...employeeUsernames]);
-    //   return Array.from(merged);
-    // });
     setIsLoading(false);
   };
 
@@ -361,16 +356,16 @@ const AllEmployeePage = () => {
               <TableCell sx={headerStyle}>Name</TableCell>
               <TableCell sx={headerStyle}>Username</TableCell>
               <TableCell sx={headerStyle}>Phone No</TableCell>
-              {/* <TableCell sx={headerStyle}>Role</TableCell> */}
+              <TableCell sx={headerStyle}>Role</TableCell>
               <TableCell sx={headerStyle}>Station</TableCell>
-              <TableCell sx={headerStyle}>Station Code</TableCell>
+              {/* <TableCell sx={headerStyle}>Station Code</TableCell> */}
               <TableCell sx={{...headerStyle, textAlign: "center"}}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">
+                <TableCell colSpan={6} align="center">
                   <CircularProgress
                     size={22}
                     className="spinner"
@@ -381,19 +376,19 @@ const AllEmployeePage = () => {
             ) : filteredEmployees.length > 1 ? (
               filteredEmployees.map(
                 (employee, index) =>
-                  employee.role !== "admin" && (
+                  employee.username !== "admin" && (
                     <TableRow key={index}>
-                      <TableCell sx={rowStyle}>{index + 1}.</TableCell>
+                      <TableCell sx={rowStyle}>{index}.</TableCell>
                       <TableCell sx={rowStyle}>{employee.name}</TableCell>
                       <TableCell sx={rowStyle}>{employee.username}</TableCell>
                       <TableCell sx={rowStyle}>{employee.phoneNo}</TableCell>
-                      {/* <TableCell sx={rowStyle}>{employee.role}</TableCell> */}
+                      <TableCell sx={rowStyle}>{employee.role[0].toUpperCase() + employee.role.slice(1)}</TableCell>
                       <TableCell sx={rowStyle}>
                         {employee.warehouseCode.name}
                       </TableCell>
-                      <TableCell sx={rowStyle}>
+                      {/* <TableCell sx={rowStyle}>
                         {employee.warehouseCode.warehouseID}
-                      </TableCell>
+                      </TableCell> */}
                       <TableCell sx={{...rowStyle, textAlign: "center"}}>
                         <IconButton
                           color="primary"
@@ -418,7 +413,7 @@ const AllEmployeePage = () => {
               )
             ) : (
               <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ color: "#7D8695" }}>
+                <TableCell colSpan={6} align="center" sx={{ color: "#7D8695" }}>
                   No employees found for the selected filter.
                 </TableCell>
               </TableRow>
