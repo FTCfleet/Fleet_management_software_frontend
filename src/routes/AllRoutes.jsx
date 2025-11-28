@@ -37,6 +37,7 @@ function AllRoutes() {
       <Route exact path="/about" element={<AboutPage />} />
       <Route path="/auth/*" element={<AuthTemplate />}>
         <Route exact path="login" element={<LoginPage />} />
+        {/*
         <Route exact path="register" element={<RegisterPage />} />
         <Route exact path="forget" element={<ForgetPasswordPage />} />
         <Route
@@ -61,6 +62,7 @@ function AllRoutes() {
             />
           }
         />
+        */}
         <Route path="*" element={<ErrorPage />} />
       </Route>
       <Route path="/user/*" element={<UserTemplate />}>

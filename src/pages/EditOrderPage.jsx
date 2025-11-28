@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Box,
@@ -77,6 +77,28 @@ export default function EditOrderPage() {
 
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
+
+  const normalizeName = (value = "") =>
+    value ? value.toString().toUpperCase() : "";
+
+  const itemNameOptions = useMemo(() => {
+    const names = new Set();
+    regItems.forEach((item) => {
+      const name = normalizeName(item.name);
+      if (name) names.add(name);
+    });
+    return Array.from(names);
+  }, [regItems]);
+
+  const findRegItem = (name, type) => {
+    const normalizedName = normalizeName(name);
+    const normalizedType = type ? type.toString() : "";
+    return regItems.find(
+      (item) =>
+        normalizeName(item.name) === normalizedName &&
+        item.itemType?.name === normalizedType
+    );
+  };
 
   useEffect(() => {
     fetchWarehouse();
@@ -261,7 +283,7 @@ export default function EditOrderPage() {
         ...item,
         itemId: index + 1,
       }));
-    fixCharges(itemId, 0, 0, 0);
+    fixCharges(itemId, 0, 0, 0, updatedItems);
     setNewItems(updatedItems);
     setCounter(updatedItems.length + 1);
   };
@@ -269,21 +291,30 @@ export default function EditOrderPage() {
   const handleCopyRow = (itemId) => {
     const itemToCopy = newItems.find((item) => item.itemId === itemId);
     if (itemToCopy) {
+      const copiedItem = { ...itemToCopy, itemId: counter };
+      const updatedItems = [...newItems, copiedItem];
       fixCharges(
-        itemId,
-        itemToCopy.quantity,
-        itemToCopy.freight * 2,
-        itemToCopy.hamali * 2
+        copiedItem.itemId,
+        copiedItem.quantity,
+        copiedItem.freight,
+        copiedItem.hamali,
+        updatedItems
       );
-      setNewItems([...newItems, { ...itemToCopy, itemId: counter }]);
+      setNewItems(updatedItems);
       setCounter(counter + 1);
     }
   };
 
-  const fixCharges = (id, quantity_new, freight_new, hamali_new) => {
+  const fixCharges = (
+    id,
+    quantity_new,
+    freight_new,
+    hamali_new,
+    itemsList = newItems
+  ) => {
     let ham = 0,
       frt = 0;
-    newItems
+    itemsList
       .filter((item) => item.itemId !== id)
       .map((item) => {
         ham += item.quantity * item.hamali;
@@ -297,48 +328,85 @@ export default function EditOrderPage() {
 
   const handleInputChange = (id, field, value, event) => {
     if (field === "autoComplete") {
-      if (!value) {
-        value = event?.target.value.toUpperCase();
-      }
-      value = value.toUpperCase();
-      // let item = regClientItems.find((item) => item.itemDetails.name === value);
-      // if (!item) {
-      let item = regItems.find((item) => item.name === value);
-      // }
-      if (item){
-        item.type = item.itemType.name;
-      }
-      if (!item) {
-        setNewItems((prevItems) =>
-          prevItems.map((prevItem) =>
-            prevItem.itemId === id ? { ...prevItem, name: value } : prevItem
-          )
-        );
-        return;
-      }
-      item.quantity = 1;
-      setNewItems((prevItems) =>
-        prevItems.map((prevItem) =>
-          prevItem.itemId === id
-            ? { ...prevItem, ...item, name: value }
-            : prevItem
-        )
-      );
-      fixCharges(id, item.quantity, item.freight, item.hamali);
+      const normalizedValue = normalizeName(value || event?.target.value);
+      setNewItems((prevItems) => {
+        let updatedItemForCharges = null;
+        const updatedItems = prevItems.map((prevItem) => {
+          if (prevItem.itemId !== id) return prevItem;
+          const matchedItem = findRegItem(normalizedValue, prevItem.type);
+          updatedItemForCharges = {
+            ...prevItem,
+            name: normalizedValue,
+            freight: matchedItem ? matchedItem.freight || 0 : 0,
+            hamali: matchedItem ? matchedItem.hamali || 0 : 0,
+            quantity: prevItem.quantity || 1,
+          };
+          return updatedItemForCharges;
+        });
+        if (updatedItemForCharges) {
+          fixCharges(
+            id,
+            updatedItemForCharges.quantity,
+            updatedItemForCharges.freight,
+            updatedItemForCharges.hamali,
+            updatedItems
+          );
+        }
+        return updatedItems;
+      });
       return;
     }
 
-    let idx = newItems.findIndex((item) => item.itemId === id);
-    let item = newItems[idx];
+    if (field === "type") {
+      setNewItems((prevItems) => {
+        let updatedItemForCharges = null;
+        const updatedItems = prevItems.map((prevItem) => {
+          if (prevItem.itemId !== id) return prevItem;
+          const matchedItem = findRegItem(prevItem.name, value);
+          updatedItemForCharges = {
+            ...prevItem,
+            type: value,
+            freight: matchedItem ? matchedItem.freight || 0 : 0,
+            hamali: matchedItem ? matchedItem.hamali || 0 : 0,
+            quantity: prevItem.quantity || 1,
+          };
+          return updatedItemForCharges;
+        });
+        if (updatedItemForCharges) {
+          fixCharges(
+            id,
+            updatedItemForCharges.quantity,
+            updatedItemForCharges.freight,
+            updatedItemForCharges.hamali,
+            updatedItems
+          );
+        }
+        return updatedItems;
+      });
+      return;
+    }
 
     if (field === "quantity" || field === "freight" || field === "hamali") {
       value = parseInt(value) || 0;
-      item[field] = value;
-      fixCharges(id, item.quantity, item.freight, item.hamali);
     }
-    item[field] = value;
-    newItems[idx] = item;
-    setNewItems([...newItems]);
+    setNewItems((prevItems) => {
+      const updatedItems = prevItems.map((prevItem) =>
+        prevItem.itemId === id ? { ...prevItem, [field]: value } : prevItem
+      );
+      if (field === "quantity" || field === "freight" || field === "hamali") {
+        const updatedItem = updatedItems.find((itm) => itm.itemId === id);
+        if (updatedItem) {
+          fixCharges(
+            id,
+            updatedItem.quantity,
+            updatedItem.freight,
+            updatedItem.hamali,
+            updatedItems
+          );
+        }
+      }
+      return updatedItems;
+    });
   };
 
   const validateOrder = () => {
@@ -596,11 +664,6 @@ export default function EditOrderPage() {
               value={freight + freightOld}
             />
             <TextField label="Hamali" type="text" value={hamali + hamaliOld} />
-            <TextField
-              label="Statistical Charges"
-              type="text"
-              value={hamali + hamaliOld}
-            />
 
             {/* Warehouse Selection */}
             {isAdmin && (
@@ -727,9 +790,6 @@ export default function EditOrderPage() {
                     Hamali
                   </TableCell>
                   <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                    Statistical Charges
-                  </TableCell>
-                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
                     Amount
                   </TableCell>
                   <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
@@ -738,14 +798,13 @@ export default function EditOrderPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {oldItems.map((item, idx) => (
+                {oldItems.length > 0 ? oldItems.map((item, idx) => (
                   <TableRow key={idx}>
                     <TableCell>{idx + 1}</TableCell>
                     <TableCell>{item.name}</TableCell>
                     <TableCell>{item.itemType.name}</TableCell>
                     <TableCell>{item.quantity}</TableCell>
                     <TableCell>{item.freight}</TableCell>
-                    <TableCell>{item.hamali}</TableCell>
                     <TableCell>{item.hamali}</TableCell>
                     <TableCell>
                       {(item.freight + item.hamali * 2) * item.quantity}
@@ -759,7 +818,9 @@ export default function EditOrderPage() {
                       </IconButton>
                     </TableCell>
                   </TableRow>
-                ))}
+                )):
+                <TableRow><TableCell colSpan={8} align="center">No data to display</TableCell></TableRow>
+                }
               </TableBody>
             </Table>
 
@@ -797,9 +858,6 @@ export default function EditOrderPage() {
                     Hamali
                   </TableCell>
                   <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
-                    Statistical Charges
-                  </TableCell>
-                  <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
                     Amount
                   </TableCell>
                   <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
@@ -809,18 +867,18 @@ export default function EditOrderPage() {
               </TableHead>
               <TableBody>
                 {newItems.map((item, idx) => (
-                  <TableRow key={item.itemId}>
-                    <TableCell>{idx + 1}</TableCell>
-                    <TableCell>
-                      <Autocomplete
-                        freeSolo
-                        value={item.name.toUpperCase()}
-                        options={regItems.map((item) => item.name)}
-                        onChange={(event, newValue) => {
-                          handleInputChange(
-                            item.itemId,
-                            "autoComplete",
-                            newValue,
+                    <TableRow key={item.itemId}>
+                      <TableCell>{idx + 1}</TableCell>
+                      <TableCell>
+                        <Autocomplete
+                          freeSolo
+                          value={item.name}
+                          options={itemNameOptions}
+                          onChange={(event, newValue) => {
+                            handleInputChange(
+                              item.itemId,
+                              "autoComplete",
+                              newValue,
                             event
                           );
                         }}

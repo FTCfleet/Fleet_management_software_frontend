@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -59,6 +59,28 @@ export default function AddOrderPage({}) {
   const { isAdmin } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  const normalizeName = (value = "") =>
+    value ? value.toString().toUpperCase() : "";
+
+  const itemNameOptions = useMemo(() => {
+    const names = new Set();
+    regItems.forEach((item) => {
+      const name = normalizeName(item.name);
+      if (name) names.add(name);
+    });
+    return Array.from(names);
+  }, [regItems]);
+
+  const findRegItem = (name, type) => {
+    const normalizedName = normalizeName(name);
+    const normalizedType = type ? type.toString() : "";
+    return regItems.find(
+      (item) =>
+        normalizeName(item.name) === normalizedName &&
+        item.itemType?.name === normalizedType
+    );
+  };
 
   useEffect(() => {
     fetchClients();
@@ -153,7 +175,7 @@ export default function AddOrderPage({}) {
         ...item,
         id: index + 1,
       }));
-    fixCharges(id, 0, 0, 0);
+    fixCharges(id, 0, 0, 0, updatedItems);
     setItems(updatedItems);
     setCounter(updatedItems.length + 1);
   };
@@ -161,21 +183,30 @@ export default function AddOrderPage({}) {
   const handleCopyRow = (id) => {
     const itemToCopy = items.find((item) => item.id === id);
     if (itemToCopy) {
+      const copiedItem = { ...itemToCopy, id: counter };
+      const updatedItems = [...items, copiedItem];
       fixCharges(
-        id,
-        itemToCopy.quantity,
-        itemToCopy.freight * 2,
-        itemToCopy.hamali * 2
+        copiedItem.id,
+        copiedItem.quantity,
+        copiedItem.freight,
+        copiedItem.hamali,
+        updatedItems
       );
-      setItems([...items, { ...itemToCopy, id: counter }]);
+      setItems(updatedItems);
       setCounter(counter + 1);
     }
   };
 
-  const fixCharges = (id, quantity_new, freight_new, hamali_new) => {
+  const fixCharges = (
+    id,
+    quantity_new,
+    freight_new,
+    hamali_new,
+    itemsList = items
+  ) => {
     let ham = 0,
       frt = 0;
-    items
+    itemsList
       .filter((item) => item.id !== id)
       .map((item) => {
         ham += item.quantity * item.hamali;
@@ -189,46 +220,85 @@ export default function AddOrderPage({}) {
 
   const handleInputChange = (id, field, value, event) => {
     if (field === "autoComplete") {
-      if (!value) {
-        value = event?.target.value.toUpperCase();
-      }
-      value = value.toUpperCase();
-      // let item = regClientItems.find((item) => item.itemDetails.name === value);
-      // if (!item) {
-      let item = regItems.find((item) => item.name === value);
-      if (item){
-        item.type = item.itemType.name;
-      }
-      // }
-      if (!item) {
-        setItems((prevItems) =>
-          prevItems.map((prevItem) =>
-            prevItem.id === id ? { ...prevItem, name: value } : prevItem
-          )
-        );
-        return;
-      }
-      item.quantity = 1;
-      setItems((prevItems) =>
-        prevItems.map((prevItem) =>
-          prevItem.id === id ? { ...prevItem, ...item, name: value } : prevItem
-        )
-      );
-      fixCharges(id, item.quantity, item.freight, item.hamali);
+      const normalizedValue = normalizeName(value || event?.target.value);
+      setItems((prevItems) => {
+        let updatedItemForCharges = null;
+        const updatedItems = prevItems.map((prevItem) => {
+          if (prevItem.id !== id) return prevItem;
+          const matchedItem = findRegItem(normalizedValue, prevItem.type);
+          updatedItemForCharges = {
+            ...prevItem,
+            name: normalizedValue,
+            freight: matchedItem ? matchedItem.freight || 0 : 0,
+            hamali: matchedItem ? matchedItem.hamali || 0 : 0,
+            quantity: prevItem.quantity || 1,
+          };
+          return updatedItemForCharges;
+        });
+        if (updatedItemForCharges) {
+          fixCharges(
+            id,
+            updatedItemForCharges.quantity,
+            updatedItemForCharges.freight,
+            updatedItemForCharges.hamali,
+            updatedItems
+          );
+        }
+        return updatedItems;
+      });
       return;
     }
 
-    let idx = items.findIndex((item) => item.id === id);
-    let item = items[idx];
+    if (field === "type") {
+      setItems((prevItems) => {
+        let updatedItemForCharges = null;
+        const updatedItems = prevItems.map((prevItem) => {
+          if (prevItem.id !== id) return prevItem;
+          const matchedItem = findRegItem(prevItem.name, value);
+          updatedItemForCharges = {
+            ...prevItem,
+            type: value,
+            freight: matchedItem ? matchedItem.freight || 0 : 0,
+            hamali: matchedItem ? matchedItem.hamali || 0 : 0,
+            quantity: prevItem.quantity || 1,
+          };
+          return updatedItemForCharges;
+        });
+        if (updatedItemForCharges) {
+          fixCharges(
+            id,
+            updatedItemForCharges.quantity,
+            updatedItemForCharges.freight,
+            updatedItemForCharges.hamali,
+            updatedItems
+          );
+        }
+        return updatedItems;
+      });
+      return;
+    }
 
     if (field === "quantity" || field === "freight" || field === "hamali") {
       value = parseInt(value) || 0;
-      item[field] = value;
-      fixCharges(id, item.quantity, item.freight, item.hamali);
     }
-    item[field] = value;
-    items[idx] = item;
-    setItems([...items]);
+    setItems((prevItems) => {
+      const updatedItems = prevItems.map((prevItem) =>
+        prevItem.id === id ? { ...prevItem, [field]: value } : prevItem
+      );
+      if (field === "quantity" || field === "freight" || field === "hamali") {
+        const updatedItem = updatedItems.find((itm) => itm.id === id);
+        if (updatedItem) {
+          fixCharges(
+            id,
+            updatedItem.quantity,
+            updatedItem.freight,
+            updatedItem.hamali,
+            updatedItems
+          );
+        }
+      }
+      return updatedItems;
+    });
   };
 
   const validateOrder = () => {
@@ -605,7 +675,7 @@ export default function AddOrderPage({}) {
                   <Autocomplete
                     freeSolo
                     value={item.name}
-                    options={regItems.map((item) => item.name)}
+                    options={itemNameOptions}
                     onChange={(event, newValue) => {
                       handleInputChange(
                         item.id,

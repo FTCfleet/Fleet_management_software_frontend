@@ -147,7 +147,7 @@ export default function AllItemPage() {
   const handleEdit = (Item) => {
     const curItem = { ...Item };
     // console.log(Item);
-    curItem.name = Item.name.replace(`(${Item.itemType.name})`, '');
+    // curItem.name = Item.name.replace(`(${Item.itemType.name})`, '');
     setCurrentItemList([curItem]);
     setIsModalOpen(true);
     setIsAdding(false);
@@ -550,7 +550,7 @@ export default function AllItemPage() {
                             variant="subtitle1"
                             sx={{ ...headerStyle, fontSize: "1rem" }}
                           >
-                            {`${item.serial}. ${item.name}`}
+                            {`${item.serial}. ${item.name} ${item.itemType?.name ? `(${item.itemType.name})` : ""}`}
                           </Typography>
                           <Typography variant="body2" sx={rowStyle}>
                             Type: {item.itemType?.name || "NA"}
