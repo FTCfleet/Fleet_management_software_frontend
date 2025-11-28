@@ -79,6 +79,7 @@ const AllEmployeePage = () => {
       },
     });
     const data = await res.json();
+    console.log(data);
     setEmployees(data.body);
     setIsLoading(false);
   };
@@ -147,6 +148,7 @@ const AllEmployeePage = () => {
   };
 
   const handleSave = async (isReset = false, resetPasswordVal = "") => {
+    console.log(isReset);
     if (isReset && !resetPasswordVal) {
       alert("Please enter a new password");
       return;
@@ -490,7 +492,7 @@ const AllEmployeePage = () => {
                   marginTop: "16px",
                 }}
               >
-                <button className="button button-large" onClick={handleSave}>
+                <button className="button button-large" onClick={() => handleSave()}>
                   Save
                   {isLoading1 && (
                     <CircularProgress
