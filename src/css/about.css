@@ -1,76 +1,176 @@
-/* AboutPage.css */
+.about-page {
+  overflow-x: hidden;
+  background-color: #f9fafb;
+  min-height: 100vh;
+}
 
-.app {
-    font-family: Arial, sans-serif;
-    color: #333;
-    margin: 0;
-    padding: 0;
+.about-header {
+  background-color: #003366;
+  color: white;
+  padding: 3rem 0;
+  text-align: center;
+}
+
+.about-footer {
+  background-color: #2a2929;
+  color: white;
+  padding: 3rem 0;
+  text-align: center;
+}
+
+.about-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.about-section {
+  padding: 3rem 0;
+}
+
+.about-section-white {
+  background-color: white;
+  padding: 3rem 0;
+}
+
+.about-grid-story {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+.about-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+}
+
+@media (min-width: 900px) {
+  .about-grid-story {
+    grid-template-columns: 5fr 7fr;
   }
-  
-  .about-section {
-    background-color: #f0f8ff;
-    padding: 2rem;
-    text-align: center;
-    border-radius: 8px;
-    margin: 2rem auto;
-    max-width: 800px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  .about-grid-2 {
+    grid-template-columns: 1fr 1fr;
   }
-  
-  .title {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #007acc;
-    margin-bottom: 1rem;
+}
+
+.founder-img {
+  width: 100%;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.mission-card {
+  padding: 2rem;
+  border-radius: 16px;
+  height: 100%;
+}
+
+.mission-card-blue {
+  background-color: #e3f2fd;
+}
+
+.mission-card-purple {
+  background-color: #f3e5f5;
+}
+
+.location-card {
+  text-align: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mb-6 {
+  margin-bottom: 3rem;
+}
+
+.mb-2 {
+  margin-bottom: 1rem;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.flex-align-center {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.location-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.location-row:last-child {
+  border-bottom: none;
+}
+
+.location-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.location-phone {
+  color: #666;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Office Images Grid Layout */
+.office-images-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  padding: 2rem;
+}
+
+@media (min-width: 900px) {
+  .office-images-grid {
+    grid-template-columns: 1fr 1fr;
   }
-  
-  .description {
-    font-size: 1.1rem;
-    color: #555;
-    margin-bottom: 2rem;
-  }
-  
-  .warehouses-section {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    gap: 2rem;
-  }
-  
-  .source-warehouses,
-  .destination-warehouses {
-    background-color: #ffffff;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    flex: 1;
-    min-width: 300px;
-  }
-  
-  .sub-title {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #007acc;
-    margin-bottom: 1rem;
-  }
-  
-  ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  li {
-    font-size: 1rem;
-    color: #333;
-    margin: 0.5rem 0;
-  }
-  
-  li::before {
-    content: \"\\2022\";
-    color: #007acc;
-    font-weight: bold;
-    display: inline-block;
-    width: 1rem;
-  }
-  
+}
+
+.office-col-left {
+  display: flex;
+  flex-direction: column;
+  max-height: 700px;
+}
+
+.office-col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-height: 700px;
+}
+
+.office-img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.office-img-full {
+  width: 100%;
+  height: 90%;
+  min-height: 632px;
+  /* Approx height of 2 stacked images + gap */
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}

@@ -28,6 +28,8 @@ import UserTemplate from "../components/UserTemplate";
 import PrivateRoute from "./PrivateRoute";
 import ViewOrderPage from "../pages/ViewOrderPage";
 import ViewLedgerPage from "../pages/ViewLedgerPage";
+import Analytics_UI from "../pages/Analytics";
+
 
 function AllRoutes() {
   return (
@@ -67,6 +69,7 @@ function AllRoutes() {
       </Route>
       <Route path="/user/*" element={<UserTemplate />}>
         <Route exact path="dashboard" element={<DashboardPage />} />
+        <Route exact path="analytics" element={<Analytics_UI />} /> 
         <Route exact path="edit/*">
           <Route exact path="order/:id" element={<EditOrderPage />} />
         </Route>

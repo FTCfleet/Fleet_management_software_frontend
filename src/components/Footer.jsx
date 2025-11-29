@@ -1,15 +1,8 @@
 import React from "react";
-import { RiTwitterXLine } from "react-icons/ri";
-import { CiFacebook } from "react-icons/ci";
-import { RxInstagramLogo } from "react-icons/rx";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 import "../css/footer.css";
 
-import { useMediaQuery, useTheme } from "@mui/material";
-
 const Footer = () => {
-  const theme = useTheme();
-  const mobileView = useMediaQuery(theme.breakpoints.down(800));
   return (
     <footer className="footer-container">
       <svg
@@ -68,43 +61,24 @@ const Footer = () => {
           <div>
             <h3>Contact Information</h3>
             <ul>
-              <li>Phone: +91 98765 43210</li>
+              <li>Phone: 040-24614381</li>
               <li>
                 Email:{" "}
                 <a
                   className="footer-links"
-                  href="mailto:support@yourwebsite.com"
+                  href="mailto:ftchydindia@gmail.com"
                 >
-                  support@yourwebsite.com
+                  ftchydindia@gmail.com
                 </a>
               </li>
             </ul>
-          </div>
-          <div style={{ paddingLeft: mobileView ? "0px" : "50px" }}>
-            <h3>Follow Us</h3>
-            <div className="footer-icons">
-              <Link to="https://facebook.com">
-                <CiFacebook className="social-icon" />
-              </Link>
-              <Link to="https://instagram.com">
-                <RxInstagramLogo className="social-icon" />
-              </Link>
-              <Link to="https://x.com">
-                <RiTwitterXLine className="social-icon twitter-icon" />
-              </Link>
-            </div>
           </div>
         </div>
 
         <div className="footer-divider"></div>
 
         <div className="footer-bottom">
-          <span>Terms & Conditions</span>
-          <span>2025 Friends Transport Company</span>
-        </div>
-        <div className="footer-bottom">
-          <span>Privacy & Cookie Statement</span>
-          <span>All rights reserved.</span>
+          <span>© 2025 Friends Transport Company. All rights reserved.</span>
         </div>
       </div>
     </footer>
