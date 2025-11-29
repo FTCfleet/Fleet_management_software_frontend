@@ -18,6 +18,7 @@ import {
   FaPlus,
 } from "react-icons/fa";
 import { useAuth } from "../routes/AuthContext";
+import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import "../css/dashboard.css";
 import "../css/main.css";
 
@@ -179,43 +180,43 @@ const UserTemplate = () => {
 
   return (
     <div>
-      {isMobileView && isSidebarOpen && (
-        <Box
-          sx={{
-            position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(0,0,0,0.35)",
-            zIndex: 1350,
-          }}
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-      <Box
-        sx={{
-          display: isMobileView ? "block" : "flex",
-          position: "relative",
-        }}
-      >
+      <Box sx={{ display: "flex", position: "relative" }}>
+        {isMobileView && isSidebarOpen && (
+          <Box
+            sx={{
+              position: "fixed",
+              inset: 0,
+              backgroundColor: "rgba(0,0,0,0.35)",
+              zIndex: 1350,
+              position: "absolute",
+              inset: 0,
+              zIndex: 1,
+            }}
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
         {/* Left Sidebar */}
         <Box
           sx={{
             width: isMobileView ? "270px" : { xs: "60px", sm: "15vw" },
             backgroundColor: "#f7f9fc",
             padding: { xs: "12px", sm: "12px" },
-            minHeight: "100vh",
+            minHeight: "100%",
             borderRight: "1px solid #ddd",
             transition: "transform 0.3s ease, width 0.3s ease",
             overflowX: "hidden",
-            position: isMobileView ? "fixed" : "relative",
+            boxSizing: "border-box",
+            position: isMobileView ? "absolute" : "relative",
             top: 0,
             left: 0,
-            zIndex: 1400,
+            zIndex: 2,
             transform: isMobileView
               ? isSidebarOpen
                 ? "translateX(0)"
                 : "translateX(-100%)"
               : "translateX(0)",
             boxShadow: isMobileView && isSidebarOpen ? 3 : 0,
+            ...isMobileView ? {height: "100vh", overflowY: "auto",} : {}
           }}
         >
           {menuSections.map((section, sectionIndex) =>
@@ -299,37 +300,37 @@ const UserTemplate = () => {
             padding: "20px",
             paddingRight: "0px",
             backgroundColor: "#ffffff",
-            minHeight: "100vh",
-            marginLeft: isMobileView ? 0 : 0,
+            marginLeft: 0,
+            ...isMobileView ? {height: "100vh", overflowY: "auto",} : {}
           }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: "16px",
-              position: isMobileView ? "sticky" : "relative",
-              top: 0,
-              zIndex: 1200,
-              backgroundColor: "#ffffff",
-              padding: isMobileView ? "8px 0" : 0,
-              borderBottom: isMobileView ? "1px solid #e5e7eb" : "none",
-            }}
-          >
-            {isMobileView && (
+          {isMobileView && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "16px",
+                position: "sticky",
+                top: 0,
+                marginTop: "-60px",
+                backgroundColor: "transparent",
+                padding: "8px 0",
+                borderBottom: "1px solid #e5e7eb",
+              }}
+            >
               <button
                 className="button"
                 style={{ margin: 0 }}
                 onClick={() => setIsSidebarOpen((prev) => !prev)}
               >
-                {isSidebarOpen ? "Close Menu" : "Menu"}
+                <MenuOpenIcon />
               </button>
-            )}
-          </Box>
+            </Box>
+          )}
 
           <div>
-            <Outlet context={{setIsScreenLoading, setIsScreenLoadingText} } />
+            <Outlet context={{ setIsScreenLoading, setIsScreenLoadingText }} />
             {/* Floating Add Order Button */}
             {isScreenLoading && (
               <Box
@@ -358,8 +359,9 @@ const UserTemplate = () => {
                     className="spinner"
                     sx={{ color: "#1E3A5F", animation: "none !important" }}
                   />
-                  <p style={{fontSize: "40px", color: "#1E3A5F"}}>{isScreenLoadingText}</p>
-
+                  <p style={{ fontSize: "40px", color: "#1E3A5F" }}>
+                    {isScreenLoadingText}
+                  </p>
                 </div>
               </Box>
             )}

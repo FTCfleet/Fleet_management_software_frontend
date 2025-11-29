@@ -202,14 +202,16 @@ const HomePage = () => {
                     src={founderImg}
                     alt="Mr. Mohammed Ameer Ali"
                     sx={{
-                      width: "100%",
+                      width: "min(83%, 40vw)",
                       borderRadius: "4px",
-                      boxShadow: "20px 20px 0px #003366", // Creative offset border
+                      boxShadow: "20px 20px 0px #003366",
                       maxHeight: "500px",
-                      objectFit: "cover",
-                      filter: "grayscale(100%)", // Vintage feel
-                      transition: "filter 0.3s ease",
-                      "&:hover": { filter: "grayscale(0%)" }
+                      objectFit: "contain",
+                      transition: "all 0.4s ease",
+                      transform: "scale(1)",
+                      "&:hover": {
+                        transform: "scale(1.01)"   // <— slight enlargement
+                      }
                     }}
                   />
                   <Box
