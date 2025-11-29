@@ -202,7 +202,7 @@ const HomePage = () => {
                     src={founderImg}
                     alt="Mr. Mohammed Ameer Ali"
                     sx={{
-                      width: "min(83%, 40vw)",
+                      width: "min(83%, 48vw)",
                       borderRadius: "4px",
                       boxShadow: "20px 20px 0px #003366",
                       maxHeight: "500px",
