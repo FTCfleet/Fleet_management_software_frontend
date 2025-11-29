@@ -24,6 +24,8 @@ import "../css/main.css";
 const Loading = () => {};
 
 const UserTemplate = () => {
+  const [isMobileView, setIsMobileView] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isScreenLoading, setIsScreenLoading] = useState(false);
   const [isScreenLoadingText, setIsScreenLoadingText] = useState("");
   const { isLoggedIn, isAdmin, isSource } = useAuth();
@@ -151,23 +153,69 @@ const UserTemplate = () => {
   }, []);
 
   useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 1050;
+      setIsMobileView(mobile);
+      if (!mobile) setIsSidebarOpen(true);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
     if (location.pathname !== "/user/dashboard")
       setLastUserPage(location.pathname);
+    if (isMobileView) setIsSidebarOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (!isMobileView) setIsSidebarOpen(true);
+  }, [isMobileView]);
+
+  const handleNavClick = () => {
+    if (isMobileView) setIsSidebarOpen(false);
+  };
 
   return (
     <div>
-      <div style={{ display: "flex" }}>
+      {isMobileView && isSidebarOpen && (
+        <Box
+          sx={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.35)",
+            zIndex: 1350,
+          }}
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      <Box
+        sx={{
+          display: isMobileView ? "block" : "flex",
+          position: "relative",
+        }}
+      >
         {/* Left Sidebar */}
         <Box
           sx={{
-            width: { xs: "60px", sm: "15vw" },
+            width: isMobileView ? "270px" : { xs: "60px", sm: "15vw" },
             backgroundColor: "#f7f9fc",
-            padding: { xs: "8px", sm: "12px" },
+            padding: { xs: "12px", sm: "12px" },
             minHeight: "100vh",
             borderRight: "1px solid #ddd",
-            transition: "width 0.3s ease",
+            transition: "transform 0.3s ease, width 0.3s ease",
             overflowX: "hidden",
+            position: isMobileView ? "fixed" : "relative",
+            top: 0,
+            left: 0,
+            zIndex: 1400,
+            transform: isMobileView
+              ? isSidebarOpen
+                ? "translateX(0)"
+                : "translateX(-100%)"
+              : "translateX(0)",
+            boxShadow: isMobileView && isSidebarOpen ? 3 : 0,
           }}
         >
           {menuSections.map((section, sectionIndex) =>
@@ -206,6 +254,7 @@ const UserTemplate = () => {
                     >
                       <NavLink
                         to={item.path}
+                        onClick={handleNavClick}
                         style={({ isActive }) => ({
                           textDecoration: "none",
                           color: isActive ? "#82acc2" : "#25344e",
@@ -251,8 +300,34 @@ const UserTemplate = () => {
             paddingRight: "0px",
             backgroundColor: "#ffffff",
             minHeight: "100vh",
+            marginLeft: isMobileView ? 0 : 0,
           }}
         >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "16px",
+              position: isMobileView ? "sticky" : "relative",
+              top: 0,
+              zIndex: 1200,
+              backgroundColor: "#ffffff",
+              padding: isMobileView ? "8px 0" : 0,
+              borderBottom: isMobileView ? "1px solid #e5e7eb" : "none",
+            }}
+          >
+            {isMobileView && (
+              <button
+                className="button"
+                style={{ margin: 0 }}
+                onClick={() => setIsSidebarOpen((prev) => !prev)}
+              >
+                {isSidebarOpen ? "Close Menu" : "Menu"}
+              </button>
+            )}
+          </Box>
+
           <div>
             <Outlet context={{setIsScreenLoading, setIsScreenLoadingText} } />
             {/* Floating Add Order Button */}
@@ -325,7 +400,7 @@ const UserTemplate = () => {
             )}
           </div>
         </Box>
-      </div>
+      </Box>
     </div>
   );
 };

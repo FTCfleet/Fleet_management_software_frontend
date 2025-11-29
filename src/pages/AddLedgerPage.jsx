@@ -30,6 +30,8 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function AddLedgerPage({}) {
   const [truckNo, setTruckNo] = useState("");
+  const [driverName, setDriverName] = useState("");
+  const [driverPhone, setDriverPhone] = useState("");
   const [allTruckDetails, setAllTruckDetails] = useState([]);
   const [error, setError] = useState(false);
   const [lorryFreight, setLorryFreight] = useState(0);
@@ -128,6 +130,8 @@ export default function AddLedgerPage({}) {
           destinationWarehouse,
           lorryFreight: lorryFreight,
           vehicleNo: truckNo,
+          driverName: driverName,
+          driverPhone: driverPhone,
           ...(sourceWarehouse !== 'all' ? {sourceWarehouse} : {}),
         }),
       });
@@ -152,6 +156,11 @@ export default function AddLedgerPage({}) {
       selectedOption = event.target.value.toUpperCase();
     } else {
       selectedOption = selectedOption.toUpperCase();
+    }
+    let truck = allTruckDetails.find((truck) => truck.vehicleNo === selectedOption);
+    if (truck){
+      setDriverName(truck.name);
+      setDriverPhone(truck.phoneNo);
     }
     setTruckNo(selectedOption);
   };
@@ -321,6 +330,22 @@ export default function AddLedgerPage({}) {
               />
             ),
           }}
+        />
+        <TextField
+          label="Driver Name"
+          type="text"
+          value={driverName}
+          onChange={(event) =>
+            setDriverName(event.target.value)
+          }
+        />
+        <TextField
+          label="Driver Phone"
+          type="text"
+          value={driverPhone}
+          onChange={(event) =>
+            setDriverPhone(event.target.value)
+          }
         />
         <TextField
           label="Lorry Freight"

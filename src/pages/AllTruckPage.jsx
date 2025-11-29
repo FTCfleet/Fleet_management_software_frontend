@@ -56,7 +56,9 @@ export default function AllTruckPage() {
       },
     });
     const data = await res.json();
-    setTrucks(data.body);
+    let lst = data.body;
+    lst.sort((a, b) => a.name.localeCompare(b.name));
+    setTrucks(lst);
     setIsLoading(false);
   };
 
@@ -154,6 +156,12 @@ export default function AllTruckPage() {
       },
       body: JSON.stringify(body),
     });
+
+    if (res.status === 409) {
+      alert("Truck Number already exists!");
+      setIsLoading1(false);
+      return;
+    }
 
     const data = await res.json();
     fetchData();

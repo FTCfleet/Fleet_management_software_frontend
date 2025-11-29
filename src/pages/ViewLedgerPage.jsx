@@ -349,9 +349,6 @@ export default function ViewLedgerPage() {
               </Box>
               <Box>
                 <Typography sx={rowStyle}>
-                  <strong>Truck No:</strong> {ledgerData.vehicleNo}
-                </Typography>
-                <Typography sx={rowStyle}>
                   <strong>Lorry Freight: </strong>
                   {ledgerData.lorryFreight}
                 </Typography>
@@ -362,6 +359,19 @@ export default function ViewLedgerPage() {
                 <Typography sx={rowStyle}>
                   <strong>Delivered On: </strong>
                   {dateFormatter(ledgerData.deliveredAt)}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography sx={rowStyle}>
+                  <strong>Truck No:</strong> {ledgerData.vehicleNo}
+                </Typography>
+                <Typography sx={rowStyle}>
+                  <strong>Driver Name: </strong>
+                  {ledgerData.driverName}
+                </Typography>
+                <Typography sx={rowStyle}>
+                  <strong>Driver Phone: </strong>
+                  {ledgerData.driverPhone}
                 </Typography>
               </Box>
             </Box>

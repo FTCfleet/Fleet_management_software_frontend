@@ -68,10 +68,10 @@ const AboutPage = () => {
                 <Typography variant="h4" fontWeight="bold" color="#003366" gutterBottom>
                   Our Story
                 </Typography>
-                <Typography paragraph sx={{ fontSize: "1.05rem", lineHeight: 1.7, color: "#444" }}>
+                <Typography sx={{ fontSize: "1.05rem", lineHeight: 1.7, color: "#444" }}>
                   Founded by the visionary <strong>Mr. Mohammed Ameer Ali</strong>, Friends Transport Company has been a pioneer in the parcel service industry for over two decades. With a legacy built on trust, dedication, and quality customer service, our company continues to set new standards in safe and fast delivery of goods.
                 </Typography>
-                <Typography paragraph sx={{ fontSize: "1.05rem", lineHeight: 1.7, color: "#444" }}>
+                <Typography sx={{ fontSize: "1.05rem", lineHeight: 1.7, color: "#444" }}>
                   The commitment to excellence established by Mr. Ameer Ali is carried forward by his sons and grandsons, who continue to drive the company’s growth with the same passion and attention to detail.
                 </Typography>
               </motion.div>
@@ -123,9 +123,9 @@ const AboutPage = () => {
             </Typography>
             <div className="about-grid-2">
               {/* Booking Offices */}
-              <div style={{ height: '100%' }}>
-                <div className="location-card" style={{ height: '100%' }}>
-                  <Typography variant="h6" fontWeight="bold" color="#003366" gutterBottom className="flex-align-center">
+              <div style={{ height: "100%" }}>
+                <div className="location-card" style={{ height: "100%"}}>
+                  <Typography variant="h6" fontWeight="bold" color="#003366" gutterBottom className="flex-align-center" sx={{justifyContent: "center"}}>
                     <FaMapMarkerAlt /> Booking Offices
                   </Typography>
                   <Divider className="mb-2" />
@@ -141,9 +141,9 @@ const AboutPage = () => {
               </div>
 
               {/* Delivery Offices */}
-              <div style={{ height: '100%' }}>
-                <div className="location-card" style={{ height: '100%' }}>
-                  <Typography variant="h6" fontWeight="bold" color="#003366" gutterBottom className="flex-align-center">
+              <div style={{ height: "100%" }}>
+                <div className="location-card" style={{ height: "100%" }}>
+                  <Typography variant="h6" fontWeight="bold" color="#003366" gutterBottom className="flex-align-center" sx={{justifyContent: "center"}}>
                     <FaMapMarkerAlt /> Delivery Offices
                   </Typography>
                   <Divider className="mb-2" />
