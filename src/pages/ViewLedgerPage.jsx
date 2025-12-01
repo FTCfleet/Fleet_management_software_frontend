@@ -514,7 +514,7 @@ export default function ViewLedgerPage() {
           Dispatch Truck
         </button>
       )}
-      {(!isSource || isAdmin) && ledgerData.status === "dispatched" && (
+      {(isSource || isAdmin) && ledgerData.status === "dispatched" && (
         <button
           className="button button-large"
           onClick={() =>
