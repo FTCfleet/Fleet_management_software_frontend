@@ -16,8 +16,8 @@ export const dateFormatter = (dateString) => {
 
 export const getDate = () => {
     const date = new Date();
-    const day =  date.getDate();
+    const day =  date.getDate().toString().padStart(2, '0');
     const month =  new Date().getMonth();
     const year =  new Date().getFullYear();
-    return `${year}-${month+1}-${day}`;
+    return `${year}-${(month+1).toString().padStart(2, '0')}-${day}`;
 };
