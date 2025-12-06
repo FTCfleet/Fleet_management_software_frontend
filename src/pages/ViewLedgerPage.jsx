@@ -256,17 +256,17 @@ export default function ViewLedgerPage() {
       );
       const blob = await response.blob();
       const pdfURL = URL.createObjectURL(blob);
+      window.open(pdfURL, "_blank");
+      // const iframe = document.createElement("iframe");
+      // iframe.style.display = "none";
+      // iframe.src = pdfURL;
 
-      const iframe = document.createElement("iframe");
-      iframe.style.display = "none";
-      iframe.src = pdfURL;
-
-      document.body.appendChild(iframe);
-
-      iframe.onload = () => {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-      };
+      
+      // iframe.addEventListener("load", () => {
+      //   iframe.contentWindow?.focus();
+      //   iframe.contentWindow?.print();
+      // });
+      // document.body.appendChild(iframe);
     } catch (error) {
       alert("Failed to load or print the PDF.");
     }
@@ -532,7 +532,9 @@ export default function ViewLedgerPage() {
         </button>
       )}
 
-      <button className="button button-large" onClick={handlePrint}>
+      <button className="button button-large" onClick={() => {
+        handlePrint();
+      }}>
         {" "}
         <FaPrint style={{ marginRight: "8px" }} />
         Download Memo

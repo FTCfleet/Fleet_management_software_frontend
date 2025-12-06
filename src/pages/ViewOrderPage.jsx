@@ -140,29 +140,30 @@ export default function ViewOrderPage() {
     }
   };
 
-  const handlePrint = async () => {
-    try {
-      const response = await fetch(
-        `${BASE_URL}/api/parcel/generate-qr/${id}?count=${qrCount}`
-      );
-      const blob = await response.blob();
-      const pdfURL = URL.createObjectURL(blob);
+const handlePrint = async () => {
+  try {
+    const response = await fetch(
+      `${BASE_URL}/api/parcel/generate-qr/${id}?count=${qrCount}`
+    );
+    const blob = await response.blob();
+    const pdfURL = URL.createObjectURL(blob);
 
-      const iframe = document.createElement("iframe");
-      iframe.style.display = "none";
-      iframe.src = pdfURL;
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.src = pdfURL;
 
-      document.body.appendChild(iframe);
+    iframe.addEventListener("load", () => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+    });
 
-      iframe.onload = () => {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-      };
-    } catch (error) {
-      alert("Failed to load or print the PDF.");
-    }
-    setQrCodeModalOpen(false);
-  };
+    document.body.appendChild(iframe);
+  } catch (error) {
+    alert("Failed to load or print the PDF.");
+  }
+  setQrCodeModalOpen(false);
+};
+
 
   const handleLRPrint = async () => {
     try {
@@ -173,17 +174,18 @@ export default function ViewOrderPage() {
       );
       const blob = await response.blob();
       const pdfURL = URL.createObjectURL(blob);
+      window.open(pdfURL, "_blank");
 
-      const iframe = document.createElement("iframe");
-      iframe.style.display = "none";
-      iframe.src = pdfURL;
+      // const iframe = document.createElement("iframe");
+      // iframe.style.display = "none";
+      // iframe.src = pdfURL;
 
-      document.body.appendChild(iframe);
-
-      iframe.onload = () => {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-      };
+      
+      // iframe.addEventListener("load", () => {
+      //   iframe.contentWindow?.focus();
+      //   iframe.contentWindow?.print();
+      // });
+      // document.body.appendChild(iframe);
     } catch (error) {
       alert("Failed to load or print the PDF.");
     }
@@ -400,7 +402,8 @@ export default function ViewOrderPage() {
       </TableContainer>
 
       <Box sx={{ marginTop: "20px", textAlign: "center" }}>
-        <button className="button" onClick={() => handleLRPrint(0)}>
+        <button className="button" onClick={() => {
+          handleLRPrint();}}>
           <FaPrint style={{ marginRight: "8px" }} /> Download LR Receipt
         </button>
 
@@ -556,7 +559,10 @@ export default function ViewOrderPage() {
               >
                 Cancel
               </Button>
-              <Button variant="contained" color="primary" onClick={handlePrint}>
+              <Button variant="contained" color="primary" onClick={() => {
+                // window.location.href = `${BASE_URL}/api/parcel/generate-qr/${id}?count=3`
+                handlePrint();
+                }}>
                 Confirm
               </Button>
             </Box>
