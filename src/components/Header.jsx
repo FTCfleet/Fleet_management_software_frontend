@@ -158,7 +158,7 @@ const HeaderTabs = () => {
 
 const Header = () => {
   const theme = useTheme();
-  const mobileView = useMediaQuery(theme.breakpoints.down(470));
+  const mobileView = useMediaQuery(theme.breakpoints.down("md"));
   const { isLoggedIn, stationCode } = useAuth();
 
   return (

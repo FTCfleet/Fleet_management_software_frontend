@@ -185,10 +185,7 @@ const UserTemplate = () => {
           <Box
             sx={{
               position: "fixed",
-              inset: 0,
               backgroundColor: "rgba(0,0,0,0.35)",
-              zIndex: 1350,
-              position: "absolute",
               inset: 0,
               zIndex: 1,
             }}
@@ -316,7 +313,6 @@ const UserTemplate = () => {
                 marginTop: "-60px",
                 backgroundColor: "transparent",
                 padding: "8px 0",
-                borderBottom: "1px solid #e5e7eb",
               }}
             >
               <button

@@ -436,7 +436,7 @@ export default function ViewLedgerPage() {
                   </TableCell>
                   <TableCell sx={rowStyle}>{index + 1}.</TableCell>
                   <TableCell sx={rowStyle}>{order.trackingId}</TableCell>
-                  <TableCell sx={rowStyle}>{order.items.length}</TableCell>
+                  <TableCell sx={rowStyle}>{order.items.reduce((sum, item) => sum + item.quantity, 0)}</TableCell>
                   <TableCell sx={rowStyle}>{order.sender.name}</TableCell>
                   <TableCell sx={rowStyle}>{order.receiver.name}</TableCell>
                   <TableCell sx={rowStyle}>
