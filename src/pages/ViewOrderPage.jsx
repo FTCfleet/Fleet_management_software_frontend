@@ -174,7 +174,8 @@ const handlePrint = async () => {
       );
       const blob = await response.blob();
       const pdfURL = URL.createObjectURL(blob);
-      window.open(pdfURL, "_blank");
+      // window.open(pdfURL, "_blank");
+      window.location.href = pdfURL;
 
       // const iframe = document.createElement("iframe");
       // iframe.style.display = "none";
