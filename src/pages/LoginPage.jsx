@@ -36,11 +36,12 @@ const LoginPage = () => {
         }),
       });
 
-      if (!response.ok) {
+      const data = await response.json();
+
+      if (!data.flag) {
         alert(data.message || "Login failed");
         return;
       }
-      const data = await response.json();
       
       if (data.flag) {
         localStorage.setItem("token", data.token);
