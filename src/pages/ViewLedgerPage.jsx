@@ -429,6 +429,31 @@ export default function ViewLedgerPage() {
         </Box>
       </Box>
 
+      {/* Action Buttons Above Table */}
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2, justifyContent: "center" }}>
+        <button className="button button-large" onClick={handlePrint}>
+          <FaPrint style={{ marginRight: "8px" }} />
+          Download Memo
+        </button>
+
+        {isAdmin && (
+          <button
+            className="button button-large"
+            onClick={() =>
+              handleModalOpen(
+                "Delete Memo",
+                "Are you sure you want to delete this?",
+                "Delete",
+                "#d32f2f",
+                handleDeleteLedger
+              )
+            }
+          >
+            <FaTrash style={{ marginRight: "8px" }} /> Delete Memo
+          </button>
+        )}
+      </Box>
+
       {/* Memo Table */}
       <Box sx={{ backgroundColor: "#ffffff", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", overflow: "hidden" }}>
         <Typography variant="h6" sx={{ padding: "16px", ...headerStyle }}>
@@ -736,160 +761,43 @@ export default function ViewLedgerPage() {
             Deliver Truck
           </button>
         )}
+      </Box>
 
-        <button className="button button-large" onClick={() => {
-          handlePrint();
-        }}>
-          <FaPrint style={{ marginRight: "8px" }} />
-          Download Memo
-        </button>
-
-        {isAdmin && (
+      {/* Mobile Action Buttons */}
+      <Box sx={{ display: { xs: "flex", md: "none" }, flexWrap: "wrap", gap: 1, mt: 2 }}>
+        {(isSource || isAdmin) && ledgerData.status === "pending" && (
           <button
             className="button button-large"
             onClick={() =>
               handleModalOpen(
-                "Delete Memo",
-                "Are you sure you want to delete this?",
-                "Delete",
-                "#d32f2f",
-                handleDeleteLedger
+                "Dispatch Truck",
+                "",
+                "Confirm",
+                "#25344e",
+                handleDispatch
               )
             }
           >
-            <FaTrash style={{ marginRight: "8px" }} /> Delete Memo
+            <FaTruckLoading style={{ marginRight: "8px" }} />
+            Dispatch Truck
           </button>
         )}
-      </Box>
-
-      {/* Mobile Floating Action Buttons */}
-      <Box 
-        sx={{ 
-          display: { xs: "flex", md: "none" }, 
-          flexDirection: "column", 
-          position: "fixed", 
-          bottom: 20, 
-          right: 16, 
-          gap: 1.5,
-          zIndex: 1000,
-        }}
-      >
-        {isAdmin && (
-          <Zoom in={true}>
-            <Fab
-              variant="extended"
-              size="medium"
-              onClick={() =>
-                handleModalOpen(
-                  "Delete Memo",
-                  "Are you sure you want to delete this?",
-                  "Delete",
-                  "#d32f2f",
-                  handleDeleteLedger
-                )
-              }
-              sx={{ 
-                backgroundColor: "#d32f2f",
-                color: "white",
-                "&:hover": { backgroundColor: "#b71c1c" },
-                minWidth: "120px",
-                height: "48px",
-                borderRadius: "24px",
-                fontSize: "0.875rem",
-                fontWeight: 500,
-                textTransform: "none",
-              }}
-            >
-              <FaTrash style={{ marginRight: "8px" }} />
-              Delete
-            </Fab>
-          </Zoom>
-        )}
-        
-        <Zoom in={true} style={{ transitionDelay: "50ms" }}>
-          <Fab
-            variant="extended"
-            size="medium"
-            onClick={handlePrint}
-            sx={{ 
-              backgroundColor: "#1E3A5F",
-              color: "white",
-              "&:hover": { backgroundColor: "#25344E" },
-              minWidth: "130px",
-              height: "48px",
-              borderRadius: "24px",
-              fontSize: "0.875rem",
-              fontWeight: 500,
-              textTransform: "none",
-            }}
-          >
-            <FaPrint style={{ marginRight: "8px" }} />
-            Download
-          </Fab>
-        </Zoom>
-
-        {(isSource || isAdmin) && ledgerData.status === "pending" && (
-          <Zoom in={true} style={{ transitionDelay: "100ms" }}>
-            <Fab
-              variant="extended"
-              size="medium"
-              onClick={() =>
-                handleModalOpen(
-                  "Dispatch Truck",
-                  "",
-                  "Confirm",
-                  "#25344e",
-                  handleDispatch
-                )
-              }
-              sx={{ 
-                backgroundColor: "#FFB74D",
-                color: "#1E3A5F",
-                "&:hover": { backgroundColor: "#FFA726" },
-                minWidth: "130px",
-                height: "48px",
-                borderRadius: "24px",
-                fontSize: "0.875rem",
-                fontWeight: 500,
-                textTransform: "none",
-              }}
-            >
-              <FaTruckLoading style={{ marginRight: "8px" }} />
-              Dispatch
-            </Fab>
-          </Zoom>
-        )}
-        
         {(isSource || isAdmin) && ledgerData.status === "dispatched" && (
-          <Zoom in={true} style={{ transitionDelay: "100ms" }}>
-            <Fab
-              variant="extended"
-              size="medium"
-              onClick={() =>
-                handleModalOpen(
-                  "Deliver Truck",
-                  "",
-                  "Confirm",
-                  "#25344e",
-                  handleVerify
-                )
-              }
-              sx={{ 
-                backgroundColor: "#4DB6AC",
-                color: "white",
-                "&:hover": { backgroundColor: "#26A69A" },
-                minWidth: "120px",
-                height: "48px",
-                borderRadius: "24px",
-                fontSize: "0.875rem",
-                fontWeight: 500,
-                textTransform: "none",
-              }}
-            >
-              <TbTruckDelivery size="18" style={{ marginRight: "8px" }} />
-              Deliver
-            </Fab>
-          </Zoom>
+          <button
+            className="button button-large"
+            onClick={() =>
+              handleModalOpen(
+                "Deliver Truck",
+                "",
+                "Confirm",
+                "#25344e",
+                handleVerify
+              )
+            }
+          >
+            <TbTruckDelivery size="19" style={{ marginRight: "8px" }} />
+            Deliver Truck
+          </button>
         )}
       </Box>
 

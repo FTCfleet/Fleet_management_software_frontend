@@ -167,7 +167,7 @@ const HomePage = () => {
                 </Typography>
                 <Typography
                   variant="h6"
-                  sx={{ opacity: 0.9, letterSpacing: 1, fontSize: { xs: "0.75rem", sm: "0.9rem", md: "1rem" } }}
+                  sx={{ color: "white", opacity: 0.9, letterSpacing: 1, fontSize: { xs: "0.75rem", sm: "0.9rem", md: "1rem" } }}
                 >
                   {stat.label.toUpperCase()}
                 </Typography>

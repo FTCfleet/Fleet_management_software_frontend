@@ -3,6 +3,7 @@ import { Link, NavLink } from "react-router-dom";
 import logoImg from "../assets/logo.png";
 import "../css/header.css";
 import { useAuth } from "../routes/AuthContext";
+import { useSidebar } from "../hooks/useSidebar";
 import { useState } from "react";
 import { IconButton, useTheme, useMediaQuery } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -14,11 +15,12 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import HomeIcon from "@mui/icons-material/Home";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import InfoIcon from "@mui/icons-material/Info";
+import AppsIcon from "@mui/icons-material/Apps";
 import CustomDialog from "./CustomDialog";
 import { useDialog } from "../hooks/useDialog";
 
 const MobileDrawer = ({ open, onClose }) => {
-  const { isLoggedIn, resetAuth, lastUserPage } = useAuth();
+  const { isLoggedIn, resetAuth, lastUserPage, isAdmin } = useAuth();
   const { dialogState, hideDialog, showConfirm } = useDialog();
 
   const handleLogout = () => {
@@ -38,6 +40,8 @@ const MobileDrawer = ({ open, onClose }) => {
     { url: "/about", text: "About Us", icon: <InfoIcon /> },
   ];
 
+
+
   return (
     <Drawer
       anchor="right"
@@ -45,8 +49,8 @@ const MobileDrawer = ({ open, onClose }) => {
       onClose={onClose}
       PaperProps={{
         sx: {
-          width: "280px",
-          maxWidth: "85vw",
+          width: "260px",
+          maxWidth: "80vw",
           backgroundColor: "#ffffff",
         },
       }}
@@ -73,57 +77,59 @@ const MobileDrawer = ({ open, onClose }) => {
           >
             <ListItem
               sx={{
-                py: 1.5,
-                px: 2.5,
+                py: 1.2,
+                px: 2,
                 "&:hover": { backgroundColor: "#f8fafc" },
               }}
             >
-              <Box sx={{ mr: 2, display: "flex", color: "#1E3A5F" }}>{item.icon}</Box>
+              <Box sx={{ mr: 1.5, display: "flex", color: "#1E3A5F", fontSize: "1.1rem" }}>{item.icon}</Box>
               <ListItemText
                 primary={item.text}
-                primaryTypographyProps={{ fontWeight: 500, fontSize: "0.95rem" }}
+                primaryTypographyProps={{ fontWeight: 500, fontSize: "0.9rem" }}
               />
             </ListItem>
           </NavLink>
         ))}
+        
+
         
         <Divider sx={{ my: 1 }} />
         
         {isLoggedIn ? (
           <>
             <NavLink to={lastUserPage} onClick={onClose} style={{ textDecoration: "none", color: "#4a5568" }}>
-              <ListItem sx={{ py: 1.5, px: 2.5, "&:hover": { backgroundColor: "#f8fafc" } }}>
-                <Box sx={{ mr: 2, display: "flex", color: "#1E3A5F" }}><DashboardIcon /></Box>
-                <ListItemText primary="Dashboard" primaryTypographyProps={{ fontWeight: 500, fontSize: "0.95rem" }} />
+              <ListItem sx={{ py: 1.2, px: 2, "&:hover": { backgroundColor: "#f8fafc" } }}>
+                <Box sx={{ mr: 1.5, display: "flex", color: "#1E3A5F", fontSize: "1.1rem" }}><DashboardIcon /></Box>
+                <ListItemText primary="Dashboard" primaryTypographyProps={{ fontWeight: 500, fontSize: "0.9rem" }} />
               </ListItem>
             </NavLink>
             <NavLink to="/user/dashboard" onClick={onClose} style={{ textDecoration: "none", color: "#4a5568" }}>
-              <ListItem sx={{ py: 1.5, px: 2.5, "&:hover": { backgroundColor: "#f8fafc" } }}>
-                <Box sx={{ mr: 2, display: "flex", color: "#1E3A5F" }}><PersonIcon /></Box>
-                <ListItemText primary="Profile" primaryTypographyProps={{ fontWeight: 500, fontSize: "0.95rem" }} />
+              <ListItem sx={{ py: 1.2, px: 2, "&:hover": { backgroundColor: "#f8fafc" } }}>
+                <Box sx={{ mr: 1.5, display: "flex", color: "#1E3A5F", fontSize: "1.1rem" }}><PersonIcon /></Box>
+                <ListItemText primary="Profile" primaryTypographyProps={{ fontWeight: 500, fontSize: "0.9rem" }} />
               </ListItem>
             </NavLink>
             <ListItem 
               onClick={handleLogout}
               sx={{ 
-                py: 1.5, 
-                px: 2.5, 
+                py: 1.2, 
+                px: 2, 
                 "&:hover": { backgroundColor: "#f8fafc" },
                 cursor: "pointer"
               }}
             >
-              <Box sx={{ mr: 2, display: "flex", color: "#f44336" }}><LogoutIcon /></Box>
+              <Box sx={{ mr: 1.5, display: "flex", color: "#f44336", fontSize: "1.1rem" }}><LogoutIcon /></Box>
               <ListItemText 
                 primary="Logout" 
-                primaryTypographyProps={{ fontWeight: 500, fontSize: "0.95rem", color: "#f44336" }} 
+                primaryTypographyProps={{ fontWeight: 500, fontSize: "0.9rem", color: "#f44336" }} 
               />
             </ListItem>
           </>
         ) : (
           <NavLink to="/auth/login" onClick={onClose} style={{ textDecoration: "none", color: "#4a5568" }}>
-            <ListItem sx={{ py: 1.5, px: 2.5, "&:hover": { backgroundColor: "#f8fafc" } }}>
-              <Box sx={{ mr: 2, display: "flex", color: "#1E3A5F" }}><LoginIcon /></Box>
-              <ListItemText primary="Login" primaryTypographyProps={{ fontWeight: 500, fontSize: "0.95rem" }} />
+            <ListItem sx={{ py: 1.2, px: 2, "&:hover": { backgroundColor: "#f8fafc" } }}>
+              <Box sx={{ mr: 1.5, display: "flex", color: "#1E3A5F", fontSize: "1.1rem" }}><LoginIcon /></Box>
+              <ListItemText primary="Login" primaryTypographyProps={{ fontWeight: 500, fontSize: "0.9rem" }} />
             </ListItem>
           </NavLink>
         )}
@@ -265,6 +271,7 @@ const Header = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { stationCode } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { openSidebar } = useSidebar();
 
   return (
     <div className="header-box">
@@ -281,7 +288,7 @@ const Header = () => {
           sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
+            justifyContent: isMobile ? "space-between" : "space-between",
             height: "100%",
             px: { xs: 1.5, sm: 2, md: 3 },
             maxWidth: "1400px",
@@ -289,31 +296,39 @@ const Header = () => {
             width: "100%",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            <Link to="/" style={{ display: "flex", alignItems: "center" }}>
-              <img src={logoImg} alt="FTC Logo" className="header-logo" style={{ height: isMobile ? "40px" : "48px" }} />
-            </Link>
-            {stationCode && (
-              <Typography
-                sx={{
-                  backgroundColor: "rgba(255,183,77,0.2)",
-                  border: "1px solid rgba(255,183,77,0.5)",
-                  color: "#FFB74D",
-                  px: 1.25,
-                  py: 0.25,
-                  borderRadius: "20px",
-                  fontSize: { xs: "0.7rem", sm: "0.8rem" },
-                  fontWeight: 600,
-                  display: { xs: "none", sm: "block" },
-                }}
-              >
-                {stationCode}
-              </Typography>
-            )}
-          </Box>
-
           {isMobile ? (
             <>
+              {/* Left: Navigation Button */}
+              <Box
+                onClick={openSidebar}
+                sx={{
+                  backgroundColor: "rgba(255,255,255,0.1)",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  borderRadius: "8px",
+                  px: 1.5,
+                  py: 0.75,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  "&:hover": { backgroundColor: "rgba(255,255,255,0.15)" },
+                }}
+              >
+                <AppsIcon sx={{ fontSize: "1rem", color: "white" }} />
+                <Typography sx={{ color: "white", fontSize: "0.75rem", fontWeight: 500 }}>
+                  Navigation
+                </Typography>
+              </Box>
+
+              {/* Center: Logo */}
+              <Box sx={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+                <Link to="/" style={{ display: "flex", alignItems: "center" }}>
+                  <img src={logoImg} alt="FTC Logo" className="header-logo" style={{ height: "40px" }} />
+                </Link>
+              </Box>
+
+              {/* Right: Hamburger Menu */}
               <IconButton
                 onClick={() => setDrawerOpen(true)}
                 sx={{
@@ -327,7 +342,31 @@ const Header = () => {
               <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
             </>
           ) : (
-            <HeaderTabs />
+            <>
+              {/* Desktop Layout */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                <Link to="/" style={{ display: "flex", alignItems: "center" }}>
+                  <img src={logoImg} alt="FTC Logo" className="header-logo" style={{ height: "48px" }} />
+                </Link>
+                {stationCode && (
+                  <Typography
+                    sx={{
+                      backgroundColor: "rgba(255,183,77,0.2)",
+                      border: "1px solid rgba(255,183,77,0.5)",
+                      color: "#FFB74D",
+                      px: 1.25,
+                      py: 0.25,
+                      borderRadius: "20px",
+                      fontSize: "0.8rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {stationCode}
+                  </Typography>
+                )}
+              </Box>
+              <HeaderTabs />
+            </>
           )}
         </Box>
       </AppBar>

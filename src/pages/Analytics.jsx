@@ -29,45 +29,30 @@ import {
   Cell,
   Legend,
 } from "recharts";
+import { useAuth } from "../routes/AuthContext";
+import CustomDialog from "../components/CustomDialog";
+import { useDialog } from "../hooks/useDialog";
 
-const COLORS = ["#1E3A5F", "#25344E", "#FFB74D", "#4DB6AC", "#BA68C8"];
-const warehouses = ["Global", "Alpha", "Beta", "Gamma", "Delta"];
-const statuses = ["pending", "in-transit", "delivered"];
-
-const generateDemoOrders = () => {
-  const orders = [];
-  const today = new Date();
-  for (let i = 0; i < 50; i++) {
-    const randomDays = Math.floor(Math.random() * 60);
-    const date = new Date();
-    date.setDate(today.getDate() - randomDays);
-    orders.push({
-      trackingId: `LR-${1000 + i}`,
-      date: date.toISOString(),
-      status: statuses[Math.floor(Math.random() * statuses.length)],
-      sourceWarehouse: { name: warehouses[Math.floor(Math.random() * (warehouses.length - 1)) + 1] },
-      destinationWarehouse: { name: warehouses[Math.floor(Math.random() * (warehouses.length - 1)) + 1] },
-      sender: { name: `Sender ${i}` },
-      receiver: { name: `Receiver ${i}` },
-    });
-  }
-  return orders;
-};
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+const COLORS = ["#1E3A5F", "#000000", "#FFB74D", "#4DB6AC", "#BA68C8"];
 
 const Analytics_UI = () => {
   const [orders, setOrders] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({ today: 0, week: 0, month: 0 });
   const [chartType, setChartType] = useState("week");
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [chartData, setChartData] = useState([]);
   const [ledgerData, setLedgerData] = useState([]);
-  const [selectedWarehouse, setSelectedWarehouse] = useState("Global");
+  const [selectedWarehouse, setSelectedWarehouse] = useState("All");
   const [warehouseTable, setWarehouseTable] = useState([]);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const isSmall = useMediaQuery(theme.breakpoints.down("sm"));
+  const { isAdmin, isSource } = useAuth();
+  const { dialogState, hideDialog, showError } = useDialog();
 
   const months = Array.from({ length: 6 }, (_, i) => {
     const d = new Date();
@@ -76,12 +61,74 @@ const Analytics_UI = () => {
   }).reverse();
 
   useEffect(() => {
-    setTimeout(() => {
-      const demoOrders = generateDemoOrders();
-      setOrders(demoOrders);
-      setIsLoading(false);
-    }, 500);
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      
+      // Fetch orders for the last 60 days
+      const ordersPromises = [];
+      const today = new Date();
+      
+      for (let i = 0; i < 60; i++) {
+        const date = new Date();
+        date.setDate(today.getDate() - i);
+        const dateStr = date.toISOString().split("T")[0];
+        
+        ordersPromises.push(
+          fetch(`${BASE_URL}/api/parcel/all`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ date: dateStr }),
+          }).then(res => res.json())
+        );
+      }
+
+      // Fetch warehouses
+      const warehouseResponse = await fetch(`${BASE_URL}/api/admin/get-all-warehouses`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const warehouseData = await warehouseResponse.json();
+      
+      if (warehouseData.flag) {
+        const warehouseList = ["All", ...warehouseData.body.map(w => w.name)];
+        setWarehouses(warehouseList);
+      }
+
+      // Process orders data
+      const ordersResults = await Promise.all(ordersPromises);
+      const allOrders = [];
+      
+      ordersResults.forEach((result, index) => {
+        if (result.flag && result.body) {
+          const date = new Date();
+          date.setDate(today.getDate() - index);
+          result.body.forEach(order => {
+            allOrders.push({
+              ...order,
+              date: date.toISOString(),
+            });
+          });
+        }
+      });
+
+      setOrders(allOrders);
+    } catch (error) {
+      showError("Failed to fetch analytics data. Please try again.", "Error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!isLoading) computeAnalytics();
@@ -108,7 +155,16 @@ const Analytics_UI = () => {
         const date = new Date(startOfWeek);
         date.setDate(startOfWeek.getDate() + idx);
         const count = orders.filter((o) => isSameDay(o.date, date)).length;
-        return { day, orders: count };
+        return { 
+          day: day, 
+          orders: count,
+          fullDate: date.toLocaleDateString('en', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })
+        };
       });
       setChartData(dailyCounts);
     } else {
@@ -118,32 +174,58 @@ const Analytics_UI = () => {
       const dailyCounts = monthDays.map((day) => {
         const date = new Date(year, selectedMonth, day);
         const count = orders.filter((o) => isSameDay(o.date, date)).length;
-        return { day: day.toString(), orders: count };
+        const dayName = date.toLocaleDateString('en', { weekday: 'long' });
+        return { 
+          day: day.toString(), 
+          orders: count,
+          fullDate: `${dayName}, ${date.toLocaleDateString('en', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}`
+        };
       });
       setChartData(dailyCounts);
     }
 
-    // Pie Chart
+    // Pie Chart - Status Distribution
     let relevantOrders = [...orders];
-    if (selectedWarehouse !== "Global") {
-      relevantOrders = relevantOrders.filter((o) => o.destinationWarehouse.name === selectedWarehouse);
+    if (selectedWarehouse !== "All") {
+      relevantOrders = relevantOrders.filter((o) => 
+        o.sourceWarehouse?.name === selectedWarehouse || 
+        o.destinationWarehouse?.name === selectedWarehouse
+      );
     }
-    const statusMap = { pending: 0, "in-transit": 0, delivered: 0 };
+    
+    const statusMap = { pending: 0, dispatched: 0, arrived: 0, delivered: 0 };
     relevantOrders.forEach((o) => {
-      statusMap[o.status] = (statusMap[o.status] || 0) + 1;
+      if (statusMap.hasOwnProperty(o.status)) {
+        statusMap[o.status]++;
+      }
     });
-    const ledgerList = Object.entries(statusMap).map(([name, value]) => ({ name, value }));
+    
+    const ledgerList = Object.entries(statusMap)
+      .filter(([name, value]) => value > 0)
+      .map(([name, value]) => ({ 
+        name: name.charAt(0).toUpperCase() + name.slice(1), 
+        value 
+      }));
     setLedgerData(ledgerList);
 
     // Warehouse Table
-    const table = warehouses
-      .filter((w) => w !== "Global")
-      .map((w) => {
-        const whOrders = orders.filter((o) => o.destinationWarehouse.name === w);
-        const counts = { pending: 0, "in-transit": 0, delivered: 0 };
-        whOrders.forEach((o) => counts[o.status]++);
-        return { warehouse: w, ...counts };
+    const warehouseNames = warehouses.filter((w) => w !== "All");
+    const table = warehouseNames.map((w) => {
+      const whOrders = orders.filter((o) => 
+        o.sourceWarehouse?.name === w || o.destinationWarehouse?.name === w
+      );
+      const counts = { pending: 0, dispatched: 0, arrived: 0, delivered: 0 };
+      whOrders.forEach((o) => {
+        if (counts.hasOwnProperty(o.status)) {
+          counts[o.status]++;
+        }
       });
+      return { warehouse: w, ...counts };
+    });
     setWarehouseTable(table);
   };
 
@@ -191,17 +273,64 @@ const Analytics_UI = () => {
             <ToggleButton value="month">Month</ToggleButton>
           </ToggleButtonGroup>
         </Box>
-        <ResponsiveContainer width="100%" height={isSmall ? 200 : 280}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis dataKey={chartType === "week" ? "day" : "day"} tick={{ fontSize: 12 }} />
-            <YAxis tick={{ fontSize: 12 }} />
-            <Tooltip
-              contentStyle={{ borderRadius: 8, border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
-            />
-            <Bar dataKey="orders" fill="#1E3A5F" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+        {chartData.some(item => item.orders > 0) ? (
+          <ResponsiveContainer width="100%" height={isSmall ? 200 : 280}>
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis 
+                dataKey="day" 
+                tick={{ fontSize: isSmall ? 10 : 12, textAnchor: 'middle' }}
+                interval={0}
+                height={40}
+                tickFormatter={(value) => {
+                  if (!isSmall || chartType !== "month") return value;
+                  
+                  const numValue = parseInt(value);
+                  // Show odd numbers: 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31
+                  return numValue % 2 === 1 ? value : '';
+                }}
+              />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip
+                contentStyle={{ 
+                  borderRadius: 8, 
+                  border: "none", 
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  backgroundColor: "white",
+                  padding: "12px"
+                }}
+                labelFormatter={(label) => {
+                  const item = chartData.find(d => d.day === label);
+                  return item ? item.fullDate : label;
+                }}
+                formatter={(value, name) => [
+                  `${value} ${value === 1 ? 'order' : 'orders'}`, 
+                  'Orders'
+                ]}
+              />
+              <Bar dataKey="orders" fill="#1E3A5F" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <Box 
+            sx={{ 
+              height: isSmall ? 200 : 280,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#64748b",
+              textAlign: "center"
+            }}
+          >
+            <Typography variant="h6" sx={{ mb: 1, color: "#94a3b8" }}>
+              No Orders Found
+            </Typography>
+            <Typography sx={{ fontSize: "0.9rem" }}>
+              No orders were placed during this {chartType === "week" ? "week" : "month"}
+            </Typography>
+          </Box>
+        )}
       </Paper>
 
       {/* Pie Chart & Warehouse Selector */}
@@ -215,28 +344,71 @@ const Analytics_UI = () => {
         >
           <Box>
             <Typography sx={{ color: "#1E3A5F", fontWeight: 600, mb: 2 }}>
-              Status Distribution
+              Status Distribution {selectedWarehouse !== "All" && `- ${selectedWarehouse}`}
             </Typography>
-            <ResponsiveContainer width="100%" height={isSmall ? 220 : 280}>
-              <PieChart>
-                <Pie
-                  data={ledgerData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={isSmall ? 70 : 90}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  labelLine={false}
-                >
-                  {ledgerData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+            {ledgerData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={isSmall ? 250 : 300}>
+                <PieChart>
+                  <Pie
+                    data={ledgerData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={isSmall ? 60 : 80}
+                    innerRadius={isSmall ? 25 : 35}
+                    paddingAngle={1}
+                    minAngle={5}
+                    label={false}
+                  >
+                    {ledgerData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value, name) => [value, name]}
+                    contentStyle={{ 
+                      borderRadius: 8, 
+                      border: "none", 
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                      fontSize: "0.9rem"
+                    }}
+                  />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36}
+                    formatter={(value, entry) => (
+                      <span style={{ color: entry.color, fontSize: "0.85rem" }}>
+                        {value} ({entry.payload.value})
+                      </span>
+                    )}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <Box 
+                sx={{ 
+                  height: isSmall ? 250 : 300,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#64748b",
+                  textAlign: "center",
+                  p: 3
+                }}
+              >
+                <Typography variant="h6" sx={{ mb: 1, color: "#94a3b8" }}>
+                  No Data Available
+                </Typography>
+                <Typography sx={{ fontSize: "0.9rem" }}>
+                  {selectedWarehouse === "All" 
+                    ? "No orders found in the selected time period"
+                    : `No orders found for ${selectedWarehouse}`
+                  }
+                </Typography>
+              </Box>
+            )}
           </Box>
 
           <Box>
@@ -258,7 +430,20 @@ const Analytics_UI = () => {
                     px: 2,
                     py: 1,
                     fontSize: "0.85rem",
-                    "&.Mui-selected": { backgroundColor: "#1E3A5F", color: "white" },
+                    color: "#1E3A5F",
+                    borderColor: "#e2e8f0",
+                    "&.Mui-selected": { 
+                      backgroundColor: "#1E3A5F", 
+                      color: "white",
+                      "&:hover": {
+                        backgroundColor: "#25344E",
+                        color: "white"
+                      }
+                    },
+                    "&:hover": {
+                      backgroundColor: "#f8fafc",
+                      borderColor: "#1E3A5F"
+                    }
                   }}
                 >
                   {w}
@@ -279,22 +464,49 @@ const Analytics_UI = () => {
             <TableRow sx={{ backgroundColor: "#f8fafc" }}>
               <TableCell sx={{ fontWeight: 600, color: "#1E3A5F" }}>Warehouse</TableCell>
               <TableCell align="center" sx={{ fontWeight: 600, color: "#1E3A5F" }}>Pending</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 600, color: "#1E3A5F" }}>In-Transit</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600, color: "#1E3A5F" }}>Dispatched</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600, color: "#1E3A5F" }}>Arrived</TableCell>
               <TableCell align="center" sx={{ fontWeight: 600, color: "#1E3A5F" }}>Delivered</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {warehouseTable.map((row, idx) => (
-              <TableRow key={idx} hover>
-                <TableCell sx={{ fontWeight: 500, color: "#1E3A5F" }}>{row.warehouse}</TableCell>
-                <TableCell align="center">{row.pending}</TableCell>
-                <TableCell align="center">{row["in-transit"]}</TableCell>
-                <TableCell align="center">{row.delivered}</TableCell>
+            {warehouseTable.length > 0 ? (
+              warehouseTable.map((row, idx) => (
+                <TableRow key={idx} hover>
+                  <TableCell sx={{ fontWeight: 500, color: "#1E3A5F" }}>{row.warehouse}</TableCell>
+                  <TableCell align="center">{row.pending}</TableCell>
+                  <TableCell align="center">{row.dispatched}</TableCell>
+                  <TableCell align="center">{row.arrived}</TableCell>
+                  <TableCell align="center">{row.delivered}</TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} align="center" sx={{ py: 4, color: "#64748b" }}>
+                  <Typography variant="h6" sx={{ mb: 1, color: "#94a3b8" }}>
+                    No Warehouse Data
+                  </Typography>
+                  <Typography sx={{ fontSize: "0.9rem" }}>
+                    No warehouses found or no orders available
+                  </Typography>
+                </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </Paper>
+      
+      <CustomDialog
+        open={dialogState.open}
+        onClose={hideDialog}
+        onConfirm={dialogState.onConfirm}
+        title={dialogState.title}
+        message={dialogState.message}
+        type={dialogState.type}
+        confirmText={dialogState.confirmText}
+        cancelText={dialogState.cancelText}
+        showCancel={dialogState.showCancel}
+      />
     </Box>
   );
 };

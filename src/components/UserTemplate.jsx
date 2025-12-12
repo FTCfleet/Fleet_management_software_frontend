@@ -3,17 +3,17 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Box, List, ListItem, ListItemIcon, ListItemText, Typography, CircularProgress, IconButton } from "@mui/material";
 import { FaRegFileAlt, FaTruckMoving, FaMoneyCheckAlt, FaBoxOpen, FaFileInvoice, FaPlus, FaChartBar } from "react-icons/fa";
 import { useAuth } from "../routes/AuthContext";
-import MenuIcon from "@mui/icons-material/Menu";
+import { useSidebar } from "../hooks/useSidebar";
 import CloseIcon from "@mui/icons-material/Close";
 import "../css/dashboard.css";
 import "../css/main.css";
 
 const UserTemplate = () => {
   const [isMobileView, setIsMobileView] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
   const [isScreenLoading, setIsScreenLoading] = useState(false);
   const [isScreenLoadingText, setIsScreenLoadingText] = useState("");
-  const { isLoggedIn, isAdmin, isSource, setLastUserPage } = useAuth();
+  const { isLoggedIn, isAdmin, isSource, setLastUserPage, stationCode } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -128,7 +128,23 @@ const UserTemplate = () => {
         }}
       >
         {isMobileView && (
-          <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            {stationCode && (
+              <Typography
+                sx={{
+                  backgroundColor: "rgba(255,183,77,0.15)",
+                  border: "1px solid rgba(255,183,77,0.4)",
+                  color: "#FFB74D",
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: "20px",
+                  fontSize: "0.85rem",
+                  fontWeight: 600,
+                }}
+              >
+                {stationCode}
+              </Typography>
+            )}
             <IconButton size="small" onClick={() => setIsSidebarOpen(false)}>
               <CloseIcon fontSize="small" />
             </IconButton>
@@ -199,30 +215,6 @@ const UserTemplate = () => {
           overflowY: "auto",
         }}
       >
-        {/* Mobile Menu Toggle */}
-        {isMobileView && (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              mb: 2,
-              position: "sticky",
-              top: 0,
-              zIndex: 30,
-              backgroundColor: "#f8fafc",
-              py: 1,
-              mx: -1.5,
-              px: 1.5,
-            }}
-          >
-            <button className="button" style={{ margin: 0, padding: "0.5rem 1rem" }} onClick={() => setIsSidebarOpen(true)}>
-              <MenuIcon fontSize="small" />
-              <span>Menu</span>
-            </button>
-          </Box>
-        )}
-
         <Outlet context={{ setIsScreenLoading, setIsScreenLoadingText }} />
 
         {/* Loading Overlay */}

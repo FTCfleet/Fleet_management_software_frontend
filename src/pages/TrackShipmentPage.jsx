@@ -209,6 +209,109 @@ const TrackShipmentPage = () => {
         </Box>
       </Box>
 
+      {/* Placeholder Shipment Details Section */}
+      <Box sx={{ maxWidth: "1200px", mx: "auto", p: { xs: 2, md: 4 } }}>
+        <Typography variant="h5" sx={{ color: "#1E3A5F", fontWeight: 700, mb: 3 }}>
+          Shipment Details
+        </Typography>
+
+        <Card sx={{ borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.08)", mb: 3 }}>
+          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" },
+                gap: 3,
+              }}
+            >
+              <DetailItem label="Tracking ID" value="Enter tracking ID above" />
+              <DetailItem label="Status" value="N/A" />
+              <DetailItem label="Shipper" value="N/A" />
+              <DetailItem label="Consignee" value="N/A" />
+              <DetailItem label="Packages" value="N/A" />
+            </Box>
+
+            {/* Progress Tracker Placeholder */}
+            <Box sx={{ mt: 4, pt: 3, borderTop: "1px solid #e2e8f0" }}>
+              <Typography sx={{ color: "#64748b", fontSize: "0.85rem", mb: 2, fontWeight: 600 }}>
+                TRACKING PROGRESS
+              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
+                  alignItems: { xs: "flex-start", sm: "center" },
+                  gap: { xs: 2, sm: 0 },
+                }}
+              >
+                {steps.map((step, index) => (
+                  <React.Fragment key={index}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 12,
+                          height: 12,
+                          borderRadius: "50%",
+                          backgroundColor: "#cbd5e1",
+                          transition: "all 0.3s ease",
+                        }}
+                      />
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          color: "#cbd5e1",
+                          fontSize: "0.9rem",
+                        }}
+                      >
+                        {step}
+                      </Typography>
+                    </Box>
+                    {index < steps.length - 1 && (
+                      <Box
+                        sx={{
+                          display: { xs: "none", sm: "block" },
+                          flex: 1,
+                          height: 2,
+                          mx: 2,
+                          backgroundColor: "#e2e8f0",
+                          transition: "all 0.3s ease",
+                        }}
+                      />
+                    )}
+                  </React.Fragment>
+                ))}
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+
+        {/* Items Table Placeholder */}
+        <Card sx={{ borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
+          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+            <Typography sx={{ color: "#1E3A5F", fontWeight: 700, mb: 2 }}>
+              Items in Package
+            </Typography>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: "#f8fafc" }}>
+                    <TableCell sx={{ fontWeight: 600, color: "#1E3A5F" }}>Item Name</TableCell>
+                    <TableCell sx={{ fontWeight: 600, color: "#1E3A5F" }}>Quantity</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell sx={{ color: "#94a3b8", textAlign: "center", py: 4 }} colSpan={2}>
+                      Enter a tracking ID to view package items
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </CardContent>
+        </Card>
+      </Box>
+
       {/* Results Section */}
       {hasSearched && (
         <Box sx={{ maxWidth: "1200px", mx: "auto", p: { xs: 2, md: 4 } }}>
@@ -320,7 +423,7 @@ const TrackShipmentPage = () => {
   );
 };
 
-// Helper Component
+// Helper Components
 const DetailItem = ({ label, value, highlight }) => (
   <Box>
     <Typography sx={{ color: "#64748b", fontSize: "0.8rem", fontWeight: 500, mb: 0.5 }}>
@@ -337,5 +440,7 @@ const DetailItem = ({ label, value, highlight }) => (
     </Typography>
   </Box>
 );
+
+
 
 export default TrackShipmentPage;

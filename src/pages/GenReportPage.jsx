@@ -27,14 +27,19 @@ export default function GenReportPage() {
   const [warehouses, setWarehouses] = useState([]);
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [monthly, setMonthly] = useState("");
-  const [selectedStartDate, setSelectedStartDate] = useState(getDate());
+  const [selectedStartDate, setSelectedStartDate] = useState(() => {
+    const today = new Date();
+    const oneMonthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+    return oneMonthAgo.toISOString().split("T")[0];
+  });
   const [selectedEndDate, setSelectedEndDate] = useState(getDate());
   const [modalOpen, setModalOpen] = useState(false);
   const lastFourMonths = useRef([]);
 
   const handleOpenModal = () => {
     if (selectedEndDate < selectedStartDate) {
-      alert("End date can't be lesser than Start date.");
+      // Use a better error handling method if available
+      alert("End date cannot be earlier than start date.");
       return;
     }
     setModalOpen(true);
@@ -122,7 +127,16 @@ export default function GenReportPage() {
       </Typography>
     </div>
   ) : (
-    <Box sx={{ maxWidth: 600, margin: "0 auto", padding: 5 }}>
+    <Box sx={{ 
+      maxWidth: 600, 
+      margin: "0 auto", 
+      padding: { xs: 2, md: 5 },
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      minHeight: "60vh",
+      justifyContent: "center"
+    }}>
       <Typography
         variant="h4"
         sx={{
@@ -130,24 +144,34 @@ export default function GenReportPage() {
           fontWeight: "bold",
           textAlign: "center",
           marginBottom: 4,
+          fontSize: { xs: "1.5rem", md: "2rem" }
         }}
       >
-        Memo Generation
+        Monthly Report Generator
       </Typography>
-      <FormControl sx={{ width: "340px" }}>
-        <InputLabel>Select Station</InputLabel>
-        <Select
-          label="Select Station"
-          value={destinationWarehouse}
-          onChange={(e) => setDestinationWarehouse(e.target.value)}
-        >
-          {warehouses.map((w) => (
-            <MenuItem key={w.warehouseID} value={w.warehouseID}>
-              {w.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      
+      <Box sx={{ 
+        display: "flex", 
+        flexDirection: "column", 
+        alignItems: "center", 
+        gap: 3,
+        width: "100%",
+        maxWidth: 400
+      }}>
+        <FormControl sx={{ width: "100%" }}>
+          <InputLabel>Select Station</InputLabel>
+          <Select
+            label="Select Station"
+            value={destinationWarehouse}
+            onChange={(e) => setDestinationWarehouse(e.target.value)}
+          >
+            {warehouses.map((w) => (
+              <MenuItem key={w.warehouseID} value={w.warehouseID}>
+                {w.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
       {/* <Box display="flex" gap={2} marginTop={2}>
         <FormControl fullWidth>
@@ -166,48 +190,60 @@ export default function GenReportPage() {
           </Select>
           </FormControl>
           </Box> */}
-      <Box
-        sx={{
-          display: "flex",
-          gap: "10px",
-          justifyContent: "center",
-          my: "20px",
-        }}
-      >
-        <Box className="calendar-input">
-          <input
-            type="date"
-            onClick={(e) => e.target.showPicker()}
-            onKeyDown={(e) => e.preventDefault()}
-            value={selectedStartDate}
-            onChange={(e) => handleDateChange(e, "start")}
-            // disabled={isLoading}
-          />
+        <Box sx={{ 
+          display: "flex", 
+          flexDirection: { xs: "column", sm: "row" },
+          gap: 2,
+          width: "100%",
+          justifyContent: "center"
+        }}>
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+            <Typography sx={{ fontSize: "0.9rem", color: "#64748b", fontWeight: 500 }}>
+              Start Date
+            </Typography>
+            <Box className="calendar-input">
+              <input
+                type="date"
+                onClick={(e) => e.target.showPicker()}
+                onKeyDown={(e) => e.preventDefault()}
+                value={selectedStartDate}
+                onChange={(e) => handleDateChange(e, "start")}
+              />
+            </Box>
+          </Box>
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+            <Typography sx={{ fontSize: "0.9rem", color: "#64748b", fontWeight: 500 }}>
+              End Date
+            </Typography>
+            <Box className="calendar-input">
+              <input
+                type="date"
+                onClick={(e) => e.target.showPicker()}
+                onKeyDown={(e) => e.preventDefault()}
+                value={selectedEndDate}
+                onChange={(e) => handleDateChange(e, "end")}
+              />
+            </Box>
+          </Box>
         </Box>
-        <Box className="calendar-input">
-          <input
-            type="date"
-            onClick={(e) => e.target.showPicker()}
-            onKeyDown={(e) => e.preventDefault()}
-            value={selectedEndDate}
-            onChange={(e) => handleDateChange(e, "end")}
-            // disabled={isLoading}
-          />
-        </Box>
-      </Box>
 
-      <button
-        className="button button-large"
-        style={{
-          backgroundColor: destinationWarehouse === "" ? "grey" : "",
-          cursor: destinationWarehouse === "" ? "not-allowed" : "pointer",
-          color: "white",
-        }}
-        disabled={destinationWarehouse === ""}
-        onClick={handleOpenModal}
-      >
-        <FaDownload /> Download
-      </button>
+        <button
+          className="button button-large"
+          style={{
+            backgroundColor: destinationWarehouse === "" ? "#94a3b8" : "#1E3A5F",
+            cursor: destinationWarehouse === "" ? "not-allowed" : "pointer",
+            color: "white",
+            width: "100%",
+            maxWidth: "300px",
+            padding: "12px 24px",
+            marginTop: "16px"
+          }}
+          disabled={destinationWarehouse === ""}
+          onClick={handleOpenModal}
+        >
+          <FaDownload style={{ marginRight: "8px" }} /> Generate Report
+        </button>
+      </Box>
 
       <Modal open={modalOpen} onClose={handleCloseModal}>
         <Box
@@ -251,10 +287,10 @@ export default function GenReportPage() {
             sx={{
               fontWeight: "bold",
               marginBottom: "12px",
-              color: "#374151",
+              color: "#1E3A5F",
             }}
           >
-            Download Memo Report
+            Download Monthly Report
           </Typography>
 
           {/* Report Info */}
