@@ -209,11 +209,12 @@ const TrackShipmentPage = () => {
         </Box>
       </Box>
 
-      {/* Placeholder Shipment Details Section */}
-      <Box sx={{ maxWidth: "1200px", mx: "auto", p: { xs: 2, md: 4 } }}>
-        <Typography variant="h5" sx={{ color: "#1E3A5F", fontWeight: 700, mb: 3 }}>
-          Shipment Details
-        </Typography>
+      {/* Placeholder Shipment Details Section - Only show when no search has been performed */}
+      {!hasSearched && (
+        <Box sx={{ maxWidth: "1200px", mx: "auto", p: { xs: 2, md: 4 } }}>
+          <Typography variant="h5" sx={{ color: "#1E3A5F", fontWeight: 700, mb: 3 }}>
+            Shipment Details
+          </Typography>
 
         <Card sx={{ borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.08)", mb: 3 }}>
           <CardContent sx={{ p: { xs: 2, md: 3 } }}>
@@ -310,7 +311,8 @@ const TrackShipmentPage = () => {
             </TableContainer>
           </CardContent>
         </Card>
-      </Box>
+        </Box>
+      )}
 
       {/* Results Section */}
       {hasSearched && (
