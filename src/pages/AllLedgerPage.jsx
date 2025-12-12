@@ -157,9 +157,10 @@ const AllLedgerPage = () => {
       <Box
         sx={{
           display: "flex",
-          gap: "10px",
+          flexDirection: { xs: "column", md: "row" },
+          gap: { xs: 1.5, md: 2 },
           marginBottom: "20px",
-          alignContent: "center",
+          alignItems: { xs: "stretch", md: "center" },
         }}
       >
         <Box className="calendar-input">
@@ -172,27 +173,29 @@ const AllLedgerPage = () => {
             disabled={isLoading}
           />
         </Box>
-        <Box sx={{ display: "flex", gap: "10px", alignItems: "center" }}>
-          <TextField
-            label="Search by ID/Vehicle No"
-            value={nameFilter}
-            onChange={(e) => setNameFilter(e.target.value)}
-            variant="outlined"
-            size="small"
-          />
-          <Select
-            value={warehouseFilter}
-            onChange={(e) => setWarehouseFilter(e.target.value)}
-            displayEmpty
-            size="small"
-          >
-            <MenuItem value="">All Warehouses</MenuItem>
-            {warehouses.map((warehouse) => (
-              <MenuItem key={warehouse.warehouseID} value={warehouse.name}>
-                {warehouse.name}
-              </MenuItem>
-            ))}
-          </Select>
+        <TextField
+          label="Search by ID/Vehicle No"
+          value={nameFilter}
+          onChange={(e) => setNameFilter(e.target.value)}
+          variant="outlined"
+          size="small"
+          sx={{ minWidth: { xs: "100%", md: "200px" } }}
+        />
+        <Select
+          value={warehouseFilter}
+          onChange={(e) => setWarehouseFilter(e.target.value)}
+          displayEmpty
+          size="small"
+          sx={{ minWidth: { xs: "100%", md: "200px" } }}
+        >
+          <MenuItem value="">All Warehouses</MenuItem>
+          {warehouses.map((warehouse) => (
+            <MenuItem key={warehouse.warehouseID} value={warehouse.name}>
+              {warehouse.name}
+            </MenuItem>
+          ))}
+        </Select>
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
           <Button variant="contained" color="primary" onClick={applyFilter} disabled={isLoading}>
             Apply
           </Button>

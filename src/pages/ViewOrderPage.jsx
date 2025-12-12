@@ -13,16 +13,17 @@ import {
   Modal,
   CircularProgress,
   TextField,
+  Card,
+  CardContent,
+  Chip,
+  useTheme,
+  useMediaQuery,
+  Grid,
 } from "@mui/material";
 import { Link, useNavigate, useOutletContext, useParams, useLocation } from "react-router-dom";
-import {
-  FaEdit,
-  FaTrash,
-  FaPrint,
-  FaExclamationTriangle,
-} from "react-icons/fa";
+import { FaEdit, FaTrash, FaPrint, FaExclamationTriangle } from "react-icons/fa";
 import { dateFormatter } from "../utils/dateFormatter";
-import { useAuth } from "../routes/AuthContext"
+import { useAuth } from "../routes/AuthContext";
 import "../css/table.css";
 import "../css/main.css";
 
@@ -50,35 +51,22 @@ export default function ViewOrderPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
-  const cellStyle = { color: "#1E3A5F", fontWeight: "bold" };
-  const rowCellStyle = { color: "#25344E" };
-  const {setIsScreenLoading, setIsScreenLoadingText} = useOutletContext();
+  const { setIsScreenLoading, setIsScreenLoadingText } = useOutletContext();
   const location = useLocation();
-  const {isAdmin} = useAuth();
+  const { isAdmin } = useAuth();
+  const hasTriggered = useRef(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
   useEffect(() => {
     fetchData();
   }, []);
-
-  const hasTriggered = useRef(false);
-
-  // useEffect(() => {
-  //   if (!hasTriggered.current) {
-  //     hasTriggered.current = true;
-  //     return;
-  //   }
-
-  //   // console.log("Triggered on navigation:", location.pathname);
-  //   handleLRPrint();
-  // }, [location]);
 
   const fetchData = async () => {
     setIsLoading1(true);
     const token = localStorage.getItem("token");
     const response = await fetch(`${BASE_URL}/api/parcel/track/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     });
     if (!response.ok) {
       alert("Error occurred");
@@ -101,38 +89,18 @@ export default function ViewOrderPage() {
     }
   };
 
-  const handleOpenDeleteModal = () => {
-    setDeleteModalOpen(true);
-  };
-
-  const handleCloseDeleteModal = () => {
-    setDeleteModalOpen(false);
-  };
-
-  const handleQrCodeModal = () => {
-    setQrCodeModalOpen(true);
-    setQrCount(order.items.length);
-  };
-
   const confirmDelete = async () => {
     setIsLoading(true);
     const token = localStorage.getItem("token");
     const res = await fetch(`${BASE_URL}/api/admin/manage/parcel`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       method: "DELETE",
-      body: JSON.stringify({
-        trackingId: id,
-      }),
+      body: JSON.stringify({ trackingId: id }),
     });
-
     const data = await res.json();
-    console.log(data);
     if (data.flag) {
       setIsLoading(false);
-      handleCloseDeleteModal();
+      setDeleteModalOpen(false);
       navigate("/user/order/all");
     } else {
       setIsLoading(false);
@@ -140,53 +108,14 @@ export default function ViewOrderPage() {
     }
   };
 
-const handlePrint = async () => {
-  try {
-    const response = await fetch(
-      `${BASE_URL}/api/parcel/generate-qr/${id}?count=${qrCount}`
-    );
-    const blob = await response.blob();
-    const pdfURL = URL.createObjectURL(blob);
-
-    const iframe = document.createElement("iframe");
-    iframe.style.display = "none";
-    iframe.src = pdfURL;
-
-    iframe.addEventListener("load", () => {
-      iframe.contentWindow?.focus();
-      iframe.contentWindow?.print();
-    });
-
-    document.body.appendChild(iframe);
-  } catch (error) {
-    alert("Failed to load or print the PDF.");
-  }
-  setQrCodeModalOpen(false);
-};
-
-
   const handleLRPrint = async () => {
     try {
       setIsScreenLoadingText("Generating LR Receipt...");
       setIsScreenLoading(true);
-      const response = await fetch(
-        `${BASE_URL}/api/parcel/generate-lr-receipt/${id}` 
-      );
+      const response = await fetch(`${BASE_URL}/api/parcel/generate-lr-receipt/${id}`);
       const blob = await response.blob();
       const pdfURL = URL.createObjectURL(blob);
-      // window.open(pdfURL, "_blank");
       window.location.href = pdfURL;
-
-      // const iframe = document.createElement("iframe");
-      // iframe.style.display = "none";
-      // iframe.src = pdfURL;
-
-      
-      // iframe.addEventListener("load", () => {
-      //   iframe.contentWindow?.focus();
-      //   iframe.contentWindow?.print();
-      // });
-      // document.body.appendChild(iframe);
     } catch (error) {
       alert("Failed to load or print the PDF.");
     }
@@ -194,382 +123,247 @@ const handlePrint = async () => {
     setIsScreenLoading(false);
   };
 
-  return (
-    <Box
-      sx={{
-        padding: "20px",
-        backgroundColor: "#f5f5f5",
-        minHeight: "100vh",
-      }}
-    >
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "flex-start",
-          alignItems: "flex-start",
-          backgroundColor: "#ffffff",
-          padding: "20px",
-          borderRadius: "8px",
-          marginBottom: "20px",
-        }}
-      >
-        <Box sx={{ flex: 1, textAlign: "left", marginRight: "20px" }}>
-          <Typography variant="h5" sx={{ marginBottom: "10px", ...cellStyle }}>
-            Order Details
-          </Typography>
+  const getStatusColor = (status) => {
+    const colors = {
+      delivered: { bg: "#dcfce7", color: "#166534" },
+      dispatched: { bg: "#fef3c7", color: "#92400e" },
+      arrived: { bg: "#dbeafe", color: "#1e40af" },
+      pending: { bg: "#fee2e2", color: "#991b1b" },
+    };
+    return colors[status] || { bg: "#f1f5f9", color: "#475569" };
+  };
 
-          {/* Order ID */}
+  const statusColor = getStatusColor(order.status);
+
+  return (
+    <Box sx={{ minHeight: "100%", backgroundColor: "#f8fafc" }}>
+      {/* Order Details Card */}
+      <Card sx={{ borderRadius: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", mb: 2.5 }}>
+        <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2, flexWrap: "wrap", gap: 1 }}>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 700, color: "#1E3A5F" }}>
+                LR Details
+              </Typography>
+              <Typography sx={{ color: "#64748b", fontSize: "0.9rem" }}>#{id}</Typography>
+            </Box>
+            <Chip
+              label={order.status?.charAt(0).toUpperCase() + order.status?.slice(1)}
+              sx={{ backgroundColor: statusColor.bg, color: statusColor.color, fontWeight: 600 }}
+            />
+          </Box>
+
           {isLoading1 ? (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100px",
-              }}
-            >
-              <CircularProgress />
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+              <CircularProgress sx={{ color: "#1E3A5F" }} />
             </Box>
           ) : (
-            <>
-              <Box sx={{ display: "flex", marginBottom: "10px" }}>
-                <Box sx={{flex: "40%"}}>
-                  <Typography sx={rowCellStyle}>
-                    <strong>LR ID:</strong> {id}
+            <Grid container spacing={3}>
+              {/* Sender Info */}
+              <Grid item xs={12} md={4}>
+                <Box sx={{ p: 2, backgroundColor: "#f8fafc", borderRadius: 2 }}>
+                  <Typography sx={{ fontWeight: 600, color: "#1E3A5F", mb: 1.5, fontSize: "0.9rem" }}>
+                    SENDER DETAILS
                   </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Sender's Name:</strong> {order.sender?.name}
-                  </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Sender's Phone:</strong> {order.sender?.phoneNo}
-                  </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Sender's Address:</strong> {order.sender?.address}
-                  </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Sender's GST:</strong> {order.sender?.gst}
-                  </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Source Station:</strong>{" "}
-                    {order.sourceWarehouse?.name}
-                  </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Added by:</strong> {order.addedBy?.name}
-                  </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Created on:</strong> {dateFormatter(order.placedAt)}
-                  </Typography>
+                  <DetailRow label="Name" value={order.sender?.name} />
+                  <DetailRow label="Phone" value={order.sender?.phoneNo} />
+                  <DetailRow label="Address" value={order.sender?.address} />
+                  <DetailRow label="GST" value={order.sender?.gst || "N/A"} />
+                  <DetailRow label="Station" value={order.sourceWarehouse?.name} />
                 </Box>
-                <Box sx={{ flex: "40%", marginLeft: "40px" }}>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Status:</strong>{" "}
-                    {order.status?.charAt(0).toUpperCase() +
-                      order.status?.slice(1)}
+              </Grid>
+
+              {/* Receiver Info */}
+              <Grid item xs={12} md={4}>
+                <Box sx={{ p: 2, backgroundColor: "#f8fafc", borderRadius: 2 }}>
+                  <Typography sx={{ fontWeight: 600, color: "#1E3A5F", mb: 1.5, fontSize: "0.9rem" }}>
+                    RECEIVER DETAILS
                   </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Receiver's Name:</strong> {order.receiver?.name}
-                  </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Receiver's Phone:</strong> {order.receiver?.phoneNo}
-                  </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Receiver's Address:</strong>{" "}
-                    {order.receiver?.address}
-                  </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Receiver's GST:</strong> {order.receiver?.gst}
-                  </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Destination Station:</strong>{" "}
-                    {order.destinationWarehouse?.name}
-                  </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Last Modified by:</strong> {order.lastModifiedBy?.name}
-                  </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Last Modified On:</strong> {dateFormatter(order.lastModifiedAt)}
-                  </Typography>
+                  <DetailRow label="Name" value={order.receiver?.name} />
+                  <DetailRow label="Phone" value={order.receiver?.phoneNo} />
+                  <DetailRow label="Address" value={order.receiver?.address} />
+                  <DetailRow label="GST" value={order.receiver?.gst || "N/A"} />
+                  <DetailRow label="Station" value={order.destinationWarehouse?.name} />
                 </Box>
-                <Box sx={{ marginLeft: "40px" }}>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Type:</strong> {order.payment}
+              </Grid>
+
+              {/* Order Info */}
+              <Grid item xs={12} md={4}>
+                <Box sx={{ p: 2, backgroundColor: "#f8fafc", borderRadius: 2 }}>
+                  <Typography sx={{ fontWeight: 600, color: "#1E3A5F", mb: 1.5, fontSize: "0.9rem" }}>
+                    ORDER INFO
                   </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Total:</strong>{" "}
-                    {order.freight + order.hamali + order.hamali}
-                  </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Freight:</strong> {order.freight}
-                  </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Hamali:</strong> {order.hamali}
-                  </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Packages:</strong> {order.items?.reduce((sum, x) => sum + x.quantity, 0)}
-                  </Typography>
-                  <Typography sx={rowCellStyle}>
-                    <strong>Door Delivery:</strong>
-                    {order.isDoorDelivery ? order.doorDeliveryCharge : " No"}
-                  </Typography>
+                  <DetailRow label="Payment" value={order.payment} />
+                  <DetailRow label="Total" value={`₹${order.freight + order.hamali * 2}`} highlight />
+                  <DetailRow label="Freight" value={`₹${order.freight}`} />
+                  <DetailRow label="Hamali" value={`₹${order.hamali}`} />
+                  <DetailRow label="Packages" value={order.items?.reduce((sum, x) => sum + x.quantity, 0)} />
+                  <DetailRow label="Door Delivery" value={order.isDoorDelivery ? `₹${order.doorDeliveryCharge}` : "No"} />
                 </Box>
-                {/* <Box
-                  sx={{
-                    boxSizing: "border-box",
-                    alignContent: "center",
-                    justifyContent: "center",
-                    height: "10vw",
-                    marginLeft: "60px",
+              </Grid>
+
+              {/* Meta Info */}
+              <Grid item xs={12}>
+                <Box 
+                  sx={{ 
+                    display: "grid",
+                    gridTemplateColumns: { xs: "repeat(2, 1fr)", sm: "repeat(4, 1fr)" },
+                    gap: 2,
+                    pt: 2, 
+                    mt: 1,
+                    borderTop: "1px solid #e2e8f0",
+                    backgroundColor: "#f8fafc",
+                    p: 2,
+                    borderRadius: 2,
                   }}
                 >
-                  <img
-                    src={qrCode ? qrCode : orders_img}
-                    alt="Orders"
-                    style={{
-                      objectFit: "cover",
-                      borderRadius: "8px",
-                      width: "100%",
-                      height: "100%",
-                      position: "relative",
-                    }}
-                  />
-                </Box> */}
-              </Box>
-            </>
+                  <MetaItem label="Added by" value={order.addedBy?.name} />
+                  <MetaItem label="Created" value={dateFormatter(order.placedAt)} />
+                  <MetaItem label="Modified by" value={order.lastModifiedBy?.name} />
+                  <MetaItem label="Modified" value={dateFormatter(order.lastModifiedAt)} />
+                </Box>
+              </Grid>
+            </Grid>
           )}
-        </Box>
-      </Box>
+        </CardContent>
+      </Card>
 
       {/* Items Table */}
-      <TableContainer
-        component={Paper}
-        sx={{ backgroundColor: "#ffffff", borderRadius: "8px" }}
-      >
-        <Typography variant="h6" sx={{ padding: "16px", ...cellStyle }}>
-          Items in Package
-        </Typography>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={cellStyle}>No.</TableCell>
-              <TableCell sx={cellStyle}>Item Name</TableCell>
-              <TableCell sx={cellStyle}>Item Type</TableCell>
-              <TableCell sx={cellStyle}>Quantity</TableCell>
-              <TableCell sx={cellStyle}>Freight</TableCell>
-              <TableCell sx={cellStyle}>Hamali</TableCell>
-              <TableCell sx={cellStyle}>Statistical Charges</TableCell>
-              <TableCell sx={cellStyle}>Amount</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {isLoading1 ? (
-              <TableRow>
-                <TableCell colSpan={7} align="center">
-                  <CircularProgress
-                    size={22}
-                    className="spinner"
-                    sx={{ color: "#1E3A5F", animation: "none !important" }}
-                  />
-                </TableCell>
-              </TableRow>
-            ) : (
-              order.items.length !== 0 &&
-              order.items.map((item, idx) => (
-                <TableRow key={idx}>
-                  <TableCell sx={rowCellStyle}>{idx + 1}</TableCell>
-                  <TableCell sx={rowCellStyle}>{item.name}</TableCell>
-                  <TableCell sx={rowCellStyle}>{item.itemType.name}</TableCell>
-                  <TableCell sx={rowCellStyle}>{item.quantity}</TableCell>
-                  <TableCell sx={rowCellStyle}>{item.freight}</TableCell>
-                  <TableCell sx={rowCellStyle}>{item.hamali}</TableCell>
-                  <TableCell sx={rowCellStyle}>{item.hamali}</TableCell>
-                  <TableCell sx={rowCellStyle}>
-                    {(item.freight + 2 * item.hamali) * item.quantity}
-                  </TableCell>
+      <Card sx={{ borderRadius: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", mb: 2.5 }}>
+        <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+          <Typography sx={{ fontWeight: 700, color: "#1E3A5F", mb: 2 }}>Items in Package</Typography>
+          <TableContainer sx={{ overflowX: "auto" }}>
+            <Table size={isMobile ? "small" : "medium"}>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: "#f8fafc" }}>
+                  <TableCell sx={{ fontWeight: 600, color: "#1E3A5F" }}>#</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: "#1E3A5F" }}>Item</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: "#1E3A5F" }}>Type</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: "#1E3A5F" }} align="center">Qty</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: "#1E3A5F" }} align="right">Freight</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: "#1E3A5F" }} align="right">Hamali</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: "#1E3A5F" }} align="right">Amount</TableCell>
                 </TableRow>
-              ))
-            )}
-            <TableRow>
-              <TableCell sx={rowCellStyle}/>
-              <TableCell sx={rowCellStyle}/>
-              <TableCell sx={rowCellStyle}><strong>Total</strong></TableCell>
-              <TableCell sx={rowCellStyle}>{order.items?.reduce((prev, item) => prev + item.quantity, 0)}</TableCell>
-              <TableCell sx={rowCellStyle}>{order.freight}</TableCell>
-              <TableCell sx={rowCellStyle}>{order.hamali}</TableCell>
-              <TableCell sx={rowCellStyle}>{order.hamali}</TableCell>
-              <TableCell sx={rowCellStyle}>{order.freight + order.hamali + order.hamali}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
+              </TableHead>
+              <TableBody>
+                {isLoading1 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                      <CircularProgress size={24} sx={{ color: "#1E3A5F" }} />
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  <>
+                    {order.items.map((item, idx) => (
+                      <TableRow key={idx} hover>
+                        <TableCell sx={{ color: "#64748b" }}>{idx + 1}</TableCell>
+                        <TableCell sx={{ color: "#1E3A5F", fontWeight: 500 }}>{item.name}</TableCell>
+                        <TableCell sx={{ color: "#64748b" }}>{item.itemType?.name}</TableCell>
+                        <TableCell align="center" sx={{ color: "#64748b" }}>{item.quantity}</TableCell>
+                        <TableCell align="right" sx={{ color: "#64748b" }}>₹{item.freight}</TableCell>
+                        <TableCell align="right" sx={{ color: "#64748b" }}>₹{item.hamali}</TableCell>
+                        <TableCell align="right" sx={{ color: "#1E3A5F", fontWeight: 500 }}>
+                          ₹{(item.freight + 2 * item.hamali) * item.quantity}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow sx={{ backgroundColor: "#f8fafc" }}>
+                      <TableCell colSpan={3} sx={{ fontWeight: 600, color: "#1E3A5F" }}>Total</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 600, color: "#1E3A5F" }}>
+                        {order.items?.reduce((prev, item) => prev + item.quantity, 0)}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: "#1E3A5F" }}>₹{order.freight}</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: "#1E3A5F" }}>₹{order.hamali}</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700, color: "#1E3A5F" }}>
+                        ₹{order.freight + order.hamali * 2}
+                      </TableCell>
+                    </TableRow>
+                  </>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent>
+      </Card>
 
-      <Box sx={{ marginTop: "20px", textAlign: "center" }}>
-        <button className="button" onClick={() => {
-          handleLRPrint();}}>
-          <FaPrint style={{ marginRight: "8px" }} /> Download LR Receipt
+      {/* Action Buttons */}
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, justifyContent: { xs: "stretch", sm: "center" } }}>
+        <button className="button" onClick={handleLRPrint} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
+          <FaPrint /> Download Receipt
         </button>
-
-        <Link
-          to={`/user/edit/order/${id}`}
-          style={{ color: "inherit", textDecoration: "none" }}
-        >
-          <button className="button">
-            <FaEdit style={{ marginRight: "8px" }} /> Edit LR
+        <Link to={`/user/edit/order/${id}`} style={{ textDecoration: "none", flex: isMobile ? "1 1 45%" : "0 0 auto" }}>
+          <button className="button" style={{ width: "100%" }}>
+            <FaEdit /> Edit LR
           </button>
         </Link>
-        {isAdmin &&
-        <button className="button" onClick={handleOpenDeleteModal}>
-          <FaTrash style={{ marginRight: "8px" }} /> Delete LR
-        </button>}
-        {/* <button className="button" onClick={handleQrCodeModal}>
-          <FaQrcode style={{ marginRight: "8px" }} /> Download QR Code
-        </button> */}
-
-        {/* Delete Confirmation Modal */}
-        <Modal open={deleteModalOpen} onClose={handleCloseDeleteModal}>
-          <Box
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: 350,
-              bgcolor: "background.paper",
-              borderRadius: 3,
-              boxShadow: 24,
-              p: 4,
-              textAlign: "center",
-            }}
+        {isAdmin && (
+          <button
+            className="button button-danger"
+            onClick={() => setDeleteModalOpen(true)}
+            style={{ flex: isMobile ? "1 1 45%" : "0 0 auto", backgroundColor: "#dc2626" }}
           >
-            <FaExclamationTriangle
-              style={{
-                color: "#d32f2f",
-                fontSize: "36px",
-                marginBottom: "12px",
-              }}
-            />
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: "bold",
-                marginBottom: "12px",
-                color: "#d32f2f",
-              }}
-            >
-              Delete LR
-            </Typography>
-            <Typography
-              sx={{
-                marginBottom: "20px",
-                color: "#374151",
-                fontSize: "15px",
-              }}
-            >
-              This action cannot be undone. Are you sure you want to proceed?
-            </Typography>
-            <Box
-              sx={{ display: "flex", justifyContent: "center", gap: "12px" }}
-            >
-              <Button
-                variant="outlined"
-                sx={{ borderColor: "#1E3A5F", color: "#1E3A5F" }}
-                onClick={handleCloseDeleteModal}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="contained"
-                sx={{ backgroundColor: "#d32f2f" }}
-                startIcon={<FaTrash />}
-                onClick={confirmDelete}
-              >
-                Delete {"  "}
-                {isLoading && (
-                  <CircularProgress
-                    size={15}
-                    className="spinner"
-                    sx={{ color: "#fff", animation: "none !important" }}
-                  />
-                )}
-              </Button>
-            </Box>
-          </Box>
-        </Modal>
-
-        {/* QR Code Modal */}
-        <Modal open={qrCodeModalOpen} onClose={() => setQrCodeModalOpen(false)}>
-          <Box
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: 320,
-              bgcolor: "background.paper",
-              borderRadius: 2,
-              boxShadow: 24,
-              p: 3,
-              display: "flex",
-              flexDirection: "column",
-              gap: 2,
-            }}
-          >
-            <Typography
-              variant="h6"
-              sx={{
-                textAlign: "center",
-                color: "#1E3A5F",
-                fontWeight: "bold",
-              }}
-            >
-              QR Code Quantity
-            </Typography>
-
-            <Typography
-              sx={{
-                textAlign: "center",
-                color: "#4A4A4A",
-                fontSize: 14,
-              }}
-            >
-              Specify the number of QR codes to generate. Default is set to
-              package count.
-            </Typography>
-
-            <TextField
-              label="Enter Quantity"
-              type="text"
-              value={qrCount}
-              onChange={(e) => setQrCount(parseInt(e.target.value) || 0)}
-              fullWidth
-              variant="outlined"
-              size="small"
-            />
-
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                mt: 2,
-                gap: "20px",
-              }}
-            >
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => setQrCodeModalOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button variant="contained" color="primary" onClick={() => {
-                // window.location.href = `${BASE_URL}/api/parcel/generate-qr/${id}?count=3`
-                handlePrint();
-                }}>
-                Confirm
-              </Button>
-            </Box>
-          </Box>
-        </Modal>
+            <FaTrash /> Delete
+          </button>
+        )}
       </Box>
+
+      {/* Delete Modal */}
+      <Modal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)}>
+        <Box sx={modalStyle}>
+          <Box sx={{ textAlign: "center", mb: 2 }}>
+            <FaExclamationTriangle style={{ color: "#dc2626", fontSize: "2.5rem" }} />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: "#dc2626", textAlign: "center", mb: 1 }}>
+            Delete LR
+          </Typography>
+          <Typography sx={{ color: "#64748b", textAlign: "center", mb: 3 }}>
+            This action cannot be undone. Are you sure?
+          </Typography>
+          <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
+            <Button variant="outlined" onClick={() => setDeleteModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              sx={{ backgroundColor: "#dc2626", "&:hover": { backgroundColor: "#b91c1c" } }}
+              onClick={confirmDelete}
+              disabled={isLoading}
+            >
+              Delete {isLoading && <CircularProgress size={16} sx={{ color: "#fff", ml: 1 }} />}
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
     </Box>
   );
 }
+
+// Helper Components
+const DetailRow = ({ label, value, highlight }) => (
+  <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.75 }}>
+    <Typography sx={{ color: "#64748b", fontSize: "0.85rem" }}>{label}</Typography>
+    <Typography sx={{ color: highlight ? "#1E3A5F" : "#1a1a2e", fontWeight: highlight ? 700 : 500, fontSize: "0.85rem" }}>
+      {value || "—"}
+    </Typography>
+  </Box>
+);
+
+const MetaItem = ({ label, value }) => (
+  <Box>
+    <Typography sx={{ color: "#94a3b8", fontSize: "0.75rem" }}>{label}</Typography>
+    <Typography sx={{ color: "#1E3A5F", fontSize: "0.85rem", fontWeight: 500 }}>{value || "—"}</Typography>
+  </Box>
+);
+
+const modalStyle = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "90%",
+  maxWidth: 380,
+  bgcolor: "background.paper",
+  borderRadius: 3,
+  boxShadow: 24,
+  p: 3,
+};

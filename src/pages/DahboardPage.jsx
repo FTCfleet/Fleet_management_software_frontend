@@ -14,10 +14,13 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  IconButton,
 } from "@mui/material";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaUser, FaBuilding, FaPhone, FaUserTag } from "react-icons/fa";
 import { useAuth } from "../routes/AuthContext";
 import Loading from "../components/Loading";
+import CustomDialog from "../components/CustomDialog";
+import { useDialog } from "../hooks/useDialog";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -33,11 +36,11 @@ const DashboardPage = () => {
   const [stationModal, setStationModal] = useState(false);
   const [allWarehouse, setAllWarehouse] = useState([]);
   const { checkAuthStatus, resetAuth } = useAuth();
+  const { dialogState, hideDialog, showAlert, showError, showSuccess, showConfirm } = useDialog();
 
   useEffect(() => {
     checkAuthStatus().then((data) => {
       setUser(data.user_data);
-      console.log(data.user_data);
       setNewWarehouse(data.user_data.warehouseCode);
     });
     fetchWarehouse();
@@ -51,81 +54,62 @@ const DashboardPage = () => {
     }
   };
 
-  const togglePasswordVisibility = () => {
-    setPasswordVisible((prevState) => !prevState);
-  };
+  const togglePasswordVisibility = () => setPasswordVisible((prev) => !prev);
 
   const handleChangePassword = async () => {
-    if (
-      newPassword.length === 0 ||
-      oldPassword.length === 0 ||
-      confirmPassword !== newPassword
-    ) {
-      alert("Password is empty");
+    if (!newPassword || !oldPassword || confirmPassword !== newPassword) {
+      showError("Please fill all fields correctly", "Validation Error");
       return;
     }
     setIsLoading(true);
-    // return;
     const token = localStorage.getItem("token");
     const response = await fetch(`${BASE_URL}/api/auth/change-password`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       method: "POST",
-      body: JSON.stringify({
-        oldPassword,
-        newPassword,
-      }),
+      body: JSON.stringify({ oldPassword, newPassword }),
     });
     if (!response.ok) {
-      alert("Error occurred");
+      showError("Error occurred while changing password", "Error");
       setIsLoading(false);
       return;
     }
     const data = await response.json();
     if (!data.flag) {
-      alert("Inavlid Credentials!!");
+      showError("Invalid current password!", "Authentication Error");
       setIsLoading(false);
       return;
     }
     localStorage.setItem("token", data.token);
     setIsLoading(false);
-    alert("Password Changed Successfully");
-    window.location.reload();
+    showSuccess("Password changed successfully!", "Success");
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
   };
 
   const handleChangeWarehouse = async () => {
-    if (newWarehouse.length === 0) {
-      alert("Please select a warehouse");
+    if (!newWarehouse) {
+      showError("Please select a warehouse", "Validation Error");
       return;
     }
     const token = localStorage.getItem("token");
-    const response = await fetch(
-      `${BASE_URL}/api/warehouse/edit/${newWarehouse}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        method: "PUT",
-      }
-    );
+    const response = await fetch(`${BASE_URL}/api/warehouse/edit/${newWarehouse}`, {
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      method: "PUT",
+    });
     if (!response.ok) {
-      alert("Error occurred");
+      showError("Error occurred while changing station", "Error");
       return;
     }
     const data = await response.json();
-    console.log(data);
     if (!data.flag) {
-      alert("Inavlid Credentials!!");
+      showError("Unable to change station. Please try again.", "Error");
       return;
     }
-    checkAuthStatus().then((data) => {
-      setUser(data.user_data);
-    });
+    checkAuthStatus().then((data) => setUser(data.user_data));
     setStationModal(false);
-  }
+    showSuccess("Station changed successfully!", "Success");
+  };
 
   const handleCloseModal = () => {
     setOpenModal(false);
@@ -135,192 +119,158 @@ const DashboardPage = () => {
     setPasswordVisible(false);
   };
 
-  return user ? (
-    <Box
-      sx={{
-        display: "flex",
-        justifyContent: "center",
-        padding: 2,
-      }}
-    >
+  const handleLogout = () => {
+    showConfirm(
+      "Are you sure you want to logout?",
+      () => {
+        resetAuth();
+      },
+      "Confirm Logout"
+    );
+  };
+
+  if (!user) return <Loading />;
+
+  return (
+    <Box sx={{ display: "flex", justifyContent: "center", p: { xs: 1, sm: 2 } }}>
       <Card
         sx={{
-          width: "80%",
-          p: 3,
-          backgroundColor: "white",
+          width: "100%",
+          maxWidth: "500px",
+          borderRadius: 3,
+          boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+          overflow: "visible",
         }}
       >
-        {/* DashboardPage Picture Section */}
-        <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-          <Avatar
-            src={user.avatar}
-            alt={user.name}
-            sx={{ width: 120, height: 120 }}
-          />
-        </Box>
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+          {/* Avatar */}
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+            <Avatar
+              src={user.avatar}
+              alt={user.name}
+              sx={{
+                width: { xs: 80, sm: 100 },
+                height: { xs: 80, sm: 100 },
+                border: "4px solid #e2e8f0",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              }}
+            />
+          </Box>
 
-        <CardContent sx={{ textAlign: "center" }}>
-          <Typography variant="h4" fontWeight="bold">
-            {user.name}
-          </Typography>
-          <Typography variant="h6" color="text.secondary">
-            @{user.username}
-          </Typography>
+          {/* Name & Username */}
+          <Box sx={{ textAlign: "center", mb: 3 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: "#1E3A5F", mb: 0.5 }}>
+              {user.name}
+            </Typography>
+            <Typography sx={{ color: "#64748b", fontSize: "0.95rem" }}>@{user.username}</Typography>
+          </Box>
 
-          {/* Divider */}
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={{ mb: 2 }} />
 
           {/* User Details */}
-          <Typography variant="body1" sx={{ mt: 1 }}>
-            <strong>Code:</strong> {user.warehouseCode}
-          </Typography>
-          <Typography variant="body1" sx={{ mt: 1 }}>
-            <strong>Station:</strong> {user.warehouseName}
-          </Typography>
-          <Typography variant="body1" sx={{ mt: 1 }}>
-            <strong>Phone:</strong> {user.phoneNo}
-          </Typography>
-          <Typography variant="body1" sx={{ mt: 1 }}>
-            <strong>Role:</strong>{" "}
-            {user.role?.charAt(0).toUpperCase() + user.role.slice(1)}
-          </Typography>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <DetailRow icon={<FaBuilding />} label="Code" value={user.warehouseCode} />
+            <DetailRow icon={<FaBuilding />} label="Station" value={user.warehouseName} />
+            <DetailRow icon={<FaPhone />} label="Phone" value={user.phoneNo} />
+            <DetailRow
+              icon={<FaUserTag />}
+              label="Role"
+              value={user.role?.charAt(0).toUpperCase() + user.role.slice(1)}
+            />
+          </Box>
+
+          <Divider sx={{ my: 2 }} />
+
+          {/* Action Buttons */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              gap: 1,
+              justifyContent: "center",
+            }}
+          >
+            <Button
+              variant="outlined"
+              onClick={() => setStationModal(true)}
+              sx={{ flex: { sm: 1 }, borderColor: "#1E3A5F", color: "#1E3A5F" }}
+            >
+              Change Station
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => setOpenModal(true)}
+              sx={{ flex: { sm: 1 }, borderColor: "#1E3A5F", color: "#1E3A5F" }}
+            >
+              Change Password
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleLogout}
+              sx={{ flex: { sm: 1 }, backgroundColor: "#dc2626", "&:hover": { backgroundColor: "#b91c1c" } }}
+            >
+              Logout
+            </Button>
+          </Box>
         </CardContent>
-        <Button
-          variant="outlined"
-          sx={{ mr: "8px" }}
-          onClick={() => setStationModal(true)}
-        >
-          Change Station
-        </Button>
-        <Button
-          variant="outlined"
-          sx={{ mr: "8px" }}
-          onClick={() => setOpenModal(true)}
-        >
-          Change Password
-        </Button>
-        <Button variant="contained" onClick={resetAuth}>
-          Logout
-        </Button>
       </Card>
 
+      {/* Change Password Modal */}
       <Modal open={openModal} onClose={handleCloseModal}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 350,
-            bgcolor: "background.paper",
-            borderRadius: 3,
-            boxShadow: 24,
-            p: 4,
-            textAlign: "center",
-          }}
-        >
-          <Typography
-            id="change-password-modal"
-            variant="h6"
-            component="h2"
-            color="black"
-            mb="10px"
-            sx={{ fontWeight: "bold" }}
-          >
+        <Box sx={modalStyle}>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: "#1E3A5F", mb: 2, textAlign: "center" }}>
             Change Password
           </Typography>
-          <TextField
-            label="Current Password"
-            value={oldPassword}
-            onChange={(e) => setOldPassword(e.target.value)}
-            type={passwordVisible ? "text" : "password"}
-            sx={{ mb: 2 }}
-          />
-          <button type="button" onClick={togglePasswordVisibility}>
-            {passwordVisible ? <FaEyeSlash /> : <FaEye />}
-          </button>
-
-          <TextField
-            label="New Password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            type={passwordVisible ? "text" : "password"}
-            sx={{ mb: 2 }}
-          ></TextField>
-          <button type="button" onClick={togglePasswordVisibility}>
-            {passwordVisible ? <FaEyeSlash /> : <FaEye />}
-          </button>
-          <TextField
-            label="Confirm Password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            type={passwordVisible ? "text" : "password"}
-            error={newPassword !== confirmPassword}
-            helperText={
-              newPassword !== confirmPassword ? "Passwords do not match" : ""
-            }
-          ></TextField>
-          <button type="button" onClick={togglePasswordVisibility}>
-            {passwordVisible ? <FaEyeSlash /> : <FaEye />}
-          </button>
-
-          <Button
-            variant="outlined"
-            onClick={handleCloseModal}
-            sx={{ mt: 2 }}
-            disabled={isLoading}
-          >
-            Close
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleChangePassword}
-            sx={{ mt: 2, ml: 2 }}
-            disabled={isLoading}
-          >
-            Save{" "}
-            {isLoading && (
-              <CircularProgress
-                size={20}
-                style={{ color: "#fff", marginLeft: "10px" }}
-              />
-            )}
-          </Button>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <PasswordField
+              label="Current Password"
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+              visible={passwordVisible}
+              onToggle={togglePasswordVisibility}
+            />
+            <PasswordField
+              label="New Password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              visible={passwordVisible}
+              onToggle={togglePasswordVisibility}
+            />
+            <PasswordField
+              label="Confirm Password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              visible={passwordVisible}
+              onToggle={togglePasswordVisibility}
+              error={newPassword !== confirmPassword}
+              helperText={newPassword !== confirmPassword ? "Passwords do not match" : ""}
+            />
+          </Box>
+          <Box sx={{ display: "flex", gap: 1, mt: 3, justifyContent: "flex-end" }}>
+            <Button variant="outlined" onClick={handleCloseModal} disabled={isLoading}>
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleChangePassword}
+              disabled={isLoading}
+              sx={{ backgroundColor: "#1E3A5F" }}
+            >
+              Save {isLoading && <CircularProgress size={18} sx={{ color: "#fff", ml: 1 }} />}
+            </Button>
+          </Box>
         </Box>
       </Modal>
 
+      {/* Change Station Modal */}
       <Modal open={stationModal} onClose={() => setStationModal(false)}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 350,
-            bgcolor: "background.paper",
-            borderRadius: 3,
-            boxShadow: 24,
-            p: 4,
-            textAlign: "center",
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-          }}
-        >
-          <Typography
-            sx={{ color: "black", fontWeight: "bold" }}
-            variant="h6"
-            component="h2"
-          >
+        <Box sx={modalStyle}>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: "#1E3A5F", mb: 2, textAlign: "center" }}>
             Change Station
           </Typography>
-          <FormControl>
+          <FormControl fullWidth>
             <InputLabel>Select Station</InputLabel>
-            <Select
-              label="Select Station"
-              value={newWarehouse}
-              onChange={(e) => setNewWarehouse(e.target.value)}
-            >
+            <Select label="Select Station" value={newWarehouse} onChange={(e) => setNewWarehouse(e.target.value)}>
               {allWarehouse
                 .filter((w) => w.isSource === user.isSource)
                 .map((w) => (
@@ -330,28 +280,74 @@ const DashboardPage = () => {
                 ))}
             </Select>
           </FormControl>
-          <Box>
-            <Button
-              variant="outlined"
-              onClick={() => setStationModal(false)}
-              sx={{ mt: 2 }}
-            >
-              Close
+          <Box sx={{ display: "flex", gap: 1, mt: 3, justifyContent: "flex-end" }}>
+            <Button variant="outlined" onClick={() => setStationModal(false)}>
+              Cancel
             </Button>
-            <Button
-              variant="contained"
-              onClick={handleChangeWarehouse}
-              sx={{ mt: 2, ml: 2 }}
-            >
+            <Button variant="contained" onClick={handleChangeWarehouse} sx={{ backgroundColor: "#1E3A5F" }}>
               Save
             </Button>
           </Box>
         </Box>
       </Modal>
+      
+      <CustomDialog
+        open={dialogState.open}
+        onClose={hideDialog}
+        onConfirm={dialogState.onConfirm}
+        title={dialogState.title}
+        message={dialogState.message}
+        type={dialogState.type}
+        confirmText={dialogState.confirmText}
+        cancelText={dialogState.cancelText}
+        showCancel={dialogState.showCancel}
+      />
     </Box>
-  ) : (
-    <Loading />
   );
+};
+
+// Helper Components
+const DetailRow = ({ icon, label, value }) => (
+  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+    <Box sx={{ color: "#1E3A5F", opacity: 0.7, display: "flex" }}>{icon}</Box>
+    <Typography sx={{ color: "#64748b", minWidth: "70px", fontSize: "0.9rem" }}>{label}:</Typography>
+    <Typography sx={{ color: "#1E3A5F", fontWeight: 500, fontSize: "0.9rem" }}>{value}</Typography>
+  </Box>
+);
+
+const PasswordField = ({ label, value, onChange, visible, onToggle, error, helperText }) => (
+  <Box sx={{ position: "relative" }}>
+    <TextField
+      label={label}
+      value={value}
+      onChange={onChange}
+      type={visible ? "text" : "password"}
+      fullWidth
+      size="small"
+      error={error}
+      helperText={helperText}
+    />
+    <IconButton
+      onClick={onToggle}
+      sx={{ position: "absolute", right: 8, top: error ? "25%" : "50%", transform: "translateY(-50%)" }}
+      size="small"
+    >
+      {visible ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+    </IconButton>
+  </Box>
+);
+
+const modalStyle = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "90%",
+  maxWidth: 400,
+  bgcolor: "background.paper",
+  borderRadius: 3,
+  boxShadow: 24,
+  p: 3,
 };
 
 export default DashboardPage;

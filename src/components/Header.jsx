@@ -1,111 +1,162 @@
-import { AppBar, Box, Button, ButtonGroup, Typography } from "@mui/material";
+import { AppBar, Box, Typography, Drawer, List, ListItem, ListItemText, Divider } from "@mui/material";
 import { Link, NavLink } from "react-router-dom";
 import logoImg from "../assets/logo.png";
 import "../css/header.css";
 import { useAuth } from "../routes/AuthContext";
-import { RxAvatar } from "react-icons/rx";
 import { useState } from "react";
-import {
-  IconButton,
-  Menu,
-  MenuItem,
-  useTheme,
-  useMediaQuery,
-} from "@mui/material";
-import Menuicon from "@mui/icons-material/Menu";
+import { IconButton, useTheme, useMediaQuery } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import PersonIcon from "@mui/icons-material/Person";
+import LoginIcon from "@mui/icons-material/Login";
+import LogoutIcon from "@mui/icons-material/Logout";
+import HomeIcon from "@mui/icons-material/Home";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import InfoIcon from "@mui/icons-material/Info";
+import CustomDialog from "./CustomDialog";
+import { useDialog } from "../hooks/useDialog";
 
-const Menubutton = () => {
-  const { isLoggedIn, resetAuth } = useAuth();
-  const [anchorElm, setAnchorElm] = useState(null);
-  const [open, setOpen] = useState(false);
+const MobileDrawer = ({ open, onClose }) => {
+  const { isLoggedIn, resetAuth, lastUserPage } = useAuth();
+  const { dialogState, hideDialog, showConfirm } = useDialog();
 
-  const handleClose = () => {
-    setAnchorElm(null);
-    setOpen(false);
+  const handleLogout = () => {
+    showConfirm(
+      "Are you sure you want to logout?",
+      () => {
+        resetAuth();
+        onClose();
+      },
+      "Confirm Logout"
+    );
   };
-  const handleClick = (e) => {
-    setAnchorElm(e.currentTarget);
-    setOpen(true);
-  };
 
-  const logout = () => {
-    resetAuth();
-    handleClose();
-  };
-
-  const { lastUserPage } = useAuth();
+  const menuItems = [
+    { url: "/", text: "Home", icon: <HomeIcon /> },
+    { url: "/track", text: "Track Shipment", icon: <LocalShippingIcon /> },
+    { url: "/about", text: "About Us", icon: <InfoIcon /> },
+  ];
 
   return (
-    <Box sx={{ paddingRight: 1 }}>
-      <IconButton
-        onClick={handleClick}
-        className="icon-button"
-        aria-label="delete"
-        size="large"
-      >
-        <Menuicon cls={"icon-buttons"} sx={{ color: "#fff" }} />
-      </IconButton>
-      <Menu anchorEl={anchorElm} open={open} onClose={handleClose}>
-        <NavLink style={{ textDecoration: "none" }} to="/">
-          <MenuItem
-            sx={{ textDecoration: "none", color: "black" }}
-            onClick={handleClose}
+    <Drawer
+      anchor="right"
+      open={open}
+      onClose={onClose}
+      PaperProps={{
+        sx: {
+          width: "280px",
+          maxWidth: "85vw",
+          backgroundColor: "#ffffff",
+        },
+      }}
+    >
+      <Box sx={{ p: 2, display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #e2e8f0" }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: "#1E3A5F" }}>
+          Menu
+        </Typography>
+        <IconButton onClick={onClose} size="small">
+          <CloseIcon />
+        </IconButton>
+      </Box>
+      
+      <List sx={{ py: 1 }}>
+        {menuItems.map((item, index) => (
+          <NavLink
+            key={index}
+            to={item.url}
+            onClick={onClose}
+            style={({ isActive }) => ({
+              textDecoration: "none",
+              color: isActive ? "#1E3A5F" : "#4a5568",
+            })}
           >
-            Home
-          </MenuItem>
-        </NavLink>
-        <NavLink style={{ textDecoration: "none" }} to="/track">
-          <MenuItem
-            sx={{ textDecoration: "none", color: "black" }}
-            onClick={handleClose}
-          >
-            Track Order
-          </MenuItem>
-        </NavLink>
-        <NavLink style={{ textDecoration: "none" }} to="/about">
-          <MenuItem
-            sx={{ textDecoration: "none", color: "black" }}
-            onClick={handleClose}
-          >
-            About Us
-          </MenuItem>
-        </NavLink>
-        {isLoggedIn ? (
-          <div>
-            <NavLink style={{ textDecoration: "none" }} to={lastUserPage}>
-              <MenuItem
-                sx={{ textDecoration: "none", color: "black" }}
-                onClick={handleClose}
-              >
-                Dashboard
-              </MenuItem>
-            </NavLink>
-            <NavLink style={{ textDecoration: "none" }} to="/user/dashboard">
-              <MenuItem
-                sx={{ textDecoration: "none", color: "black" }}
-                onClick={handleClose}
-              >
-                Profile
-              </MenuItem>
-            </NavLink>
-          </div>
-        ) : (
-          <NavLink style={{ textDecoration: "none" }} to="/auth/login">
-            <MenuItem
-              sx={{ textDecoration: "none", color: "black" }}
-              onClick={handleClose}
+            <ListItem
+              sx={{
+                py: 1.5,
+                px: 2.5,
+                "&:hover": { backgroundColor: "#f8fafc" },
+              }}
             >
-              Login
-            </MenuItem>
+              <Box sx={{ mr: 2, display: "flex", color: "#1E3A5F" }}>{item.icon}</Box>
+              <ListItemText
+                primary={item.text}
+                primaryTypographyProps={{ fontWeight: 500, fontSize: "0.95rem" }}
+              />
+            </ListItem>
+          </NavLink>
+        ))}
+        
+        <Divider sx={{ my: 1 }} />
+        
+        {isLoggedIn ? (
+          <>
+            <NavLink to={lastUserPage} onClick={onClose} style={{ textDecoration: "none", color: "#4a5568" }}>
+              <ListItem sx={{ py: 1.5, px: 2.5, "&:hover": { backgroundColor: "#f8fafc" } }}>
+                <Box sx={{ mr: 2, display: "flex", color: "#1E3A5F" }}><DashboardIcon /></Box>
+                <ListItemText primary="Dashboard" primaryTypographyProps={{ fontWeight: 500, fontSize: "0.95rem" }} />
+              </ListItem>
+            </NavLink>
+            <NavLink to="/user/dashboard" onClick={onClose} style={{ textDecoration: "none", color: "#4a5568" }}>
+              <ListItem sx={{ py: 1.5, px: 2.5, "&:hover": { backgroundColor: "#f8fafc" } }}>
+                <Box sx={{ mr: 2, display: "flex", color: "#1E3A5F" }}><PersonIcon /></Box>
+                <ListItemText primary="Profile" primaryTypographyProps={{ fontWeight: 500, fontSize: "0.95rem" }} />
+              </ListItem>
+            </NavLink>
+            <ListItem 
+              onClick={handleLogout}
+              sx={{ 
+                py: 1.5, 
+                px: 2.5, 
+                "&:hover": { backgroundColor: "#f8fafc" },
+                cursor: "pointer"
+              }}
+            >
+              <Box sx={{ mr: 2, display: "flex", color: "#f44336" }}><LogoutIcon /></Box>
+              <ListItemText 
+                primary="Logout" 
+                primaryTypographyProps={{ fontWeight: 500, fontSize: "0.95rem", color: "#f44336" }} 
+              />
+            </ListItem>
+          </>
+        ) : (
+          <NavLink to="/auth/login" onClick={onClose} style={{ textDecoration: "none", color: "#4a5568" }}>
+            <ListItem sx={{ py: 1.5, px: 2.5, "&:hover": { backgroundColor: "#f8fafc" } }}>
+              <Box sx={{ mr: 2, display: "flex", color: "#1E3A5F" }}><LoginIcon /></Box>
+              <ListItemText primary="Login" primaryTypographyProps={{ fontWeight: 500, fontSize: "0.95rem" }} />
+            </ListItem>
           </NavLink>
         )}
-      </Menu>
-    </Box>
+      </List>
+      
+      <CustomDialog
+        open={dialogState.open}
+        onClose={hideDialog}
+        onConfirm={dialogState.onConfirm}
+        title={dialogState.title}
+        message={dialogState.message}
+        type={dialogState.type}
+        confirmText={dialogState.confirmText}
+        cancelText={dialogState.cancelText}
+        showCancel={dialogState.showCancel}
+      />
+    </Drawer>
   );
 };
 
 const HeaderTabs = () => {
-  const { isLoggedIn, resetAuth, lastUserPage } = useAuth();
+  const { isLoggedIn, lastUserPage, resetAuth } = useAuth();
+  const { dialogState, hideDialog, showConfirm } = useDialog();
+
+  const handleLogout = () => {
+    showConfirm(
+      "Are you sure you want to logout?",
+      () => {
+        resetAuth();
+      },
+      "Confirm Logout"
+    );
+  };
   const tabs = [
     { url: "/", text: "Home" },
     { url: "/track", text: "Track Shipment" },
@@ -113,92 +164,172 @@ const HeaderTabs = () => {
   ];
 
   return (
-    <ButtonGroup sx={{ textDecoration: "none", marginRight: 1 }}>
+    <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
       {tabs.map((item, index) => (
-        <NavLink key={index} className="navlink" to={item.url}>
-          <Button
-            className="header-button"
-            style={{ border: "none", outline: "none" }}
-            color="inherit"
-          >
-            {item.text}
-          </Button>
+        <NavLink 
+          key={index} 
+          to={item.url}
+          style={{ textDecoration: "none" }}
+        >
+          {({ isActive }) => (
+            <Box
+              sx={{ 
+                color: isActive ? "#FFB74D" : "rgba(255,255,255,0.9)", 
+                px: 2,
+                py: 1,
+                fontSize: "0.9rem",
+                fontWeight: 500,
+                cursor: "pointer",
+                borderBottom: isActive ? "2px solid #FFB74D" : "2px solid transparent",
+                transition: "all 0.2s ease",
+                "&:hover": { 
+                  color: "#ffffff",
+                },
+              }}
+            >
+              {item.text}
+            </Box>
+          )}
         </NavLink>
       ))}
-      <NavLink
-        className="navlink"
+      <NavLink 
         to={isLoggedIn ? lastUserPage : "auth/login"}
+        style={{ textDecoration: "none" }}
       >
-        <Button
-          className="header-button"
-          style={{
-            border: "none",
-            outline: "none",
-            color: isLoggedIn ? "white" : "inherit",
+        <Box
+          sx={{
+            color: "rgba(255,255,255,0.9)",
+            px: 2,
+            py: 1,
+            fontSize: "0.9rem",
+            fontWeight: 500,
+            transition: "all 0.2s ease",
+            "&:hover": { color: "#ffffff" },
           }}
         >
           {isLoggedIn ? "Dashboard" : "Login"}
-        </Button>
+        </Box>
       </NavLink>
-      {isLoggedIn ? (
-        <NavLink className="navlink" to={"/user/dashboard"}>
-          <Button
-            className="header-button"
-            style={{ border: "none", outline: "none" }}
-            color="inherit"
-            // onClick={resetAuth}
+      {isLoggedIn && (
+        <>
+          <NavLink to="/user/dashboard" style={{ textDecoration: "none" }}>
+            <Box
+              sx={{ 
+                color: "rgba(255,255,255,0.9)", 
+                px: 2,
+                py: 1,
+                fontSize: "0.9rem",
+                fontWeight: 500,
+                transition: "all 0.2s ease",
+                "&:hover": { color: "#ffffff" },
+              }}
+            >
+              Profile
+            </Box>
+          </NavLink>
+          <Box
+            onClick={handleLogout}
+            sx={{ 
+              color: "rgba(255,255,255,0.9)", 
+              px: 2,
+              py: 1,
+              fontSize: "0.9rem",
+              fontWeight: 500,
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+              "&:hover": { color: "#ffffff" },
+            }}
           >
-            Profile
-          </Button>
-        </NavLink>
-      ) : null}
-    </ButtonGroup>
+            Logout
+          </Box>
+        </>
+      )}
+      
+      <CustomDialog
+        open={dialogState.open}
+        onClose={hideDialog}
+        onConfirm={dialogState.onConfirm}
+        title={dialogState.title}
+        message={dialogState.message}
+        type={dialogState.type}
+        confirmText={dialogState.confirmText}
+        cancelText={dialogState.cancelText}
+        showCancel={dialogState.showCancel}
+      />
+    </Box>
   );
 };
 
 const Header = () => {
   const theme = useTheme();
-  const mobileView = useMediaQuery(theme.breakpoints.down("md"));
-  const { isLoggedIn, stationCode } = useAuth();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { stationCode } = useAuth();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
     <div className="header-box">
       <AppBar
+        position="fixed"
+        elevation={0}
         sx={{
-          backgroundColor: "rgb(29, 53, 87)",
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
+          backgroundColor: "#1D3557",
+          borderBottom: "1px solid rgba(255,255,255,0.1)",
+          height: { xs: "60px", md: "70px" },
         }}
       >
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            paddingLeft: 2,
-            minHeight: "60px",
+            justifyContent: "space-between",
+            height: "100%",
+            px: { xs: 1.5, sm: 2, md: 3 },
+            maxWidth: "1400px",
+            margin: "0 auto",
+            width: "100%",
           }}
         >
-          <Link
-            style={{
-              textDecoration: "none",
-              display: "flex",
-              alignItems: "center",
-            }}
-            to="/"
-          >
-            <img src={logoImg} height="50px"></img>
-          </Link>
-          
-          {stationCode && <Typography sx={{outline: "1px solid white", paddingX: '5px', borderRadius: "10px"}}>{stationCode}</Typography>}
-          {/* {isLoggedIn && (
-            <Link to="/user/dashboard">
-              <RxAvatar size="30px" style={{ margin: "5 20 0 20" }} />
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <Link to="/" style={{ display: "flex", alignItems: "center" }}>
+              <img src={logoImg} alt="FTC Logo" className="header-logo" style={{ height: isMobile ? "40px" : "48px" }} />
             </Link>
-          )} */}
+            {stationCode && (
+              <Typography
+                sx={{
+                  backgroundColor: "rgba(255,183,77,0.2)",
+                  border: "1px solid rgba(255,183,77,0.5)",
+                  color: "#FFB74D",
+                  px: 1.25,
+                  py: 0.25,
+                  borderRadius: "20px",
+                  fontSize: { xs: "0.7rem", sm: "0.8rem" },
+                  fontWeight: 600,
+                  display: { xs: "none", sm: "block" },
+                }}
+              >
+                {stationCode}
+              </Typography>
+            )}
+          </Box>
+
+          {isMobile ? (
+            <>
+              <IconButton
+                onClick={() => setDrawerOpen(true)}
+                sx={{
+                  color: "white",
+                  p: 1,
+                  "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
+                }}
+              >
+                <MenuIcon />
+              </IconButton>
+              <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+            </>
+          ) : (
+            <HeaderTabs />
+          )}
         </Box>
-        {mobileView ? <Menubutton /> : <HeaderTabs />}
       </AppBar>
     </div>
   );

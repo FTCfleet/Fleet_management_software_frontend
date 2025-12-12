@@ -4,18 +4,17 @@ import {
   Typography,
   Paper,
   CircularProgress,
-  Grid,
   Card,
   CardContent,
   ToggleButton,
   ToggleButtonGroup,
-  Select,
-  MenuItem,
   Table,
   TableHead,
   TableRow,
   TableCell,
   TableBody,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import {
   BarChart,
@@ -32,7 +31,6 @@ import {
 } from "recharts";
 
 const COLORS = ["#1E3A5F", "#25344E", "#FFB74D", "#4DB6AC", "#BA68C8"];
-
 const warehouses = ["Global", "Alpha", "Beta", "Gamma", "Delta"];
 const statuses = ["pending", "in-transit", "delivered"];
 
@@ -40,20 +38,15 @@ const generateDemoOrders = () => {
   const orders = [];
   const today = new Date();
   for (let i = 0; i < 50; i++) {
-    const randomDays = Math.floor(Math.random() * 60); // up to 2 months
+    const randomDays = Math.floor(Math.random() * 60);
     const date = new Date();
     date.setDate(today.getDate() - randomDays);
-
     orders.push({
       trackingId: `LR-${1000 + i}`,
       date: date.toISOString(),
       status: statuses[Math.floor(Math.random() * statuses.length)],
-      sourceWarehouse: {
-        name: warehouses[Math.floor(Math.random() * (warehouses.length - 1)) + 1],
-      },
-      destinationWarehouse: {
-        name: warehouses[Math.floor(Math.random() * (warehouses.length - 1)) + 1],
-      },
+      sourceWarehouse: { name: warehouses[Math.floor(Math.random() * (warehouses.length - 1)) + 1] },
+      destinationWarehouse: { name: warehouses[Math.floor(Math.random() * (warehouses.length - 1)) + 1] },
       sender: { name: `Sender ${i}` },
       receiver: { name: `Receiver ${i}` },
     });
@@ -65,15 +58,17 @@ const Analytics_UI = () => {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({ today: 0, week: 0, month: 0 });
-  const [pendingStats, setPendingStats] = useState({ count: 0, earliest: null });
-  const [chartType, setChartType] = useState("week"); // week or month
+  const [chartType, setChartType] = useState("week");
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [chartData, setChartData] = useState([]);
   const [ledgerData, setLedgerData] = useState([]);
   const [selectedWarehouse, setSelectedWarehouse] = useState("Global");
   const [warehouseTable, setWarehouseTable] = useState([]);
 
-  // Generate last 6 months
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmall = useMediaQuery(theme.breakpoints.down("sm"));
+
   const months = Array.from({ length: 6 }, (_, i) => {
     const d = new Date();
     d.setMonth(d.getMonth() - i);
@@ -90,10 +85,9 @@ const Analytics_UI = () => {
 
   useEffect(() => {
     if (!isLoading) computeAnalytics();
-  }, [orders, chartType, selectedMonth, selectedWarehouse]);
+  }, [orders, chartType, selectedMonth, selectedWarehouse, isLoading]);
 
-  const isSameDay = (d1, d2) =>
-    new Date(d1).toDateString() === new Date(d2).toDateString();
+  const isSameDay = (d1, d2) => new Date(d1).toDateString() === new Date(d2).toDateString();
 
   const computeAnalytics = () => {
     const today = new Date();
@@ -105,23 +99,9 @@ const Analytics_UI = () => {
     const ordersThisWeek = orders.filter((o) => new Date(o.date) >= startOfWeek);
     const ordersThisMonth = orders.filter((o) => new Date(o.date) >= startOfMonth);
 
-    setStats({
-      today: ordersToday.length,
-      week: ordersThisWeek.length,
-      month: ordersThisMonth.length,
-    });
+    setStats({ today: ordersToday.length, week: ordersThisWeek.length, month: ordersThisMonth.length });
 
-    // Pending orders stats
-    const pendingOrders = orders.filter((o) => o.status === "pending");
-    let earliest = null;
-    if (pendingOrders.length > 0) {
-      earliest = new Date(
-        Math.min(...pendingOrders.map((o) => new Date(o.date)))
-      ).toDateString();
-    }
-    setPendingStats({ count: pendingOrders.length, earliest });
-
-    // --- Bar Chart ---
+    // Bar Chart
     if (chartType === "week") {
       const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       const dailyCounts = weekDays.map((day, idx) => {
@@ -133,13 +113,8 @@ const Analytics_UI = () => {
       setChartData(dailyCounts);
     } else {
       const year = new Date().getFullYear();
-      const startOfSelected = new Date(year, selectedMonth, 1);
       const endOfSelected = new Date(year, selectedMonth + 1, 0);
-
-      const monthDays = Array.from(
-        { length: endOfSelected.getDate() },
-        (_, i) => i + 1
-      );
+      const monthDays = Array.from({ length: endOfSelected.getDate() }, (_, i) => i + 1);
       const dailyCounts = monthDays.map((day) => {
         const date = new Date(year, selectedMonth, day);
         const count = orders.filter((o) => isSameDay(o.date, date)).length;
@@ -148,237 +123,192 @@ const Analytics_UI = () => {
       setChartData(dailyCounts);
     }
 
-    // --- Ledger Pie Chart ---
+    // Pie Chart
     let relevantOrders = [...orders];
     if (selectedWarehouse !== "Global") {
-      relevantOrders = relevantOrders.filter(
-        (o) => o.destinationWarehouse.name === selectedWarehouse
-      );
+      relevantOrders = relevantOrders.filter((o) => o.destinationWarehouse.name === selectedWarehouse);
     }
     const statusMap = { pending: 0, "in-transit": 0, delivered: 0 };
     relevantOrders.forEach((o) => {
       statusMap[o.status] = (statusMap[o.status] || 0) + 1;
     });
-    const ledgerList = Object.entries(statusMap).map(([name, value]) => ({
-      name,
-      value,
-    }));
+    const ledgerList = Object.entries(statusMap).map(([name, value]) => ({ name, value }));
     setLedgerData(ledgerList);
 
-    // --- Warehouse Table ---
+    // Warehouse Table
     const table = warehouses
       .filter((w) => w !== "Global")
       .map((w) => {
-        const whOrders = orders.filter(
-          (o) => o.destinationWarehouse.name === w
-        );
+        const whOrders = orders.filter((o) => o.destinationWarehouse.name === w);
         const counts = { pending: 0, "in-transit": 0, delivered: 0 };
-        whOrders.forEach((o) => {
-          counts[o.status]++;
-        });
+        whOrders.forEach((o) => counts[o.status]++);
         return { warehouse: w, ...counts };
       });
     setWarehouseTable(table);
   };
 
-  const handleChartToggle = (_, value) => {
-    if (value) setChartType(value);
-  };
+  if (isLoading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
+        <CircularProgress sx={{ color: "#1E3A5F" }} />
+      </Box>
+    );
+  }
 
   return (
-    <Box sx={{ padding: "20px", backgroundColor: "#ffffff", minHeight: "100vh" }}>
-      <Typography
-        variant="h4"
-        sx={{ marginBottom: "20px", color: "#1E3A5F", fontWeight: "bold" }}
-      >
+    <Box sx={{ minHeight: "100%" }}>
+      <Typography variant="h5" sx={{ mb: 3, color: "#1E3A5F", fontWeight: 700 }}>
         Analytics Dashboard
       </Typography>
 
-      {isLoading ? (
+      {/* Stats Cards */}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+          gap: 2,
+          mb: 3,
+        }}
+      >
+        <StatCard title="Orders Today" value={stats.today} color="#1E3A5F" />
+        <StatCard title="This Week" value={stats.week} color="#25344E" />
+        <StatCard title="This Month" value={stats.month} color="#457b9d" />
+      </Box>
+
+      {/* Bar Chart */}
+      <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, mb: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}>
+          <Typography sx={{ color: "#1E3A5F", fontWeight: 600 }}>
+            Orders {chartType === "week" ? "This Week" : months.find((m) => m.value === selectedMonth)?.label}
+          </Typography>
+          <ToggleButtonGroup
+            value={chartType}
+            exclusive
+            onChange={(_, v) => v && setChartType(v)}
+            size="small"
+          >
+            <ToggleButton value="week">Week</ToggleButton>
+            <ToggleButton value="month">Month</ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+        <ResponsiveContainer width="100%" height={isSmall ? 200 : 280}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis dataKey={chartType === "week" ? "day" : "day"} tick={{ fontSize: 12 }} />
+            <YAxis tick={{ fontSize: 12 }} />
+            <Tooltip
+              contentStyle={{ borderRadius: 8, border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
+            />
+            <Bar dataKey="orders" fill="#1E3A5F" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </Paper>
+
+      {/* Pie Chart & Warehouse Selector */}
+      <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, mb: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "70vh",
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "2fr 1fr" },
+            gap: 3,
           }}
         >
-          <CircularProgress sx={{ color: "#1E3A5F" }} />
-        </Box>
-      ) : (
-        <>
-          {/* Summary Cards */}
-          <Grid container spacing={3} sx={{ marginBottom: "30px" }}>
-            <Grid item xs={12} md={4}>
-              <Card sx={{ borderLeft: "6px solid #1E3A5F", borderRadius: 3, background: "rgba(255,255,255,0.2)", backdropFilter: "blur(12px)", animation: "fadeIn 0.5s ease" }}>
-                <CardContent>
-                  <Typography color="#25344E" fontWeight="bold" variant="h6">
-                    Orders Today
-                  </Typography>
-                  <Typography
-                    variant="h4"
-                    color="#1E3A5F"
-                    fontWeight="bold"
-                  >
-                    {stats.today}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Card sx={{ borderLeft: "6px solid #1E3A5F", borderRadius: 3, background: "rgba(255,255,255,0.2)", backdropFilter: "blur(12px)", animation: "fadeIn 0.5s ease" }}>
-                <CardContent>
-                  <Typography color="#25344E" fontWeight="bold" variant="h6">
-                    Orders This Week
-                  </Typography>
-                  <Typography
-                    variant="h4"
-                    color="#1E3A5F"
-                    fontWeight="bold"
-                  >
-                    {stats.week}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Card sx={{ borderLeft: "6px solid #1E3A5F", borderRadius: 3, background: "rgba(255,255,255,0.2)", backdropFilter: "blur(12px)", animation: "fadeIn 0.5s ease" }}>
-                <CardContent>
-                  <Typography color="#25344E" fontWeight="bold" variant="h6">
-                    Orders This Month
-                  </Typography>
-                  <Typography
-                    variant="h4"
-                    color="#1E3A5F"
-                    fontWeight="bold"
-                  >
-                    {stats.month}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-          <Paper elevation={2} sx={{ padding: "20px", borderRadius: 3, marginBottom: "30px", background: "rgba(255,255,255,0.2)", backdropFilter: "blur(12px)", animation: "fadeIn 0.5s ease" }}>
-            <Typography variant="h6" sx={{ color: "#1E3A5F", fontWeight: "bold", marginBottom: "10px" }}>
-              Orders {chartType === "week" ? "per Day (This Week)" : `per Day (${months.find(m => m.value === selectedMonth)?.label})`}
+          <Box>
+            <Typography sx={{ color: "#1E3A5F", fontWeight: 600, mb: 2 }}>
+              Status Distribution
             </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={chartType === "week" ? "day" : "day"} />
-                <YAxis />
+            <ResponsiveContainer width="100%" height={isSmall ? 220 : 280}>
+              <PieChart>
+                <Pie
+                  data={ledgerData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={isSmall ? 70 : 90}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  labelLine={false}
+                >
+                  {ledgerData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
                 <Tooltip />
-                <Bar dataKey="orders" fill="#1E3A5F" radius={[6, 6, 0, 0]} />
-              </BarChart>
+                <Legend />
+              </PieChart>
             </ResponsiveContainer>
-          </Paper>
+          </Box>
 
-          {/* Ledger Pie Chart with Selector */}
-          <Paper elevation={2} sx={{ padding: "20px", borderRadius: 3, marginBottom: "30px", background: "rgba(255,255,255,0.2)", backdropFilter: "blur(12px)", animation: "fadeIn 0.5s ease" }}>
-            <Grid container spacing={2}>
-              {/* Left side: Pie chart */}
-              <Grid item xs={12} md={8}>
-                <Typography
-                  variant="h6"
+          <Box>
+            <Typography sx={{ fontWeight: 600, mb: 1.5, color: "#25344E", fontSize: "0.9rem" }}>
+              Select Warehouse
+            </Typography>
+            <ToggleButtonGroup
+              orientation={isMobile ? "horizontal" : "vertical"}
+              value={selectedWarehouse}
+              exclusive
+              onChange={(_, v) => v && setSelectedWarehouse(v)}
+              sx={{ flexWrap: "wrap" }}
+            >
+              {warehouses.map((w) => (
+                <ToggleButton
+                  key={w}
+                  value={w}
                   sx={{
-                    color: "#1E3A5F",
-                    fontWeight: "bold",
-                    marginBottom: "10px",
+                    px: 2,
+                    py: 1,
+                    fontSize: "0.85rem",
+                    "&.Mui-selected": { backgroundColor: "#1E3A5F", color: "white" },
                   }}
                 >
-                  Orders Status Distribution
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={ledgerData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      label
-                    >
-                      {ledgerData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </Grid>
+                  {w}
+                </ToggleButton>
+              ))}
+            </ToggleButtonGroup>
+          </Box>
+        </Box>
+      </Paper>
 
-              {/* Right side: Selector */}
-              <Grid
-                item
-                xs={12}
-                md={4}
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                }}
-              >
-                <Typography
-                  variant="subtitle1"
-                  sx={{ fontWeight: "bold", mb: 1, color: "#25344E" }}
-                >
-                  Select Warehouse
-                </Typography>
-                <ToggleButtonGroup
-                  orientation="vertical"
-                  value={selectedWarehouse}
-                  exclusive
-                  onChange={(_, v) => v && setSelectedWarehouse(v)}
-                >
-                  {warehouses.map((w) => (
-                    <ToggleButton key={w} value={w}>
-                      {w}
-                    </ToggleButton>
-                  ))}
-                </ToggleButtonGroup>
-              </Grid>
-            </Grid>
-          </Paper>
-
-          {/* Warehouse Table */}
-          <Paper elevation={2} sx={{ padding: "20px", borderRadius: 3, background: "rgba(255,255,255,0.2)", backdropFilter: "blur(12px)", animation: "fadeIn 0.5s ease" }}>
-            <Typography
-              variant="h6"
-              sx={{ color: "#1E3A5F", fontWeight: "bold", marginBottom: "10px" }}
-            >
-              Warehouse Summary
-            </Typography>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Warehouse</TableCell>
-                  <TableCell align="center">Pending</TableCell>
-                  <TableCell align="center">In-Transit</TableCell>
-                  <TableCell align="center">Delivered</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {warehouseTable.map((row, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell>{row.warehouse}</TableCell>
-                    <TableCell align="center">{row.pending}</TableCell>
-                    <TableCell align="center">{row["in-transit"]}</TableCell>
-                    <TableCell align="center">{row.delivered}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Paper>
-        </>
-      )
-      }
-    </Box >
+      {/* Warehouse Table */}
+      <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", overflowX: "auto" }}>
+        <Typography sx={{ color: "#1E3A5F", fontWeight: 600, mb: 2 }}>
+          Warehouse Summary
+        </Typography>
+        <Table size={isSmall ? "small" : "medium"}>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: "#f8fafc" }}>
+              <TableCell sx={{ fontWeight: 600, color: "#1E3A5F" }}>Warehouse</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600, color: "#1E3A5F" }}>Pending</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600, color: "#1E3A5F" }}>In-Transit</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 600, color: "#1E3A5F" }}>Delivered</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {warehouseTable.map((row, idx) => (
+              <TableRow key={idx} hover>
+                <TableCell sx={{ fontWeight: 500, color: "#1E3A5F" }}>{row.warehouse}</TableCell>
+                <TableCell align="center">{row.pending}</TableCell>
+                <TableCell align="center">{row["in-transit"]}</TableCell>
+                <TableCell align="center">{row.delivered}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Paper>
+    </Box>
   );
 };
+
+// Stat Card Component
+const StatCard = ({ title, value, color }) => (
+  <Card sx={{ borderRadius: 2, borderLeft: `4px solid ${color}`, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+    <CardContent sx={{ py: 2 }}>
+      <Typography sx={{ color: "#64748b", fontSize: "0.85rem", mb: 0.5 }}>{title}</Typography>
+      <Typography variant="h4" sx={{ color, fontWeight: 700 }}>
+        {value}
+      </Typography>
+    </CardContent>
+  </Card>
+);
 
 export default Analytics_UI;

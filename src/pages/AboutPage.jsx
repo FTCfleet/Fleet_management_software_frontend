@@ -1,5 +1,5 @@
 import React from "react";
-import { Typography, Box, Divider, useTheme } from "@mui/material";
+import { Typography, Box, Divider } from "@mui/material";
 import { motion } from "framer-motion";
 import { FaMapMarkerAlt, FaPhoneAlt, FaBuilding } from "react-icons/fa";
 import founderImg from "../assets/founder.jpg";
@@ -9,8 +9,6 @@ import office3 from "../assets/office3.jpg";
 import "../css/about.css";
 
 const AboutPage = () => {
-  const theme = useTheme();
-
   const fadeInUp = {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
@@ -37,10 +35,13 @@ const AboutPage = () => {
       <div className="about-header">
         <div className="about-container">
           <motion.div initial="hidden" animate="visible" variants={fadeInUp}>
-            <Typography variant="h3" fontWeight="bold" gutterBottom>
+            <Typography
+              variant="h3"
+              sx={{ fontWeight: 700, mb: 1, fontSize: { xs: "1.75rem", md: "2.5rem" }, color: "#ffffff" }}
+            >
               About Friends Transport Company
             </Typography>
-            <Typography variant="h6" sx={{ opacity: 0.8 }}>
+            <Typography sx={{ color: "rgba(255,255,255,0.9)", fontSize: { xs: "1rem", md: "1.25rem" } }}>
               Delivering Trust Since 1996
             </Typography>
           </motion.div>
@@ -51,31 +52,34 @@ const AboutPage = () => {
       <div className="about-section">
         <div className="about-container">
           <div className="about-grid-story">
-            <div>
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
-                <img
-                  src={founderImg}
-                  alt="Mr. Mohammed Ameer Ali"
-                  className="founder-img"
-                />
-                <Typography variant="caption" display="block" textAlign="center" sx={{ mt: 1, color: "text.secondary" }}>
-                  Founder: Mr. Mohammed Ameer Ali
-                </Typography>
-              </motion.div>
-            </div>
-            <div>
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
-                <Typography variant="h4" fontWeight="bold" color="#003366" gutterBottom>
-                  Our Story
-                </Typography>
-                <Typography sx={{ fontSize: "1.05rem", lineHeight: 1.7, color: "#444" }}>
-                  Founded by the visionary <strong>Mr. Mohammed Ameer Ali</strong>, Friends Transport Company has been a pioneer in the parcel service industry for over two decades. With a legacy built on trust, dedication, and quality customer service, our company continues to set new standards in safe and fast delivery of goods.
-                </Typography>
-                <Typography sx={{ fontSize: "1.05rem", lineHeight: 1.7, color: "#444" }}>
-                  The commitment to excellence established by Mr. Ameer Ali is carried forward by his sons and grandsons, who continue to drive the company’s growth with the same passion and attention to detail.
-                </Typography>
-              </motion.div>
-            </div>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
+              <img src={founderImg} alt="Mr. Mohammed Ameer Ali" className="founder-img" />
+              <Typography
+                sx={{ mt: 1.5, textAlign: "center", color: "#64748b", fontSize: "0.9rem" }}
+              >
+                Founder: Mr. Mohammed Ameer Ali
+              </Typography>
+            </motion.div>
+
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
+              <Typography
+                variant="h4"
+                sx={{ fontWeight: 700, color: "#003366", mb: 2, fontSize: { xs: "1.5rem", md: "2rem" } }}
+              >
+                Our Story
+              </Typography>
+              <Typography sx={{ fontSize: "1rem", lineHeight: 1.8, color: "#4a5568", mb: 2 }}>
+                Founded by the visionary <strong>Mr. Mohammed Ameer Ali</strong>, Friends Transport
+                Company has been a pioneer in the parcel service industry for over two decades. With
+                a legacy built on trust, dedication, and quality customer service, our company
+                continues to set new standards in safe and fast delivery of goods.
+              </Typography>
+              <Typography sx={{ fontSize: "1rem", lineHeight: 1.8, color: "#4a5568" }}>
+                The commitment to excellence established by Mr. Ameer Ali is carried forward by his
+                sons and grandsons, who continue to drive the company's growth with the same passion
+                and attention to detail.
+              </Typography>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -86,30 +90,39 @@ const AboutPage = () => {
       <div className="about-section-white">
         <div className="about-container">
           <div className="about-grid-2">
-            <div>
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
-                <div className="mission-card mission-card-blue">
-                  <Typography variant="h5" fontWeight="bold" color="#003366" gutterBottom>
-                    Our Mission
-                  </Typography>
-                  <Typography sx={{ lineHeight: 1.7, color: "#444" }}>
-                    To provide high-quality customer service with every delivery whether you're sending small parcels or large shipments, we ensure your goods reach their destination safely, securely, and on time. Our customer-first approach has made us a preferred choice for businesses and individuals alike.
-                  </Typography>
-                </div>
-              </motion.div>
-            </div>
-            <div>
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
-                <div className="mission-card mission-card-purple">
-                  <Typography variant="h5" fontWeight="bold" color="#4a148c" gutterBottom>
-                    Commitment to Excellence
-                  </Typography>
-                  <Typography sx={{ lineHeight: 1.7, color: "#444" }}>
-                    We believe in building long-term relationships with our clients by delivering exceptional service consistently. Our core values of integrity, reliability, and quality have earned us the trust of our customers. No matter the size of the shipment, we ensure that every parcel receives the same level of care.
-                  </Typography>
-                </div>
-              </motion.div>
-            </div>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
+              <div className="mission-card mission-card-blue">
+                <Typography
+                  variant="h5"
+                  sx={{ fontWeight: 700, color: "#003366", mb: 1.5, fontSize: { xs: "1.25rem", md: "1.5rem" } }}
+                >
+                  Our Mission
+                </Typography>
+                <Typography sx={{ lineHeight: 1.8, color: "#4a5568" }}>
+                  To provide high-quality customer service with every delivery whether you're
+                  sending small parcels or large shipments, we ensure your goods reach their
+                  destination safely, securely, and on time. Our customer-first approach has made us
+                  a preferred choice for businesses and individuals alike.
+                </Typography>
+              </div>
+            </motion.div>
+
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
+              <div className="mission-card mission-card-purple">
+                <Typography
+                  variant="h5"
+                  sx={{ fontWeight: 700, color: "#4a148c", mb: 1.5, fontSize: { xs: "1.25rem", md: "1.5rem" } }}
+                >
+                  Commitment to Excellence
+                </Typography>
+                <Typography sx={{ lineHeight: 1.8, color: "#4a5568" }}>
+                  We believe in building long-term relationships with our clients by delivering
+                  exceptional service consistently. Our core values of integrity, reliability, and
+                  quality have earned us the trust of our customers. No matter the size of the
+                  shipment, we ensure that every parcel receives the same level of care.
+                </Typography>
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -118,44 +131,72 @@ const AboutPage = () => {
       <div className="about-section">
         <div className="about-container">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
-            <Typography variant="h4" fontWeight="bold" color="#003366" className="text-center mb-6">
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                color: "#003366",
+                textAlign: "center",
+                mb: 4,
+                fontSize: { xs: "1.5rem", md: "2rem" },
+              }}
+            >
               Our Locations
             </Typography>
+
             <div className="about-grid-2">
               {/* Booking Offices */}
-              <div style={{ height: "100%" }}>
-                <div className="location-card" style={{ height: "100%"}}>
-                  <Typography variant="h6" fontWeight="bold" color="#003366" gutterBottom className="flex-align-center" sx={{justifyContent: "center"}}>
-                    <FaMapMarkerAlt /> Booking Offices
-                  </Typography>
-                  <Divider className="mb-2" />
-                  {bookingOffices.map((office, index) => (
-                    <div key={index} className="location-row">
-                      <span className="location-name">{office.name}</span>
-                      <span className="location-phone">
-                        <FaPhoneAlt size={12} /> {office.phone}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+              <div className="location-card">
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    color: "#003366",
+                    mb: 2,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 1,
+                  }}
+                >
+                  <FaMapMarkerAlt /> Booking Offices
+                </Typography>
+                <Divider sx={{ mb: 1 }} />
+                {bookingOffices.map((office, index) => (
+                  <div key={index} className="location-row">
+                    <span className="location-name">{office.name}</span>
+                    <span className="location-phone">
+                      <FaPhoneAlt size={12} /> {office.phone}
+                    </span>
+                  </div>
+                ))}
               </div>
 
               {/* Delivery Offices */}
-              <div style={{ height: "100%" }}>
-                <div className="location-card" style={{ height: "100%" }}>
-                  <Typography variant="h6" fontWeight="bold" color="#003366" gutterBottom className="flex-align-center" sx={{justifyContent: "center"}}>
-                    <FaMapMarkerAlt /> Delivery Offices
-                  </Typography>
-                  <Divider className="mb-2" />
-                  {deliveryOffices.map((office, index) => (
-                    <div key={index} className="location-row">
-                      <span className="location-name">{office.name}</span>
-                      <span className="location-phone">
-                        <FaPhoneAlt size={12} /> {office.phone}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+              <div className="location-card">
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    color: "#003366",
+                    mb: 2,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 1,
+                  }}
+                >
+                  <FaMapMarkerAlt /> Delivery Offices
+                </Typography>
+                <Divider sx={{ mb: 1 }} />
+                {deliveryOffices.map((office, index) => (
+                  <div key={index} className="location-row">
+                    <span className="location-name">{office.name}</span>
+                    <span className="location-phone">
+                      <FaPhoneAlt size={12} /> {office.phone}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </motion.div>
@@ -166,33 +207,35 @@ const AboutPage = () => {
       <div className="about-section-white">
         <div className="about-container">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
-            <Typography variant="h4" fontWeight="bold" color="#003366" className="text-center mb-6 flex-center">
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                color: "#003366",
+                textAlign: "center",
+                mb: 4,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 1,
+                fontSize: { xs: "1.5rem", md: "2rem" },
+              }}
+            >
               <FaBuilding /> Our Offices
             </Typography>
+
             <div className="office-images-grid">
               <div className="office-col-left">
-                <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.3 }} style={{ height: '100%' }}>
-                  <img
-                    src={office1}
-                    alt="Office Interior"
-                    className="office-img-full"
-                  />
+                <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.3 }} style={{ height: "100%" }}>
+                  <img src={office1} alt="Office Interior" className="office-img-full" />
                 </motion.div>
               </div>
               <div className="office-col-right">
                 <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.3 }}>
-                  <img
-                    src={office2}
-                    alt="Office Exterior"
-                    className="office-img"
-                  />
+                  <img src={office2} alt="Office Exterior" className="office-img" />
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.3 }}>
-                  <img
-                    src={office3}
-                    alt="Office Signage"
-                    className="office-img"
-                  />
+                  <img src={office3} alt="Office Signage" className="office-img" />
                 </motion.div>
               </div>
             </div>
@@ -203,8 +246,8 @@ const AboutPage = () => {
       {/* Footer Info */}
       <div className="about-footer">
         <div className="about-container">
-          <Typography variant="body2">GST ID: 36AAFFF2744R1ZX</Typography>
-          <Typography variant="body2" sx={{ mt: 1 }}>
+          <Typography sx={{ fontSize: "0.9rem", opacity: 0.9 }}>GST ID: 36AAFFF2744R1ZX</Typography>
+          <Typography sx={{ mt: 1, fontSize: "0.9rem", opacity: 0.8 }}>
             Thank You for Choosing Friends Transport Company — Where Your Goods Are in Safe Hands!
           </Typography>
         </div>

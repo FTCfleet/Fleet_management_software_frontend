@@ -1,96 +1,225 @@
-/* Styles.module.css */
-
+/* Auth Container */
 .container {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 2.5rem 2rem;
   background-color: #ffffff;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
   text-align: center;
 }
 
-.heading {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #222222;
-  margin-bottom: 1.5rem;
+@media (max-width: 480px) {
+  .container {
+    padding: 2rem 1.5rem;
+    margin: 0 1rem;
+    border-radius: 12px;
+  }
 }
 
+/* Heading */
+.heading {
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+  font-weight: 700;
+  color: #1E3A5F;
+  margin-bottom: 2rem;
+  line-height: 1.3;
+}
+
+/* Form */
 .form {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 1rem;
 }
 
+/* Input Fields */
 .input {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.875rem 1rem;
   font-size: 1rem;
-  color: #555555;
-  border: 1px solid #ddd;
-  background-color: #f9f9f9; /* Fixed background color */
-  border-radius: 8px;
+  color: #1a1a2e;
+  border: 2px solid #e2e8f0;
+  background-color: #f8fafc;
+  border-radius: 10px;
   outline: none;
-  box-sizing: border-box; /* Ensure consistent sizing */
-  transition: border 0.3s ease, background-color 0.3s ease;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.input::placeholder {
+  color: #94a3b8;
+}
+
+.input:hover {
+  border-color: #cbd5e1;
 }
 
 .input:focus {
-  border-color: #007bff;
-  background-color: #ffffff; /* Highlight on focus */
+  border-color: #1E3A5F;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(30, 58, 95, 0.1);
 }
 
+/* Password Container */
 .passwordContainer {
   position: relative;
   display: flex;
   align-items: center;
 }
 
+.passwordContainer .input {
+  padding-right: 3rem;
+}
+
 .showPasswordButton {
   position: absolute;
-  right: 12px;
+  right: 1rem;
   background: none;
   border: none;
   outline: none;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   cursor: pointer;
-  color: #888888;
-  transition: color 0.3s ease;
+  color: #94a3b8;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
 }
 
 .showPasswordButton:hover {
-  color: #007bff;
+  color: #1E3A5F;
 }
 
-.showPasswordButton:focus{
-outline: none;
+.showPasswordButton:focus {
+  outline: none;
+  color: #1E3A5F;
 }
+
+/* Links */
 .forgotPassword {
-  font-size: 0.875rem;
-  color: #007bff;
+  font-size: 0.9rem;
+  color: #1E3A5F;
   text-decoration: none;
-  transition: color 0.3s ease;
+  font-weight: 500;
+  transition: color 0.2s ease;
 }
 
 .forgotPassword:hover {
-  color: #888888;
+  color: #457b9d;
+  text-decoration: underline;
 }
 
+/* Login Button */
 .loginButton {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.95rem 1.5rem;
   font-size: 1rem;
-  font-weight: bold;
+  font-weight: 600;
   color: #ffffff;
-  background-color: #222222;
+  background: linear-gradient(135deg, #1E3A5F 0%, #25344E 100%);
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .loginButton:hover {
-  background-color: #444444;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(30, 58, 95, 0.3);
+}
+
+.loginButton:active {
+  transform: translateY(0);
+}
+
+.loginButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0;
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: #e2e8f0;
+}
+
+.divider::before {
+  margin-right: 1rem;
+}
+
+.divider::after {
+  margin-left: 1rem;
+}
+
+/* Helper Text */
+.helperText {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-top: 1rem;
+}
+
+.helperText a {
+  color: #1E3A5F;
+  font-weight: 500;
+}
+
+/* Error Message */
+.errorMessage {
+  color: #dc2626;
+  font-size: 0.85rem;
+  text-align: left;
+  margin-top: -0.5rem;
+}
+
+/* Success Message */
+.successMessage {
+  color: #059669;
+  font-size: 0.85rem;
+  text-align: left;
+  margin-top: -0.5rem;
+}
+
+/* Form Group */
+.formGroup {
+  text-align: left;
+}
+
+.formLabel {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #4a5568;
+  margin-bottom: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 360px) {
+  .input {
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
+  
+  .loginButton {
+    padding: 0.85rem 1.25rem;
+  }
 }

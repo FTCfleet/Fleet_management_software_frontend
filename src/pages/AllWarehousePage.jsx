@@ -183,9 +183,10 @@ export default function AllWarehousePage() {
       <Box
         sx={{
           display: "flex",
-          gap: "16px",
+          flexDirection: { xs: "column", md: "row" },
+          gap: { xs: 1.5, md: 2 },
           marginBottom: "20px",
-          alignItems: "center",
+          alignItems: { xs: "stretch", md: "center" },
         }}
       >
         <Select
@@ -193,7 +194,7 @@ export default function AllWarehousePage() {
           onChange={(e) => applyFilter(e.target.value)}
           displayEmpty
           size="small"
-          sx={{ minWidth: "250px" }}
+          sx={{ minWidth: { xs: "100%", md: "250px" } }}
         >
           <MenuItem value="All">All Warehouses</MenuItem>
           {warehouses.map((warehouse) => (

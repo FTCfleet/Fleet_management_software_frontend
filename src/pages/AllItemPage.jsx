@@ -432,9 +432,10 @@ export default function AllItemPage() {
       <Box
         sx={{
           display: "flex",
-          gap: "16px",
+          flexDirection: { xs: "column", md: "row" },
+          gap: { xs: 1.5, md: 2 },
           marginBottom: "20px",
-          alignItems: "center",
+          alignItems: { xs: "stretch", md: "center" },
         }}
       >
         <TextField
@@ -443,16 +444,19 @@ export default function AllItemPage() {
           onChange={(e) => setNameFilter(e.target.value)}
           variant="outlined"
           size="small"
+          sx={{ minWidth: { xs: "100%", md: "200px" } }}
         />
-        <Button variant="contained" color="primary" onClick={applyFilter}>
-          Apply
-        </Button>
-        <Button variant="outlined" color="secondary" onClick={clearFilter}>
-          Clear
-        </Button>
-        <button className="button " onClick={handleAdd} style={{ margin: 0 }}>
-          Add Item
-        </button>
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+          <Button variant="contained" color="primary" onClick={applyFilter}>
+            Apply
+          </Button>
+          <Button variant="outlined" color="secondary" onClick={clearFilter}>
+            Clear
+          </Button>
+          <button className="button " onClick={handleAdd} style={{ margin: 0 }}>
+            Add Item
+          </button>
+        </Box>
       </Box>
 
       

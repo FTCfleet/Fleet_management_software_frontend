@@ -1,75 +1,69 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { FaPhone, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
 import "../css/footer.css";
 
 const Footer = () => {
+  const currentYear = new Date().getFullYear();
+
   return (
     <footer className="footer-container">
-      <svg
-        width="100%"
-        height="100%"
-        viewBox="0 0 1440 685"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        preserveAspectRatio="xMidYMid slice"
-        className="footer-svg"
-      >
-        <path d="M0 0H1440V685H0V0Z" fill="url(#paint0_linear_13_17)" />
-        <defs>
-          <linearGradient
-            id="paint0_linear_13_17"
-            x1="700.779"
-            y1="-2.05121"
-            x2="602.009"
-            y2="701.428"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop offset="0.229765" stopColor="#1D3557" />
-            <stop offset="1" stopColor="#10223C" />
-          </linearGradient>
-        </defs>
-      </svg>
-
       <div className="footer-content">
         <div>
-          <a className="footer-title" href="/">
+          <Link className="footer-title" to="/">
             Friends Transport Company
-          </a>
+          </Link>
         </div>
 
         <div className="footer-row">
           <div>
             <h3>Quick Links</h3>
-            <ul>
-              <li>
-                <a className="footer-links" href="/">
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              <li style={{ marginBottom: "0.5rem" }}>
+                <Link className="footer-links" to="/">
                   Home
-                </a>
+                </Link>
               </li>
-              <li>
-                <a className="footer-links" href="/track">
+              <li style={{ marginBottom: "0.5rem" }}>
+                <Link className="footer-links" to="/track">
                   Track Shipment
-                </a>
+                </Link>
               </li>
               <li>
-                <a className="footer-links" href="/about">
+                <Link className="footer-links" to="/about">
                   About Us
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
+
           <div>
-            <h3>Contact Information</h3>
-            <ul>
-              <li>Phone: 040-24614381</li>
-              <li>
-                Email:{" "}
-                <a
-                  className="footer-links"
-                  href="mailto:ftchydindia@gmail.com"
-                >
+            <h3>Contact Us</h3>
+            <div className="footer-contact">
+              <div className="footer-contact-item">
+                <FaPhone size={14} />
+                <span>040-24614381</span>
+              </div>
+              <div className="footer-contact-item">
+                <FaEnvelope size={14} />
+                <a href="mailto:ftchydindia@gmail.com" style={{ color: "rgba(255,255,255,0.9)", textDecoration: "none" }}>
                   ftchydindia@gmail.com
                 </a>
+              </div>
+              <div className="footer-contact-item">
+                <FaMapMarkerAlt size={14} />
+                <span>Hyderabad, India</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3>Business Hours</h3>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, color: "rgba(255,255,255,0.9)" }}>
+              <li style={{ marginBottom: "0.25rem" }}>Monday - Saturday</li>
+              <li style={{ marginBottom: "0.25rem" }}>9:00 AM - 7:00 PM</li>
+              <li style={{ marginTop: "0.5rem", opacity: 0.7 }}>
+                Sunday: Closed
               </li>
             </ul>
           </div>
@@ -78,7 +72,8 @@ const Footer = () => {
         <div className="footer-divider"></div>
 
         <div className="footer-bottom">
-          <span>© 2025 Friends Transport Company. All rights reserved.</span>
+          <span>© {currentYear} Friends Transport Company. All rights reserved.</span>
+          <span style={{ color: "rgba(255,255,255,0.7)" }}>GST: 36AAFFF2744R1ZX</span>
         </div>
       </div>
     </footer>

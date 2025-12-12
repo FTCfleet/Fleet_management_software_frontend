@@ -1,27 +1,154 @@
-.navlink::after {
-	content: "";
-	height: 2px;
-	width: 100%;
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	transform: scale(0);
-	transition: all ease 0.3s;
+/* Header Container */
+.header-box {
+  height: 64px;
+  position: relative;
+  z-index: 100;
 }
 
+@media (min-width: 768px) {
+  .header-box {
+    height: 70px;
+  }
+}
+
+/* Navigation Links */
 .navlink {
-	position: relative;
-	text-decoration: none;
-	border: 0;
-	color: white;
-	transition: color 0.1s ease;
+  position: relative;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  padding: 0.5rem 0;
+  transition: color 0.2s ease;
+}
+
+.navlink::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #FFB74D;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s ease;
+}
+
+.navlink:hover {
+  color: #ffffff;
+}
+
+.navlink:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
 }
 
 .navlink.active {
-	color: #457b9d;
-	border: 0;
+  color: #FFB74D;
 }
 
-.header-box {
-	height: 60px;
+.navlink.active::after {
+  transform: scaleX(1);
+}
+
+/* Override MUI button styles for header */
+.navlink .MuiButton-root {
+  background-color: transparent !important;
+}
+
+.navlink.active .MuiButton-root {
+  background-color: transparent !important;
+  color: #FFB74D !important;
+}
+
+/* Header Button */
+.header-button {
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  padding: 0.5rem 1rem !important;
+  text-transform: none !important;
+  letter-spacing: 0.3px;
+  transition: all 0.2s ease !important;
+  border-radius: 6px !important;
+}
+
+.header-button:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Mobile Menu */
+.mobile-menu-item {
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  color: var(--text-dark, #1a1a2e);
+  transition: background-color 0.2s ease;
+}
+
+.mobile-menu-item:hover {
+  background-color: rgba(30, 58, 95, 0.08);
+}
+
+/* Logo */
+.header-logo {
+  height: 45px;
+  width: auto;
+  transition: transform 0.2s ease;
+}
+
+.header-logo:hover {
+  transform: scale(1.02);
+}
+
+@media (min-width: 768px) {
+  .header-logo {
+    height: 50px;
+  }
+}
+
+/* Station Badge */
+.station-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: white;
+  margin-left: 0.75rem;
+}
+
+/* Menu Icon Button */
+.menu-icon-button {
+  padding: 0.5rem !important;
+  border-radius: 8px !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.menu-icon-button:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 960px) {
+  .header-button {
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .header-box {
+    height: 60px;
+  }
+  
+  .header-logo {
+    height: 40px;
+  }
+  
+  .station-badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+  }
 }

@@ -23,6 +23,8 @@ import {
 import { FaCopy, FaTrash, FaPlus } from "react-icons/fa";
 import "../css/main.css";
 import { useAuth } from "../routes/AuthContext";
+import CustomDialog from "../components/CustomDialog";
+import { useDialog } from "../hooks/useDialog";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -58,6 +60,7 @@ export default function AddOrderPage({}) {
   const { isAdmin } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { dialogState, hideDialog, showAlert, showError, showSuccess } = useDialog();
 
   const normalizeName = (value = "") =>
     value ? value.toString().toUpperCase() : "";
@@ -301,16 +304,19 @@ export default function AddOrderPage({}) {
 
   const validateOrder = () => {
     if (receiverDetails.name === "") {
-      alert("Please fill all the receiver details");
+      showError("Please fill all the receiver details", "Validation Error");
       return false;
     }
     if (!destinationWarehouse || (isAdmin && !sourceWarehouse)) {
-      alert("Please fill all the stations");
+      showError("Please fill all the stations", "Validation Error");
       return false;
     }
     if (items.length === 0 || items.some((item) => !item.name)) {
-      if (items.length === 0) alert("Add items");
-      alert("Please fill the items");
+      if (items.length === 0) {
+        showError("Please add items to the order", "Validation Error");
+      } else {
+        showError("Please fill all item details", "Validation Error");
+      }
       return false;
     }
     return true;
@@ -356,15 +362,17 @@ export default function AddOrderPage({}) {
       const data = await response.json();
       console.log(data);
       if (!response.ok || !data.flag) {
-        alert("Error occurred");
+        showError("Failed to create LR. Please try again.", "Error");
       } else {
-        alert("LR Created Successfully");
-        navigate(`/user/view/order/${data.body}`, {
-          state: {print: true},
-        });
+        showSuccess("LR Created Successfully!", "Success");
+        setTimeout(() => {
+          navigate(`/user/view/order/${data.body}`, {
+            state: {print: true},
+          });
+        }, 1500);
       }
     } catch (error) {
-      alert("Network error occurred");
+      showError("Network error occurred. Please check your connection.", "Network Error");
     } finally {
       setIsLoading(false);
     }
@@ -420,10 +428,12 @@ export default function AddOrderPage({}) {
   return (
     <Box
       sx={{
-        padding: "20px",
+        padding: { xs: "16px", md: "20px" },
         margin: "auto",
         backgroundColor: "#ffffff",
         color: "#1b3655",
+        maxWidth: "100%",
+        overflowX: "hidden",
       }}
     >
       <Typography
@@ -436,8 +446,14 @@ export default function AddOrderPage({}) {
       <Box
         sx={{
           display: "grid",
-          gap: "12px",
-          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: { xs: 2, md: 1.5 },
+          gridTemplateColumns: { 
+            xs: "1fr", 
+            sm: "1fr 1fr", 
+            md: "repeat(3, 1fr)", 
+            lg: "repeat(4, 1fr)" 
+          },
+          mb: 3,
         }}
       >
         <Autocomplete
@@ -636,7 +652,8 @@ export default function AddOrderPage({}) {
         >
           Items
         </Typography>
-        <Table>
+        <Box sx={{ overflowX: "auto", mb: 2 }}>
+        <Table sx={{ minWidth: 800 }}>
           <TableHead>
             <TableRow>
               <TableCell sx={{ color: "#1b3655", fontWeight: "bold" }}>
@@ -707,7 +724,7 @@ export default function AddOrderPage({}) {
                             fontSize: "14px",
                             color: "#1b3655",
                           },
-                          width: "13vw",
+                          minWidth: { xs: "150px", md: "180px" },
                         }}
                       />
                     )}
@@ -838,6 +855,7 @@ export default function AddOrderPage({}) {
             ))}
           </TableBody>
         </Table>
+        </Box>
         <Box sx={{ textAlign: "right", marginTop: "10px" }}>
           <button className="button" onClick={handleAddRow}>
             <FaPlus style={{ marginRight: "8px" }} /> Add Item
@@ -845,11 +863,24 @@ export default function AddOrderPage({}) {
         </Box>
       </Box>
 
-      <Box className="button-wrapper">
+      <Box 
+        className="button-wrapper"
+        sx={{ 
+          mt: 3,
+          display: "flex",
+          justifyContent: "center",
+          px: { xs: 2, md: 0 }
+        }}
+      >
         <button
           className="button button-large"
           onClick={handleAddOrder}
           disabled={isLoading}
+          style={{ 
+            width: "100%",
+            maxWidth: "300px",
+            padding: "12px 24px"
+          }}
         >
           Save & Print
           {isLoading && (
@@ -861,6 +892,18 @@ export default function AddOrderPage({}) {
           )}
         </button>
       </Box>
+      
+      <CustomDialog
+        open={dialogState.open}
+        onClose={hideDialog}
+        onConfirm={dialogState.onConfirm}
+        title={dialogState.title}
+        message={dialogState.message}
+        type={dialogState.type}
+        confirmText={dialogState.confirmText}
+        cancelText={dialogState.cancelText}
+        showCancel={dialogState.showCancel}
+      />
     </Box>
   );
 }

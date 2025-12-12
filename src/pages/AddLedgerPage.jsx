@@ -25,6 +25,8 @@ import {
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
 import "../css/main.css";
 import { getDate } from "../utils/dateFormatter";
+import CustomDialog from "../components/CustomDialog";
+import { useDialog } from "../hooks/useDialog";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -50,6 +52,7 @@ export default function AddLedgerPage({}) {
   const [selectedDate, setSelectedDate] = useState(getDate());
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { dialogState, hideDialog, showAlert, showError, showSuccess } = useDialog();
   const cellStyle = {
     color: "#1E3A5F",
     fontWeight: "bold",
@@ -97,15 +100,15 @@ export default function AddLedgerPage({}) {
 
   const validateOrder = () => {
     if (truckNo.trim() === "") {
-      alert("Please fill Truck Number");
+      showError("Please enter the truck number", "Validation Error");
       return false;
     }
     if (!destinationWarehouse || (!sourceWarehouse)) {
-      alert("Please fill all the required fields");
+      showError("Please select both source and destination stations", "Validation Error");
       return false;
     }
-    if (selectedOrders.length === 0) {
-      alert("Add orders to the truck");
+    if (selectedOrders.current.size === 0) {
+      showError("Please select at least one order for the memo", "Validation Error");
       return false;
     }
     return true;
@@ -139,13 +142,15 @@ export default function AddLedgerPage({}) {
       const data = await response.json();
       console.log(data);
       if (!response.ok || !data.flag) {
-        alert("Error occurred");
+        showError("Failed to create memo. Please try again.", "Error");
       } else {
-        alert("Memo Added Successfully");
-        navigate(`/user/view/ledger/${data.body}`);
+        showSuccess("Memo created successfully!", "Success");
+        setTimeout(() => {
+          navigate(`/user/view/ledger/${data.body}`);
+        }, 1500);
       }
     } catch (error) {
-      alert("Network error occurred");
+      showError("Network error occurred. Please check your connection.", "Network Error");
     } finally {
       setIsLoading(false);
     }
@@ -188,12 +193,13 @@ export default function AddLedgerPage({}) {
       );
 
       if (!response.ok) {
-        alert("Failed to fetch orders");
+        showError("Failed to fetch orders. Please try again.", "Error");
         throw new Error("Failed to fetch orders");
       }
 
       const data = await response.json();
       if (!data.flag) {
+        showError("Please login first to continue.", "Authentication Required");
         throw new Error("Please login first");
       }
       // console.log(selectedSourceWarehouse, selectedDestinationWarehouse);
@@ -201,7 +207,8 @@ export default function AddLedgerPage({}) {
       setOrders(data.body);
       setIsLoading(false);
     } catch (error) {
-      alert("Error fetching orders:", error);
+      // Error already shown in the catch blocks above
+      setIsLoading(false);
     }
   };
 
@@ -279,10 +286,12 @@ export default function AddLedgerPage({}) {
   return (
     <Box
       sx={{
-        padding: "20px",
+        padding: { xs: "16px", md: "20px" },
         margin: "auto",
         backgroundColor: "#ffffff",
         color: "#1b3655",
+        maxWidth: "100%",
+        overflowX: "hidden",
       }}
     >
       <Typography
@@ -295,8 +304,14 @@ export default function AddLedgerPage({}) {
       <Box
         sx={{
           display: "grid",
-          gap: "12px",
-          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: { xs: 2, md: 1.5 },
+          gridTemplateColumns: { 
+            xs: "1fr", 
+            sm: "1fr 1fr", 
+            md: "repeat(3, 1fr)", 
+            lg: "repeat(4, 1fr)" 
+          },
+          mb: 3,
         }}
       >
         <Autocomplete
@@ -413,9 +428,10 @@ export default function AddLedgerPage({}) {
               <Box
                 sx={{
                   display: "flex",
-                  gap: "10px",
+                  flexDirection: { xs: "column", md: "row" },
+                  gap: { xs: 1.5, md: 1 },
                   marginBottom: "20px",
-                  alignItems: "center",
+                  alignItems: { xs: "stretch", md: "center" },
                 }}
               >
                 <Box className="calendar-input">
@@ -434,7 +450,7 @@ export default function AddLedgerPage({}) {
                   onChange={(e) => setNameFilter(e.target.value)}
                   variant="outlined"
                   size="small"
-                  style={{ minWidth: "300px" }}
+                  sx={{ minWidth: { xs: "100%", md: "300px" } }}
                 />
                 <Button
                   variant="contained"
@@ -463,9 +479,12 @@ export default function AddLedgerPage({}) {
 
               <TableContainer
                 component={Paper}
-                sx={{ backgroundColor: "#ffffff" }}
+                sx={{ 
+                  backgroundColor: "#ffffff",
+                  overflowX: "auto"
+                }}
               >
-                <Table>
+                <Table sx={{ minWidth: 700 }}>
                   <TableHead>
                     <TableRow>
                       <TableCell sx={cellStyle}>
@@ -550,11 +569,24 @@ export default function AddLedgerPage({}) {
           )}
       </Box>
 
-      <Box className="button-wrapper">
+      <Box 
+        className="button-wrapper"
+        sx={{ 
+          mt: 3,
+          display: "flex",
+          justifyContent: "center",
+          px: { xs: 2, md: 0 }
+        }}
+      >
         <button
           className="button button-large"
           onClick={handleAddLedger}
           disabled={isLoading}
+          style={{ 
+            width: "100%",
+            maxWidth: "300px",
+            padding: "12px 24px"
+          }}
         >
           Create Memo
           {isLoading && (
@@ -566,6 +598,18 @@ export default function AddLedgerPage({}) {
           )}
         </button>
       </Box>
+      
+      <CustomDialog
+        open={dialogState.open}
+        onClose={hideDialog}
+        onConfirm={dialogState.onConfirm}
+        title={dialogState.title}
+        message={dialogState.message}
+        type={dialogState.type}
+        confirmText={dialogState.confirmText}
+        cancelText={dialogState.cancelText}
+        showCancel={dialogState.showCancel}
+      />
     </Box>
   );
 }

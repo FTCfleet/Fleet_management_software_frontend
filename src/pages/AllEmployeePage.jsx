@@ -310,13 +310,14 @@ const AllEmployeePage = () => {
       </Typography>
 
       {/* Filters */}
-      <Box sx={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
+      <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: { xs: 1.5, md: 2 }, marginBottom: "20px", alignItems: { xs: "stretch", md: "center" } }}>
         <TextField
           label="Search by Name"
           value={nameFilter}
           onChange={(e) => setNameFilter(e.target.value)}
           variant="outlined"
           size="small"
+          sx={{ minWidth: { xs: "100%", md: "200px" } }}
         />
         <TextField
           label="Search by Phone"
@@ -324,12 +325,14 @@ const AllEmployeePage = () => {
           onChange={(e) => setPhoneFilter(e.target.value)}
           variant="outlined"
           size="small"
+          sx={{ minWidth: { xs: "100%", md: "200px" } }}
         />
         <Select
           value={warehouseFilter}
           onChange={(e) => setWarehouseFilter(e.target.value)}
           displayEmpty
           size="small"
+          sx={{ minWidth: { xs: "100%", md: "200px" } }}
         >
           <MenuItem value="">All Warehouses</MenuItem>
           {warehouses.map((warehouse) => (
@@ -338,15 +341,17 @@ const AllEmployeePage = () => {
             </MenuItem>
           ))}
         </Select>
-        <Button variant="contained" color="primary" onClick={applyFilter}>
-          Apply
-        </Button>
-        <Button variant="outlined" color="secondary" onClick={clearFilter}>
-          Clear
-        </Button>
-        <button className="button " onClick={openAddModal} style={{ margin: 0 }}>
-          Add Employee
-        </button>
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+          <Button variant="contained" color="primary" onClick={applyFilter}>
+            Apply
+          </Button>
+          <Button variant="outlined" color="secondary" onClick={clearFilter}>
+            Clear
+          </Button>
+          <button className="button " onClick={openAddModal} style={{ margin: 0 }}>
+            Add Employee
+          </button>
+        </Box>
       </Box>
 
       {/* Employee Table */}

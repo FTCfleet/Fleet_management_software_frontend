@@ -18,13 +18,14 @@ const modalContainerSx = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: 400,
-  maxHeight: "70vh",
+  width: "90%",
+  maxWidth: 420,
+  maxHeight: "85vh",
   overflowY: "auto",
   bgcolor: "background.paper",
-  borderRadius: 2,
-  boxShadow: 24,
-  p: 4,
+  borderRadius: 3,
+  boxShadow: "0 20px 50px rgba(0,0,0,0.15)",
+  p: { xs: 2.5, sm: 3.5 },
 };
 
 const ClientModal = memo(function ClientModal({
@@ -41,8 +42,7 @@ const ClientModal = memo(function ClientModal({
     return null;
   }
 
-  const senderValue =
-    typeof client.isSender === "boolean" ? client.isSender : true;
+  const senderValue = typeof client.isSender === "boolean" ? client.isSender : true;
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -51,104 +51,109 @@ const ClientModal = memo(function ClientModal({
           color="error"
           onClick={onClose}
           sx={{ position: "absolute", top: 8, right: 8 }}
+          size="small"
         >
           <Close />
         </IconButton>
+        
         <Typography
           variant="h6"
           sx={{
-            marginBottom: "16px",
+            mb: 3,
             textAlign: "center",
+            fontWeight: 700,
+            color: "#1E3A5F",
             ...(titleSx || {}),
           }}
         >
           {isAdding ? "Add Client" : "Edit Client Details"}
         </Typography>
-        <TextField
-          fullWidth
-          label="Client Name"
-          value={client.name ?? ""}
-          onChange={(e) =>
-            onFieldChange("name", e.target.value.toUpperCase())
-          }
-          sx={{ marginBottom: "16px" }}
-        />
-        <TextField
-          fullWidth
-          label="Phone Number"
-          value={client.phoneNo ?? ""}
-          onChange={(e) => onFieldChange("phoneNo", e.target.value)}
-          sx={{ marginBottom: "16px" }}
-        />
-        <TextField
-          fullWidth
-          label="Client Address"
-          value={client.address ?? ""}
-          onChange={(e) =>
-            onFieldChange("address", e.target.value.toUpperCase())
-          }
-          sx={{ marginBottom: "16px" }}
-        />
-        <TextField
-          fullWidth
-          label="GST Number"
-          value={client.gst ?? ""}
-          onChange={(e) =>
-            onFieldChange("gst", e.target.value.toUpperCase())
-          }
-          sx={{ marginBottom: "16px" }}
-        />
 
-        <ToggleButtonGroup
-          value={senderValue}
-          exclusive
-          onChange={(e, newValue) => {
-            if (newValue !== null) {
-              onFieldChange("isSender", newValue);
-            }
-          }}
-          sx={{ display: "flex", marginBottom: "16px" }}
-        >
-          <ToggleButton
-            value={true}
-            sx={{
-              flex: 1,
-              backgroundColor: senderValue ? "#003366" : "inherit",
-              color: senderValue ? "white" : "black",
-              "&.Mui-selected, &.Mui-selected:hover": {
-                backgroundColor: "#003366",
-                color: "white",
-              },
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <TextField
+            fullWidth
+            label="Client Name"
+            value={client.name ?? ""}
+            onChange={(e) => onFieldChange("name", e.target.value.toUpperCase())}
+            size="small"
+          />
+          <TextField
+            fullWidth
+            label="Phone Number"
+            value={client.phoneNo ?? ""}
+            onChange={(e) => onFieldChange("phoneNo", e.target.value)}
+            size="small"
+          />
+          <TextField
+            fullWidth
+            label="Client Address"
+            value={client.address ?? ""}
+            onChange={(e) => onFieldChange("address", e.target.value.toUpperCase())}
+            size="small"
+            multiline
+            rows={2}
+          />
+          <TextField
+            fullWidth
+            label="GST Number"
+            value={client.gst ?? ""}
+            onChange={(e) => onFieldChange("gst", e.target.value.toUpperCase())}
+            size="small"
+          />
+
+          <ToggleButtonGroup
+            value={senderValue}
+            exclusive
+            onChange={(e, newValue) => {
+              if (newValue !== null) {
+                onFieldChange("isSender", newValue);
+              }
             }}
+            sx={{ display: "flex" }}
+            size="small"
           >
-            Sender
-          </ToggleButton>
-          <ToggleButton
-            value={false}
-            sx={{
-              flex: 1,
-              backgroundColor: !senderValue ? "#003366" : "inherit",
-              color: !senderValue ? "white" : "black",
-              "&.Mui-selected, &.Mui-selected:hover": {
-                backgroundColor: "#003366",
-                color: "white",
-              },
-            }}
-          >
-            Receiver
-          </ToggleButton>
-        </ToggleButtonGroup>
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-          <Button
-            variant="contained"
-            onClick={onSubmit}
-            disabled={isSubmitting}
-          >
-            {isAdding ? "Add Client" : "Save Client"}
-            {isSubmitting && (
-              <CircularProgress size={22} sx={{ color: "#fff", ml: 1 }} />
-            )}
-          </Button>
+            <ToggleButton
+              value={true}
+              sx={{
+                flex: 1,
+                py: 1,
+                "&.Mui-selected, &.Mui-selected:hover": {
+                  backgroundColor: "#1E3A5F",
+                  color: "white",
+                },
+              }}
+            >
+              Sender
+            </ToggleButton>
+            <ToggleButton
+              value={false}
+              sx={{
+                flex: 1,
+                py: 1,
+                "&.Mui-selected, &.Mui-selected:hover": {
+                  backgroundColor: "#1E3A5F",
+                  color: "white",
+                },
+              }}
+            >
+              Receiver
+            </ToggleButton>
+          </ToggleButtonGroup>
+
+          <Box sx={{ display: "flex", gap: 1.5, justifyContent: "flex-end", mt: 1 }}>
+            <Button variant="outlined" onClick={onClose} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={onSubmit}
+              disabled={isSubmitting}
+              sx={{ backgroundColor: "#1E3A5F", "&:hover": { backgroundColor: "#25344E" } }}
+            >
+              {isAdding ? "Add" : "Save"}
+              {isSubmitting && <CircularProgress size={18} sx={{ color: "#fff", ml: 1 }} />}
+            </Button>
+          </Box>
         </Box>
       </Box>
     </Modal>

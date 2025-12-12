@@ -19,7 +19,17 @@ import {
   Modal,
   CircularProgress,
   Checkbox,
+  useMediaQuery,
+  useTheme,
+  Card,
+  CardContent,
+  Chip,
+  Fab,
+  Tooltip,
+  Zoom,
 } from "@mui/material";
+import CustomDialog from "../components/CustomDialog";
+import { useDialog } from "../hooks/useDialog";
 import {
   useParams,
   useNavigate,
@@ -66,6 +76,9 @@ export default function ViewLedgerPage() {
   const { isAdmin, isSource } = useAuth();
   const navigate = useNavigate();
   const { setIsScreenLoading, setIsScreenLoadingText } = useOutletContext();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { dialogState, hideDialog, showAlert, showError, showSuccess } = useDialog();
 
   const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
   const rowStyle = { color: "#25344E" };
@@ -103,12 +116,12 @@ export default function ViewLedgerPage() {
     });
     const data = await response.json();
     if (!response.ok) {
-      alert("Error occurred");
+      showError("Error occurred while fetching memo details", "Error");
       setIsLoading1(false);
       return;
     }
     if (!data.flag) {
-      alert("No such Memo found");
+      showError("No memo found with this ID", "Memo Not Found");
       setIsLoading1(false);
       return;
     }
@@ -157,7 +170,7 @@ export default function ViewLedgerPage() {
     });
 
     if (!destinationWarehouse || (isAdmin && !sourceWarehouse)) {
-      alert("Select Station location");
+      showError("Please select station location", "Validation Error");
       return;
     }
     setIsScreenLoading(true);
@@ -181,10 +194,9 @@ export default function ViewLedgerPage() {
     setIsScreenLoadingText("");
     setIsScreenLoading(false);
     if (response.ok) {
-      alert("Orders dispatched successfully");
-      // navigate("/user/ledgers/all");
+      showSuccess("Orders dispatched successfully!", "Success");
     } else {
-      alert("Error occurred");
+      showError("Error occurred while dispatching orders", "Error");
     }
     setModalOpen(false);
     fetchData();
@@ -207,16 +219,18 @@ export default function ViewLedgerPage() {
       }
     );
     if (!response.ok) {
-      alert("Error occurred");
+      showError("Error occurred while verifying delivery", "Error");
+      setIsScreenLoadingText("");
+      setIsScreenLoading(false);
       return;
     }
     const data = await response.json();
     setIsScreenLoadingText("");
     setIsScreenLoading(false);
     if (!data.flag) {
-      alert("Error occurred " + data.message);
+      showError("Error occurred: " + data.message, "Error");
     } else {
-      alert("Orders delivered successfully");
+      showSuccess("Orders delivered successfully!", "Success");
       setModalOpen(false);
       setCounter(0);
       fetchData();
@@ -241,9 +255,12 @@ export default function ViewLedgerPage() {
     setIsLoading(false);
     setModalOpen(false);
     if (data.flag) {
-      navigate("/user/ledgers/all");
+      showSuccess("Memo deleted successfully!", "Success");
+      setTimeout(() => {
+        navigate("/user/ledgers/all");
+      }, 1500);
     } else {
-      alert("Error occurred " + data.message);
+      showError("Error occurred: " + data.message, "Error");
     }
   };
 
@@ -269,7 +286,7 @@ export default function ViewLedgerPage() {
       // });
       // document.body.appendChild(iframe);
     } catch (error) {
-      alert("Failed to load or print the PDF.");
+      showError("Failed to load or print the PDF. Please try again.", "Error");
     }
     setIsScreenLoadingText("");
     setIsScreenLoading(false);
@@ -286,6 +303,12 @@ export default function ViewLedgerPage() {
     }
   };
 
+  const handleOrderValueChange = (index, field, value) => {
+    const updatedOrders = [...orders];
+    updatedOrders[index][field] = parseInt(value) || 0;
+    setOrders(updatedOrders);
+  };
+
   return (
     <Box
       sx={{
@@ -298,20 +321,21 @@ export default function ViewLedgerPage() {
       <Box
         sx={{
           display: "flex",
+          flexDirection: { xs: "column", md: "row" },
           justifyContent: "flex-start",
-          alignItems: "flex-start",
+          alignItems: { xs: "stretch", md: "flex-start" },
           backgroundColor: "#ffffff",
-          padding: "20px",
-          borderRadius: "8px",
+          padding: { xs: "16px", md: "20px" },
+          borderRadius: "12px",
           marginBottom: "20px",
-          minHeight: "150px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
         }}
       >
         {/* Left Section - Text Content */}
         <Box sx={{ flex: 1, textAlign: "left" }}>
           <Typography
             variant="h5"
-            sx={{ marginBottom: "10px", ...headerStyle }}
+            sx={{ marginBottom: "16px", fontSize: { xs: "1.25rem", md: "1.5rem" }, ...headerStyle }}
           >
             Memo Details
           </Typography>
@@ -329,58 +353,74 @@ export default function ViewLedgerPage() {
               <CircularProgress />
             </Box>
           ) : (
-            <Box sx={{ display: "flex", gap: "40px" }}>
-              <Box>
-                <Typography sx={rowStyle}>
-                  <strong>Memo No:</strong> {ledgerData.ledgerId}
-                </Typography>
-                <Typography sx={rowStyle}>
-                  <strong>Source Station:</strong>{" "}
-                  {ledgerData.sourceWarehouse?.name}
-                </Typography>
-                <Typography sx={rowStyle}>
-                  <strong>Destination Station:</strong>{" "}
-                  {ledgerData.destinationWarehouse?.name}
-                </Typography>
-                <Typography sx={rowStyle}>
-                  <strong>Status:</strong>{" "}
-                  {ledgerData.status?.charAt(0).toUpperCase() +
-                    ledgerData.status?.slice(1)}
-                </Typography>
+            <Box 
+              sx={{ 
+                display: "grid", 
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", lg: "1fr 1fr 1fr" },
+                gap: { xs: 2, md: 3 },
+              }}
+            >
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Memo No</Typography>
+                  <Typography sx={{ ...rowStyle, fontWeight: 600 }}>{ledgerData.ledgerId}</Typography>
+                </Box>
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Source Station</Typography>
+                  <Typography sx={rowStyle}>{ledgerData.sourceWarehouse?.name || "N/A"}</Typography>
+                </Box>
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Destination Station</Typography>
+                  <Typography sx={rowStyle}>{ledgerData.destinationWarehouse?.name || "N/A"}</Typography>
+                </Box>
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Status</Typography>
+                  <Chip 
+                    label={ledgerData.status?.charAt(0).toUpperCase() + ledgerData.status?.slice(1)} 
+                    size="small"
+                    sx={{ 
+                      width: "fit-content",
+                      backgroundColor: ledgerData.status === "completed" ? "#dcfce7" : ledgerData.status === "dispatched" ? "#fef3c7" : "#fee2e2",
+                      color: ledgerData.status === "completed" ? "#166534" : ledgerData.status === "dispatched" ? "#92400e" : "#991b1b",
+                      fontWeight: 600,
+                    }}
+                  />
+                </Box>
               </Box>
-              <Box>
-                <Typography sx={rowStyle}>
-                  <strong>Lorry Freight: </strong>
-                  {ledgerData.lorryFreight}
-                </Typography>
-                <Typography sx={rowStyle}>
-                  <strong>Created On: </strong>
-                  {dateFormatter(ledgerData.dispatchedAt)}
-                </Typography>
-                <Typography sx={rowStyle}>
-                  <strong>Delivered On: </strong>
-                  {dateFormatter(ledgerData.deliveredAt)}
-                </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Lorry Freight</Typography>
+                  <Typography sx={rowStyle}>{ledgerData.lorryFreight || "N/A"}</Typography>
+                </Box>
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Created On</Typography>
+                  <Typography sx={rowStyle}>{dateFormatter(ledgerData.dispatchedAt) || "N/A"}</Typography>
+                </Box>
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Delivered On</Typography>
+                  <Typography sx={rowStyle}>{dateFormatter(ledgerData.deliveredAt) || "N/A"}</Typography>
+                </Box>
               </Box>
-              <Box>
-                <Typography sx={rowStyle}>
-                  <strong>Truck No:</strong> {ledgerData.vehicleNo}
-                </Typography>
-                <Typography sx={rowStyle}>
-                  <strong>Driver Name: </strong>
-                  {ledgerData.driverName}
-                </Typography>
-                <Typography sx={rowStyle}>
-                  <strong>Driver Phone: </strong>
-                  {ledgerData.driverPhone}
-                </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Truck No</Typography>
+                  <Typography sx={{ ...rowStyle, fontWeight: 600 }}>{ledgerData.vehicleNo || "N/A"}</Typography>
+                </Box>
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Driver Name</Typography>
+                  <Typography sx={rowStyle}>{ledgerData.driverName || "N/A"}</Typography>
+                </Box>
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Driver Phone</Typography>
+                  <Typography sx={rowStyle}>{ledgerData.driverPhone || "N/A"}</Typography>
+                </Box>
               </Box>
             </Box>
           )}
         </Box>
 
-        {/* Right Section - Image */}
-        <Box sx={{ flex: "0 0 150px", marginLeft: "20px" }}>
+        {/* Right Section - Image (hidden on mobile) */}
+        <Box sx={{ display: { xs: "none", lg: "block" }, flex: "0 0 120px", marginLeft: "20px" }}>
           <img
             src={ledger}
             alt="Memo"
@@ -390,173 +430,468 @@ export default function ViewLedgerPage() {
       </Box>
 
       {/* Memo Table */}
-      <TableContainer
-        component={Paper}
-        sx={{ backgroundColor: "#ffffff", borderRadius: "8px" }}
-      >
+      <Box sx={{ backgroundColor: "#ffffff", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", overflow: "hidden" }}>
         <Typography variant="h6" sx={{ padding: "16px", ...headerStyle }}>
           Memo orders ({counter}/{orders.length})
         </Typography>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={headerStyle}></TableCell>
-              <TableCell sx={headerStyle}>Sl No.</TableCell>
-              <TableCell sx={headerStyle}>LR No.</TableCell>
-              <TableCell sx={headerStyle}>Packages</TableCell>
-              <TableCell sx={headerStyle}>Sender</TableCell>
-              <TableCell sx={headerStyle}>Receiver</TableCell>
-              <TableCell sx={headerStyle}>Freight</TableCell>
-              <TableCell sx={headerStyle}>Hamali</TableCell>
-              <TableCell sx={headerStyle}>Statistical Charges</TableCell>
-              {ledgerData.status === "pending" && (
-                <TableCell sx={headerStyle}>Actions</TableCell>
-              )}
-              <TableCell sx={headerStyle}>View</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
+        
+        {/* Mobile Card View */}
+        {isMobile ? (
+          <Box sx={{ p: 2, pt: 0 }}>
             {isLoading1 ? (
-              <TableRow>
-                <TableCell colSpan={7} align="center">
-                  <CircularProgress
-                    size={22}
-                    className="spinner"
-                    sx={{ color: "#1E3A5F", animation: "none !important" }}
-                  />
-                </TableCell>
-              </TableRow>
+              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                <CircularProgress sx={{ color: "#1E3A5F" }} />
+              </Box>
+            ) : orders.length !== 0 ? (
+              <>
+                {orders.map((order, index) => (
+                  <Card key={order.trackingId} sx={{ mb: 1.5, borderRadius: 2, boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+                    <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1.5 }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <Checkbox
+                            size="small"
+                            onChange={(e) => handleCheckboxChange(e.target.checked)}
+                          />
+                          <Box>
+                            <Typography sx={{ fontWeight: 700, color: "#1E3A5F", fontSize: "0.95rem" }}>
+                              {index + 1}. {order.trackingId}
+                            </Typography>
+                            <Typography sx={{ color: "#64748b", fontSize: "0.75rem" }}>
+                              {order.items.reduce((sum, item) => sum + item.quantity, 0)} packages
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Box sx={{ display: "flex", gap: 0.5 }}>
+                          {ledgerData.status === "pending" && (
+                            <IconButton size="small" color="error" onClick={() => handleDelete(index)}>
+                              <FaTrash size={16} />
+                            </IconButton>
+                          )}
+                          <IconButton size="small" color="primary" target="_blank" href={`/user/view/order/${order.trackingId}`}>
+                            <IoArrowForwardCircleOutline size={20} />
+                          </IconButton>
+                        </Box>
+                      </Box>
+                      <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, fontSize: "0.85rem" }}>
+                        <Box>
+                          <Typography sx={{ color: "#64748b", fontSize: "0.7rem" }}>Sender</Typography>
+                          <Typography sx={{ color: "#1E3A5F", fontWeight: 500, fontSize: "0.85rem" }}>{order.sender.name}</Typography>
+                        </Box>
+                        <Box>
+                          <Typography sx={{ color: "#64748b", fontSize: "0.7rem" }}>Receiver</Typography>
+                          <Typography sx={{ color: "#1E3A5F", fontWeight: 500, fontSize: "0.85rem" }}>{order.receiver.name}</Typography>
+                        </Box>
+                      </Box>
+                      <Box sx={{ display: "flex", gap: 2, mt: 1.5, pt: 1.5, borderTop: "1px solid #f1f5f9" }}>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography sx={{ color: "#64748b", fontSize: "0.7rem", mb: 0.5 }}>Freight</Typography>
+                          <TextField
+                            type="number"
+                            size="small"
+                            value={order.freight}
+                            onChange={(e) => handleOrderValueChange(index, 'freight', e.target.value)}
+                            sx={{ 
+                              width: "100%",
+                              "& .MuiInputBase-input": { 
+                                fontSize: "0.85rem", 
+                                fontWeight: 600, 
+                                color: "#1E3A5F",
+                                padding: "6px 8px"
+                              }
+                            }}
+                            InputProps={{
+                              startAdornment: <Typography sx={{ color: "#64748b", fontSize: "0.85rem", mr: 0.5 }}>₹</Typography>
+                            }}
+                          />
+                        </Box>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography sx={{ color: "#64748b", fontSize: "0.7rem", mb: 0.5 }}>Hamali</Typography>
+                          <TextField
+                            type="number"
+                            size="small"
+                            value={order.hamali}
+                            onChange={(e) => handleOrderValueChange(index, 'hamali', e.target.value)}
+                            sx={{ 
+                              width: "100%",
+                              "& .MuiInputBase-input": { 
+                                fontSize: "0.85rem", 
+                                fontWeight: 600, 
+                                color: "#1E3A5F",
+                                padding: "6px 8px"
+                              }
+                            }}
+                            InputProps={{
+                              startAdornment: <Typography sx={{ color: "#64748b", fontSize: "0.85rem", mr: 0.5 }}>₹</Typography>
+                            }}
+                          />
+                        </Box>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography sx={{ color: "#64748b", fontSize: "0.7rem", mb: 0.5 }}>Charges</Typography>
+                          <TextField
+                            type="number"
+                            size="small"
+                            value={order.charges}
+                            onChange={(e) => handleOrderValueChange(index, 'charges', e.target.value)}
+                            sx={{ 
+                              width: "100%",
+                              "& .MuiInputBase-input": { 
+                                fontSize: "0.85rem", 
+                                fontWeight: 600, 
+                                color: "#1E3A5F",
+                                padding: "6px 8px"
+                              }
+                            }}
+                            InputProps={{
+                              startAdornment: <Typography sx={{ color: "#64748b", fontSize: "0.85rem", mr: 0.5 }}>₹</Typography>
+                            }}
+                          />
+                        </Box>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ))}
+                {/* Mobile Totals */}
+                <Card sx={{ mt: 2, borderRadius: 2, backgroundColor: "#f8fafc" }}>
+                  <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
+                    <Typography sx={{ fontWeight: 700, color: "#1E3A5F", mb: 1 }}>Totals</Typography>
+                    <Box sx={{ display: "flex", gap: 2 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography sx={{ color: "#64748b", fontSize: "0.7rem" }}>Freight</Typography>
+                        <Typography sx={{ color: "#1E3A5F", fontWeight: 700 }}>₹{totals.freight}</Typography>
+                      </Box>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography sx={{ color: "#64748b", fontSize: "0.7rem" }}>Hamali</Typography>
+                        <Typography sx={{ color: "#1E3A5F", fontWeight: 700 }}>₹{totals.hamali}</Typography>
+                      </Box>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography sx={{ color: "#64748b", fontSize: "0.7rem" }}>Charges</Typography>
+                        <Typography sx={{ color: "#1E3A5F", fontWeight: 700 }}>₹{totals.charges}</Typography>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </>
             ) : (
-              orders.length !== 0 &&
-              orders.map((order, index) => (
-                <TableRow key={order.trackingId}>
-                  <TableCell sx={rowStyle}>
-                    <Checkbox
-                      onChange={(e) => handleCheckboxChange(e.target.checked)}
-                    />
-                  </TableCell>
-                  <TableCell sx={rowStyle}>{index + 1}.</TableCell>
-                  <TableCell sx={rowStyle}>{order.trackingId}</TableCell>
-                  <TableCell sx={rowStyle}>{order.items.reduce((sum, item) => sum + item.quantity, 0)}</TableCell>
-                  <TableCell sx={rowStyle}>{order.sender.name}</TableCell>
-                  <TableCell sx={rowStyle}>{order.receiver.name}</TableCell>
-                  <TableCell sx={rowStyle}>
-                    <TextField type="text" size="small" value={order.freight} />
-                  </TableCell>
-                  <TableCell sx={rowStyle}>
-                    <TextField type="text" size="small" value={order.hamali} />
-                  </TableCell>
-                  <TableCell sx={rowStyle}>
-                    <TextField type="text" size="small" value={order.charges} />
-                  </TableCell>
-                  {ledgerData.status === "pending" && (
-                    <TableCell>
-                      <IconButton
-                        color="error"
-                        onClick={(e) => handleDelete(index)}
-                      >
-                        <FaTrash size={20} />
-                      </IconButton>
-                    </TableCell>
-                  )}
-                  <TableCell>
-                    <IconButton
-                      color="primary"
-                      target="_blank"
-                      href={`/user/view/order/${order.trackingId}`}
-                    >
-                      <IoArrowForwardCircleOutline size={24} />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))
+              <Box sx={{ textAlign: "center", py: 4, color: "#64748b" }}>No orders in this memo.</Box>
             )}
+          </Box>
+        ) : (
+          /* Desktop Table View */
+          <TableContainer component={Paper} sx={{ boxShadow: "none" }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={headerStyle}></TableCell>
+                  <TableCell sx={headerStyle}>Sl No.</TableCell>
+                  <TableCell sx={headerStyle}>LR No.</TableCell>
+                  <TableCell sx={headerStyle}>Packages</TableCell>
+                  <TableCell sx={headerStyle}>Sender</TableCell>
+                  <TableCell sx={headerStyle}>Receiver</TableCell>
+                  <TableCell sx={headerStyle}>Freight</TableCell>
+                  <TableCell sx={headerStyle}>Hamali</TableCell>
+                  <TableCell sx={headerStyle}>Statistical Charges</TableCell>
+                  {ledgerData.status === "pending" && (
+                    <TableCell sx={headerStyle}>Actions</TableCell>
+                  )}
+                  <TableCell sx={headerStyle}>View</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {isLoading1 ? (
+                  <TableRow>
+                    <TableCell colSpan={11} align="center">
+                      <CircularProgress
+                        size={22}
+                        className="spinner"
+                        sx={{ color: "#1E3A5F", animation: "none !important" }}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  orders.length !== 0 &&
+                  orders.map((order, index) => (
+                    <TableRow key={order.trackingId}>
+                      <TableCell sx={rowStyle}>
+                        <Checkbox
+                          onChange={(e) => handleCheckboxChange(e.target.checked)}
+                        />
+                      </TableCell>
+                      <TableCell sx={rowStyle}>{index + 1}.</TableCell>
+                      <TableCell sx={rowStyle}>{order.trackingId}</TableCell>
+                      <TableCell sx={rowStyle}>{order.items.reduce((sum, item) => sum + item.quantity, 0)}</TableCell>
+                      <TableCell sx={rowStyle}>{order.sender.name}</TableCell>
+                      <TableCell sx={rowStyle}>{order.receiver.name}</TableCell>
+                      <TableCell sx={rowStyle}>
+                        <TextField 
+                          type="number" 
+                          size="small" 
+                          value={order.freight} 
+                          onChange={(e) => handleOrderValueChange(index, 'freight', e.target.value)}
+                          sx={{ width: 80 }} 
+                        />
+                      </TableCell>
+                      <TableCell sx={rowStyle}>
+                        <TextField 
+                          type="number" 
+                          size="small" 
+                          value={order.hamali} 
+                          onChange={(e) => handleOrderValueChange(index, 'hamali', e.target.value)}
+                          sx={{ width: 80 }} 
+                        />
+                      </TableCell>
+                      <TableCell sx={rowStyle}>
+                        <TextField 
+                          type="number" 
+                          size="small" 
+                          value={order.charges} 
+                          onChange={(e) => handleOrderValueChange(index, 'charges', e.target.value)}
+                          sx={{ width: 80 }} 
+                        />
+                      </TableCell>
+                      {ledgerData.status === "pending" && (
+                        <TableCell>
+                          <IconButton
+                            color="error"
+                            onClick={(e) => handleDelete(index)}
+                          >
+                            <FaTrash size={20} />
+                          </IconButton>
+                        </TableCell>
+                      )}
+                      <TableCell>
+                        <IconButton
+                          color="primary"
+                          target="_blank"
+                          href={`/user/view/order/${order.trackingId}`}
+                        >
+                          <IoArrowForwardCircleOutline size={24} />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
 
-            {/* Totals Row */}
-            <TableRow>
-              <TableCell sx={rowStyle}></TableCell>
-              <TableCell colSpan={2} sx={{ ...headerStyle }}>
-                Total
-              </TableCell>
-              <TableCell sx={{ ...rowStyle, fontWeight: "bold" }}>
-                {orders.reduce((sum, order) => sum + order.items.length, 0)}
-              </TableCell>
-              <TableCell sx={rowStyle}></TableCell>
-              <TableCell sx={rowStyle}></TableCell>
-              <TableCell sx={{ ...rowStyle, fontWeight: "bold" }}>
-                {totals.freight}
-              </TableCell>
-              <TableCell sx={{ ...rowStyle, fontWeight: "bold" }}>
-                {totals.hamali}
-              </TableCell>
-              <TableCell sx={{ ...rowStyle, fontWeight: "bold" }}>
-                {totals.charges}
-              </TableCell>
-              <TableCell></TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
+                {/* Totals Row */}
+                <TableRow>
+                  <TableCell sx={rowStyle}></TableCell>
+                  <TableCell colSpan={2} sx={{ ...headerStyle }}>
+                    Total
+                  </TableCell>
+                  <TableCell sx={{ ...rowStyle, fontWeight: "bold" }}>
+                    {orders.reduce((sum, order) => sum + order.items.length, 0)}
+                  </TableCell>
+                  <TableCell sx={rowStyle}></TableCell>
+                  <TableCell sx={rowStyle}></TableCell>
+                  <TableCell sx={{ ...rowStyle, fontWeight: "bold" }}>
+                    {totals.freight}
+                  </TableCell>
+                  <TableCell sx={{ ...rowStyle, fontWeight: "bold" }}>
+                    {totals.hamali}
+                  </TableCell>
+                  <TableCell sx={{ ...rowStyle, fontWeight: "bold" }}>
+                    {totals.charges}
+                  </TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Box>
 
-      {(isSource || isAdmin) && ledgerData.status === "pending" && (
-        <button
-          className="button button-large"
-          onClick={() =>
-            handleModalOpen(
-              "Dispatch Truck",
-              "",
-              "Confirm",
-              "#25344e",
-              handleDispatch
-            )
-          }
-        >
-          <FaTruckLoading style={{ marginRight: "8px" }} />
-          Dispatch Truck
+      {/* Desktop Action Buttons */}
+      <Box sx={{ display: { xs: "none", md: "flex" }, flexWrap: "wrap", gap: 1, mt: 2 }}>
+        {(isSource || isAdmin) && ledgerData.status === "pending" && (
+          <button
+            className="button button-large"
+            onClick={() =>
+              handleModalOpen(
+                "Dispatch Truck",
+                "",
+                "Confirm",
+                "#25344e",
+                handleDispatch
+              )
+            }
+          >
+            <FaTruckLoading style={{ marginRight: "8px" }} />
+            Dispatch Truck
+          </button>
+        )}
+        {(isSource || isAdmin) && ledgerData.status === "dispatched" && (
+          <button
+            className="button button-large"
+            onClick={() =>
+              handleModalOpen(
+                "Deliver Truck",
+                "",
+                "Confirm",
+                "#25344e",
+                handleVerify
+              )
+            }
+          >
+            <TbTruckDelivery size="19" style={{ marginRight: "8px" }} />
+            Deliver Truck
+          </button>
+        )}
+
+        <button className="button button-large" onClick={() => {
+          handlePrint();
+        }}>
+          <FaPrint style={{ marginRight: "8px" }} />
+          Download Memo
         </button>
-      )}
-      {(isSource || isAdmin) && ledgerData.status === "dispatched" && (
-        <button
-          className="button button-large"
-          onClick={() =>
-            handleModalOpen(
-              "Deliver Truck",
-              "",
-              "Confirm",
-              "#25344e",
-              handleVerify
-            )
-          }
-        >
-          <TbTruckDelivery size="19" style={{ marginRight: "8px" }} />
-          Deliver Truck
-        </button>
-      )}
 
-      <button className="button button-large" onClick={() => {
-        handlePrint();
-      }}>
-        {" "}
-        <FaPrint style={{ marginRight: "8px" }} />
-        Download Memo
-      </button>
+        {isAdmin && (
+          <button
+            className="button button-large"
+            onClick={() =>
+              handleModalOpen(
+                "Delete Memo",
+                "Are you sure you want to delete this?",
+                "Delete",
+                "#d32f2f",
+                handleDeleteLedger
+              )
+            }
+          >
+            <FaTrash style={{ marginRight: "8px" }} /> Delete Memo
+          </button>
+        )}
+      </Box>
 
-      {isAdmin && (
-        <button
-          className="button button-large"
-          onClick={() =>
-            handleModalOpen(
-              "Delete Memo",
-              "Are you sure you want to delete this?",
-              "Delete",
-              "#d32f2f",
-              handleDeleteLedger
-            )
-          }
-        >
-          <FaTrash style={{ marginRight: "8px" }} /> Delete Memo
-        </button>
-      )}
+      {/* Mobile Floating Action Buttons */}
+      <Box 
+        sx={{ 
+          display: { xs: "flex", md: "none" }, 
+          flexDirection: "column", 
+          position: "fixed", 
+          bottom: 20, 
+          right: 16, 
+          gap: 1.5,
+          zIndex: 1000,
+        }}
+      >
+        {isAdmin && (
+          <Zoom in={true}>
+            <Fab
+              variant="extended"
+              size="medium"
+              onClick={() =>
+                handleModalOpen(
+                  "Delete Memo",
+                  "Are you sure you want to delete this?",
+                  "Delete",
+                  "#d32f2f",
+                  handleDeleteLedger
+                )
+              }
+              sx={{ 
+                backgroundColor: "#d32f2f",
+                color: "white",
+                "&:hover": { backgroundColor: "#b71c1c" },
+                minWidth: "120px",
+                height: "48px",
+                borderRadius: "24px",
+                fontSize: "0.875rem",
+                fontWeight: 500,
+                textTransform: "none",
+              }}
+            >
+              <FaTrash style={{ marginRight: "8px" }} />
+              Delete
+            </Fab>
+          </Zoom>
+        )}
+        
+        <Zoom in={true} style={{ transitionDelay: "50ms" }}>
+          <Fab
+            variant="extended"
+            size="medium"
+            onClick={handlePrint}
+            sx={{ 
+              backgroundColor: "#1E3A5F",
+              color: "white",
+              "&:hover": { backgroundColor: "#25344E" },
+              minWidth: "130px",
+              height: "48px",
+              borderRadius: "24px",
+              fontSize: "0.875rem",
+              fontWeight: 500,
+              textTransform: "none",
+            }}
+          >
+            <FaPrint style={{ marginRight: "8px" }} />
+            Download
+          </Fab>
+        </Zoom>
+
+        {(isSource || isAdmin) && ledgerData.status === "pending" && (
+          <Zoom in={true} style={{ transitionDelay: "100ms" }}>
+            <Fab
+              variant="extended"
+              size="medium"
+              onClick={() =>
+                handleModalOpen(
+                  "Dispatch Truck",
+                  "",
+                  "Confirm",
+                  "#25344e",
+                  handleDispatch
+                )
+              }
+              sx={{ 
+                backgroundColor: "#FFB74D",
+                color: "#1E3A5F",
+                "&:hover": { backgroundColor: "#FFA726" },
+                minWidth: "130px",
+                height: "48px",
+                borderRadius: "24px",
+                fontSize: "0.875rem",
+                fontWeight: 500,
+                textTransform: "none",
+              }}
+            >
+              <FaTruckLoading style={{ marginRight: "8px" }} />
+              Dispatch
+            </Fab>
+          </Zoom>
+        )}
+        
+        {(isSource || isAdmin) && ledgerData.status === "dispatched" && (
+          <Zoom in={true} style={{ transitionDelay: "100ms" }}>
+            <Fab
+              variant="extended"
+              size="medium"
+              onClick={() =>
+                handleModalOpen(
+                  "Deliver Truck",
+                  "",
+                  "Confirm",
+                  "#25344e",
+                  handleVerify
+                )
+              }
+              sx={{ 
+                backgroundColor: "#4DB6AC",
+                color: "white",
+                "&:hover": { backgroundColor: "#26A69A" },
+                minWidth: "120px",
+                height: "48px",
+                borderRadius: "24px",
+                fontSize: "0.875rem",
+                fontWeight: 500,
+                textTransform: "none",
+              }}
+            >
+              <TbTruckDelivery size="18" style={{ marginRight: "8px" }} />
+              Deliver
+            </Fab>
+          </Zoom>
+        )}
+      </Box>
 
       {/* Confirmation Modal */}
       <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
@@ -629,6 +964,18 @@ export default function ViewLedgerPage() {
           </Box>
         </Box>
       </Modal>
+      
+      <CustomDialog
+        open={dialogState.open}
+        onClose={hideDialog}
+        onConfirm={dialogState.onConfirm}
+        title={dialogState.title}
+        message={dialogState.message}
+        type={dialogState.type}
+        confirmText={dialogState.confirmText}
+        cancelText={dialogState.cancelText}
+        showCancel={dialogState.showCancel}
+      />
     </Box>
   );
 }
