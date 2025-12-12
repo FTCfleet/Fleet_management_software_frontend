@@ -1,5 +1,5 @@
 import { AppBar, Box, Typography, Drawer, List, ListItem, ListItemText, Divider } from "@mui/material";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import logoImg from "../assets/logo.png";
 import "../css/header.css";
 import { useAuth } from "../routes/AuthContext";
@@ -269,9 +269,15 @@ const HeaderTabs = () => {
 const Header = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const { stationCode } = useAuth();
+  const { stationCode, isLoggedIn } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { openSidebar } = useSidebar();
+  const location = useLocation();
+  
+  // Check if user is on dashboard pages (not home, about, or track)
+  const publicPages = ["/", "/about", "/track", "/auth/login", "/auth/register"];
+  const isPublicPage = publicPages.includes(location.pathname);
+  const showNavigationButton = isLoggedIn && !isPublicPage;
 
   return (
     <div className="header-box">
@@ -298,35 +304,46 @@ const Header = () => {
         >
           {isMobile ? (
             <>
-              {/* Left: Navigation Button */}
-              <Box
-                onClick={openSidebar}
-                sx={{
-                  backgroundColor: "rgba(255,255,255,0.1)",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  borderRadius: "8px",
-                  px: 1.5,
-                  py: 0.75,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  "&:hover": { backgroundColor: "rgba(255,255,255,0.15)" },
-                }}
-              >
-                <AppsIcon sx={{ fontSize: "1rem", color: "white" }} />
-                <Typography sx={{ color: "white", fontSize: "0.75rem", fontWeight: 500 }}>
-                  Navigation
-                </Typography>
-              </Box>
-
-              {/* Center: Logo */}
-              <Box sx={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
-                <Link to="/" style={{ display: "flex", alignItems: "center" }}>
-                  <img src={logoImg} alt="FTC Logo" className="header-logo" style={{ height: "40px" }} />
-                </Link>
-              </Box>
+              {/* Left: Navigation Button OR Logo */}
+              {showNavigationButton ? (
+                <>
+                  <Box
+                    onClick={openSidebar}
+                    sx={{
+                      backgroundColor: "rgba(255,255,255,0.1)",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      borderRadius: "8px",
+                      px: 1.5,
+                      py: 0.75,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      userSelect: "none",
+                      "&:hover": { backgroundColor: "rgba(255,255,255,0.15)" },
+                    }}
+                  >
+                    <AppsIcon sx={{ fontSize: "1rem", color: "white" }} />
+                    <Typography sx={{ color: "white", fontSize: "0.75rem", fontWeight: 500, userSelect: "none" }}>
+                      Navigation
+                    </Typography>
+                  </Box>
+                  {/* Centered Logo when Navigation button is present */}
+                  <Box sx={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+                    <Link to="/" style={{ display: "flex", alignItems: "center" }}>
+                      <img src={logoImg} alt="FTC Logo" className="header-logo" style={{ height: "40px" }} />
+                    </Link>
+                  </Box>
+                </>
+              ) : (
+                /* Left-aligned Logo when no Navigation button */
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <Link to="/" style={{ display: "flex", alignItems: "center" }}>
+                    <img src={logoImg} alt="FTC Logo" className="header-logo" style={{ height: "40px" }} />
+                  </Link>
+                </Box>
+              )}
 
               {/* Right: Hamburger Menu */}
               <IconButton
