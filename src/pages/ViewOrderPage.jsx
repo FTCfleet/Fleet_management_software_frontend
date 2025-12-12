@@ -197,7 +197,6 @@ export default function ViewOrderPage() {
                   <DetailRow label="Total" value={`₹${order.freight + order.hamali * 2}`} highlight />
                   <DetailRow label="Freight" value={`₹${order.freight}`} />
                   <DetailRow label="Hamali" value={`₹${order.hamali}`} />
-                  <DetailRow label="Packages" value={order.items?.reduce((sum, x) => sum + x.quantity, 0)} />
                   <DetailRow label="Door Delivery" value={order.isDoorDelivery ? `₹${order.doorDeliveryCharge}` : "No"} />
                 </Box>
               </Grid>

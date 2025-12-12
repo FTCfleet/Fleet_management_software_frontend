@@ -233,7 +233,7 @@ const HeaderTabs = () => {
               Profile
             </Box>
           </NavLink>
-          <Box
+          {/*<Box
             onClick={handleLogout}
             sx={{ 
               color: "rgba(255,255,255,0.9)", 
@@ -247,7 +247,7 @@ const HeaderTabs = () => {
             }}
           >
             Logout
-          </Box>
+          </Box>*/}
         </>
       )}
       
