@@ -106,7 +106,7 @@ const AllOrderPage = () => {
         (order) =>
           order.sender.name.toLowerCase().startsWith(nameFilter.toLowerCase()) ||
           order.receiver.name.toLowerCase().startsWith(nameFilter.toLowerCase()) ||
-          order.trackingId.startsWith(nameFilter)
+          order.trackingId.toLowerCase().startsWith(nameFilter.toLowerCase())
       );
     }
     if (warehouseFilter) {

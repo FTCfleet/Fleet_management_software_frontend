@@ -349,7 +349,6 @@ export default function AddOrderPage({}) {
           receiverDetails: handleEmptyDetails(receiverDetails),
           items,
           destinationWarehouse,
-          charges: hamali,
           hamali,
           freight,
           payment,

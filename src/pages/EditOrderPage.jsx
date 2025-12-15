@@ -54,15 +54,12 @@ export default function EditOrderPage() {
     gst: "",
     role: "receiver",
   });
-  const [freightOld, setFreightOld] = useState(0);
-  const [hamaliOld, setHamaliOld] = useState(0);
-  const [freight, setFreight] = useState(0);
-  const [hamali, setHamali] = useState(0);
+  const [totalFreight, setTotalFreight] = useState(0);
+  const [totalHamali, setTotalHamali] = useState(0);
   const [isDoorDelivery, setIsDoorDelivery] = useState(false);
   const [payment, setPayemnt] = useState("To Pay");
   const [clients, setClients] = useState([]);
   const [regItems, setRegItems] = useState([]);
-  const [regClientItems, setRegClientItems] = useState([]);
   const [itemTypes, setItemTypes] = useState([]);
   const [status, setStatus] = useState("");
   const [counter, setCounter] = useState(1);
@@ -108,21 +105,20 @@ export default function EditOrderPage() {
     fetchItemTypes();
   }, []);
 
-  const fetchRegClientItems = async (clientId) => {
-    const token = localStorage.getItem("token");
-    const res = await fetch(
-      `${BASE_URL}/api/admin/regular-client-items/${clientId}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    const data = await res.json();
-    setRegClientItems(data.body);
-  };
+  useEffect(() => {
+    let f = 0;
+    let h = 0;
+    oldItems.forEach((item) => {
+      f += (item.freight || 0) * (item.quantity || 0);
+      h += (item.hamali || 0) * (item.quantity || 0);
+    });
+    newItems.forEach((item) => {
+      f += (item.freight || 0) * (item.quantity || 0);
+      h += (item.hamali || 0) * (item.quantity || 0);
+    });
+    setTotalFreight(f);
+    setTotalHamali(h);
+  }, [oldItems, newItems]);
 
   const fetchClients = async () => {
     const token = localStorage.getItem("token");
@@ -183,8 +179,8 @@ export default function EditOrderPage() {
     setReceiverDetails(data.receiver);
     setSourceWarehouse(data.sourceWarehouse.warehouseID);
     setDestinationWarehouse(data.destinationWarehouse.warehouseID);
-    setFreightOld(data.freight || 0);
-    setHamaliOld(data.hamali || 0);
+    setDestinationWarehouse(data.destinationWarehouse.warehouseID);
+    // Totals will be calculated by useEffect based on items
     setIsDoorDelivery(data.isDoorDelivery);
     setDoorDeliveryCharge(data.doorDeliveryCharge || 0);
     setPayemnt(data.payment);
@@ -242,7 +238,6 @@ export default function EditOrderPage() {
       });
       return;
     }
-    fetchRegClientItems(client._id);
     setReceiverDetails({
       ...receiverDetails,
       name: client.name,
@@ -253,10 +248,7 @@ export default function EditOrderPage() {
   };
 
   const handleDelete = (item) => {
-    delItems.push(item._id);
-    setFreightOld((prev) => prev - item.quantity * item.freight);
-    setHamaliOld((prev) => prev - item.quantity * item.hamali);
-    setDelItems(delItems);
+    setDelItems([...delItems, item._id]);
     setOldItems(oldItems.filter((element) => element._id !== item._id));
   };
 
@@ -283,7 +275,6 @@ export default function EditOrderPage() {
         ...item,
         itemId: index + 1,
       }));
-    fixCharges(itemId, 0, 0, 0, updatedItems);
     setNewItems(updatedItems);
     setCounter(updatedItems.length + 1);
   };
@@ -293,95 +284,45 @@ export default function EditOrderPage() {
     if (itemToCopy) {
       const copiedItem = { ...itemToCopy, itemId: counter };
       const updatedItems = [...newItems, copiedItem];
-      fixCharges(
-        copiedItem.itemId,
-        copiedItem.quantity,
-        copiedItem.freight,
-        copiedItem.hamali,
-        updatedItems
-      );
       setNewItems(updatedItems);
       setCounter(counter + 1);
     }
   };
 
-  const fixCharges = (
-    id,
-    quantity_new,
-    freight_new,
-    hamali_new,
-    itemsList = newItems
-  ) => {
-    let ham = 0,
-      frt = 0;
-    itemsList
-      .filter((item) => item.itemId !== id)
-      .map((item) => {
-        ham += item.quantity * item.hamali;
-        frt += item.quantity * item.freight;
-      });
-    ham += hamali_new * quantity_new;
-    frt += freight_new * quantity_new;
-    setHamali(ham);
-    setFreight(frt);
-  };
+
 
   const handleInputChange = (id, field, value, event) => {
     if (field === "autoComplete") {
       const normalizedValue = normalizeName(value || event?.target.value);
       setNewItems((prevItems) => {
-        let updatedItemForCharges = null;
-        const updatedItems = prevItems.map((prevItem) => {
+        return prevItems.map((prevItem) => {
           if (prevItem.itemId !== id) return prevItem;
           const matchedItem = findRegItem(normalizedValue, prevItem.type);
-          updatedItemForCharges = {
+          return {
             ...prevItem,
             name: normalizedValue,
             freight: matchedItem ? matchedItem.freight || 0 : 0,
             hamali: matchedItem ? matchedItem.hamali || 0 : 0,
             quantity: prevItem.quantity || 1,
           };
-          return updatedItemForCharges;
         });
-        if (updatedItemForCharges) {
-          fixCharges(
-            id,
-            updatedItemForCharges.quantity,
-            updatedItemForCharges.freight,
-            updatedItemForCharges.hamali,
-            updatedItems
-          );
-        }
-        return updatedItems;
       });
       return;
     }
 
     if (field === "type") {
       setNewItems((prevItems) => {
-        let updatedItemForCharges = null;
-        const updatedItems = prevItems.map((prevItem) => {
+        return prevItems.map((prevItem) => {
           if (prevItem.itemId !== id) return prevItem;
           const matchedItem = findRegItem(prevItem.name, value);
-          updatedItemForCharges = {
+          return {
             ...prevItem,
             type: value,
             freight: matchedItem ? matchedItem.freight || 0 : 0,
             hamali: matchedItem ? matchedItem.hamali || 0 : 0,
             quantity: prevItem.quantity || 1,
           };
-          return updatedItemForCharges;
         });
-        if (updatedItemForCharges) {
-          fixCharges(
-            id,
-            updatedItemForCharges.quantity,
-            updatedItemForCharges.freight,
-            updatedItemForCharges.hamali,
-            updatedItems
-          );
-        }
-        return updatedItems;
       });
       return;
     }
@@ -390,22 +331,9 @@ export default function EditOrderPage() {
       value = parseInt(value) || 0;
     }
     setNewItems((prevItems) => {
-      const updatedItems = prevItems.map((prevItem) =>
+      return prevItems.map((prevItem) =>
         prevItem.itemId === id ? { ...prevItem, [field]: value } : prevItem
       );
-      if (field === "quantity" || field === "freight" || field === "hamali") {
-        const updatedItem = updatedItems.find((itm) => itm.itemId === id);
-        if (updatedItem) {
-          fixCharges(
-            id,
-            updatedItem.quantity,
-            updatedItem.freight,
-            updatedItem.hamali,
-            updatedItems
-          );
-        }
-      }
-      return updatedItems;
     });
   };
 
@@ -458,9 +386,8 @@ export default function EditOrderPage() {
         receiverDetails: handleEmptyDetails(receiverDetails),
         addItems: newItems,
         delItems: delItems,
-        charges: hamali + hamaliOld,
-        hamali: hamali + hamaliOld,
-        freight: freight + freightOld,
+        hamali: totalHamali,
+        freight: totalFreight,
         sourceWarehouse,
         destinationWarehouse,
         isDoorDelivery,
@@ -480,7 +407,6 @@ export default function EditOrderPage() {
           navigate(`/user/view/order/${id}`);
         }
       });
-    setIsLoading(false);
     handleCloseSaveModal();
   };
 
@@ -661,9 +587,10 @@ export default function EditOrderPage() {
             <TextField
               label="Freight"
               type="text"
-              value={freight + freightOld}
+              value={totalFreight}
             />
-            <TextField label="Hamali" type="text" value={hamali + hamaliOld} />
+            <TextField label="Hamali" type="text" value={totalHamali} />
+            <TextField label="Statistical Charges" type="text" value={totalHamali} />
 
             {/* Warehouse Selection */}
             {isAdmin && (
@@ -1007,22 +934,6 @@ export default function EditOrderPage() {
                     <TableCell>
                       <TextField
                         type="text"
-                        value={item.hamali}
-                        onChange={(e) =>
-                          handleInputChange(
-                            item.itemId,
-                            "hamali",
-                            parseInt(e.target.value) || 0
-                          )
-                        }
-                        variant="outlined"
-                        size="small"
-                        fullWidth
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        type="text"
                         value={(item.freight + item.hamali * 2) * item.quantity}
                         variant="outlined"
                         size="small"
@@ -1113,12 +1024,12 @@ export default function EditOrderPage() {
                     color="primary"
                     startIcon={<FaSave style={{ marginRight: "8px" }} />}
                     onClick={confirmSave}
+                    disabled={isLoading}
                   >
                     Confirm
                     {isLoading && (
                       <CircularProgress
                         size={15}
-                        className="spinner"
                         sx={{
                           color: "#fff",
                           animation: "none !important",

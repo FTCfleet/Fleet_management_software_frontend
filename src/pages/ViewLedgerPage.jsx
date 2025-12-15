@@ -57,7 +57,7 @@ export default function ViewLedgerPage() {
   const { id } = useParams();
   const [ledgerData, setLedgerData] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [totals, setTotals] = useState({ freight: 0, hamali: 0, charges: 0 });
+  const [totals, setTotals] = useState({ freight: 0, hamali: 0 });
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   // const [allWarehouse, setAllWarehouse] = useState([]);
@@ -91,17 +91,14 @@ export default function ViewLedgerPage() {
   useEffect(() => {
     let totalfreight = 0;
     let totalhamali = 0;
-    let totalcharges = 0;
     orders.forEach((element) => {
       totalfreight += element.freight;
       totalhamali += element.hamali;
-      totalcharges += element.charges;
     });
 
     setTotals({
       freight: totalfreight,
       hamali: totalhamali,
-      charges: totalcharges,
     });
   }, [orders]);
 
@@ -301,12 +298,6 @@ export default function ViewLedgerPage() {
       setCounter((prev) => prev - 1);
       // counter--;
     }
-  };
-
-  const handleOrderValueChange = (index, field, value) => {
-    const updatedOrders = [...orders];
-    updatedOrders[index][field] = parseInt(value) || 0;
-    setOrders(updatedOrders);
   };
 
   return (
@@ -512,10 +503,9 @@ export default function ViewLedgerPage() {
                         <Box sx={{ flex: 1 }}>
                           <Typography sx={{ color: "#64748b", fontSize: "0.7rem", mb: 0.5 }}>Freight</Typography>
                           <TextField
-                            type="number"
+                            type="text"
                             size="small"
                             value={order.freight}
-                            onChange={(e) => handleOrderValueChange(index, 'freight', e.target.value)}
                             sx={{ 
                               width: "100%",
                               "& .MuiInputBase-input": { 
@@ -533,10 +523,9 @@ export default function ViewLedgerPage() {
                         <Box sx={{ flex: 1 }}>
                           <Typography sx={{ color: "#64748b", fontSize: "0.7rem", mb: 0.5 }}>Hamali</Typography>
                           <TextField
-                            type="number"
+                            type="text"
                             size="small"
                             value={order.hamali}
-                            onChange={(e) => handleOrderValueChange(index, 'hamali', e.target.value)}
                             sx={{ 
                               width: "100%",
                               "& .MuiInputBase-input": { 
@@ -554,10 +543,9 @@ export default function ViewLedgerPage() {
                         <Box sx={{ flex: 1 }}>
                           <Typography sx={{ color: "#64748b", fontSize: "0.7rem", mb: 0.5 }}>Charges</Typography>
                           <TextField
-                            type="number"
+                            type="text"
                             size="small"
-                            value={order.charges}
-                            onChange={(e) => handleOrderValueChange(index, 'charges', e.target.value)}
+                            value={order.hamali}
                             sx={{ 
                               width: "100%",
                               "& .MuiInputBase-input": { 
@@ -591,7 +579,7 @@ export default function ViewLedgerPage() {
                       </Box>
                       <Box sx={{ flex: 1 }}>
                         <Typography sx={{ color: "#64748b", fontSize: "0.7rem" }}>Charges</Typography>
-                        <Typography sx={{ color: "#1E3A5F", fontWeight: 700 }}>₹{totals.charges}</Typography>
+                        <Typography sx={{ color: "#1E3A5F", fontWeight: 700 }}>₹{totals.hamali}</Typography>
                       </Box>
                     </Box>
                   </CardContent>
@@ -649,28 +637,25 @@ export default function ViewLedgerPage() {
                       <TableCell sx={rowStyle}>{order.receiver.name}</TableCell>
                       <TableCell sx={rowStyle}>
                         <TextField 
-                          type="number" 
+                          type="text" 
                           size="small" 
                           value={order.freight} 
-                          onChange={(e) => handleOrderValueChange(index, 'freight', e.target.value)}
                           sx={{ width: 80 }} 
                         />
                       </TableCell>
                       <TableCell sx={rowStyle}>
                         <TextField 
-                          type="number" 
+                          type="text" 
                           size="small" 
                           value={order.hamali} 
-                          onChange={(e) => handleOrderValueChange(index, 'hamali', e.target.value)}
                           sx={{ width: 80 }} 
                         />
                       </TableCell>
                       <TableCell sx={rowStyle}>
                         <TextField 
-                          type="number" 
+                          type="text" 
                           size="small" 
-                          value={order.charges} 
-                          onChange={(e) => handleOrderValueChange(index, 'charges', e.target.value)}
+                          value={order.hamali} 
                           sx={{ width: 80 }} 
                         />
                       </TableCell>
@@ -715,7 +700,7 @@ export default function ViewLedgerPage() {
                     {totals.hamali}
                   </TableCell>
                   <TableCell sx={{ ...rowStyle, fontWeight: "bold" }}>
-                    {totals.charges}
+                    {totals.hamali}
                   </TableCell>
                   <TableCell></TableCell>
                 </TableRow>

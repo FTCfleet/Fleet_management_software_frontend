@@ -112,7 +112,7 @@ const AllLedgerPage = () => {
     if (nameFilter) {
       filtered = filtered.filter((order) =>
         order.vehicleNo.toLowerCase().replaceAll(" ","").startsWith(nameFilter.toLowerCase()) || 
-        order.ledgerId.startsWith(nameFilter)
+        order.ledgerId.toLowerCase().startsWith(nameFilter.toLowerCase())
       );
     }
     if (warehouseFilter) {
