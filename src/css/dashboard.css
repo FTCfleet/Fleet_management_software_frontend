@@ -3,6 +3,7 @@
   display: flex;
   min-height: calc(100vh - 64px);
   background-color: #f8fafc;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Sidebar */
@@ -24,18 +25,18 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #1E3A5F;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   margin-bottom: 0.75rem;
   padding: 0.5rem 0;
 }
 
 .sidebar-heading svg {
-  font-size: 1rem;
-  opacity: 0.8;
+  font-size: 0.9rem;
+  opacity: 0.7;
 }
 
 /* Navigation Links */
@@ -167,14 +168,16 @@
 /* Dashboard Cards */
 .dashboard-card {
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  transition: box-shadow 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s ease;
+  border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
 .dashboard-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
 }
 
 .dashboard-card-header {
@@ -188,6 +191,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: #1E3A5F;
+  letter-spacing: -0.01em;
 }
 
 /* Stats Grid */
@@ -199,23 +203,33 @@
 }
 
 .stat-card {
-  background: #ffffff;
-  border-radius: 12px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 14px;
   padding: 1.25rem;
   border-left: 4px solid #1E3A5F;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 58, 95, 0.12);
 }
 
 .stat-label {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 500;
   color: #64748b;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .stat-value {
   font-size: 1.75rem;
   font-weight: 700;
   color: #1E3A5F;
+  letter-spacing: -0.02em;
 }
 
 /* Profile Card */
@@ -288,4 +302,130 @@
   .profile-actions .button {
     width: 100%;
   }
+}
+
+
+/* Dark Mode Dashboard Styles */
+body.dark-mode .sidebar {
+  background-color: #0f1d32;
+  border-right-color: rgba(255, 255, 255, 0.06);
+}
+
+body.dark-mode .sidebar-heading {
+  color: #94a3b8;
+}
+
+body.dark-mode .navlink {
+  color: #94a3b8;
+}
+
+body.dark-mode .navlink:hover {
+  background-color: rgba(255, 183, 77, 0.08);
+  color: #FFB74D;
+}
+
+body.dark-mode .navlink.active {
+  background-color: rgba(255, 183, 77, 0.12);
+  color: #FFB74D;
+  border-left-color: #FFB74D;
+}
+
+body.dark-mode .dashboard-main {
+  background-color: #0a1628;
+}
+
+body.dark-mode .dashboard-card {
+  background: linear-gradient(135deg, #132238 0%, #0f1d32 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .dashboard-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 183, 77, 0.15);
+}
+
+body.dark-mode .dashboard-card-title {
+  color: #f1f5f9;
+}
+
+body.dark-mode .stat-card {
+  background: linear-gradient(135deg, #132238 0%, #0f1d32 100%);
+  border-left-color: #FFB74D;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 4px solid #FFB74D;
+}
+
+body.dark-mode .stat-card:hover {
+  box-shadow: 0 4px 16px rgba(255, 183, 77, 0.15);
+}
+
+body.dark-mode .stat-label {
+  color: #94a3b8;
+}
+
+body.dark-mode .stat-value {
+  color: #f1f5f9;
+}
+
+body.dark-mode .profile-card {
+  background: linear-gradient(135deg, #132238 0%, #0f1d32 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+body.dark-mode .profile-name {
+  color: #f1f5f9;
+}
+
+body.dark-mode .profile-username {
+  color: #94a3b8;
+}
+
+body.dark-mode .profile-details {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .profile-detail-label {
+  color: #94a3b8;
+}
+
+body.dark-mode .profile-detail-value {
+  color: #f1f5f9;
+}
+
+/* Dark Mode Filter Bar */
+body.dark-mode .filter-bar {
+  background: #132238;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Dark Mode Empty State */
+body.dark-mode .empty-state {
+  color: #64748b;
+}
+
+/* Dark Mode Table Enhancements */
+body.dark-mode .MuiTableContainer-root {
+  background-color: #132238;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+}
+
+body.dark-mode .MuiTable-root {
+  background-color: transparent;
+}
+
+body.dark-mode .MuiTableHead-root .MuiTableCell-root {
+  background-color: #0f1d32;
+  color: #f1f5f9;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .MuiTableBody-root .MuiTableRow-root:nth-of-type(even) {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+body.dark-mode .MuiTableBody-root .MuiTableRow-root:hover {
+  background-color: rgba(255, 183, 77, 0.06) !important;
 }

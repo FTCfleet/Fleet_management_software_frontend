@@ -17,7 +17,12 @@ function App() {
     checkAuthStatus().then((data) => setLoading(data.flag));
   }, []);
 
-  const showWhatsAppButton = ["/", "/about", "/track"].includes(
+  // Scroll to top instantly on route change (no animation)
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [location.pathname]);
+
+  const showWhatsAppButton = ["/", "/about", "/track", "/locations", "/services"].includes(
     location.pathname
   );
 

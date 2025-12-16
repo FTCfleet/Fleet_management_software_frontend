@@ -13,21 +13,6 @@ import {
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
 
-const modalContainerSx = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "90%",
-  maxWidth: 420,
-  maxHeight: "85vh",
-  overflowY: "auto",
-  bgcolor: "background.paper",
-  borderRadius: 3,
-  boxShadow: "0 20px 50px rgba(0,0,0,0.15)",
-  p: { xs: 2.5, sm: 3.5 },
-};
-
 const ClientModal = memo(function ClientModal({
   open,
   onClose,
@@ -36,7 +21,8 @@ const ClientModal = memo(function ClientModal({
   onSubmit,
   isAdding,
   isSubmitting,
-  titleSx = null,
+  isDarkMode = false,
+  colors = {},
 }) {
   if (!client) {
     return null;
@@ -44,61 +30,92 @@ const ClientModal = memo(function ClientModal({
 
   const senderValue = typeof client.isSender === "boolean" ? client.isSender : true;
 
+  const inputSx = {
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "12px",
+      backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc",
+    },
+    "& .MuiInputLabel-root": { color: colors?.textSecondary },
+    "& .MuiOutlinedInput-input": { color: colors?.textPrimary },
+  };
+
   return (
     <Modal open={open} onClose={onClose}>
-      <Box sx={modalContainerSx}>
-        <IconButton
-          color="error"
-          onClick={onClose}
-          sx={{ position: "absolute", top: 8, right: 8 }}
-          size="small"
-        >
-          <Close />
-        </IconButton>
-        
-        <Typography
-          variant="h6"
-          sx={{
-            mb: 3,
-            textAlign: "center",
-            fontWeight: 700,
-            color: "#1E3A5F",
-            ...(titleSx || {}),
-          }}
-        >
-          {isAdding ? "Add Client" : "Edit Client Details"}
-        </Typography>
+      <Box
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: { xs: "90%", sm: 480 },
+          maxWidth: 480,
+          maxHeight: "90vh",
+          bgcolor: isDarkMode ? "#1a2332" : "#ffffff",
+          borderRadius: "16px",
+          boxShadow: isDarkMode 
+            ? "0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)" 
+            : "0 25px 50px rgba(0,0,0,0.15)",
+          p: 3,
+          overflowY: "auto",
+        }}
+      >
+        {/* Header */}
+        <Box sx={{ position: "relative", mb: 3 }}>
+          <IconButton
+            onClick={onClose}
+            sx={{ 
+              position: "absolute", 
+              top: -8, 
+              right: -8,
+              color: colors?.textSecondary,
+              "&:hover": { backgroundColor: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)" }
+            }}
+          >
+            <Close />
+          </IconButton>
+          <Typography
+            variant="h5"
+            sx={{ 
+              color: colors?.textPrimary,
+              fontWeight: 700,
+              textAlign: "center",
+            }}
+          >
+            {isAdding ? "Add New Client" : "Edit Client Details"}
+          </Typography>
+        </Box>
 
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {/* Content */}
+        <Box>
           <TextField
             fullWidth
             label="Client Name"
             value={client.name ?? ""}
             onChange={(e) => onFieldChange("name", e.target.value.toUpperCase())}
-            size="small"
+            sx={{ ...inputSx, mb: 2.5 }}
           />
           <TextField
             fullWidth
             label="Phone Number"
             value={client.phoneNo ?? ""}
             onChange={(e) => onFieldChange("phoneNo", e.target.value)}
-            size="small"
+            sx={{ ...inputSx, mb: 2.5 }}
           />
           <TextField
             fullWidth
             label="Client Address"
             value={client.address ?? ""}
             onChange={(e) => onFieldChange("address", e.target.value.toUpperCase())}
-            size="small"
             multiline
             rows={2}
+            sx={{ ...inputSx, mb: 2.5 }}
           />
           <TextField
             fullWidth
             label="GST Number"
             value={client.gst ?? ""}
             onChange={(e) => onFieldChange("gst", e.target.value.toUpperCase())}
-            size="small"
+            sx={{ ...inputSx, mb: 2.5 }}
           />
 
           <ToggleButtonGroup
@@ -109,17 +126,25 @@ const ClientModal = memo(function ClientModal({
                 onFieldChange("isSender", newValue);
               }
             }}
-            sx={{ display: "flex" }}
-            size="small"
+            sx={{ display: "flex", mb: 3, width: "100%" }}
           >
             <ToggleButton
               value={true}
               sx={{
                 flex: 1,
-                py: 1,
+                py: 1.2,
+                borderRadius: "12px 0 0 12px !important",
+                fontWeight: 600,
+                backgroundColor: senderValue
+                  ? (isDarkMode ? "#FFB74D" : "#1D3557")
+                  : (isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc"),
+                color: senderValue 
+                  ? (isDarkMode ? "#0a1628" : "#fff") 
+                  : (isDarkMode ? colors?.textSecondary : "#64748b"),
+                border: isDarkMode ? "1px solid rgba(255,255,255,0.1)" : "1px solid #e2e8f0",
                 "&.Mui-selected, &.Mui-selected:hover": {
-                  backgroundColor: "#1E3A5F",
-                  color: "white",
+                  backgroundColor: isDarkMode ? "#FFB74D" : "#1D3557",
+                  color: isDarkMode ? "#0a1628" : "#fff",
                 },
               }}
             >
@@ -129,10 +154,19 @@ const ClientModal = memo(function ClientModal({
               value={false}
               sx={{
                 flex: 1,
-                py: 1,
+                py: 1.2,
+                borderRadius: "0 12px 12px 0 !important",
+                fontWeight: 600,
+                backgroundColor: !senderValue
+                  ? (isDarkMode ? "#FFB74D" : "#1D3557")
+                  : (isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc"),
+                color: !senderValue 
+                  ? (isDarkMode ? "#0a1628" : "#fff") 
+                  : (isDarkMode ? colors?.textSecondary : "#64748b"),
+                border: isDarkMode ? "1px solid rgba(255,255,255,0.1)" : "1px solid #e2e8f0",
                 "&.Mui-selected, &.Mui-selected:hover": {
-                  backgroundColor: "#1E3A5F",
-                  color: "white",
+                  backgroundColor: isDarkMode ? "#FFB74D" : "#1D3557",
+                  color: isDarkMode ? "#0a1628" : "#fff",
                 },
               }}
             >
@@ -140,20 +174,41 @@ const ClientModal = memo(function ClientModal({
             </ToggleButton>
           </ToggleButtonGroup>
 
-          <Box sx={{ display: "flex", gap: 1.5, justifyContent: "flex-end", mt: 1 }}>
-            <Button variant="outlined" onClick={onClose} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              onClick={onSubmit}
-              disabled={isSubmitting}
-              sx={{ backgroundColor: "#1E3A5F", "&:hover": { backgroundColor: "#25344E" } }}
-            >
-              {isAdding ? "Add" : "Save"}
-              {isSubmitting && <CircularProgress size={18} sx={{ color: "#fff", ml: 1 }} />}
-            </Button>
-          </Box>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={onSubmit}
+            disabled={isSubmitting}
+            sx={{
+              py: 1.5,
+              borderRadius: "12px",
+              fontSize: "1rem",
+              fontWeight: 600,
+              textTransform: "none",
+              background: isDarkMode 
+                ? "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)"
+                : "linear-gradient(135deg, #1D3557 0%, #0a1628 100%)",
+              color: isDarkMode ? "#0a1628" : "#fff",
+              boxShadow: "none",
+              "&:hover": {
+                background: isDarkMode 
+                  ? "linear-gradient(135deg, #FFA726 0%, #F57C00 100%)"
+                  : "linear-gradient(135deg, #25445f 0%, #0f2035 100%)",
+                boxShadow: "none",
+              },
+              "&:disabled": {
+                background: isDarkMode ? "rgba(255,183,77,0.3)" : "rgba(29,53,87,0.3)",
+              }
+            }}
+          >
+            {isAdding ? "Add Client" : "Save Changes"}
+            {isSubmitting && (
+              <CircularProgress
+                size={20}
+                sx={{ color: isDarkMode ? "#0a1628" : "#fff", ml: 1 }}
+              />
+            )}
+          </Button>
         </Box>
       </Box>
     </Modal>
@@ -175,7 +230,8 @@ ClientModal.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   isAdding: PropTypes.bool.isRequired,
   isSubmitting: PropTypes.bool.isRequired,
-  titleSx: PropTypes.object,
+  isDarkMode: PropTypes.bool,
+  colors: PropTypes.object,
 };
 
 export default ClientModal;

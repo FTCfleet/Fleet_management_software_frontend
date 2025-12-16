@@ -3,7 +3,7 @@
   position: relative;
   overflow: hidden;
   color: #ffffff;
-  background: linear-gradient(135deg, #1D3557 0%, #0f1c2e 100%);
+  background: linear-gradient(180deg, #0a1628 0%, #0d1a2d 100%);
   padding: 3rem 1.5rem 2rem;
 }
 
@@ -19,15 +19,14 @@
   }
 }
 
-/* Background SVG */
-.footer-svg {
+/* Background Effects */
+.footer-container::before {
+  content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.5;
+  inset: 0;
+  background: radial-gradient(ellipse at 20% 100%, rgba(255, 183, 77, 0.05) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 0%, rgba(30, 58, 95, 0.2) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 /* Content Wrapper */
@@ -49,17 +48,16 @@
 
 /* Footer Title */
 .footer-title {
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-size: clamp(1.5rem, 4vw, 2rem);
   font-weight: 700;
   text-decoration: none;
   color: white;
   display: inline-block;
-  transition: opacity 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .footer-title:hover {
-  opacity: 0.9;
-  color: white;
+  color: #FFB74D;
 }
 
 /* Footer Grid */
@@ -77,22 +75,17 @@
 
 @media (min-width: 900px) {
   .footer-row {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
 /* Section Headings */
 .footer-row h3 {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
   color: #FFB74D;
   letter-spacing: 0.5px;
-}
-
-/* Footer Row Text */
-.footer-row li {
-  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Footer Links */
@@ -102,19 +95,19 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.75rem;
 }
 
 .footer-row li {
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.7);
   line-height: 1.5;
 }
 
 .footer-links {
   font-weight: 400;
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: rgba(255, 255, 255, 0.7) !important;
   text-decoration: none;
   transition: all 0.2s ease;
   display: inline-block;
@@ -122,34 +115,15 @@
 
 .footer-links:hover {
   color: #FFB74D !important;
-  transform: translateX(3px);
-}
-
-/* Social Icons */
-.footer-icons {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  margin-top: 0.5rem;
-}
-
-.social-icon {
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.85);
-  transition: all 0.2s ease;
-}
-
-.social-icon:hover {
-  color: #FFB74D;
-  transform: translateY(-2px);
+  transform: translateX(4px);
 }
 
 /* Divider */
 .footer-divider {
-  border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 183, 77, 0.3), transparent);
   margin: 1rem 0;
+  border: none;
 }
 
 /* Footer Bottom */
@@ -158,8 +132,8 @@
   flex-direction: column;
   gap: 0.75rem;
   text-align: center;
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 @media (min-width: 640px) {
@@ -172,7 +146,7 @@
 }
 
 .footer-bottom a {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.6);
   transition: color 0.2s ease;
 }
 
@@ -184,15 +158,15 @@
 .footer-contact {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .footer-contact-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .footer-contact-item svg {
@@ -201,9 +175,40 @@
 }
 
 .footer-contact-item a {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .footer-contact-item a:hover {
   color: #FFB74D;
+}
+
+/* Social Icons */
+.footer-icons {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.social-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.social-icon:hover {
+  background: rgba(255, 183, 77, 0.15);
+  border-color: rgba(255, 183, 77, 0.3);
+  color: #FFB74D;
+  transform: translateY(-2px);
 }

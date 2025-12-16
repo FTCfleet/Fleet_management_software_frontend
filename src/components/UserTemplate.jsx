@@ -1,10 +1,12 @@
 ﻿import React, { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Box, List, ListItem, ListItemIcon, ListItemText, Typography, CircularProgress, IconButton } from "@mui/material";
+import { Box, List, ListItem, ListItemIcon, ListItemText, Typography, IconButton } from "@mui/material";
 import { FaRegFileAlt, FaTruckMoving, FaMoneyCheckAlt, FaBoxOpen, FaFileInvoice, FaPlus, FaChartBar } from "react-icons/fa";
 import { useAuth } from "../routes/AuthContext";
 import { useSidebar } from "../hooks/useSidebar";
+import { useThemeMode, getThemeColors } from "../hooks/useTheme";
 import CloseIcon from "@mui/icons-material/Close";
+import ModernSpinner from "./ModernSpinner";
 import "../css/dashboard.css";
 import "../css/main.css";
 
@@ -86,11 +88,16 @@ const UserTemplate = () => {
   useEffect(() => {
     if (location.pathname !== "/user/dashboard") setLastUserPage(location.pathname);
     if (isMobileView) setIsSidebarOpen(false);
+    // Scroll to top instantly when navigating between dashboard pages
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [location.pathname, isMobileView, setLastUserPage]);
 
   useEffect(() => {
     if (!isMobileView) setIsSidebarOpen(true);
   }, [isMobileView]);
+
+  const { isDarkMode } = useThemeMode();
+  const colors = getThemeColors(isDarkMode);
 
   return (
     <Box sx={{ display: "flex", minHeight: "calc(100vh - 64px)", position: "relative" }}>
@@ -100,7 +107,7 @@ const UserTemplate = () => {
           sx={{
             position: "fixed",
             inset: 0,
-            backgroundColor: "rgba(0,0,0,0.4)",
+            backgroundColor: "rgba(0,0,0,0.5)",
             zIndex: 40,
             transition: "opacity 0.3s ease",
           }}
@@ -111,9 +118,9 @@ const UserTemplate = () => {
       {/* Sidebar */}
       <Box
         sx={{
-          width: isMobileView ? "280px" : "260px",
-          backgroundColor: "#ffffff",
-          borderRight: "1px solid #e2e8f0",
+          width: isMobileView ? "280px" : "250px",
+          backgroundColor: colors.bgSecondary,
+          borderRight: `1px solid ${colors.border}`,
           p: 2,
           overflowY: "auto",
           overflowX: "hidden",
@@ -123,8 +130,8 @@ const UserTemplate = () => {
           height: isMobileView ? "calc(100vh - 60px)" : "calc(100vh - 70px)",
           zIndex: 50,
           transform: isMobileView ? (isSidebarOpen ? "translateX(0)" : "translateX(-100%)") : "translateX(0)",
-          transition: "transform 0.3s ease",
-          boxShadow: isMobileView && isSidebarOpen ? "4px 0 15px rgba(0,0,0,0.1)" : "none",
+          transition: "transform 0.3s ease, background-color 0.3s ease",
+          boxShadow: isMobileView && isSidebarOpen ? "4px 0 20px rgba(0,0,0,0.08)" : "none",
         }}
       >
         {isMobileView && (
@@ -138,36 +145,42 @@ const UserTemplate = () => {
                   px: 1.5,
                   py: 0.5,
                   borderRadius: "20px",
-                  fontSize: "0.85rem",
+                  fontSize: "0.8rem",
                   fontWeight: 600,
                 }}
               >
-                {stationCode}
+                {isAdmin ? `ADMIN • ${stationCode}` : stationCode}
               </Typography>
             )}
-            <IconButton size="small" onClick={() => setIsSidebarOpen(false)}>
+            <IconButton size="small" onClick={() => setIsSidebarOpen(false)} sx={{ color: colors.textSecondary }}>
               <CloseIcon fontSize="small" />
             </IconButton>
           </Box>
         )}
 
         {menuSections.map((section, sectionIndex) => (
-          <Box key={sectionIndex} sx={{ mb: 2.5 }}>
+          <Box key={sectionIndex} sx={{ 
+            mb: 2.5,
+            pb: 2,
+            borderBottom: sectionIndex < menuSections.length - 1 
+              ? (isDarkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid #e8ecf0") 
+              : "none"
+          }}>
             <Typography
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 1,
-                color: "#1E3A5F",
-                fontWeight: 700,
-                fontSize: "0.8rem",
+                gap: 0.75,
+                color: colors.textMuted,
+                fontWeight: 600,
+                fontSize: "0.7rem",
                 textTransform: "uppercase",
-                letterSpacing: "0.5px",
-                mb: 1,
-                px: 0.5,
+                letterSpacing: "0.8px",
+                mb: 0.75,
+                px: 0.75,
               }}
             >
-              {section.headingIcon}
+              <Box sx={{ opacity: 0.7, display: "flex", fontSize: "0.8rem" }}>{section.headingIcon}</Box>
               {section.heading}
             </Typography>
             <List disablePadding>
@@ -176,27 +189,48 @@ const UserTemplate = () => {
                   <NavLink
                     to={item.path}
                     onClick={() => isMobileView && setIsSidebarOpen(false)}
-                    style={({ isActive }) => ({
-                      textDecoration: "none",
-                      display: "flex",
-                      alignItems: "center",
-                      width: "100%",
-                      padding: "0.6rem 0.875rem",
-                      borderRadius: "8px",
-                      color: isActive ? "#1E3A5F" : "#4a5568",
-                      backgroundColor: isActive ? "#e0f2fe" : "transparent",
-                      fontWeight: isActive ? 600 : 500,
-                      fontSize: "0.875rem",
-                      transition: "all 0.2s ease",
-                    })}
+                    style={{ textDecoration: "none", width: "100%" }}
                   >
-                    <ListItemIcon sx={{ minWidth: "32px", color: "#82acc2", fontSize: "0.9rem" }}>
-                      {item.icon}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={item.text}
-                      primaryTypographyProps={{ fontSize: "0.875rem", fontWeight: "inherit" }}
-                    />
+                    {({ isActive }) => (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          width: "100%",
+                          padding: "0.55rem 0.875rem",
+                          borderRadius: "10px",
+                          color: isActive 
+                            ? (isDarkMode ? colors.accent : colors.primary) 
+                            : colors.textSecondary,
+                          backgroundColor: isActive 
+                            ? (isDarkMode ? "rgba(255, 183, 77, 0.1)" : "rgba(30, 58, 95, 0.08)") 
+                            : "transparent",
+                          fontWeight: isActive ? 600 : 500,
+                          fontSize: "0.85rem",
+                          transition: "all 0.2s ease",
+                          borderLeft: isActive 
+                            ? `3px solid ${isDarkMode ? colors.accent : colors.primary}` 
+                            : "3px solid transparent",
+                          "&:hover": {
+                            backgroundColor: isDarkMode ? "rgba(255, 183, 77, 0.05)" : "rgba(30, 58, 95, 0.04)",
+                          },
+                        }}
+                      >
+                        <ListItemIcon sx={{ 
+                          minWidth: "28px", 
+                          color: isActive 
+                            ? (isDarkMode ? colors.accent : colors.primary) 
+                            : colors.textMuted, 
+                          fontSize: "0.85rem" 
+                        }}>
+                          {item.icon}
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={item.text}
+                          primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: "inherit", letterSpacing: "-0.01em" }}
+                        />
+                      </Box>
+                    )}
                   </NavLink>
                 </ListItem>
               ))}
@@ -210,12 +244,13 @@ const UserTemplate = () => {
         sx={{
           flex: 1,
           p: { xs: 1.5, sm: 2, md: 2.5 },
-          backgroundColor: "#f8fafc",
+          backgroundColor: colors.bgPrimary,
           minWidth: 0,
           overflowY: "auto",
+          transition: "background-color 0.3s ease",
         }}
       >
-        <Outlet context={{ setIsScreenLoading, setIsScreenLoadingText }} />
+        <Outlet context={{ setIsScreenLoading, setIsScreenLoadingText, isDarkMode, colors }} />
 
         {/* Loading Overlay */}
         {isScreenLoading && (
@@ -223,20 +258,54 @@ const UserTemplate = () => {
             sx={{
               position: "fixed",
               inset: 0,
-              backgroundColor: "rgba(255, 255, 255, 0.9)",
+              background: "linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(29, 53, 87, 0.95) 100%)",
+              backdropFilter: "blur(8px)",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
               zIndex: 1500,
-              gap: 2,
+              gap: 3,
             }}
           >
-            <CircularProgress size={50} sx={{ color: "#1E3A5F" }} />
+            <Box
+              sx={{
+                position: "relative",
+                width: 80,
+                height: 80,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {/* Spinning Ring */}
+              <Box
+                sx={{
+                  position: "absolute",
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: "50%",
+                  border: "3px solid transparent",
+                  borderTopColor: "#FFB74D",
+                  borderRightColor: "rgba(255, 183, 77, 0.3)",
+                  animation: "spin 1.2s linear infinite",
+                  "@keyframes spin": {
+                    "0%": { transform: "rotate(0deg)" },
+                    "100%": { transform: "rotate(360deg)" },
+                  },
+                }}
+              />
+              <ModernSpinner size={32} />
+            </Box>
             {isScreenLoadingText && (
-              <Typography sx={{ fontSize: "1.1rem", color: "#1E3A5F", fontWeight: 500 }}>
-                {isScreenLoadingText}
-              </Typography>
+              <Box sx={{ textAlign: "center" }}>
+                <Typography sx={{ fontSize: "1.1rem", color: "#ffffff", fontWeight: 600, letterSpacing: "0.5px" }}>
+                  {isScreenLoadingText}
+                </Typography>
+                <Typography sx={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.6)", mt: 0.5 }}>
+                  Please wait...
+                </Typography>
+              </Box>
             )}
           </Box>
         )}
@@ -250,44 +319,72 @@ const UserTemplate = () => {
               right: { xs: "1rem", sm: "1.5rem" },
               display: "flex",
               flexDirection: "column",
-              gap: 1,
+              gap: 0.75,
               zIndex: 100,
             }}
           >
-            <button 
-              className="button" 
+            <Box
               onClick={() => navigate("/user/add/order/")}
-              style={{ 
-                minWidth: "140px", 
-                padding: "12px 16px",
-                fontSize: "0.875rem",
-                fontWeight: 500,
-                borderRadius: "24px",
+              sx={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "8px"
+                gap: 1,
+                minWidth: "145px",
+                padding: "13px 20px",
+                background: isDarkMode 
+                  ? "linear-gradient(135deg, #FFB74D 0%, #FFA726 50%, #FFB74D 100%)" 
+                  : "linear-gradient(135deg, #1E3A5F 0%, #2d5a87 50%, #1E3A5F 100%)",
+                color: isDarkMode ? "#0a1628" : "#fff",
+                fontSize: "0.85rem",
+                fontWeight: 700,
+                borderRadius: "30px",
+                cursor: "pointer",
+                boxShadow: isDarkMode 
+                  ? "0 4px 20px rgba(255, 183, 77, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)" 
+                  : "0 4px 20px rgba(30, 58, 95, 0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
+                transition: "all 0.25s ease",
+                "&:hover": {
+                  transform: "translateY(-3px) scale(1.02)",
+                  boxShadow: isDarkMode 
+                    ? "0 8px 30px rgba(255, 183, 77, 0.5), inset 0 1px 0 rgba(255,255,255,0.25)" 
+                    : "0 8px 30px rgba(30, 58, 95, 0.5), inset 0 1px 0 rgba(255,255,255,0.2)",
+                },
               }}
             >
-              <FaPlus /> Create L.R.
-            </button>
-            <button 
-              className="button" 
+              <FaPlus style={{ fontSize: "0.85rem" }} /> Create L.R.
+            </Box>
+            <Box
               onClick={() => navigate("/user/add/ledger/")}
-              style={{ 
-                minWidth: "140px", 
-                padding: "12px 16px",
-                fontSize: "0.875rem",
-                fontWeight: 500,
-                borderRadius: "24px",
+              sx={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "8px"
+                gap: 1,
+                minWidth: "145px",
+                padding: "13px 20px",
+                background: isDarkMode 
+                  ? "linear-gradient(135deg, #FFB74D 0%, #FFA726 50%, #FFB74D 100%)" 
+                  : "linear-gradient(135deg, #1E3A5F 0%, #2d5a87 50%, #1E3A5F 100%)",
+                color: isDarkMode ? "#0a1628" : "#fff",
+                fontSize: "0.85rem",
+                fontWeight: 700,
+                borderRadius: "30px",
+                cursor: "pointer",
+                boxShadow: isDarkMode 
+                  ? "0 4px 20px rgba(255, 183, 77, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)" 
+                  : "0 4px 20px rgba(30, 58, 95, 0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
+                transition: "all 0.25s ease",
+                "&:hover": {
+                  transform: "translateY(-3px) scale(1.02)",
+                  boxShadow: isDarkMode 
+                    ? "0 8px 30px rgba(255, 183, 77, 0.5), inset 0 1px 0 rgba(255,255,255,0.25)" 
+                    : "0 8px 30px rgba(30, 58, 95, 0.5), inset 0 1px 0 rgba(255,255,255,0.2)",
+                },
               }}
             >
-              <FaPlus /> Create Memo
-            </button>
+              <FaPlus style={{ fontSize: "0.85rem" }} /> Create Memo
+            </Box>
           </Box>
         )}
       </Box>

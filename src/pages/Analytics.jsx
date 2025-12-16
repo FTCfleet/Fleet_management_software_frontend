@@ -3,9 +3,6 @@ import {
   Box,
   Typography,
   Paper,
-  CircularProgress,
-  Card,
-  CardContent,
   ToggleButton,
   ToggleButtonGroup,
   Table,
@@ -13,9 +10,12 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  useTheme,
-  useMediaQuery,
+  TableContainer,
+  Select,
+  MenuItem,
+  FormControl,
 } from "@mui/material";
+import ModernSpinner from "../components/ModernSpinner";
 import {
   BarChart,
   Bar,
@@ -28,37 +28,56 @@ import {
   Pie,
   Cell,
   Legend,
+  AreaChart,
+  Area,
 } from "recharts";
 import { useAuth } from "../routes/AuthContext";
+import { useOutletContext } from "react-router-dom";
+import { FaBoxOpen, FaTruck, FaCheckCircle, FaChartLine } from "react-icons/fa";
 import CustomDialog from "../components/CustomDialog";
 import { useDialog } from "../hooks/useDialog";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
-const COLORS = ["#1E3A5F", "#000000", "#FFB74D", "#4DB6AC", "#BA68C8"];
 
 const Analytics_UI = () => {
   const [orders, setOrders] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState({ today: 0, week: 0, month: 0 });
+  const [stats, setStats] = useState({ today: 0, week: 0, month: 0, total: 0 });
   const [chartType, setChartType] = useState("week");
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [chartData, setChartData] = useState([]);
-  const [ledgerData, setLedgerData] = useState([]);
+  const [statusData, setStatusData] = useState([]);
   const [selectedWarehouse, setSelectedWarehouse] = useState("All");
   const [warehouseTable, setWarehouseTable] = useState([]);
-
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isSmall = useMediaQuery(theme.breakpoints.down("sm"));
-  const { isAdmin, isSource } = useAuth();
+  
+  const { isDarkMode, colors } = useOutletContext() || {};
+  const { isAdmin } = useAuth();
   const { dialogState, hideDialog, showError } = useDialog();
 
-  const months = Array.from({ length: 6 }, (_, i) => {
+  // Theme-aware colors
+  const CHART_COLORS = isDarkMode 
+    ? ["#FFB74D", "#60a5fa", "#4ade80", "#f472b6", "#a78bfa"]
+    : ["#1E3A5F", "#457b9d", "#2a9d8f", "#e76f51", "#9c6644"];
+
+  const STATUS_COLORS = {
+    Arrived: isDarkMode ? "#60a5fa" : "#3b82f6",
+    Dispatched: isDarkMode ? "#fbbf24" : "#f59e0b",
+    Delivered: isDarkMode ? "#4ade80" : "#22c55e",
+    Pending: isDarkMode ? "#f472b6" : "#ec4899",
+  };
+
+  // Generate month options (last 12 months)
+  const monthOptions = Array.from({ length: 12 }, (_, i) => {
     const d = new Date();
     d.setMonth(d.getMonth() - i);
-    return { label: d.toLocaleString("default", { month: "long" }), value: d.getMonth() };
-  }).reverse();
+    return { 
+      label: d.toLocaleString("default", { month: "short", year: "numeric" }), 
+      month: d.getMonth(),
+      year: d.getFullYear()
+    };
+  });
 
   useEffect(() => {
     fetchData();
@@ -69,25 +88,48 @@ const Analytics_UI = () => {
     try {
       const token = localStorage.getItem("token");
       
-      // Fetch orders for the last 60 days
-      const ordersPromises = [];
+      // Fetch orders for the last 60 days in batches
+      const allOrders = [];
       const today = new Date();
       
-      for (let i = 0; i < 60; i++) {
-        const date = new Date();
-        date.setDate(today.getDate() - i);
-        const dateStr = date.toISOString().split("T")[0];
+      // Fetch in parallel but limit concurrent requests
+      const batchSize = 10;
+      for (let batch = 0; batch < 6; batch++) {
+        const promises = [];
+        for (let i = 0; i < batchSize; i++) {
+          const dayOffset = batch * batchSize + i;
+          if (dayOffset >= 60) break;
+          
+          const date = new Date();
+          date.setDate(today.getDate() - dayOffset);
+          const dateStr = date.toISOString().split("T")[0];
+          
+          promises.push(
+            fetch(`${BASE_URL}/api/parcel/all`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ date: dateStr }),
+            })
+            .then(res => res.json())
+            .then(result => ({ result, dayOffset, date: new Date(date) }))
+            .catch(() => ({ result: { flag: false }, dayOffset, date: new Date(date) }))
+          );
+        }
         
-        ordersPromises.push(
-          fetch(`${BASE_URL}/api/parcel/all`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ date: dateStr }),
-          }).then(res => res.json())
-        );
+        const results = await Promise.all(promises);
+        results.forEach(({ result, date }) => {
+          if (result.flag && result.body) {
+            result.body.forEach(order => {
+              allOrders.push({
+                ...order,
+                fetchDate: date.toISOString(),
+              });
+            });
+          }
+        });
       }
 
       // Fetch warehouses
@@ -101,26 +143,8 @@ const Analytics_UI = () => {
       const warehouseData = await warehouseResponse.json();
       
       if (warehouseData.flag) {
-        const warehouseList = ["All", ...warehouseData.body.map(w => w.name)];
-        setWarehouses(warehouseList);
+        setWarehouses(["All", ...warehouseData.body.map(w => w.name)]);
       }
-
-      // Process orders data
-      const ordersResults = await Promise.all(ordersPromises);
-      const allOrders = [];
-      
-      ordersResults.forEach((result, index) => {
-        if (result.flag && result.body) {
-          const date = new Date();
-          date.setDate(today.getDate() - index);
-          result.body.forEach(order => {
-            allOrders.push({
-              ...order,
-              date: date.toISOString(),
-            });
-          });
-        }
-      });
 
       setOrders(allOrders);
     } catch (error) {
@@ -131,64 +155,70 @@ const Analytics_UI = () => {
   };
 
   useEffect(() => {
-    if (!isLoading) computeAnalytics();
-  }, [orders, chartType, selectedMonth, selectedWarehouse, isLoading]);
+    if (!isLoading && orders.length >= 0) computeAnalytics();
+  }, [orders, chartType, selectedMonth, selectedYear, selectedWarehouse, isLoading]);
 
-  const isSameDay = (d1, d2) => new Date(d1).toDateString() === new Date(d2).toDateString();
+  const isSameDay = (d1, d2) => {
+    const date1 = new Date(d1);
+    const date2 = new Date(d2);
+    return date1.toDateString() === date2.toDateString();
+  };
+
+  const getOrderDate = (order) => {
+    // Use the order's actual date if available, otherwise use fetchDate
+    return order.date || order.createdAt || order.fetchDate;
+  };
 
   const computeAnalytics = () => {
     const today = new Date();
     const startOfWeek = new Date(today);
     startOfWeek.setDate(today.getDate() - today.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-    const ordersToday = orders.filter((o) => isSameDay(o.date, today));
-    const ordersThisWeek = orders.filter((o) => new Date(o.date) >= startOfWeek);
-    const ordersThisMonth = orders.filter((o) => new Date(o.date) >= startOfMonth);
+    // Calculate stats
+    const ordersToday = orders.filter((o) => isSameDay(getOrderDate(o), today));
+    const ordersThisWeek = orders.filter((o) => new Date(getOrderDate(o)) >= startOfWeek);
+    const ordersThisMonth = orders.filter((o) => new Date(getOrderDate(o)) >= startOfMonth);
 
-    setStats({ today: ordersToday.length, week: ordersThisWeek.length, month: ordersThisMonth.length });
+    setStats({ 
+      today: ordersToday.length, 
+      week: ordersThisWeek.length, 
+      month: ordersThisMonth.length,
+      total: orders.length 
+    });
 
-    // Bar Chart
+    // Bar/Area Chart Data
     if (chartType === "week") {
       const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       const dailyCounts = weekDays.map((day, idx) => {
         const date = new Date(startOfWeek);
         date.setDate(startOfWeek.getDate() + idx);
-        const count = orders.filter((o) => isSameDay(o.date, date)).length;
+        const count = orders.filter((o) => isSameDay(getOrderDate(o), date)).length;
         return { 
-          day: day, 
+          name: day, 
           orders: count,
-          fullDate: date.toLocaleDateString('en', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })
+          fullDate: date.toLocaleDateString('en', { weekday: 'long', month: 'short', day: 'numeric' })
         };
       });
       setChartData(dailyCounts);
     } else {
-      const year = new Date().getFullYear();
-      const endOfSelected = new Date(year, selectedMonth + 1, 0);
-      const monthDays = Array.from({ length: endOfSelected.getDate() }, (_, i) => i + 1);
-      const dailyCounts = monthDays.map((day) => {
-        const date = new Date(year, selectedMonth, day);
-        const count = orders.filter((o) => isSameDay(o.date, date)).length;
-        const dayName = date.toLocaleDateString('en', { weekday: 'long' });
+      const endOfSelected = new Date(selectedYear, selectedMonth + 1, 0);
+      const daysInMonth = endOfSelected.getDate();
+      const dailyCounts = Array.from({ length: daysInMonth }, (_, i) => {
+        const day = i + 1;
+        const date = new Date(selectedYear, selectedMonth, day);
+        const count = orders.filter((o) => isSameDay(getOrderDate(o), date)).length;
         return { 
-          day: day.toString(), 
+          name: day.toString(), 
           orders: count,
-          fullDate: `${dayName}, ${date.toLocaleDateString('en', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}`
+          fullDate: date.toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' })
         };
       });
       setChartData(dailyCounts);
     }
 
-    // Pie Chart - Status Distribution
+    // Status Distribution (Pie Chart)
     let relevantOrders = [...orders];
     if (selectedWarehouse !== "All") {
       relevantOrders = relevantOrders.filter((o) => 
@@ -197,20 +227,22 @@ const Analytics_UI = () => {
       );
     }
     
-    const statusMap = { pending: 0, dispatched: 0, arrived: 0, delivered: 0 };
+    const statusMap = { arrived: 0, dispatched: 0, delivered: 0 };
     relevantOrders.forEach((o) => {
-      if (statusMap.hasOwnProperty(o.status)) {
-        statusMap[o.status]++;
+      const status = o.status?.toLowerCase();
+      if (statusMap.hasOwnProperty(status)) {
+        statusMap[status]++;
       }
     });
     
-    const ledgerList = Object.entries(statusMap)
-      .filter(([name, value]) => value > 0)
+    const statusList = Object.entries(statusMap)
+      .filter(([_, value]) => value > 0)
       .map(([name, value]) => ({ 
         name: name.charAt(0).toUpperCase() + name.slice(1), 
-        value 
+        value,
+        color: STATUS_COLORS[name.charAt(0).toUpperCase() + name.slice(1)]
       }));
-    setLedgerData(ledgerList);
+    setStatusData(statusList);
 
     // Warehouse Table
     const warehouseNames = warehouses.filter((w) => w !== "All");
@@ -218,10 +250,11 @@ const Analytics_UI = () => {
       const whOrders = orders.filter((o) => 
         o.sourceWarehouse?.name === w || o.destinationWarehouse?.name === w
       );
-      const counts = { pending: 0, dispatched: 0, arrived: 0, delivered: 0 };
+      const counts = { arrived: 0, dispatched: 0, delivered: 0, total: whOrders.length };
       whOrders.forEach((o) => {
-        if (counts.hasOwnProperty(o.status)) {
-          counts[o.status]++;
+        const status = o.status?.toLowerCase();
+        if (counts.hasOwnProperty(status)) {
+          counts[status]++;
         }
       });
       return { warehouse: w, ...counts };
@@ -231,269 +264,356 @@ const Analytics_UI = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
-        <CircularProgress sx={{ color: "#1E3A5F" }} />
+      <Box sx={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", minHeight: "60vh", gap: 2 }}>
+        <ModernSpinner size={48} />
+        <Typography sx={{ color: colors?.textSecondary }}>Loading analytics...</Typography>
       </Box>
     );
   }
 
-  return (
-    <Box sx={{ minHeight: "100%" }}>
-      <Typography variant="h5" sx={{ mb: 3, color: "#1E3A5F", fontWeight: 700 }}>
-        Analytics Dashboard
-      </Typography>
+  const cardStyle = {
+    p: { xs: 2, md: 2.5 },
+    borderRadius: "16px",
+    backgroundColor: colors?.bgCard || "#fff",
+    border: `1px solid ${colors?.border || "#e2e8f0"}`,
+    boxShadow: isDarkMode ? "0 4px 20px rgba(0,0,0,0.25)" : "0 2px 12px rgba(0,0,0,0.04)",
+  };
 
-      {/* Stats Cards */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
-          gap: 2,
-          mb: 3,
-        }}
-      >
-        <StatCard title="Orders Today" value={stats.today} color="#1E3A5F" />
-        <StatCard title="This Week" value={stats.week} color="#25344E" />
-        <StatCard title="This Month" value={stats.month} color="#457b9d" />
+  return (
+    <Box sx={{ pb: 4 }}>
+      {/* Header */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h5" sx={{ color: colors?.textPrimary, fontWeight: 700, mb: 0.5 }}>
+          Analytics Dashboard
+        </Typography>
+        <Typography sx={{ color: colors?.textSecondary, fontSize: "0.9rem" }}>
+          Overview of your logistics performance
+        </Typography>
       </Box>
 
-      {/* Bar Chart */}
-      <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, mb: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}>
-          <Typography sx={{ color: "#1E3A5F", fontWeight: 600 }}>
-            Orders {chartType === "week" ? "This Week" : months.find((m) => m.value === selectedMonth)?.label}
+      {/* Stats Cards */}
+      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }, gap: 2, mb: 3 }}>
+        <StatCard 
+          title="Today" 
+          value={stats.today} 
+          icon={<FaBoxOpen />}
+          color={isDarkMode ? "#FFB74D" : "#1E3A5F"}
+          isDarkMode={isDarkMode}
+          colors={colors}
+        />
+        <StatCard 
+          title="This Week" 
+          value={stats.week} 
+          icon={<FaChartLine />}
+          color={isDarkMode ? "#60a5fa" : "#3b82f6"}
+          isDarkMode={isDarkMode}
+          colors={colors}
+        />
+        <StatCard 
+          title="This Month" 
+          value={stats.month} 
+          icon={<FaTruck />}
+          color={isDarkMode ? "#4ade80" : "#22c55e"}
+          isDarkMode={isDarkMode}
+          colors={colors}
+        />
+        <StatCard 
+          title="Last 60 Days" 
+          value={stats.total} 
+          icon={<FaCheckCircle />}
+          color={isDarkMode ? "#a78bfa" : "#8b5cf6"}
+          isDarkMode={isDarkMode}
+          colors={colors}
+        />
+      </Box>
+
+      {/* Orders Chart */}
+      <Paper sx={{ ...cardStyle, mb: 3 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 2 }}>
+          <Typography sx={{ color: colors?.textPrimary, fontWeight: 600, fontSize: "1.1rem" }}>
+            Orders Overview
           </Typography>
-          <ToggleButtonGroup
-            value={chartType}
-            exclusive
-            onChange={(_, v) => v && setChartType(v)}
-            size="small"
-          >
-            <ToggleButton value="week">Week</ToggleButton>
-            <ToggleButton value="month">Month</ToggleButton>
-          </ToggleButtonGroup>
-        </Box>
-        {chartData.some(item => item.orders > 0) ? (
-          <ResponsiveContainer width="100%" height={isSmall ? 200 : 280}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis 
-                dataKey="day" 
-                tick={{ fontSize: isSmall ? 10 : 12, textAnchor: 'middle' }}
-                interval={0}
-                height={40}
-                tickFormatter={(value) => {
-                  if (!isSmall || chartType !== "month") return value;
-                  
-                  const numValue = parseInt(value);
-                  // Show odd numbers: 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31
-                  return numValue % 2 === 1 ? value : '';
-                }}
-              />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip
-                contentStyle={{ 
-                  borderRadius: 8, 
-                  border: "none", 
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                  backgroundColor: "white",
-                  padding: "12px"
-                }}
-                labelFormatter={(label) => {
-                  const item = chartData.find(d => d.day === label);
-                  return item ? item.fullDate : label;
-                }}
-                formatter={(value, name) => [
-                  `${value} ${value === 1 ? 'order' : 'orders'}`, 
-                  'Orders'
-                ]}
-              />
-              <Bar dataKey="orders" fill="#1E3A5F" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        ) : (
-          <Box 
-            sx={{ 
-              height: isSmall ? 200 : 280,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#64748b",
-              textAlign: "center"
-            }}
-          >
-            <Typography variant="h6" sx={{ mb: 1, color: "#94a3b8" }}>
-              No Orders Found
-            </Typography>
-            <Typography sx={{ fontSize: "0.9rem" }}>
-              No orders were placed during this {chartType === "week" ? "week" : "month"}
-            </Typography>
-          </Box>
-        )}
-      </Paper>
-
-      {/* Pie Chart & Warehouse Selector */}
-      <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, mb: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "2fr 1fr" },
-            gap: 3,
-          }}
-        >
-          <Box>
-            <Typography sx={{ color: "#1E3A5F", fontWeight: 600, mb: 2 }}>
-              Status Distribution {selectedWarehouse !== "All" && `- ${selectedWarehouse}`}
-            </Typography>
-            {ledgerData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={isSmall ? 250 : 300}>
-                <PieChart>
-                  <Pie
-                    data={ledgerData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={isSmall ? 60 : 80}
-                    innerRadius={isSmall ? 25 : 35}
-                    paddingAngle={1}
-                    minAngle={5}
-                    label={false}
-                  >
-                    {ledgerData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    formatter={(value, name) => [value, name]}
-                    contentStyle={{ 
-                      borderRadius: 8, 
-                      border: "none", 
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                      fontSize: "0.9rem"
-                    }}
-                  />
-                  <Legend 
-                    verticalAlign="bottom" 
-                    height={36}
-                    formatter={(value, entry) => (
-                      <span style={{ color: entry.color, fontSize: "0.85rem" }}>
-                        {value} ({entry.payload.value})
-                      </span>
-                    )}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <Box 
-                sx={{ 
-                  height: isSmall ? 250 : 300,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#64748b",
-                  textAlign: "center",
-                  p: 3
-                }}
-              >
-                <Typography variant="h6" sx={{ mb: 1, color: "#94a3b8" }}>
-                  No Data Available
-                </Typography>
-                <Typography sx={{ fontSize: "0.9rem" }}>
-                  {selectedWarehouse === "All" 
-                    ? "No orders found in the selected time period"
-                    : `No orders found for ${selectedWarehouse}`
-                  }
-                </Typography>
-              </Box>
-            )}
-          </Box>
-
-          <Box>
-            <Typography sx={{ fontWeight: 600, mb: 1.5, color: "#25344E", fontSize: "0.9rem" }}>
-              Select Warehouse
-            </Typography>
-            <ToggleButtonGroup
-              orientation={isMobile ? "horizontal" : "vertical"}
-              value={selectedWarehouse}
-              exclusive
-              onChange={(_, v) => v && setSelectedWarehouse(v)}
-              sx={{ flexWrap: "wrap" }}
-            >
-              {warehouses.map((w) => (
-                <ToggleButton
-                  key={w}
-                  value={w}
+          <Box sx={{ display: "flex", gap: 1.5, alignItems: "center", flexWrap: "wrap" }}>
+            {chartType === "month" && (
+              <FormControl size="small" sx={{ minWidth: 140 }}>
+                <Select
+                  value={`${selectedMonth}-${selectedYear}`}
+                  onChange={(e) => {
+                    const [month, year] = e.target.value.split("-");
+                    setSelectedMonth(parseInt(month));
+                    setSelectedYear(parseInt(year));
+                  }}
                   sx={{
-                    px: 2,
-                    py: 1,
+                    borderRadius: "8px",
+                    backgroundColor: colors?.bgPrimary,
+                    color: colors?.textPrimary,
                     fontSize: "0.85rem",
-                    color: "#1E3A5F",
-                    borderColor: "#e2e8f0",
-                    "&.Mui-selected": { 
-                      backgroundColor: "#1E3A5F", 
-                      color: "white",
-                      "&:hover": {
-                        backgroundColor: "#25344E",
-                        color: "white"
-                      }
-                    },
-                    "&:hover": {
-                      backgroundColor: "#f8fafc",
-                      borderColor: "#1E3A5F"
-                    }
+                    "& .MuiOutlinedInput-notchedOutline": { borderColor: colors?.border },
+                    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: isDarkMode ? "#FFB74D" : "#1E3A5F" },
                   }}
                 >
-                  {w}
-                </ToggleButton>
-              ))}
+                  {monthOptions.map((opt, idx) => (
+                    <MenuItem key={idx} value={`${opt.month}-${opt.year}`}>{opt.label}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+            <ToggleButtonGroup
+              value={chartType}
+              exclusive
+              onChange={(_, v) => v && setChartType(v)}
+              size="small"
+              sx={{
+                "& .MuiToggleButton-root": {
+                  px: 2,
+                  py: 0.75,
+                  fontSize: "0.8rem",
+                  fontWeight: 500,
+                  color: colors?.textSecondary,
+                  borderColor: colors?.border,
+                  "&.Mui-selected": {
+                    backgroundColor: isDarkMode ? "rgba(255,183,77,0.15)" : "rgba(30,58,95,0.1)",
+                    color: isDarkMode ? "#FFB74D" : "#1E3A5F",
+                    borderColor: isDarkMode ? "#FFB74D" : "#1E3A5F",
+                  },
+                },
+              }}
+            >
+              <ToggleButton value="week">Week</ToggleButton>
+              <ToggleButton value="month">Month</ToggleButton>
             </ToggleButtonGroup>
           </Box>
         </Box>
+        
+        {chartData.some(item => item.orders > 0) ? (
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={isDarkMode ? "#FFB74D" : "#1E3A5F"} stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor={isDarkMode ? "#FFB74D" : "#1E3A5F"} stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke={colors?.border} vertical={false} />
+              <XAxis 
+                dataKey="name" 
+                tick={{ fontSize: 11, fill: colors?.textSecondary }}
+                axisLine={{ stroke: colors?.border }}
+                tickLine={false}
+                interval={chartType === "month" ? 2 : 0}
+              />
+              <YAxis 
+                tick={{ fontSize: 11, fill: colors?.textSecondary }}
+                axisLine={false}
+                tickLine={false}
+                width={35}
+              />
+              <Tooltip
+                contentStyle={{ 
+                  borderRadius: 12, 
+                  border: `1px solid ${colors?.border}`,
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                  backgroundColor: colors?.bgCard,
+                  padding: "10px 14px"
+                }}
+                labelStyle={{ color: colors?.textPrimary, fontWeight: 600, marginBottom: 4 }}
+                itemStyle={{ color: colors?.textSecondary }}
+                labelFormatter={(_, payload) => payload[0]?.payload?.fullDate || ""}
+                formatter={(value) => [`${value} orders`, ""]}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="orders" 
+                stroke={isDarkMode ? "#FFB74D" : "#1E3A5F"} 
+                strokeWidth={2.5}
+                fill="url(#colorOrders)" 
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        ) : (
+          <EmptyState message={`No orders found for this ${chartType}`} colors={colors} />
+        )}
       </Paper>
 
-      {/* Warehouse Table */}
-      <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", overflowX: "auto" }}>
-        <Typography sx={{ color: "#1E3A5F", fontWeight: 600, mb: 2 }}>
-          Warehouse Summary
-        </Typography>
-        <Table size={isSmall ? "small" : "medium"}>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: "#f8fafc" }}>
-              <TableCell sx={{ fontWeight: 600, color: "#1E3A5F" }}>Warehouse</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 600, color: "#1E3A5F" }}>Pending</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 600, color: "#1E3A5F" }}>Dispatched</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 600, color: "#1E3A5F" }}>Arrived</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 600, color: "#1E3A5F" }}>Delivered</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {warehouseTable.length > 0 ? (
-              warehouseTable.map((row, idx) => (
-                <TableRow key={idx} hover>
-                  <TableCell sx={{ fontWeight: 500, color: "#1E3A5F" }}>{row.warehouse}</TableCell>
-                  <TableCell align="center">{row.pending}</TableCell>
-                  <TableCell align="center">{row.dispatched}</TableCell>
-                  <TableCell align="center">{row.arrived}</TableCell>
-                  <TableCell align="center">{row.delivered}</TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ py: 4, color: "#64748b" }}>
-                  <Typography variant="h6" sx={{ mb: 1, color: "#94a3b8" }}>
-                    No Warehouse Data
-                  </Typography>
-                  <Typography sx={{ fontSize: "0.9rem" }}>
-                    No warehouses found or no orders available
-                  </Typography>
-                </TableCell>
-              </TableRow>
+      {/* Status Distribution & Warehouse Filter */}
+      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" }, gap: 3, mb: 3 }}>
+        {/* Pie Chart */}
+        <Paper sx={cardStyle}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}>
+            <Typography sx={{ color: colors?.textPrimary, fontWeight: 600 }}>
+              Status Distribution
+            </Typography>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <Select
+                value={selectedWarehouse}
+                onChange={(e) => setSelectedWarehouse(e.target.value)}
+                sx={{
+                  borderRadius: "8px",
+                  backgroundColor: colors?.bgPrimary,
+                  color: colors?.textPrimary,
+                  fontSize: "0.8rem",
+                  "& .MuiOutlinedInput-notchedOutline": { borderColor: colors?.border },
+                }}
+              >
+                {warehouses.map((w) => (
+                  <MenuItem key={w} value={w}>{w}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+          
+          {statusData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie
+                  data={statusData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  innerRadius={50}
+                  paddingAngle={2}
+                  minAngle={3}
+                >
+                  {statusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color || CHART_COLORS[index % CHART_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    borderRadius: 12, 
+                    border: `1px solid ${colors?.border}`,
+                    backgroundColor: colors?.bgCard,
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                  }}
+                  formatter={(value, name) => [`${value} orders`, name]}
+                />
+                <Legend 
+                  verticalAlign="bottom"
+                  formatter={(value, entry) => (
+                    <span style={{ color: colors?.textPrimary, fontSize: "0.85rem" }}>
+                      {value} ({entry.payload.value})
+                    </span>
+                  )}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyState message="No status data available" colors={colors} height={260} />
+          )}
+        </Paper>
+
+        {/* Quick Stats by Status */}
+        <Paper sx={cardStyle}>
+          <Typography sx={{ color: colors?.textPrimary, fontWeight: 600, mb: 2 }}>
+            Status Breakdown
+          </Typography>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {statusData.length > 0 ? statusData.map((status, idx) => (
+              <Box key={idx} sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <Box sx={{ 
+                  width: 12, 
+                  height: 12, 
+                  borderRadius: "50%", 
+                  backgroundColor: status.color,
+                  flexShrink: 0
+                }} />
+                <Box sx={{ flex: 1 }}>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+                    <Typography sx={{ color: colors?.textPrimary, fontSize: "0.9rem", fontWeight: 500 }}>
+                      {status.name}
+                    </Typography>
+                    <Typography sx={{ color: colors?.textSecondary, fontSize: "0.9rem" }}>
+                      {status.value} orders
+                    </Typography>
+                  </Box>
+                  <Box sx={{ 
+                    height: 6, 
+                    borderRadius: 3, 
+                    backgroundColor: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.06)",
+                    overflow: "hidden"
+                  }}>
+                    <Box sx={{ 
+                      height: "100%", 
+                      width: `${(status.value / orders.length) * 100}%`,
+                      backgroundColor: status.color,
+                      borderRadius: 3,
+                      transition: "width 0.5s ease"
+                    }} />
+                  </Box>
+                </Box>
+              </Box>
+            )) : (
+              <EmptyState message="No data to display" colors={colors} height={200} />
             )}
-          </TableBody>
-        </Table>
+          </Box>
+        </Paper>
+      </Box>
+
+      {/* Warehouse Table */}
+      <Paper sx={cardStyle}>
+        <Typography sx={{ color: colors?.textPrimary, fontWeight: 600, mb: 2 }}>
+          Station Summary
+        </Typography>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ 
+                backgroundColor: isDarkMode ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+                "& th": { 
+                  fontWeight: 600, 
+                  color: colors?.textPrimary,
+                  fontSize: "0.8rem",
+                  py: 1.5,
+                  borderBottom: `1px solid ${colors?.border}`
+                }
+              }}>
+                <TableCell>Station</TableCell>
+                <TableCell align="center">Arrived</TableCell>
+                <TableCell align="center">Dispatched</TableCell>
+                <TableCell align="center">Delivered</TableCell>
+                <TableCell align="center">Total</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {warehouseTable.length > 0 ? warehouseTable.map((row, idx) => (
+                <TableRow 
+                  key={idx} 
+                  sx={{ 
+                    "&:hover": { backgroundColor: colors?.bgHover },
+                    "& td": { 
+                      borderBottom: `1px solid ${colors?.border}`,
+                      py: 1.5
+                    }
+                  }}
+                >
+                  <TableCell sx={{ fontWeight: 500, color: colors?.textPrimary, fontSize: "0.85rem" }}>
+                    {row.warehouse}
+                  </TableCell>
+                  <TableCell align="center">
+                    <StatusBadge value={row.arrived} color={STATUS_COLORS.Arrived} isDarkMode={isDarkMode} />
+                  </TableCell>
+                  <TableCell align="center">
+                    <StatusBadge value={row.dispatched} color={STATUS_COLORS.Dispatched} isDarkMode={isDarkMode} />
+                  </TableCell>
+                  <TableCell align="center">
+                    <StatusBadge value={row.delivered} color={STATUS_COLORS.Delivered} isDarkMode={isDarkMode} />
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 600, color: colors?.textPrimary }}>
+                    {row.total}
+                  </TableCell>
+                </TableRow>
+              )) : (
+                <TableRow>
+                  <TableCell colSpan={5} sx={{ py: 4 }}>
+                    <EmptyState message="No station data available" colors={colors} />
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Paper>
       
       <CustomDialog
@@ -512,15 +632,76 @@ const Analytics_UI = () => {
 };
 
 // Stat Card Component
-const StatCard = ({ title, value, color }) => (
-  <Card sx={{ borderRadius: 2, borderLeft: `4px solid ${color}`, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-    <CardContent sx={{ py: 2 }}>
-      <Typography sx={{ color: "#64748b", fontSize: "0.85rem", mb: 0.5 }}>{title}</Typography>
-      <Typography variant="h4" sx={{ color, fontWeight: 700 }}>
-        {value}
-      </Typography>
-    </CardContent>
-  </Card>
+const StatCard = ({ title, value, icon, color, isDarkMode, colors }) => (
+  <Paper sx={{ 
+    p: 2.5, 
+    borderRadius: "16px",
+    backgroundColor: colors?.bgCard || "#fff",
+    border: `1px solid ${colors?.border || "#e2e8f0"}`,
+    boxShadow: isDarkMode ? "0 4px 20px rgba(0,0,0,0.25)" : "0 2px 12px rgba(0,0,0,0.04)",
+    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+    "&:hover": {
+      transform: "translateY(-2px)",
+      boxShadow: isDarkMode ? "0 8px 30px rgba(0,0,0,0.35)" : "0 4px 20px rgba(0,0,0,0.08)",
+    }
+  }}>
+    <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+      <Box>
+        <Typography sx={{ color: colors?.textSecondary, fontSize: "0.8rem", fontWeight: 500, mb: 0.5 }}>
+          {title}
+        </Typography>
+        <Typography sx={{ color: colors?.textPrimary, fontSize: "1.75rem", fontWeight: 700, lineHeight: 1.2 }}>
+          {value.toLocaleString()}
+        </Typography>
+      </Box>
+      <Box sx={{ 
+        width: 42, 
+        height: 42, 
+        borderRadius: "12px",
+        backgroundColor: `${color}15`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: color,
+        fontSize: "1.1rem"
+      }}>
+        {icon}
+      </Box>
+    </Box>
+  </Paper>
+);
+
+// Status Badge Component
+const StatusBadge = ({ value, color, isDarkMode }) => (
+  <Box sx={{
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 32,
+    px: 1,
+    py: 0.25,
+    borderRadius: "6px",
+    backgroundColor: `${color}${isDarkMode ? "25" : "15"}`,
+    color: color,
+    fontSize: "0.8rem",
+    fontWeight: 600
+  }}>
+    {value}
+  </Box>
+);
+
+// Empty State Component
+const EmptyState = ({ message, colors, height = 150 }) => (
+  <Box sx={{ 
+    height, 
+    display: "flex", 
+    flexDirection: "column",
+    alignItems: "center", 
+    justifyContent: "center",
+    color: colors?.textSecondary
+  }}>
+    <Typography sx={{ fontSize: "0.9rem" }}>{message}</Typography>
+  </Box>
 );
 
 export default Analytics_UI;

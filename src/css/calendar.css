@@ -1,4 +1,4 @@
-/* Calendar Input Wrapper */
+/* Calendar Input Wrapper - Legacy */
 .calendar-input {
   position: relative;
   display: inline-flex;
@@ -57,6 +57,111 @@
   height: 100%;
   opacity: 0;
   cursor: pointer;
+}
+
+/* ========================================
+   Modern Calendar Input - New Design
+   ======================================== */
+.calendar-input-modern {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.calendar-input-modern input[type="date"] {
+  padding: 0.6rem 1rem;
+  padding-left: 2.75rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  font-weight: 500;
+  color: #1E3A5F;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  min-width: 165px;
+  height: 40px;
+}
+
+.calendar-input-modern input[type="date"]:hover {
+  border-color: #1E3A5F;
+  background-color: #fff;
+}
+
+.calendar-input-modern input[type="date"]:focus {
+  outline: none;
+  border-color: #1E3A5F;
+  border-width: 2px;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.08);
+}
+
+.calendar-input-modern input[type="date"]:disabled {
+  background-color: #f1f5f9;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Modern Calendar Icon - Left Side */
+.calendar-input-modern::before {
+  content: '';
+  position: absolute;
+  left: 0.875rem;
+  width: 18px;
+  height: 18px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%231E3A5F'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Hide default calendar icon in webkit browsers */
+.calendar-input-modern input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Dark Mode - Modern Calendar */
+body.dark-mode .calendar-input-modern input[type="date"] {
+  color: #f1f5f9;
+  background-color: #0a1628;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+body.dark-mode .calendar-input-modern input[type="date"]:hover {
+  border-color: rgba(255, 183, 77, 0.5);
+  background-color: #132238;
+}
+
+body.dark-mode .calendar-input-modern input[type="date"]:focus {
+  border-color: #FFB74D;
+  background-color: #132238;
+  box-shadow: 0 0 0 3px rgba(255, 183, 77, 0.12);
+}
+
+body.dark-mode .calendar-input-modern input[type="date"]:disabled {
+  background-color: #0f1d32;
+  opacity: 0.5;
+}
+
+body.dark-mode .calendar-input-modern::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23FFB74D'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'/%3E%3C/svg%3E");
+}
+
+@media (max-width: 640px) {
+  .calendar-input-modern {
+    width: 100%;
+  }
+  
+  .calendar-input-modern input[type="date"] {
+    width: 100%;
+  }
 }
 
 /* Date Range Picker */
@@ -226,4 +331,87 @@
     padding: 0.6rem 0.4rem;
     font-size: 0.85rem;
   }
+}
+
+
+/* Dark Mode Calendar Styles */
+body.dark-mode .calendar-input input[type="date"] {
+  color: #f1f5f9;
+  background-color: #0a1628;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+body.dark-mode .calendar-input input[type="date"]:hover {
+  border-color: rgba(255, 183, 77, 0.4);
+}
+
+body.dark-mode .calendar-input input[type="date"]:focus {
+  border-color: #FFB74D;
+  box-shadow: 0 0 0 3px rgba(255, 183, 77, 0.15);
+}
+
+body.dark-mode .calendar-input input[type="date"]:disabled {
+  background-color: #132238;
+  opacity: 0.6;
+}
+
+body.dark-mode .calendar-input::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23FFB74D'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'/%3E%3C/svg%3E");
+}
+
+body.dark-mode .date-range-picker .separator {
+  color: #94a3b8;
+}
+
+/* Dark Mode React Calendar */
+body.dark-mode .react-calendar {
+  background: #132238;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .react-calendar__navigation button {
+  color: #f1f5f9;
+}
+
+body.dark-mode .react-calendar__navigation button:hover {
+  background-color: rgba(255, 183, 77, 0.1);
+}
+
+body.dark-mode .react-calendar__navigation button:disabled {
+  color: #64748b;
+}
+
+body.dark-mode .react-calendar__month-view__weekdays {
+  color: #94a3b8;
+}
+
+body.dark-mode .react-calendar__tile:hover {
+  background-color: rgba(255, 183, 77, 0.1);
+}
+
+body.dark-mode .react-calendar__tile--now {
+  background: rgba(255, 183, 77, 0.15);
+  color: #FFB74D;
+}
+
+body.dark-mode .react-calendar__tile--now:hover {
+  background: rgba(255, 183, 77, 0.25);
+}
+
+body.dark-mode .react-calendar__tile--active {
+  background: linear-gradient(135deg, #FFB74D 0%, #FFA726 100%) !important;
+  color: #0a1628 !important;
+}
+
+body.dark-mode .react-calendar__tile--active:hover {
+  background: linear-gradient(135deg, #FFA726 0%, #FF9800 100%) !important;
+}
+
+body.dark-mode .react-calendar__tile:disabled {
+  color: #4a5568;
+}
+
+body.dark-mode .react-calendar__month-view__days__day--neighboringMonth {
+  color: #4a5568;
 }

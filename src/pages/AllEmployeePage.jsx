@@ -17,11 +17,12 @@ import {
   MenuItem,
   CircularProgress,
 } from "@mui/material";
+import { useOutletContext } from "react-router-dom";
 import { Edit, Delete, Close, Loop } from "@mui/icons-material";
 import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
+import ModernSpinner from "../components/ModernSpinner";
+import SearchFilterBar, { highlightMatch } from "../components/SearchFilterBar";
 
-const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
-const rowStyle = { color: "#25344E" };
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const AllEmployeePage = () => {
@@ -51,6 +52,10 @@ const AllEmployeePage = () => {
   const [usernameError, setUsernameError] = useState("");
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [resetPassword, setResetPassword] = useState("");
+  const { isDarkMode, colors } = useOutletContext() || {};
+  
+  const headerStyle = { color: colors?.textPrimary || "#1E3A5F", fontWeight: "bold" };
+  const rowStyle = { color: colors?.textSecondary || "#25344E" };
 
   useEffect(() => {
     fetchData();
@@ -86,18 +91,19 @@ const AllEmployeePage = () => {
 
   // Filters
   const applyFilter = () => {
+    if (!employees || employees.length === 0) {
+      setFilteredEmployees([]);
+      return;
+    }
+    const searchTerm = nameFilter.toLowerCase().trim();
     const filtered = employees.filter((emp) => {
-      return (
-        (nameFilter
-          ? emp.name.toLowerCase().startsWith(nameFilter.toLowerCase())
-          : true) &&
-        (phoneFilter ? emp.phoneNo.startsWith(phoneFilter) : true) &&
-        (warehouseFilter
-          ? emp.warehouseCode.warehouseID === warehouseFilter
-          : true)
-      );
+      const matchesSearch = !searchTerm || 
+        (emp.name && emp.name.toLowerCase().includes(searchTerm)) ||
+        (emp.phoneNo && emp.phoneNo.includes(searchTerm));
+      const matchesWarehouse = !warehouseFilter || 
+        emp.warehouseCode?.warehouseID === warehouseFilter;
+      return matchesSearch && matchesWarehouse;
     });
-
     setFilteredEmployees(filtered);
   };
 
@@ -310,52 +316,47 @@ const AllEmployeePage = () => {
       </Typography>
 
       {/* Filters */}
-      <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: { xs: 1.5, md: 2 }, marginBottom: "20px", alignItems: { xs: "stretch", md: "center" } }}>
-        <TextField
-          label="Search by Name"
-          value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
-          variant="outlined"
-          size="small"
-          sx={{ minWidth: { xs: "100%", md: "200px" } }}
-        />
-        <TextField
-          label="Search by Phone"
-          value={phoneFilter}
-          onChange={(e) => setPhoneFilter(e.target.value)}
-          variant="outlined"
-          size="small"
-          sx={{ minWidth: { xs: "100%", md: "200px" } }}
-        />
-        <Select
-          value={warehouseFilter}
-          onChange={(e) => setWarehouseFilter(e.target.value)}
-          displayEmpty
-          size="small"
-          sx={{ minWidth: { xs: "100%", md: "200px" } }}
-        >
-          <MenuItem value="">All Warehouses</MenuItem>
-          {warehouses.map((warehouse) => (
-            <MenuItem key={warehouse.warehouseID} value={warehouse.warehouseID}>
-              {warehouse.name}
-            </MenuItem>
-          ))}
-        </Select>
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-          <Button variant="contained" color="primary" onClick={applyFilter}>
-            Apply
-          </Button>
-          <Button variant="outlined" color="secondary" onClick={clearFilter}>
-            Clear
-          </Button>
-          <button className="button " onClick={openAddModal} style={{ margin: 0 }}>
+      <SearchFilterBar
+        isDarkMode={isDarkMode}
+        colors={colors}
+        searchValue={nameFilter}
+        onSearchChange={setNameFilter}
+        searchPlaceholder="Search by Name or Phone"
+        onApply={applyFilter}
+        onClear={clearFilter}
+        isLoading={isLoading}
+        showDropdown={true}
+        dropdownValue={warehouseFilter}
+        onDropdownChange={setWarehouseFilter}
+        dropdownOptions={warehouses.map(w => ({ value: w.warehouseID, label: w.name }))}
+        dropdownPlaceholder="All Stations"
+        extraButtons={
+          <Button
+            variant="contained"
+            onClick={openAddModal}
+            sx={{
+              background: isDarkMode ? "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)" : "linear-gradient(135deg, #1D3557 0%, #0a1628 100%)",
+              color: isDarkMode ? "#0a1628" : "#fff",
+              fontWeight: 600,
+              px: 2,
+              height: "40px",
+              borderRadius: "10px",
+              textTransform: "none",
+              whiteSpace: "nowrap",
+            }}
+          >
             Add Employee
-          </button>
-        </Box>
-      </Box>
+          </Button>
+        }
+      />
 
       {/* Employee Table */}
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} sx={{ 
+        borderRadius: 2, 
+        boxShadow: isDarkMode ? "0 2px 8px rgba(0,0,0,0.3)" : "0 1px 3px rgba(0,0,0,0.04)",
+        backgroundColor: colors?.bgCard || "#ffffff",
+        border: isDarkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid #e0e5eb"
+      }}>
         <Table>
           <TableHead>
             <TableRow>
@@ -372,23 +373,19 @@ const AllEmployeePage = () => {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
-                  <CircularProgress
-                    size={22}
-                    className="spinner"
-                    sx={{ color: "#1E3A5F", animation: "none !important" }}
-                  />
+                <TableCell colSpan={7} align="center">
+                  <ModernSpinner size={28} />
                 </TableCell>
               </TableRow>
-            ) : filteredEmployees.length > 1 ? (
+            ) : filteredEmployees.length > 0 ? (
               filteredEmployees.map(
                 (employee, index) =>
                   employee.username !== "admin" && (
                     <TableRow key={index}>
                       <TableCell sx={rowStyle}>{index}.</TableCell>
-                      <TableCell sx={rowStyle}>{employee.name}</TableCell>
+                      <TableCell sx={rowStyle}>{highlightMatch(employee.name, nameFilter, isDarkMode)}</TableCell>
                       <TableCell sx={rowStyle}>{employee.username}</TableCell>
-                      <TableCell sx={rowStyle}>{employee.phoneNo}</TableCell>
+                      <TableCell sx={rowStyle}>{highlightMatch(employee.phoneNo, nameFilter, isDarkMode)}</TableCell>
                       <TableCell sx={rowStyle}>{employee.role[0].toUpperCase() + employee.role.slice(1)}</TableCell>
                       <TableCell sx={rowStyle}>
                         {employee.warehouseCode.name}
@@ -420,7 +417,7 @@ const AllEmployeePage = () => {
               )
             ) : (
               <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ color: "#7D8695" }}>
+                <TableCell colSpan={7} align="center" sx={{ color: colors?.textMuted || "#7D8695" }}>
                   No employees found for the selected filter.
                 </TableCell>
               </TableRow>
@@ -437,26 +434,33 @@ const AllEmployeePage = () => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            borderRadius: 2,
-            boxShadow: 24,
-            p: 4,
+            width: { xs: "90%", sm: 450 },
+            maxWidth: 450,
+            bgcolor: isDarkMode ? "#1a2332" : "#ffffff",
+            borderRadius: "16px",
+            boxShadow: isDarkMode 
+              ? "0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)" 
+              : "0 25px 50px rgba(0,0,0,0.15)",
+            p: 3,
           }}
         >
-          <IconButton
-            color="error"
-            onClick={handleClose}
-            sx={{ position: "absolute", top: 8, right: 8 }}
-          >
-            <Close />
-          </IconButton>
-          <Typography
-            variant="h6"
-            sx={{ marginBottom: "16px", textAlign: "center", ...headerStyle }}
-          >
-            Edit Employee Details
-          </Typography>
+          <Box sx={{ position: "relative", mb: 3 }}>
+            <IconButton
+              onClick={handleClose}
+              sx={{ 
+                position: "absolute", 
+                top: -8, 
+                right: -8,
+                color: colors?.textSecondary,
+                "&:hover": { backgroundColor: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)" }
+              }}
+            >
+              <Close />
+            </IconButton>
+            <Typography variant="h5" sx={{ color: colors?.textPrimary, fontWeight: 700, textAlign: "center" }}>
+              Edit Employee
+            </Typography>
+          </Box>
           {currentEmployee && (
             <Box>
               <TextField
@@ -464,50 +468,58 @@ const AllEmployeePage = () => {
                 label="Name"
                 value={currentEmployee.name}
                 onChange={(e) => handleFieldChange("name", e.target.value)}
-                sx={{ marginBottom: "16px" }}
+                sx={{ 
+                  mb: 2.5,
+                  "& .MuiOutlinedInput-root": { borderRadius: "12px", backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc" },
+                  "& .MuiInputLabel-root": { color: colors?.textSecondary },
+                  "& .MuiOutlinedInput-input": { color: colors?.textPrimary },
+                }}
               />
               <TextField
                 fullWidth
                 label="Phone No"
                 value={currentEmployee.phoneNo}
                 onChange={(e) => handleFieldChange("phoneNo", e.target.value)}
-                sx={{ marginBottom: "16px" }}
+                sx={{ 
+                  mb: 2.5,
+                  "& .MuiOutlinedInput-root": { borderRadius: "12px", backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc" },
+                  "& .MuiInputLabel-root": { color: colors?.textSecondary },
+                  "& .MuiOutlinedInput-input": { color: colors?.textPrimary },
+                }}
               />
-              <Select
+              <TextField
+                select
                 fullWidth
+                label="Station"
                 value={currentEmployee.warehouseCode}
-                onChange={(e) =>
-                  handleFieldChange("warehouseCode", e.target.value)
-                }
-                sx={{ marginBottom: "16px" }}
-              >
-                {warehouses.map((warehouse) => (
-                  <MenuItem
-                    key={warehouse.warehouseID}
-                    value={warehouse.warehouseID}
-                  >
-                    {warehouse.name}
-                  </MenuItem>
-                ))}
-              </Select>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginTop: "16px",
+                onChange={(e) => handleFieldChange("warehouseCode", e.target.value)}
+                sx={{ 
+                  mb: 3,
+                  "& .MuiOutlinedInput-root": { borderRadius: "12px", backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc" },
+                  "& .MuiInputLabel-root": { color: colors?.textSecondary },
+                  "& .MuiSelect-select": { color: colors?.textPrimary },
                 }}
               >
-                <button className="button button-large" onClick={() => handleSave()}>
-                  Save
-                  {isLoading1 && (
-                    <CircularProgress
-                      size={22}
-                      className="spinner"
-                      sx={{ color: "#fff", animation: "none !important", ml: 1 }}
-                    />
-                  )}
-                </button>
-              </Box>
+                {warehouses.map((warehouse) => (
+                  <MenuItem key={warehouse.warehouseID} value={warehouse.warehouseID}>{warehouse.name}</MenuItem>
+                ))}
+              </TextField>
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={() => handleSave()}
+                disabled={isLoading1}
+                sx={{
+                  py: 1.5, borderRadius: "12px", fontSize: "1rem", fontWeight: 600, textTransform: "none",
+                  background: isDarkMode ? "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)" : "linear-gradient(135deg, #1D3557 0%, #0a1628 100%)",
+                  color: isDarkMode ? "#0a1628" : "#fff",
+                  boxShadow: "none",
+                  "&:hover": { background: isDarkMode ? "linear-gradient(135deg, #FFA726 0%, #F57C00 100%)" : "linear-gradient(135deg, #25445f 0%, #0f2035 100%)", boxShadow: "none" },
+                }}
+              >
+                Save Changes
+                {isLoading1 && <CircularProgress size={20} sx={{ color: isDarkMode ? "#0a1628" : "#fff", ml: 1 }} />}
+              </Button>
             </Box>
           )}
         </Box>
@@ -521,55 +533,57 @@ const AllEmployeePage = () => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 380,
-            bgcolor: "background.paper",
-            borderRadius: 2,
-            boxShadow: 24,
-            p: 4,
+            width: { xs: "90%", sm: 400 },
+            maxWidth: 400,
+            bgcolor: isDarkMode ? "#1a2332" : "#ffffff",
+            borderRadius: "16px",
+            boxShadow: isDarkMode 
+              ? "0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)" 
+              : "0 25px 50px rgba(0,0,0,0.15)",
+            p: 3,
           }}
         >
-          <IconButton
-            color="error"
-            onClick={closeResetModal}
-            sx={{ position: "absolute", top: 8, right: 8 }}
-          >
-            <Close />
-          </IconButton>
-          <Typography
-            variant="h6"
-            sx={{ marginBottom: "16px", textAlign: "center", ...headerStyle }}
-          >
-            Reset Password
-          </Typography>
-          <TextField
-            fullWidth
-            label="New Password"
-            type="text"
-            value={resetPassword}
-            onChange={(e) => setResetPassword(e.target.value)}
-            sx={{ marginBottom: "16px" }}
-          />
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              marginTop: "8px",
-            }}
-          >
-            <button
-              className="button button-large"
+          <Box sx={{ position: "relative", mb: 3 }}>
+            <IconButton
+              onClick={closeResetModal}
+              sx={{ position: "absolute", top: -8, right: -8, color: colors?.textSecondary, "&:hover": { backgroundColor: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)" } }}
+            >
+              <Close />
+            </IconButton>
+            <Typography variant="h5" sx={{ color: colors?.textPrimary, fontWeight: 700, textAlign: "center" }}>
+              Reset Password
+            </Typography>
+          </Box>
+          <Box>
+            <TextField
+              fullWidth
+              label="New Password"
+              type="text"
+              value={resetPassword}
+              onChange={(e) => setResetPassword(e.target.value)}
+              sx={{ 
+                mb: 3,
+                "& .MuiOutlinedInput-root": { borderRadius: "12px", backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc" },
+                "& .MuiInputLabel-root": { color: colors?.textSecondary },
+                "& .MuiOutlinedInput-input": { color: colors?.textPrimary },
+              }}
+            />
+            <Button
+              fullWidth
+              variant="contained"
               onClick={() => handleSave(true, resetPassword)}
               disabled={isLoading1}
+              sx={{
+                py: 1.5, borderRadius: "12px", fontSize: "1rem", fontWeight: 600, textTransform: "none",
+                background: isDarkMode ? "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)" : "linear-gradient(135deg, #1D3557 0%, #0a1628 100%)",
+                color: isDarkMode ? "#0a1628" : "#fff",
+                boxShadow: "none",
+                "&:hover": { background: isDarkMode ? "linear-gradient(135deg, #FFA726 0%, #F57C00 100%)" : "linear-gradient(135deg, #25445f 0%, #0f2035 100%)", boxShadow: "none" },
+              }}
             >
-              Update
-              {isLoading1 && (
-                <CircularProgress
-                  size={22}
-                  className="spinner"
-                  sx={{ color: "#fff", animation: "none !important", ml: 1 }}
-                />
-              )}
-            </button>
+              Update Password
+              {isLoading1 && <CircularProgress size={20} sx={{ color: isDarkMode ? "#0a1628" : "#fff", ml: 1 }} />}
+            </Button>
           </Box>
         </Box>
       </Modal>
@@ -582,26 +596,29 @@ const AllEmployeePage = () => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 420,
-            bgcolor: "background.paper",
-            borderRadius: 2,
-            boxShadow: 24,
-            p: 4,
+            width: { xs: "90%", sm: 480 },
+            maxWidth: 480,
+            maxHeight: "90vh",
+            bgcolor: isDarkMode ? "#1a2332" : "#ffffff",
+            borderRadius: "16px",
+            boxShadow: isDarkMode 
+              ? "0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)" 
+              : "0 25px 50px rgba(0,0,0,0.15)",
+            p: 3,
+            overflowY: "auto",
           }}
         >
-          <IconButton
-            color="error"
-            onClick={closeAddModal}
-            sx={{ position: "absolute", top: 8, right: 8 }}
-          >
-            <Close />
-          </IconButton>
-          <Typography
-            variant="h6"
-            sx={{ marginBottom: "16px", textAlign: "center", ...headerStyle }}
-          >
-            Add Employee
-          </Typography>
+          <Box sx={{ position: "relative", mb: 3 }}>
+            <IconButton
+              onClick={closeAddModal}
+              sx={{ position: "absolute", top: -8, right: -8, color: colors?.textSecondary, "&:hover": { backgroundColor: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)" } }}
+            >
+              <Close />
+            </IconButton>
+            <Typography variant="h5" sx={{ color: colors?.textPrimary, fontWeight: 700, textAlign: "center" }}>
+              Add New Employee
+            </Typography>
+          </Box>
           <Box>
             <TextField
               fullWidth
@@ -610,7 +627,12 @@ const AllEmployeePage = () => {
               onChange={(e) => handleAddFieldChange("username", e.target.value)}
               error={Boolean(usernameError)}
               helperText={usernameError}
-              sx={{ marginBottom: "14px" }}
+              sx={{ 
+                mb: 2,
+                "& .MuiOutlinedInput-root": { borderRadius: "12px", backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc" },
+                "& .MuiInputLabel-root": { color: colors?.textSecondary },
+                "& .MuiOutlinedInput-input": { color: colors?.textPrimary },
+              }}
             />
             <TextField
               fullWidth
@@ -618,39 +640,52 @@ const AllEmployeePage = () => {
               type="text"
               value={newEmployee.password}
               onChange={(e) => handleAddFieldChange("password", e.target.value)}
-              sx={{ marginBottom: "14px" }}
+              sx={{ 
+                mb: 2,
+                "& .MuiOutlinedInput-root": { borderRadius: "12px", backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc" },
+                "& .MuiInputLabel-root": { color: colors?.textSecondary },
+                "& .MuiOutlinedInput-input": { color: colors?.textPrimary },
+              }}
             />
             <TextField
               fullWidth
               label="Name"
               value={newEmployee.name}
               onChange={(e) => handleAddFieldChange("name", e.target.value)}
-              sx={{ marginBottom: "14px" }}
+              sx={{ 
+                mb: 2,
+                "& .MuiOutlinedInput-root": { borderRadius: "12px", backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc" },
+                "& .MuiInputLabel-root": { color: colors?.textSecondary },
+                "& .MuiOutlinedInput-input": { color: colors?.textPrimary },
+              }}
             />
             <TextField
               fullWidth
               label="Phone No"
               value={newEmployee.phoneNo}
               onChange={(e) => handleAddFieldChange("phoneNo", e.target.value)}
-              sx={{ marginBottom: "14px" }}
+              sx={{ 
+                mb: 2,
+                "& .MuiOutlinedInput-root": { borderRadius: "12px", backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc" },
+                "& .MuiInputLabel-root": { color: colors?.textSecondary },
+                "& .MuiOutlinedInput-input": { color: colors?.textPrimary },
+              }}
             />
             <TextField
               select
               fullWidth
               label="Station"
               value={newEmployee.warehouseCode}
-              onChange={(e) =>
-                handleAddFieldChange("warehouseCode", e.target.value)
-              }
-              sx={{ marginBottom: "14px" }}
+              onChange={(e) => handleAddFieldChange("warehouseCode", e.target.value)}
+              sx={{ 
+                mb: 2,
+                "& .MuiOutlinedInput-root": { borderRadius: "12px", backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc" },
+                "& .MuiInputLabel-root": { color: colors?.textSecondary },
+                "& .MuiSelect-select": { color: colors?.textPrimary },
+              }}
             >
               {warehouses.map((warehouse) => (
-                <MenuItem
-                  key={warehouse.warehouseID}
-                  value={warehouse.warehouseID}
-                >
-                  {warehouse.name}
-                </MenuItem>
+                <MenuItem key={warehouse.warehouseID} value={warehouse.warehouseID}>{warehouse.name}</MenuItem>
               ))}
             </TextField>
             <TextField
@@ -659,33 +694,32 @@ const AllEmployeePage = () => {
               label="Role"
               value={newEmployee.role}
               onChange={(e) => handleAddFieldChange("role", e.target.value)}
-              sx={{ marginBottom: "14px" }}
+              sx={{ 
+                mb: 3,
+                "& .MuiOutlinedInput-root": { borderRadius: "12px", backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc" },
+                "& .MuiInputLabel-root": { color: colors?.textSecondary },
+                "& .MuiSelect-select": { color: colors?.textPrimary },
+              }}
             >
               <MenuItem value="supervisor">Supervisor</MenuItem>
               <MenuItem value="admin">Admin</MenuItem>
             </TextField>
-            <Box
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={handleAddEmployee}
+              disabled={isAdding || Boolean(usernameError)}
               sx={{
-                display: "flex",
-                justifyContent: "center",
-                marginTop: "12px",
+                py: 1.5, borderRadius: "12px", fontSize: "1rem", fontWeight: 600, textTransform: "none",
+                background: isDarkMode ? "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)" : "linear-gradient(135deg, #1D3557 0%, #0a1628 100%)",
+                color: isDarkMode ? "#0a1628" : "#fff",
+                boxShadow: "none",
+                "&:hover": { background: isDarkMode ? "linear-gradient(135deg, #FFA726 0%, #F57C00 100%)" : "linear-gradient(135deg, #25445f 0%, #0f2035 100%)", boxShadow: "none" },
               }}
             >
-              <button
-                className="button button-large"
-                onClick={handleAddEmployee}
-                disabled={isAdding || Boolean(usernameError)}
-              >
-                Add
-                {isAdding && (
-                  <CircularProgress
-                    size={22}
-                    className="spinner"
-                    sx={{ color: "#fff", animation: "none !important", ml: 1 }}
-                  />
-                )}
-              </button>
-            </Box>
+              Add Employee
+              {isAdding && <CircularProgress size={20} sx={{ color: isDarkMode ? "#0a1628" : "#fff", ml: 1 }} />}
+            </Button>
           </Box>
         </Box>
       </Modal>

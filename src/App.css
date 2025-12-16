@@ -1,3 +1,6 @@
+/* Import Glassmorphism Styles */
+@import './css/glassmorphism.css';
+
 /* App Container */
 .app {
   flex: 1;
@@ -12,6 +15,20 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+
+
+/* Global Transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }
 
 /* Prevent scroll when modal open */

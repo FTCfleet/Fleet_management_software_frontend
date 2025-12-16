@@ -15,12 +15,13 @@ import {
   TextField,
   CircularProgress,
 } from "@mui/material";
+import { useOutletContext } from "react-router-dom";
 import { Edit, Delete, Close } from "@mui/icons-material";
 import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
 import "../css/main.css";
+import ModernSpinner from "../components/ModernSpinner";
+import SearchFilterBar, { highlightMatch } from "../components/SearchFilterBar";
 
-const headerStyle = { color: "#1E3A5F", fontWeight: "bold"};
-const rowStyle = { color: "#25344E"};
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function AllTruckPage() {
@@ -36,6 +37,10 @@ export default function AllTruckPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
   const [isLoading2, setIsLoading2] = useState(false);
+  const { isDarkMode, colors } = useOutletContext() || {};
+  
+  const headerStyle = { color: colors?.textPrimary || "#1E3A5F", fontWeight: "bold" };
+  const rowStyle = { color: colors?.textSecondary || "#25344E" };
 
   useEffect(() => {
     fetchData();
@@ -64,14 +69,12 @@ export default function AllTruckPage() {
 
   // Filters
   const applyFilter = () => {
+    const searchTerm = nameFilter.toLowerCase();
     const filtered = trucks.filter((truck) => {
+      if (!searchTerm) return true;
       return (
-        (nameFilter
-          ? truck.name.toLowerCase().startsWith(nameFilter.toLowerCase())
-          : true) &&
-        (truckNoFilter
-          ? truck.vehicleNo.toLowerCase().startsWith(truckNoFilter.toLowerCase())
-          : true)
+        truck.name.toLowerCase().includes(searchTerm) ||
+        truck.vehicleNo.toLowerCase().includes(searchTerm)
       );
     });
     setFilteredTrucks(filtered);
@@ -79,7 +82,6 @@ export default function AllTruckPage() {
 
   const clearFilter = () => {
     setNameFilter("");
-    setTruckNoFilter("");
     setFilteredTrucks(trucks);
   };
 
@@ -185,38 +187,42 @@ export default function AllTruckPage() {
       </Typography>
 
       {/* Filters */}
-      <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: { xs: 1.5, md: 2 }, marginBottom: "20px", alignItems: { xs: "stretch", md: "center" } }}>
-        <TextField
-          label="Search by Driver Name"
-          value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
-          variant="outlined"
-          size="small"
-          sx={{ minWidth: { xs: "100%", md: "200px" } }}
-        />
-        <TextField
-          label="Search by Truck Number"
-          value={truckNoFilter}
-          onChange={(e) => setTruckNoFilter(e.target.value)}
-          variant="outlined"
-          size="small"
-          sx={{ minWidth: { xs: "100%", md: "200px" } }}
-        />
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-          <Button variant="contained" color="primary" onClick={applyFilter}>
-            Apply
-          </Button>
-          <Button variant="outlined" color="secondary" onClick={clearFilter}>
-            Clear
-          </Button>
-          <button className="button " onClick={handleAdd} style={{ margin: 0 }}>
+      <SearchFilterBar
+        isDarkMode={isDarkMode}
+        colors={colors}
+        searchValue={nameFilter}
+        onSearchChange={setNameFilter}
+        searchPlaceholder="Search by Driver Name or Truck No"
+        onApply={applyFilter}
+        onClear={clearFilter}
+        isLoading={isLoading}
+        extraButtons={
+          <Button
+            variant="contained"
+            onClick={handleAdd}
+            sx={{
+              background: isDarkMode ? "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)" : "linear-gradient(135deg, #1D3557 0%, #0a1628 100%)",
+              color: isDarkMode ? "#0a1628" : "#fff",
+              fontWeight: 600,
+              px: 2,
+              height: "40px",
+              borderRadius: "10px",
+              textTransform: "none",
+              whiteSpace: "nowrap",
+            }}
+          >
             Add Truck
-          </button>
-        </Box>
-      </Box>
+          </Button>
+        }
+      />
 
       {/* Truck Table */}
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} sx={{ 
+        borderRadius: 2, 
+        boxShadow: isDarkMode ? "0 2px 8px rgba(0,0,0,0.3)" : "0 1px 3px rgba(0,0,0,0.04)",
+        backgroundColor: colors?.bgCard || "#ffffff",
+        border: isDarkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid #e0e5eb"
+      }}>
         <Table>
           <TableHead>
             <TableRow>
@@ -230,21 +236,17 @@ export default function AllTruckPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">
-                  <CircularProgress
-                    size={22}
-                    className="spinner"
-                    sx={{ color: "#1E3A5F", animation: "none !important" }}
-                  />
+                <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                  <ModernSpinner size={28} />
                 </TableCell>
               </TableRow>
             ) : filteredTrucks.length > 0 ? (
               filteredTrucks.map((truck, idx) => (
                 <TableRow key={truck.vehicleNo}>
                   <TableCell sx={rowStyle}>{idx+1}.</TableCell>
-                  <TableCell sx={rowStyle}>{truck.name}</TableCell>
+                  <TableCell sx={rowStyle}>{highlightMatch(truck.name, nameFilter, isDarkMode)}</TableCell>
                   <TableCell sx={rowStyle}>{truck.phoneNo}</TableCell>
-                  <TableCell sx={rowStyle}>{truck.vehicleNo}</TableCell>
+                  <TableCell sx={rowStyle}>{highlightMatch(truck.vehicleNo, nameFilter, isDarkMode)}</TableCell>
                   <TableCell sx={{...rowStyle, textAlign: "center"}}>
                     <IconButton
                       color="primary"
@@ -280,26 +282,43 @@ export default function AllTruckPage() {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            borderRadius: 2,
-            boxShadow: 24,
-            p: 4,
+            width: { xs: "90%", sm: 450 },
+            maxWidth: 450,
+            bgcolor: isDarkMode ? "#1a2332" : "#ffffff",
+            borderRadius: "16px",
+            boxShadow: isDarkMode 
+              ? "0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)" 
+              : "0 25px 50px rgba(0,0,0,0.15)",
+            p: 3,
           }}
         >
-          <IconButton
-            color="error"
-            onClick={handleClose}
-            sx={{ position: "absolute", top: 8, right: 8 }}
-          >
-            <Close />
-          </IconButton>
-          <Typography
-            variant="h6"
-            sx={{ marginBottom: "16px", textAlign: "center", ...headerStyle }}
-          >
-            {isAdding ? "Add Truck" : "Edit Truck Details"}
-          </Typography>
+          {/* Header */}
+          <Box sx={{ position: "relative", mb: 3 }}>
+            <IconButton
+              onClick={handleClose}
+              sx={{ 
+                position: "absolute", 
+                top: -8, 
+                right: -8,
+                color: colors?.textSecondary,
+                "&:hover": { backgroundColor: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)" }
+              }}
+            >
+              <Close />
+            </IconButton>
+            <Typography
+              variant="h5"
+              sx={{ 
+                color: colors?.textPrimary,
+                fontWeight: 700,
+                textAlign: "center",
+              }}
+            >
+              {isAdding ? "Add New Truck" : "Edit Truck Details"}
+            </Typography>
+          </Box>
+
+          {/* Content */}
           {currentTruck && (
             <Box>
               <TextField
@@ -307,14 +326,30 @@ export default function AllTruckPage() {
                 label="Driver Name"
                 value={currentTruck.name}
                 onChange={(e) => handleFieldChange("name", e.target.value)}
-                sx={{ marginBottom: "16px" }}
+                sx={{ 
+                  mb: 2.5,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "12px",
+                    backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc",
+                  },
+                  "& .MuiInputLabel-root": { color: colors?.textSecondary },
+                  "& .MuiOutlinedInput-input": { color: colors?.textPrimary },
+                }}
               />
               <TextField
                 fullWidth
                 label="Phone Number"
                 value={currentTruck.phoneNo}
                 onChange={(e) => handleFieldChange("phoneNo", e.target.value)}
-                sx={{ marginBottom: "16px" }}
+                sx={{ 
+                  mb: 2.5,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "12px",
+                    backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc",
+                  },
+                  "& .MuiInputLabel-root": { color: colors?.textSecondary },
+                  "& .MuiOutlinedInput-input": { color: colors?.textPrimary },
+                }}
               />
               <TextField
                 fullWidth
@@ -324,29 +359,54 @@ export default function AllTruckPage() {
                   handleFieldChange("vehicleNo", e.target.value.toUpperCase())
                 }
                 disabled={!isAdding}
-                sx={{ marginBottom: "16px" }}
+                sx={{ 
+                  mb: 3,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "12px",
+                    backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc",
+                  },
+                  "& .MuiInputLabel-root": { color: colors?.textSecondary },
+                  "& .MuiOutlinedInput-input": { color: colors?.textPrimary },
+                  "& .MuiInputBase-input.Mui-disabled": {
+                    WebkitTextFillColor: isDarkMode ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.38)",
+                  }
+                }}
               />
-              <Box
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={handleSaveOrAdd}
+                disabled={isLoading1}
                 sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginTop: "16px",
+                  py: 1.5,
+                  borderRadius: "12px",
+                  fontSize: "1rem",
+                  fontWeight: 600,
+                  textTransform: "none",
+                  background: isDarkMode 
+                    ? "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)"
+                    : "linear-gradient(135deg, #1D3557 0%, #0a1628 100%)",
+                  color: isDarkMode ? "#0a1628" : "#fff",
+                  boxShadow: "none",
+                  "&:hover": {
+                    background: isDarkMode 
+                      ? "linear-gradient(135deg, #FFA726 0%, #F57C00 100%)"
+                      : "linear-gradient(135deg, #25445f 0%, #0f2035 100%)",
+                    boxShadow: "none",
+                  },
+                  "&:disabled": {
+                    background: isDarkMode ? "rgba(255,183,77,0.3)" : "rgba(29,53,87,0.3)",
+                  }
                 }}
               >
-                <button
-                  className="button button-large"
-                  onClick={handleSaveOrAdd}
-                >
-                  {isAdding ? "Add" : "Save"}
-                  {isLoading1 && (
-                    <CircularProgress
-                      size={22}
-                      className="spinner"
-                      sx={{ color: "#fff", animation: "none !important", ml: 1}}
-                    />
-                  )}
-                </button>
-              </Box>
+                {isAdding ? "Add Truck" : "Save Changes"}
+                {isLoading1 && (
+                  <CircularProgress
+                    size={20}
+                    sx={{ color: isDarkMode ? "#0a1628" : "#fff", ml: 1 }}
+                  />
+                )}
+              </Button>
             </Box>
           )}
         </Box>
@@ -360,11 +420,12 @@ export default function AllTruckPage() {
             left: "50%",
             transform: "translate(-50%, -50%)",
             width: 350,
-            bgcolor: "background.paper",
+            bgcolor: colors?.bgCard || "background.paper",
             borderRadius: 3,
             boxShadow: 24,
             p: 4,
             textAlign: "center",
+            border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "none",
           }}
         >
           <FaExclamationTriangle
@@ -387,7 +448,7 @@ export default function AllTruckPage() {
           <Typography
             sx={{
               marginBottom: "20px",
-              color: "#374151",
+              color: colors?.textSecondary || "#374151",
               fontSize: "15px",
             }}
           >
@@ -396,7 +457,14 @@ export default function AllTruckPage() {
           <Box sx={{ display: "flex", justifyContent: "center", gap: "12px" }}>
             <Button
               variant="outlined"
-              sx={{ borderColor: "#1E3A5F", color: "#1E3A5F" }}
+              sx={{ 
+                borderColor: isDarkMode ? colors?.accent : "#1E3A5F", 
+                color: isDarkMode ? colors?.accent : "#1E3A5F",
+                "&:hover": {
+                  borderColor: isDarkMode ? colors?.accentHover : "#1E3A5F",
+                  backgroundColor: isDarkMode ? "rgba(255,183,77,0.08)" : "rgba(30,58,95,0.04)",
+                }
+              }}
               onClick={handleCloseDeleteModal}
             >
               Cancel

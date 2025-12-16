@@ -7,7 +7,7 @@
 
 @media (min-width: 768px) {
   .header-box {
-    height: 70px;
+    height: 72px;
   }
 }
 
@@ -15,10 +15,10 @@
 .navlink {
   position: relative;
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.85);
   font-weight: 500;
   padding: 0.5rem 0;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .navlink::after {
@@ -28,14 +28,14 @@
   left: 0;
   width: 100%;
   height: 2px;
-  background-color: #FFB74D;
+  background: linear-gradient(90deg, #FFB74D, #FF9800);
   transform: scaleX(0);
   transform-origin: right;
   transition: transform 0.3s ease;
 }
 
 .navlink:hover {
-  color: #ffffff;
+  color: #FFB74D;
 }
 
 .navlink:hover::after {
@@ -51,52 +51,49 @@
   transform: scaleX(1);
 }
 
-/* Override MUI button styles for header */
-.navlink .MuiButton-root {
-  background-color: transparent !important;
-}
-
-.navlink.active .MuiButton-root {
-  background-color: transparent !important;
-  color: #FFB74D !important;
-}
-
 /* Header Button */
 .header-button {
   font-size: 0.9rem !important;
-  font-weight: 500 !important;
-  padding: 0.5rem 1rem !important;
+  font-weight: 600 !important;
+  padding: 0.5rem 1.25rem !important;
   text-transform: none !important;
   letter-spacing: 0.3px;
   transition: all 0.2s ease !important;
-  border-radius: 6px !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, #FFB74D 0%, #FF9800 100%) !important;
+  color: #1D3557 !important;
+  box-shadow: 0 4px 15px rgba(255, 183, 77, 0.3) !important;
 }
 
 .header-button:hover {
-  background-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 6px 20px rgba(255, 183, 77, 0.4) !important;
+  transform: translateY(-1px);
 }
 
 /* Mobile Menu */
 .mobile-menu-item {
-  padding: 0.75rem 1.25rem;
+  padding: 1rem 1.5rem;
   font-size: 0.95rem;
-  color: var(--text-dark, #1a1a2e);
-  transition: background-color 0.2s ease;
+  color: rgba(255, 255, 255, 0.9);
+  transition: all 0.2s ease;
 }
 
 .mobile-menu-item:hover {
-  background-color: rgba(30, 58, 95, 0.08);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #FFB74D;
 }
 
 /* Logo */
 .header-logo {
-  height: 45px;
+  height: 42px;
   width: auto;
-  transition: transform 0.2s ease;
+  transition: all 0.2s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .header-logo:hover {
   transform: scale(1.02);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
 @media (min-width: 768px) {
@@ -109,46 +106,126 @@
 .station-badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.75rem;
-  background-color: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.25rem 0.875rem;
+  background: rgba(255, 183, 77, 0.15);
+  border: 1px solid rgba(255, 183, 77, 0.3);
   border-radius: 20px;
   font-size: 0.8rem;
-  font-weight: 500;
-  color: white;
+  font-weight: 600;
+  color: #FFB74D;
   margin-left: 0.75rem;
 }
 
 /* Menu Icon Button */
 .menu-icon-button {
   padding: 0.5rem !important;
-  border-radius: 8px !important;
-  transition: background-color 0.2s ease !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  transition: all 0.2s ease !important;
 }
 
 .menu-icon-button:hover {
-  background-color: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Responsive Adjustments */
 @media (max-width: 960px) {
   .header-button {
-    padding: 0.4rem 0.75rem !important;
+    padding: 0.4rem 1rem !important;
     font-size: 0.85rem !important;
   }
 }
 
 @media (max-width: 600px) {
   .header-box {
-    height: 60px;
+    height: 64px;
   }
   
   .header-logo {
-    height: 40px;
+    height: 42px;
   }
   
   .station-badge {
     font-size: 0.75rem;
-    padding: 0.2rem 0.5rem;
+    padding: 0.2rem 0.6rem;
   }
+}
+
+/* Glass Effect for Header */
+.header-glass {
+  background: linear-gradient(90deg, rgba(10, 22, 40, 0.95) 0%, rgba(29, 53, 87, 0.95) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Animated Underline */
+.nav-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, #FFB74D, #FF9800);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+
+.nav-item:hover::before,
+.nav-item.active::before {
+  transform: translateX(0);
+}
+
+
+/* Remove any outline/border from header */
+.header-box,
+.header-box * {
+  outline: none !important;
+  box-shadow: none;
+}
+
+.header-box {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.MuiAppBar-root {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.MuiAppBar-root::before {
+  display: none !important;
+}
+
+/* Remove focus outlines from header elements */
+.header-box a:focus,
+.header-box button:focus,
+.header-box div:focus,
+.header-box a:focus-visible,
+.header-box button:focus-visible,
+.header-box div:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove MUI Toolbar default styles */
+.MuiToolbar-root {
+  outline: none !important;
+  border: none !important;
+}
+
+/* Remove any focus ring from AppBar */
+.MuiAppBar-root:focus,
+.MuiAppBar-root:focus-visible,
+.MuiAppBar-root:focus-within {
+  outline: none !important;
+  box-shadow: none !important;
 }

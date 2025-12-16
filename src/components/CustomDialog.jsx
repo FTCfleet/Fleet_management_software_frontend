@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Button,
@@ -14,7 +13,7 @@ import {
   FaCheckCircle, 
   FaInfoCircle, 
   FaTimes,
-  FaQuestion 
+  FaSignOutAlt 
 } from "react-icons/fa";
 
 const CustomDialog = ({
@@ -31,27 +30,30 @@ const CustomDialog = ({
   const getIcon = () => {
     switch (type) {
       case "success":
-        return <FaCheckCircle style={{ color: "#4caf50", fontSize: "48px" }} />;
+        return <FaCheckCircle style={{ fontSize: "40px" }} />;
       case "error":
-        return <FaExclamationTriangle style={{ color: "#f44336", fontSize: "48px" }} />;
+        return <FaExclamationTriangle style={{ fontSize: "40px" }} />;
       case "warning":
-        return <FaExclamationTriangle style={{ color: "#ff9800", fontSize: "48px" }} />;
+        return <FaExclamationTriangle style={{ fontSize: "40px" }} />;
       case "confirm":
-        return <FaQuestion style={{ color: "#2196f3", fontSize: "48px" }} />;
+        return <FaSignOutAlt style={{ fontSize: "40px" }} />;
       default:
-        return <FaInfoCircle style={{ color: "#2196f3", fontSize: "48px" }} />;
+        return <FaInfoCircle style={{ fontSize: "40px" }} />;
     }
   };
 
-  const getConfirmButtonColor = () => {
+  const getIconColor = () => {
     switch (type) {
-      case "error":
-      case "warning":
-        return "#f44336";
       case "success":
-        return "#4caf50";
+        return "#4CAF50";
+      case "error":
+        return "#ff6b6b";
+      case "warning":
+        return "#FFB74D";
+      case "confirm":
+        return "#FFB74D";
       default:
-        return "#1E3A5F";
+        return "#64C8FF";
     }
   };
 
@@ -66,41 +68,59 @@ const CustomDialog = ({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="sm"
+      maxWidth="xs"
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 3,
-          padding: 1,
+          background: "linear-gradient(180deg, rgba(29, 53, 87, 0.9) 0%, rgba(10, 22, 40, 0.95) 100%)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: "1px solid rgba(255, 255, 255, 0.12)",
+          borderRadius: "24px",
+          boxShadow: "0 25px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
+          overflow: "hidden",
         },
       }}
     >
-      <DialogTitle sx={{ textAlign: "center", pb: 1 }}>
-        <IconButton
-          onClick={onClose}
-          sx={{
-            position: "absolute",
-            right: 8,
-            top: 8,
-            color: "#64748b",
-          }}
-        >
-          <FaTimes />
-        </IconButton>
-      </DialogTitle>
+      {/* Close Button */}
+      <IconButton
+        onClick={onClose}
+        sx={{
+          position: "absolute",
+          right: 12,
+          top: 12,
+          color: "rgba(255,255,255,0.5)",
+          "&:hover": { color: "#ffffff", background: "rgba(255,255,255,0.1)" },
+        }}
+      >
+        <FaTimes size={16} />
+      </IconButton>
       
-      <DialogContent sx={{ textAlign: "center", py: 2 }}>
-        <Box sx={{ mb: 2 }}>
+      <DialogContent sx={{ textAlign: "center", pt: 5, pb: 3, px: 4 }}>
+        {/* Icon */}
+        <Box sx={{ 
+          width: 80, 
+          height: 80, 
+          mx: "auto", 
+          mb: 3, 
+          background: `rgba(${type === "success" ? "76, 175, 80" : type === "error" ? "255, 107, 107" : "255, 183, 77"}, 0.15)`,
+          borderRadius: "20px", 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "center",
+          color: getIconColor(),
+        }}>
           {getIcon()}
         </Box>
         
         {title && (
           <Typography
-            variant="h6"
+            variant="h5"
             sx={{
-              fontWeight: "bold",
-              marginBottom: 2,
-              color: "#1E3A5F",
+              fontWeight: 700,
+              mb: 1.5,
+              color: "#ffffff",
+              fontSize: "1.35rem",
             }}
           >
             {title}
@@ -109,27 +129,33 @@ const CustomDialog = ({
         
         <Typography
           sx={{
-            color: "#374151",
-            fontSize: "1rem",
-            lineHeight: 1.5,
+            color: "rgba(255,255,255,0.7)",
+            fontSize: "0.95rem",
+            lineHeight: 1.6,
           }}
         >
           {message}
         </Typography>
       </DialogContent>
       
-      <DialogActions sx={{ justifyContent: "center", gap: 1, pb: 2 }}>
+      <DialogActions sx={{ justifyContent: "center", gap: 1.5, pb: 4, px: 4 }}>
         {showCancel && (
           <Button
             onClick={onClose}
-            variant="outlined"
             sx={{
-              borderColor: "#64748b",
-              color: "#64748b",
+              background: "rgba(255, 255, 255, 0.05)",
+              border: "1px solid rgba(255, 255, 255, 0.15)",
+              color: "rgba(255,255,255,0.8)",
+              px: 3,
+              py: 1.2,
+              borderRadius: "12px",
+              fontWeight: 600,
+              textTransform: "none",
+              fontSize: "0.95rem",
               minWidth: "100px",
               "&:hover": {
-                borderColor: "#374151",
-                backgroundColor: "#f8fafc",
+                background: "rgba(255, 255, 255, 0.1)",
+                borderColor: "rgba(255, 255, 255, 0.25)",
               },
             }}
           >
@@ -139,13 +165,27 @@ const CustomDialog = ({
         
         <Button
           onClick={handleConfirm}
-          variant="contained"
           sx={{
-            backgroundColor: getConfirmButtonColor(),
+            background: type === "error" || type === "warning" || type === "confirm" 
+              ? "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)" 
+              : type === "success" 
+                ? "linear-gradient(135deg, #4CAF50 0%, #45a049 100%)"
+                : "linear-gradient(135deg, #64C8FF 0%, #4db8ff 100%)",
+            color: type === "error" || type === "warning" || type === "confirm" ? "#1D3557" : "#ffffff",
+            px: 3,
+            py: 1.2,
+            borderRadius: "12px",
+            fontWeight: 700,
+            textTransform: "none",
+            fontSize: "0.95rem",
             minWidth: "100px",
+            boxShadow: type === "error" || type === "warning" || type === "confirm" 
+              ? "0 4px 15px rgba(255, 183, 77, 0.3)" 
+              : "0 4px 15px rgba(100, 200, 255, 0.3)",
             "&:hover": {
-              backgroundColor: getConfirmButtonColor(),
-              opacity: 0.9,
+              boxShadow: type === "error" || type === "warning" || type === "confirm" 
+                ? "0 6px 20px rgba(255, 183, 77, 0.4)" 
+                : "0 6px 20px rgba(100, 200, 255, 0.4)",
             },
           }}
         >

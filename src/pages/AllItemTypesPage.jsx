@@ -15,12 +15,13 @@ import {
   TextField,
   CircularProgress,
 } from "@mui/material";
+import { useOutletContext } from "react-router-dom";
 import { Edit, Delete, Close } from "@mui/icons-material";
 import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
+import ModernSpinner from "../components/ModernSpinner";
+import SearchFilterBar from "../components/SearchFilterBar";
 import "../css/main.css";
 
-const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
-const rowStyle = { color: "#25344E" };
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function AllIte() {
@@ -33,6 +34,10 @@ export default function AllIte() {
   const [isFetching, setIsFetching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { isDarkMode, colors } = useOutletContext() || {};
+  
+  const headerStyle = { color: colors?.textPrimary || "#1E3A5F", fontWeight: "bold" };
+  const rowStyle = { color: colors?.textSecondary || "#25344E" };
 
   useEffect(() => {
     fetchItemTypes();
@@ -181,15 +186,38 @@ export default function AllIte() {
         Item Types
       </Typography>
 
-      <Box sx={{ display: "flex", justifyContent: "flex-start", marginBottom: "16px" }}>
-        <button className="button" onClick={handleAdd}>
-          Add Item Type
-        </button>
-      </Box>
+      <SearchFilterBar
+        isDarkMode={isDarkMode}
+        colors={colors}
+        showSearch={false}
+        extraButtons={
+          <Button
+            variant="contained"
+            onClick={handleAdd}
+            sx={{
+              background: isDarkMode ? "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)" : "linear-gradient(135deg, #1D3557 0%, #0a1628 100%)",
+              color: isDarkMode ? "#0a1628" : "#fff",
+              fontWeight: 600,
+              px: 2,
+              height: "40px",
+              borderRadius: "10px",
+              textTransform: "none",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Add Item Type
+          </Button>
+        }
+      />
 
       <TableContainer
         component={Paper}
-        sx={{ borderRadius: "12px", boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.05)" }}
+        sx={{ 
+          borderRadius: 2, 
+          boxShadow: isDarkMode ? "0 2px 8px rgba(0,0,0,0.3)" : "0 1px 3px rgba(0,0,0,0.04)",
+          backgroundColor: colors?.bgCard || "#ffffff",
+          border: isDarkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid #e0e5eb"
+        }}
       >
         <Table>
           <TableHead sx={{ backgroundColor: "#f1f5f9" }}>
@@ -201,7 +229,7 @@ export default function AllIte() {
             {isFetching ? (
               <TableRow>
                 <TableCell colSpan={3} align="center">
-                  <CircularProgress size={28} sx={{ color: "#1E3A5F" }} />
+                  <ModernSpinner size={28} />
                 </TableCell>
               </TableRow>
             ) : itemTypes.length > 0 ? (
@@ -248,50 +276,93 @@ export default function AllIte() {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            borderRadius: 2,
-            boxShadow: 24,
-            p: 4,
+            width: { xs: "90%", sm: 420 },
+            maxWidth: 420,
+            bgcolor: isDarkMode ? "#1a2332" : "#ffffff",
+            borderRadius: "16px",
+            boxShadow: isDarkMode 
+              ? "0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)" 
+              : "0 25px 50px rgba(0,0,0,0.15)",
+            p: 3,
           }}
         >
-          <IconButton
-            color="error"
-            onClick={handleCloseModal}
-            sx={{ position: "absolute", top: 8, right: 8 }}
-          >
-            <Close />
-          </IconButton>
-          <Typography
-            variant="h6"
-            sx={{ marginBottom: "16px", textAlign: "center", ...headerStyle }}
-          >
-            {isAdding ? "Add Item Type" : "Edit Item Type"}
-          </Typography>
-          <TextField
-            fullWidth
-            label="Item Type Name"
-            value={currentItemType.name}
-            onChange={(e) =>
-              setCurrentItemType({ ...currentItemType, name: e.target.value.toUpperCase() })
-            }
-            sx={{ marginBottom: "16px" }}
-          />
-          <Box sx={{ display: "flex", justifyContent: "center" }}>
-            <button
-              className="button button-large"
+          <Box sx={{ position: "relative", mb: 3 }}>
+            <IconButton
+              onClick={handleCloseModal}
+              sx={{ 
+                position: "absolute", 
+                top: -8, 
+                right: -8,
+                color: colors?.textSecondary,
+                "&:hover": { backgroundColor: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)" }
+              }}
+            >
+              <Close />
+            </IconButton>
+            <Typography
+              variant="h5"
+              sx={{ 
+                color: colors?.textPrimary,
+                fontWeight: 700,
+                textAlign: "center",
+              }}
+            >
+              {isAdding ? "Add Item Type" : "Edit Item Type"}
+            </Typography>
+          </Box>
+          <Box>
+            <TextField
+              fullWidth
+              label="Item Type Name"
+              value={currentItemType.name}
+              onChange={(e) =>
+                setCurrentItemType({ ...currentItemType, name: e.target.value.toUpperCase() })
+              }
+              sx={{ 
+                mb: 3,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "12px",
+                  backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc",
+                },
+                "& .MuiInputLabel-root": { color: colors?.textSecondary },
+                "& .MuiOutlinedInput-input": { color: colors?.textPrimary },
+              }}
+            />
+            <Button
+              fullWidth
+              variant="contained"
               onClick={handleSave}
               disabled={isSaving}
+              sx={{
+                py: 1.5,
+                borderRadius: "12px",
+                fontSize: "1rem",
+                fontWeight: 600,
+                textTransform: "none",
+                background: isDarkMode 
+                  ? "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)"
+                  : "linear-gradient(135deg, #1D3557 0%, #0a1628 100%)",
+                color: isDarkMode ? "#0a1628" : "#fff",
+                boxShadow: "none",
+                "&:hover": {
+                  background: isDarkMode 
+                    ? "linear-gradient(135deg, #FFA726 0%, #F57C00 100%)"
+                    : "linear-gradient(135deg, #25445f 0%, #0f2035 100%)",
+                  boxShadow: "none",
+                },
+                "&:disabled": {
+                  background: isDarkMode ? "rgba(255,183,77,0.3)" : "rgba(29,53,87,0.3)",
+                }
+              }}
             >
-              {isAdding ? "Add" : "Save"}
+              {isAdding ? "Add Item Type" : "Save Changes"}
               {isSaving && (
                 <CircularProgress
-                  size={22}
-                  className="spinner"
-                  sx={{ color: "#fff", animation: "none !important", ml: 1 }}
+                  size={20}
+                  sx={{ color: isDarkMode ? "#0a1628" : "#fff", ml: 1 }}
                 />
               )}
-            </button>
+            </Button>
           </Box>
         </Box>
       </Modal>

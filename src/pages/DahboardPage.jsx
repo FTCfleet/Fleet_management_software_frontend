@@ -16,9 +16,11 @@ import {
   MenuItem,
   IconButton,
 } from "@mui/material";
+import { useOutletContext } from "react-router-dom";
 import { FaEye, FaEyeSlash, FaUser, FaBuilding, FaPhone, FaUserTag } from "react-icons/fa";
 import { useAuth } from "../routes/AuthContext";
 import Loading from "../components/Loading";
+import ModernSpinner from "../components/ModernSpinner";
 import CustomDialog from "../components/CustomDialog";
 import { useDialog } from "../hooks/useDialog";
 
@@ -37,6 +39,7 @@ const DashboardPage = () => {
   const [allWarehouse, setAllWarehouse] = useState([]);
   const { checkAuthStatus, resetAuth } = useAuth();
   const { dialogState, hideDialog, showAlert, showError, showSuccess, showConfirm } = useDialog();
+  const { isDarkMode, colors } = useOutletContext() || {};
 
   useEffect(() => {
     checkAuthStatus().then((data) => {
@@ -132,54 +135,64 @@ const DashboardPage = () => {
   if (!user) return <Loading />;
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", p: { xs: 1, sm: 2 } }}>
+    <Box sx={{ display: "flex", justifyContent: "center", p: { xs: 1.5, sm: 2.5 } }}>
       <Card
         sx={{
           width: "100%",
-          maxWidth: "500px",
-          borderRadius: 3,
-          boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+          maxWidth: "480px",
+          borderRadius: 4,
+          boxShadow: isDarkMode ? "0 4px 24px rgba(0,0,0,0.3)" : "0 4px 24px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
           overflow: "visible",
+          border: isDarkMode ? "1px solid rgba(255, 255, 255, 0.06)" : "1px solid rgba(226, 232, 240, 0.8)",
+          backgroundColor: colors?.bgCard || "#ffffff",
         }}
       >
-        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+        <CardContent sx={{ p: { xs: 2.5, sm: 3.5 } }}>
           {/* Avatar */}
-          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 2.5 }}>
             <Avatar
               src={user.avatar}
               alt={user.name}
               sx={{
-                width: { xs: 80, sm: 100 },
-                height: { xs: 80, sm: 100 },
-                border: "4px solid #e2e8f0",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                width: { xs: 90, sm: 110 },
+                height: { xs: 90, sm: 110 },
+                border: "4px solid #f1f5f9",
+                boxShadow: "0 8px 24px rgba(30, 58, 95, 0.15)",
+                background: "linear-gradient(135deg, #1E3A5F 0%, #2d5a87 100%)",
+                fontSize: "2.5rem",
+                fontWeight: 600,
+                color: "#fff",
               }}
-            />
+            >
+              {user.name?.charAt(0).toUpperCase()}
+            </Avatar>
           </Box>
 
           {/* Name & Username */}
           <Box sx={{ textAlign: "center", mb: 3 }}>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: "#1E3A5F", mb: 0.5 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: colors?.textPrimary || "#1E3A5F", mb: 0.5, letterSpacing: "-0.02em" }}>
               {user.name}
             </Typography>
-            <Typography sx={{ color: "#64748b", fontSize: "0.95rem" }}>@{user.username}</Typography>
+            <Typography sx={{ color: colors?.textSecondary || "#94a3b8", fontSize: "0.9rem", fontWeight: 500 }}>@{user.username}</Typography>
           </Box>
 
-          <Divider sx={{ mb: 2 }} />
+          <Divider sx={{ mb: 2.5, borderColor: colors?.borderLight || "#f1f5f9" }} />
 
           {/* User Details */}
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-            <DetailRow icon={<FaBuilding />} label="Code" value={user.warehouseCode} />
-            <DetailRow icon={<FaBuilding />} label="Station" value={user.warehouseName} />
-            <DetailRow icon={<FaPhone />} label="Phone" value={user.phoneNo} />
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, px: 1 }}>
+            <DetailRow icon={<FaBuilding />} label="Code" value={user.warehouseCode} colors={colors} isDarkMode={isDarkMode} />
+            <DetailRow icon={<FaBuilding />} label="Station" value={user.warehouseName} colors={colors} isDarkMode={isDarkMode} />
+            <DetailRow icon={<FaPhone />} label="Phone" value={user.phoneNo} colors={colors} isDarkMode={isDarkMode} />
             <DetailRow
               icon={<FaUserTag />}
               label="Role"
               value={user.role?.charAt(0).toUpperCase() + user.role.slice(1)}
+              colors={colors}
+              isDarkMode={isDarkMode}
             />
           </Box>
 
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={{ my: 2.5, borderColor: colors?.borderLight || "#f1f5f9" }} />
 
           {/* Action Buttons */}
           <Box
@@ -193,21 +206,54 @@ const DashboardPage = () => {
             <Button
               variant="outlined"
               onClick={() => setStationModal(true)}
-              sx={{ flex: { sm: 1 }, borderColor: "#1E3A5F", color: "#1E3A5F" }}
+              sx={{ 
+                flex: { sm: 1 }, 
+                borderColor: colors?.border || "#e2e8f0", 
+                color: isDarkMode ? colors?.accent : colors?.textPrimary || "#1E3A5F",
+                fontWeight: 600,
+                fontSize: "0.85rem",
+                borderRadius: "10px",
+                textTransform: "none",
+                "&:hover": { 
+                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F", 
+                  backgroundColor: isDarkMode ? "rgba(255, 183, 77, 0.1)" : "rgba(30, 58, 95, 0.04)" 
+                }
+              }}
             >
               Change Station
             </Button>
             <Button
               variant="outlined"
               onClick={() => setOpenModal(true)}
-              sx={{ flex: { sm: 1 }, borderColor: "#1E3A5F", color: "#1E3A5F" }}
+              sx={{ 
+                flex: { sm: 1 }, 
+                borderColor: colors?.border || "#e2e8f0", 
+                color: isDarkMode ? colors?.accent : colors?.textPrimary || "#1E3A5F",
+                fontWeight: 600,
+                fontSize: "0.85rem",
+                borderRadius: "10px",
+                textTransform: "none",
+                "&:hover": { 
+                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F", 
+                  backgroundColor: isDarkMode ? "rgba(255, 183, 77, 0.1)" : "rgba(30, 58, 95, 0.04)" 
+                }
+              }}
             >
               Change Password
             </Button>
             <Button
               variant="contained"
               onClick={handleLogout}
-              sx={{ flex: { sm: 1 }, backgroundColor: "#dc2626", "&:hover": { backgroundColor: "#b91c1c" } }}
+              sx={{ 
+                flex: { sm: 1 }, 
+                background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
+                fontWeight: 600,
+                fontSize: "0.85rem",
+                borderRadius: "10px",
+                textTransform: "none",
+                boxShadow: "0 2px 8px rgba(220, 38, 38, 0.25)",
+                "&:hover": { background: "linear-gradient(135deg, #b91c1c 0%, #991b1b 100%)" }
+              }}
             >
               Logout
             </Button>
@@ -218,7 +264,7 @@ const DashboardPage = () => {
       {/* Change Password Modal */}
       <Modal open={openModal} onClose={handleCloseModal}>
         <Box sx={modalStyle}>
-          <Typography variant="h6" sx={{ fontWeight: 700, color: "#1E3A5F", mb: 2, textAlign: "center" }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: colors?.textPrimary || "#1E3A5F", mb: 2, textAlign: "center" }}>
             Change Password
           </Typography>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -254,9 +300,13 @@ const DashboardPage = () => {
               variant="contained"
               onClick={handleChangePassword}
               disabled={isLoading}
-              sx={{ backgroundColor: "#1E3A5F" }}
+              sx={{ 
+                backgroundColor: isDarkMode ? "#FFB74D" : "#1E3A5F",
+                color: isDarkMode ? "#0a1628" : "#fff",
+                "&:hover": { backgroundColor: isDarkMode ? "#FFA726" : "#2d5a87" }
+              }}
             >
-              Save {isLoading && <CircularProgress size={18} sx={{ color: "#fff", ml: 1 }} />}
+              Save {isLoading && <CircularProgress size={18} sx={{ color: isDarkMode ? "#0a1628" : "#fff", ml: 1 }} />}
             </Button>
           </Box>
         </Box>
@@ -265,7 +315,7 @@ const DashboardPage = () => {
       {/* Change Station Modal */}
       <Modal open={stationModal} onClose={() => setStationModal(false)}>
         <Box sx={modalStyle}>
-          <Typography variant="h6" sx={{ fontWeight: 700, color: "#1E3A5F", mb: 2, textAlign: "center" }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: colors?.textPrimary || "#1E3A5F", mb: 2, textAlign: "center" }}>
             Change Station
           </Typography>
           <FormControl fullWidth>
@@ -284,7 +334,15 @@ const DashboardPage = () => {
             <Button variant="outlined" onClick={() => setStationModal(false)}>
               Cancel
             </Button>
-            <Button variant="contained" onClick={handleChangeWarehouse} sx={{ backgroundColor: "#1E3A5F" }}>
+            <Button 
+              variant="contained" 
+              onClick={handleChangeWarehouse} 
+              sx={{ 
+                backgroundColor: isDarkMode ? "#FFB74D" : "#1E3A5F",
+                color: isDarkMode ? "#0a1628" : "#fff",
+                "&:hover": { backgroundColor: isDarkMode ? "#FFA726" : "#2d5a87" }
+              }}
+            >
               Save
             </Button>
           </Box>
@@ -307,11 +365,24 @@ const DashboardPage = () => {
 };
 
 // Helper Components
-const DetailRow = ({ icon, label, value }) => (
+const DetailRow = ({ icon, label, value, colors, isDarkMode }) => (
   <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-    <Box sx={{ color: "#1E3A5F", opacity: 0.7, display: "flex" }}>{icon}</Box>
-    <Typography sx={{ color: "#64748b", minWidth: "70px", fontSize: "0.9rem" }}>{label}:</Typography>
-    <Typography sx={{ color: "#1E3A5F", fontWeight: 500, fontSize: "0.9rem" }}>{value}</Typography>
+    <Box sx={{ 
+      color: isDarkMode ? colors?.accent : colors?.textPrimary || "#1E3A5F", 
+      opacity: isDarkMode ? 0.9 : 0.6, 
+      display: "flex",
+      width: 32,
+      height: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: isDarkMode ? "rgba(255, 183, 77, 0.1)" : "rgba(30, 58, 95, 0.06)",
+      borderRadius: "8px",
+      fontSize: "0.85rem"
+    }}>{icon}</Box>
+    <Box sx={{ flex: 1 }}>
+      <Typography sx={{ color: colors?.textSecondary || "#94a3b8", fontSize: "0.75rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.5px" }}>{label}</Typography>
+      <Typography sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 600, fontSize: "0.9rem" }}>{value}</Typography>
+    </Box>
   </Box>
 );
 

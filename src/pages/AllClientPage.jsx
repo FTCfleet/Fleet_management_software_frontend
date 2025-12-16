@@ -12,17 +12,16 @@ import {
   Paper,
   IconButton,
   Modal,
-  TextField,
   CircularProgress,
-  Select,
-  MenuItem,
 } from "@mui/material";
+import { useOutletContext } from "react-router-dom";
 import { Edit, Delete } from "@mui/icons-material";
 import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
+import ModernSpinner from "../components/ModernSpinner";
 import ClientModal from "../components/ClientModal";
+import SearchFilterBar, { highlightMatch } from "../components/SearchFilterBar";
+import Pagination from "../components/Pagination";
 
-const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
-const rowStyle = { color: "#25344E", maxWidth: "200px" };
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function AllClientPage() {
@@ -42,6 +41,10 @@ export default function AllClientPage() {
   const [totalPages, setTotalPages] = useState(0);
   const [totalClients, setTotalClients] = useState(0);
   const filtersRef = useRef({ name: "", type: "all" });
+  const { isDarkMode, colors } = useOutletContext() || {};
+  
+  const headerStyle = { color: colors?.textPrimary || "#1E3A5F", fontWeight: "bold" };
+  const rowStyle = { color: colors?.textSecondary || "#25344E", maxWidth: "200px" };
 
   const fetchClients = useCallback(
     async ({ page = 1, name, type } = {}) => {
@@ -300,90 +303,63 @@ export default function AllClientPage() {
       </Typography>
 
       {/* Filters */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          gap: { xs: 1.5, md: 2 },
-          marginBottom: "20px",
-          alignItems: { xs: "stretch", md: "center" },
-        }}
-      >
-        <TextField
-          label="Search by Client Name"
-          value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
-          variant="outlined"
-          size="small"
-          sx={{ minWidth: { xs: "100%", md: "200px" } }}
-        />
-        <Select
-          value={clientType}
-          size="small"
-          onChange={(e) => setClientType(e.target.value)}
-          sx={{ minWidth: { xs: "100%", md: "200px" } }}
-        >
-          <MenuItem value="all">All Clients</MenuItem>
-          <MenuItem value="sender">Sender</MenuItem>
-          <MenuItem value="receiver">Receiver</MenuItem>
-        </Select>
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-          <Button variant="contained" color="primary" onClick={applyFilter}>
-            Apply
-          </Button>
-          <Button variant="outlined" color="secondary" onClick={clearFilter}>
-            Clear
-          </Button>
-          <button className="button " onClick={handleAdd} style={{ margin: 0 }}>
+      <SearchFilterBar
+        isDarkMode={isDarkMode}
+        colors={colors}
+        searchValue={nameFilter}
+        onSearchChange={setNameFilter}
+        searchPlaceholder="Search by Client Name"
+        onApply={applyFilter}
+        onClear={clearFilter}
+        isLoading={isLoading}
+        showDropdown={true}
+        dropdownValue={clientType}
+        onDropdownChange={setClientType}
+        dropdownOptions={[
+          { value: "all", label: "All Clients" },
+          { value: "sender", label: "Sender" },
+          { value: "receiver", label: "Receiver" },
+        ]}
+        dropdownPlaceholder="All Clients"
+        extraButtons={
+          <Button
+            variant="contained"
+            onClick={handleAdd}
+            sx={{
+              background: isDarkMode ? "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)" : "linear-gradient(135deg, #1D3557 0%, #0a1628 100%)",
+              color: isDarkMode ? "#0a1628" : "#fff",
+              fontWeight: 600,
+              px: 2,
+              height: "40px",
+              borderRadius: "10px",
+              textTransform: "none",
+              whiteSpace: "nowrap",
+            }}
+          >
             Add Client
-          </button>
-        </Box>
-      </Box>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginY: "16px",
-          flexWrap: "wrap",
-          gap: "12px",
-        }}
-      >
-        <Typography variant="body2" sx={{ color: "#25344E" }}>
-          {memoizedClients.length > 0
-            ? `Showing ${visibleRange.start} - ${visibleRange.end} of ${totalClients} clients`
-            : `Showing 0 of ${totalClients} clients`}
-        </Typography>
-        <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <Button
-            variant="outlined"
-            onClick={handlePreviousPage}
-            disabled={currentPage <= 1 || isLoading}
-          >
-            Previous
           </Button>
-          <Typography
-            variant="body2"
-            sx={{ color: "#1E3A5F", fontWeight: "bold" }}
-          >
-            Page {resolvedTotalPages === 0 ? 0 : currentPage} of {resolvedTotalPages}
-          </Typography>
-          <Button
-            variant="outlined"
-            onClick={handleNextPage}
-            disabled={
-              resolvedTotalPages === 0 ||
-              currentPage >= resolvedTotalPages ||
-              isLoading
-            }
-          >
-            Next
-          </Button>
-        </Box>
-      </Box>
+        }
+      />
+      <Pagination
+        currentPage={currentPage}
+        totalPages={resolvedTotalPages}
+        onPrevious={handlePreviousPage}
+        onNext={handleNextPage}
+        isLoading={isLoading}
+        infoText={memoizedClients.length > 0
+          ? `Showing ${visibleRange.start} - ${visibleRange.end} of ${totalClients} clients`
+          : `Showing 0 of ${totalClients} clients`}
+        isDarkMode={isDarkMode}
+        colors={colors}
+      />
 
       {/* Client Table */}
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} sx={{ 
+        borderRadius: 2, 
+        boxShadow: isDarkMode ? "0 2px 8px rgba(0,0,0,0.3)" : "0 1px 3px rgba(0,0,0,0.04)",
+        backgroundColor: colors?.bgCard || "#ffffff",
+        border: isDarkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid #e0e5eb"
+      }}>
         <Table>
           <TableHead>
             <TableRow>
@@ -402,18 +378,14 @@ export default function AllClientPage() {
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={7} align="center">
-                  <CircularProgress
-                    size={22}
-                    className="spinner"
-                    sx={{ color: "#1E3A5F", animation: "none !important" }}
-                  />
+                  <ModernSpinner size={28} />
                 </TableCell>
               </TableRow>
             ) : memoizedClients.length > 0 ? (
               memoizedClients.map((client) => (
                 <TableRow key={client._id || client.serial}>
                   <TableCell sx={rowStyle}>{client.serial}.</TableCell>
-                  <TableCell sx={rowStyle}>{client.name}</TableCell>
+                  <TableCell sx={rowStyle}>{highlightMatch(client.name, nameFilter, isDarkMode)}</TableCell>
                   <TableCell sx={rowStyle}>{client.phoneNo}</TableCell>
                   <TableCell sx={rowStyle}>{client.address}</TableCell>
                   <TableCell sx={rowStyle}>{client.gst}</TableCell>
@@ -458,7 +430,8 @@ export default function AllClientPage() {
         onSubmit={handleSaveOrAdd}
         isAdding={isAdding}
         isSubmitting={isLoading1}
-        titleSx={headerStyle}
+        isDarkMode={isDarkMode}
+        colors={colors}
       />
       {/* Modal for Delete Confirmation */}
       <Modal open={deleteModalOpen} onClose={handleCloseDeleteModal}>

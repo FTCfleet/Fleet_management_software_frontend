@@ -18,12 +18,14 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import { useOutletContext } from "react-router-dom";
 import { Edit, Delete, Close } from "@mui/icons-material";
 import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
+import ModernSpinner from "../components/ModernSpinner";
+import SearchFilterBar, { highlightMatch } from "../components/SearchFilterBar";
+import Pagination from "../components/Pagination";
 import "../css/main.css";
 
-const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
-const rowStyle = { color: "#25344E" };
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function AllItemPage() {
@@ -43,6 +45,10 @@ export default function AllItemPage() {
   const [totalPages, setTotalPages] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   const filtersRef = useRef({ name: "" });
+  const { isDarkMode, colors } = useOutletContext() || {};
+  
+  const headerStyle = { color: colors?.textPrimary || "#1E3A5F", fontWeight: "bold" };
+  const rowStyle = { color: colors?.textSecondary || "#25344E" };
 
   const fetchItems = useCallback(
     async ({ page = 1, name } = {}) => {
@@ -328,16 +334,25 @@ export default function AllItemPage() {
     };
   }, [memoizedItems]);
 
+  const inputSx = {
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "8px",
+      backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc",
+    },
+    "& .MuiInputLabel-root": { color: colors?.textSecondary },
+    "& .MuiOutlinedInput-input": { color: colors?.textPrimary },
+  };
+
   const renderPage2 = () => (
     <>
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Item Name</TableCell>
-            <TableCell>Type</TableCell>
-            <TableCell>Freight</TableCell>
-            <TableCell>Hamali</TableCell>
-            {isAdding ? <TableCell>Actions</TableCell> : null}
+            <TableCell sx={{ color: colors?.textPrimary, fontWeight: 600 }}>Item Name</TableCell>
+            <TableCell sx={{ color: colors?.textPrimary, fontWeight: 600 }}>Type</TableCell>
+            <TableCell sx={{ color: colors?.textPrimary, fontWeight: 600 }}>Freight</TableCell>
+            <TableCell sx={{ color: colors?.textPrimary, fontWeight: 600 }}>Hamali</TableCell>
+            {isAdding ? <TableCell sx={{ color: colors?.textPrimary, fontWeight: 600 }}>Actions</TableCell> : null}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -352,6 +367,7 @@ export default function AllItemPage() {
                   }
                   placeholder="Item Name"
                   fullWidth
+                  sx={inputSx}
                 />
               </TableCell>
               <TableCell>
@@ -362,6 +378,11 @@ export default function AllItemPage() {
                       handleItemChange(idx, "type", e.target.value)
                     }
                     size="small"
+                    sx={{
+                      borderRadius: "8px",
+                      backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc",
+                      color: colors?.textPrimary,
+                    }}
                     MenuProps={{
                       PaperProps: {
                         style: {
@@ -387,6 +408,7 @@ export default function AllItemPage() {
                     handleItemChange(idx, "freight", e.target.value)
                   }
                   fullWidth
+                  sx={inputSx}
                 />
               </TableCell>
               <TableCell>
@@ -398,6 +420,7 @@ export default function AllItemPage() {
                     handleItemChange(idx, "hamali", e.target.value)
                   }
                   fullWidth
+                  sx={inputSx}
                 />
               </TableCell>
               {isAdding ? (
@@ -411,11 +434,37 @@ export default function AllItemPage() {
           ))}
         </TableBody>
       </Table>
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 2, gap: 12 }}>
-        <Button variant="contained" onClick={handleSaveOrAdd}>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+        <Button 
+          variant="contained" 
+          onClick={handleSaveOrAdd}
+          disabled={isLoading1}
+          sx={{
+            py: 1.5,
+            px: 4,
+            borderRadius: "12px",
+            fontSize: "1rem",
+            fontWeight: 600,
+            textTransform: "none",
+            background: isDarkMode 
+              ? "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)"
+              : "linear-gradient(135deg, #1D3557 0%, #0a1628 100%)",
+            color: isDarkMode ? "#0a1628" : "#fff",
+            boxShadow: "none",
+            "&:hover": {
+              background: isDarkMode 
+                ? "linear-gradient(135deg, #FFA726 0%, #F57C00 100%)"
+                : "linear-gradient(135deg, #25445f 0%, #0f2035 100%)",
+              boxShadow: "none",
+            },
+            "&:disabled": {
+              background: isDarkMode ? "rgba(255,183,77,0.3)" : "rgba(29,53,87,0.3)",
+            }
+          }}
+        >
           {isAdding ? "Add Item" : "Save Changes"}
           {isLoading1 && (
-            <CircularProgress size={22} sx={{ color: "#fff", ml: 1 }} />
+            <CircularProgress size={20} sx={{ color: isDarkMode ? "#0a1628" : "#fff", ml: 1 }} />
           )}
         </Button>
       </Box>
@@ -429,82 +478,55 @@ export default function AllItemPage() {
       </Typography>
 
       {/* Filters */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          gap: { xs: 1.5, md: 2 },
-          marginBottom: "20px",
-          alignItems: { xs: "stretch", md: "center" },
-        }}
-      >
-        <TextField
-          label="Search by Item Name"
-          value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
-          variant="outlined"
-          size="small"
-          sx={{ minWidth: { xs: "100%", md: "200px" } }}
-        />
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-          <Button variant="contained" color="primary" onClick={applyFilter}>
-            Apply
-          </Button>
-          <Button variant="outlined" color="secondary" onClick={clearFilter}>
-            Clear
-          </Button>
-          <button className="button " onClick={handleAdd} style={{ margin: 0 }}>
+      <SearchFilterBar
+        isDarkMode={isDarkMode}
+        colors={colors}
+        searchValue={nameFilter}
+        onSearchChange={setNameFilter}
+        searchPlaceholder="Search by Item Name"
+        onApply={applyFilter}
+        onClear={clearFilter}
+        isLoading={isLoading}
+        extraButtons={
+          <Button
+            variant="contained"
+            onClick={handleAdd}
+            sx={{
+              background: isDarkMode ? "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)" : "linear-gradient(135deg, #1D3557 0%, #0a1628 100%)",
+              color: isDarkMode ? "#0a1628" : "#fff",
+              fontWeight: 600,
+              px: 2,
+              height: "40px",
+              borderRadius: "10px",
+              textTransform: "none",
+              whiteSpace: "nowrap",
+            }}
+          >
             Add Item
-          </button>
-        </Box>
-      </Box>
+          </Button>
+        }
+      />
 
-      
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: "16px",
-          flexWrap: "wrap",
-          gap: "12px",
-        }}
-      >
-        <Typography variant="body2" sx={{ color: "#25344E" }}>
-          {memoizedItems.length > 0
-            ? `Showing ${visibleRange.start} - ${visibleRange.end} of ${totalItems} items`
-            : `Showing 0 of ${totalItems} items`}
-        </Typography>
-        <Box sx={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-          <Button
-            variant="outlined"
-            onClick={handlePreviousPage}
-            disabled={currentPage <= 1 || isLoading}
-          >
-            Previous
-          </Button>
-          <Typography
-            variant="body2"
-            sx={{ color: "#1E3A5F", fontWeight: "bold" }}
-          >
-            Page {resolvedTotalPages === 0 ? 0 : currentPage} of {resolvedTotalPages}
-          </Typography>
-          <Button
-            variant="outlined"
-            onClick={handleNextPage}
-            disabled={
-              resolvedTotalPages === 0 ||
-              currentPage >= resolvedTotalPages ||
-              isLoading
-            }
-          >
-            Next
-          </Button>
-        </Box>
-      </Box>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={resolvedTotalPages}
+        onPrevious={handlePreviousPage}
+        onNext={handleNextPage}
+        isLoading={isLoading}
+        infoText={memoizedItems.length > 0
+          ? `Showing ${visibleRange.start} - ${visibleRange.end} of ${totalItems} items`
+          : `Showing 0 of ${totalItems} items`}
+        isDarkMode={isDarkMode}
+        colors={colors}
+      />
 
       {/* Item Table */}
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} sx={{ 
+        borderRadius: 2, 
+        boxShadow: isDarkMode ? "0 2px 8px rgba(0,0,0,0.3)" : "0 1px 3px rgba(0,0,0,0.04)",
+        backgroundColor: colors?.bgCard || "#ffffff",
+        border: isDarkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid #e0e5eb"
+      }}>
         <Table>
           <TableHead>
             <TableRow>
@@ -520,11 +542,7 @@ export default function AllItemPage() {
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={2} align="center">
-                  <CircularProgress
-                    size={22}
-                    className="spinner"
-                    sx={{ color: "#1E3A5F", animation: "none !important" }}
-                  />
+                  <ModernSpinner size={28} />
                 </TableCell>
               </TableRow>
             ) : memoizedItems.length > 0 ? (
@@ -554,7 +572,7 @@ export default function AllItemPage() {
                             variant="subtitle1"
                             sx={{ ...headerStyle, fontSize: "1rem" }}
                           >
-                            {`${item.serial}. ${item.name} ${item.itemType?.name ? `(${item.itemType.name})` : ""}`}
+                            {item.serial}. {highlightMatch(item.name, nameFilter, isDarkMode)} {item.itemType?.name ? `(${item.itemType.name})` : ""}
                           </Typography>
                           <Typography variant="body2" sx={rowStyle}>
                             Type: {item.itemType?.name || "NA"}
@@ -611,28 +629,42 @@ export default function AllItemPage() {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 700,
-            maxHeight: "70vh",
+            width: { xs: "95%", sm: 700 },
+            maxWidth: 700,
+            maxHeight: "80vh",
             overflowY: "auto",
-            bgcolor: "background.paper",
-            borderRadius: 2,
-            boxShadow: 24,
-            p: 4,
+            bgcolor: isDarkMode ? "#1a2332" : "#ffffff",
+            borderRadius: "16px",
+            boxShadow: isDarkMode 
+              ? "0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)" 
+              : "0 25px 50px rgba(0,0,0,0.15)",
+            p: 3,
           }}
         >
-          <IconButton
-            color="error"
-            onClick={handleClose}
-            sx={{ position: "absolute", top: 8, right: 8 }}
-          >
-            <Close />
-          </IconButton>
-          <Typography
-            variant="h6"
-            sx={{ marginBottom: "16px", textAlign: "center", ...headerStyle }}
-          >
-            {isAdding ? "Add Item" : "Edit Item"}
-          </Typography>
+          <Box sx={{ position: "relative", mb: 3 }}>
+            <IconButton
+              onClick={handleClose}
+              sx={{ 
+                position: "absolute", 
+                top: -8, 
+                right: -8,
+                color: colors?.textSecondary,
+                "&:hover": { backgroundColor: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)" }
+              }}
+            >
+              <Close />
+            </IconButton>
+            <Typography
+              variant="h5"
+              sx={{ 
+                color: colors?.textPrimary,
+                fontWeight: 700,
+                textAlign: "center",
+              }}
+            >
+              {isAdding ? "Add Item" : "Edit Item"}
+            </Typography>
+          </Box>
           {currentItemList && <Box>{renderPage2()}</Box>}
         </Box>
       </Modal>

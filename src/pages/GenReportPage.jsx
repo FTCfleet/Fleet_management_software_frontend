@@ -1,26 +1,23 @@
-import { React, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  TextField,
   Button,
   Box,
   Typography,
-  ToggleButtonGroup,
-  ToggleButton,
   MenuItem,
   Select,
   FormControl,
   InputLabel,
   Modal,
   IconButton,
-  CircularProgress,
 } from "@mui/material";
+import { useOutletContext } from "react-router-dom";
 import { FaDownload, FaTruck } from "react-icons/fa";
 import { Close } from "@mui/icons-material";
-import "react-calendar/dist/Calendar.css";
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 import "../css/main.css";
-import "../css/calendar.css";
 import { getDate } from "../utils/dateFormatter";
+import ModernSpinner from "../components/ModernSpinner";
+import CustomDateRangePicker from "../components/CustomDateRangePicker";
 
 export default function GenReportPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -35,6 +32,7 @@ export default function GenReportPage() {
   const [selectedEndDate, setSelectedEndDate] = useState(getDate());
   const [modalOpen, setModalOpen] = useState(false);
   const lastFourMonths = useRef([]);
+  const { isDarkMode, colors } = useOutletContext() || {};
 
   const handleOpenModal = () => {
     if (selectedEndDate < selectedStartDate) {
@@ -97,35 +95,20 @@ export default function GenReportPage() {
     return months;
   };
 
-  const handleDateChange = (event, type) => {
-    // setIsLoading(true);
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-    const newDate = new Date(event.target.value);
-    if (newDate <= today) {
-      const date = newDate.toISOString().split("T")[0];
-      // filterOrdersByTypeAndDate(type);
-      if (type === "start") setSelectedStartDate(date);
-      else setSelectedEndDate(date);
-    }
-    // setIsLoading(false);
-  };
+  const handleStartDateChange = (newDate) => setSelectedStartDate(newDate);
+  const handleEndDateChange = (newDate) => setSelectedEndDate(newDate);
 
   return isLoading ? (
-    <div
-      style={{
-        position: "fixed",
-        top: "40%",
-        left: "55%",
-        transform: "translate(-50%, -50%)",
-        zIndex: 9999,
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "60vh",
       }}
     >
-      <CircularProgress size={60} />
-      <Typography color="black" fontSize={25}>
-        Loading...
-      </Typography>
-    </div>
+      <ModernSpinner size={48} />
+    </Box>
   ) : (
     <Box sx={{ 
       maxWidth: 600, 
@@ -140,7 +123,7 @@ export default function GenReportPage() {
       <Typography
         variant="h4"
         sx={{
-          color: "#1E3A5F",
+          color: colors?.textPrimary || "#1E3A5F",
           fontWeight: "bold",
           textAlign: "center",
           marginBottom: 4,
@@ -190,49 +173,22 @@ export default function GenReportPage() {
           </Select>
           </FormControl>
           </Box> */}
-        <Box sx={{ 
-          display: "flex", 
-          flexDirection: { xs: "column", sm: "row" },
-          gap: 2,
-          width: "100%",
-          justifyContent: "center"
-        }}>
-          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
-            <Typography sx={{ fontSize: "0.9rem", color: "#64748b", fontWeight: 500 }}>
-              Start Date
-            </Typography>
-            <Box className="calendar-input">
-              <input
-                type="date"
-                onClick={(e) => e.target.showPicker()}
-                onKeyDown={(e) => e.preventDefault()}
-                value={selectedStartDate}
-                onChange={(e) => handleDateChange(e, "start")}
-              />
-            </Box>
-          </Box>
-          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
-            <Typography sx={{ fontSize: "0.9rem", color: "#64748b", fontWeight: 500 }}>
-              End Date
-            </Typography>
-            <Box className="calendar-input">
-              <input
-                type="date"
-                onClick={(e) => e.target.showPicker()}
-                onKeyDown={(e) => e.preventDefault()}
-                value={selectedEndDate}
-                onChange={(e) => handleDateChange(e, "end")}
-              />
-            </Box>
-          </Box>
-        </Box>
+        <CustomDateRangePicker
+          startDate={selectedStartDate}
+          endDate={selectedEndDate}
+          onStartChange={handleStartDateChange}
+          onEndChange={handleEndDateChange}
+          disabled={isLoading}
+          isDarkMode={isDarkMode}
+          colors={colors}
+        />
 
         <button
           className="button button-large"
           style={{
-            backgroundColor: destinationWarehouse === "" ? "#94a3b8" : "#1E3A5F",
+            backgroundColor: destinationWarehouse === "" ? "#94a3b8" : (isDarkMode ? "#FFB74D" : "#1E3A5F"),
             cursor: destinationWarehouse === "" ? "not-allowed" : "pointer",
-            color: "white",
+            color: isDarkMode && destinationWarehouse !== "" ? "#0a1628" : "white",
             width: "100%",
             maxWidth: "300px",
             padding: "12px 24px",
@@ -253,7 +209,7 @@ export default function GenReportPage() {
             left: "50%",
             transform: "translate(-50%, -50%)",
             width: 350,
-            bgcolor: "background.paper",
+            bgcolor: colors?.bgCard || "background.paper",
             borderRadius: 3,
             boxShadow: 24,
             p: 4,
@@ -261,6 +217,7 @@ export default function GenReportPage() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
+            border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "none",
           }}
         >
           {/* Close Button (Top Right) */}
@@ -275,7 +232,7 @@ export default function GenReportPage() {
           {/* Truck Icon */}
           <FaTruck
             style={{
-              color: "#1976D2",
+              color: isDarkMode ? colors?.accent : "#1976D2",
               fontSize: "36px",
               marginBottom: "12px",
             }}
@@ -287,7 +244,7 @@ export default function GenReportPage() {
             sx={{
               fontWeight: "bold",
               marginBottom: "12px",
-              color: "#1E3A5F",
+              color: colors?.textPrimary || "#1E3A5F",
             }}
           >
             Download Monthly Report
@@ -297,7 +254,7 @@ export default function GenReportPage() {
           <Typography
             sx={{
               marginBottom: "12px",
-              color: "#374151",
+              color: colors?.textSecondary || "#374151",
               fontSize: "15px",
             }}
           >
@@ -308,7 +265,7 @@ export default function GenReportPage() {
           <Typography
             sx={{
               marginBottom: "12px",
-              color: "#374151",
+              color: colors?.textSecondary || "#374151",
               fontSize: "15px",
             }}
           >

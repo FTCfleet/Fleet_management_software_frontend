@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }) => {
   const resetAuth = () => {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
-    location.pathname = "/auth/login";
+    location.pathname = "/";
   };
 
   const resetForgetAuth = () => {
