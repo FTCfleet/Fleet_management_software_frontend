@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Box,
-  TextField,
-  Button,
   Typography,
   Table,
   TableBody,
@@ -11,16 +9,15 @@ import {
   TableHead,
   TableRow,
   Paper,
-  MenuItem,
-  Select,
-  CircularProgress,
   IconButton,
 } from "@mui/material";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useOutletContext } from "react-router-dom";
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
 import { useAuth } from "../routes/AuthContext";
 import "../css/table.css";
 import { getDate } from "../utils/dateFormatter";
+import ModernSpinner from "../components/ModernSpinner";
+import SearchFilterBar, { highlightMatch } from "../components/SearchFilterBar";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -35,6 +32,7 @@ const AllLedgerPage = () => {
   const [warehouseFilter, setWarehouseFilter] = useState("");
   const [warehouses, setWarehouses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { isDarkMode, colors } = useOutletContext() || {};
 
   useEffect(() => {
     fetchData();
@@ -93,15 +91,9 @@ const AllLedgerPage = () => {
     }
   };
 
-  const handleDateChange = (event) => {
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-    const newDate = new Date(event.target.value);
-    if (newDate <= today) {
-      const date = newDate.toISOString().split("T")[0];
-      setSelectedDate(date);
-      filterLedgersByTypeAndDate(type);
-    }
+  const handleDateChange = (newDate) => {
+    setSelectedDate(newDate);
+    filterLedgersByTypeAndDate(type);
   };
 
   const applyFilter = () => {
@@ -109,10 +101,11 @@ const AllLedgerPage = () => {
       (order) => order.status === type || type === "all"
     );
 
-    if (nameFilter) {
+    const searchTerm = nameFilter.toLowerCase().trim();
+    if (searchTerm) {
       filtered = filtered.filter((order) =>
-        order.vehicleNo.toLowerCase().replaceAll(" ","").startsWith(nameFilter.toLowerCase()) || 
-        order.ledgerId.toLowerCase().startsWith(nameFilter.toLowerCase())
+        order.vehicleNo.toLowerCase().replaceAll(" ","").includes(searchTerm) || 
+        order.ledgerId.toLowerCase().includes(searchTerm)
       );
     }
     if (warehouseFilter) {
@@ -136,13 +129,13 @@ const AllLedgerPage = () => {
 
   return (
     <Box
-      sx={{ padding: "20px", backgroundColor: "#ffffff", minHeight: "100vh" }}
+      sx={{ padding: "20px", backgroundColor: colors?.bgPrimary || "#ffffff", minHeight: "100vh" }}
     >
       <Typography
         variant="h4"
         sx={{
           marginBottom: "20px",
-          color: "#1E3A5F",
+          color: colors?.textPrimary || "#1E3A5F",
           fontWeight: "bold",
         }}
       >
@@ -154,89 +147,62 @@ const AllLedgerPage = () => {
       </Typography>
 
       {/* Filters: Date and Search */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          gap: { xs: 1.5, md: 2 },
-          marginBottom: "20px",
-          alignItems: { xs: "stretch", md: "center" },
-        }}
-      >
-        <Box className="calendar-input">
-          <input
-            type="date"
-            onClick={(e) => e.target.showPicker()}
-            onKeyDown={(e) => e.preventDefault()}
-            value={selectedDate}
-            onChange={handleDateChange}
-            disabled={isLoading}
-          />
-        </Box>
-        <TextField
-          label="Search by ID/Vehicle No"
-          value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
-          variant="outlined"
-          size="small"
-          sx={{ minWidth: { xs: "100%", md: "200px" } }}
-        />
-        <Select
-          value={warehouseFilter}
-          onChange={(e) => setWarehouseFilter(e.target.value)}
-          displayEmpty
-          size="small"
-          sx={{ minWidth: { xs: "100%", md: "200px" } }}
-        >
-          <MenuItem value="">All Warehouses</MenuItem>
-          {warehouses.map((warehouse) => (
-            <MenuItem key={warehouse.warehouseID} value={warehouse.name}>
-              {warehouse.name}
-            </MenuItem>
-          ))}
-        </Select>
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-          <Button variant="contained" color="primary" onClick={applyFilter} disabled={isLoading}>
-            Apply
-          </Button>
-          <Button variant="outlined" color="secondary" onClick={clearFilter} disabled={isLoading}>
-            Clear
-          </Button>
-        </Box>
-      </Box>
+      <SearchFilterBar
+        isDarkMode={isDarkMode}
+        colors={colors}
+        searchValue={nameFilter}
+        onSearchChange={setNameFilter}
+        searchPlaceholder="Search by ID/Vehicle No"
+        onApply={applyFilter}
+        onClear={clearFilter}
+        isLoading={isLoading}
+        showDatePicker={true}
+        dateValue={selectedDate}
+        onDateChange={handleDateChange}
+        showDropdown={true}
+        dropdownValue={warehouseFilter}
+        onDropdownChange={setWarehouseFilter}
+        dropdownOptions={warehouses.map(w => ({ value: w.name, label: w.name }))}
+        dropdownPlaceholder="All Warehouses"
+      />
 
       {/* Memo Entries Table */}
-      <TableContainer component={Paper} sx={{ backgroundColor: "#ffffff" }}>
+      <TableContainer component={Paper} sx={{ 
+        backgroundColor: colors?.bgCard || "#ffffff",
+        borderRadius: 2,
+        boxShadow: isDarkMode ? "0 2px 8px rgba(0,0,0,0.3)" : "0 1px 3px rgba(0,0,0,0.04)",
+        border: isDarkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid #e0e5eb"
+      }}>
         <Table>
           <TableHead>
-            <TableRow>
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+            <TableRow sx={{ backgroundColor: colors?.tableHeader || "#f8fafc" }}>
+              <TableCell sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: "bold" }}>
                 Sl No
               </TableCell>
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+              <TableCell sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: "bold" }}>
                 Memo No
               </TableCell>
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+              <TableCell sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: "bold" }}>
                 Vehicle No
               </TableCell>
               {isAdmin || !isSource ? (
-                <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+                <TableCell sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: "bold" }}>
                   Source Station
                 </TableCell>
               ) : null}
               {isAdmin || isSource ? (
-                <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+                <TableCell sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: "bold" }}>
                   Destination Station
                 </TableCell>
               ) : null}
 
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+              <TableCell sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: "bold" }}>
                 Package Count
               </TableCell>
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold" }}>
+              <TableCell sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: "bold" }}>
                 Status
               </TableCell>
-              <TableCell sx={{ color: "#1E3A5F", fontWeight: "bold", textAlign: "center" }}>
+              <TableCell sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: "bold", textAlign: "center" }}>
                 View Memo
               </TableCell>
             </TableRow>
@@ -244,26 +210,22 @@ const AllLedgerPage = () => {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">
-                  <CircularProgress
-                    size={22}
-                    className="spinner"
-                    sx={{ color: "#1E3A5F", animation: "none !important" }}
-                  />
+                <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                  <ModernSpinner size={28} />
                 </TableCell>
               </TableRow>
             ) : filteredLedger.length > 0 ? (
               filteredLedger.map((entry, idx) => (
-                <TableRow key={entry.ledgerId}>
-                  <TableCell sx={{ color: "#25344E" }}>{idx + 1}.</TableCell>
-                  <TableCell sx={{ color: "#25344E" }}>
-                    {entry.ledgerId}
+                <TableRow key={entry.ledgerId} hover>
+                  <TableCell sx={{ color: colors?.textSecondary || "#25344E" }}>{idx + 1}.</TableCell>
+                  <TableCell sx={{ color: colors?.textSecondary || "#25344E", fontWeight: 600 }}>
+                    {highlightMatch(entry.ledgerId, nameFilter, isDarkMode)}
                   </TableCell>
-                  <TableCell sx={{ color: "#25344E" }}>
-                    {entry.vehicleNo}
+                  <TableCell sx={{ color: colors?.textSecondary || "#25344E" }}>
+                    {highlightMatch(entry.vehicleNo, nameFilter, isDarkMode)}
                   </TableCell>
                   {isAdmin || !isSource ? (
-                    <TableCell sx={{ color: "#25344E" }}>
+                    <TableCell sx={{ color: colors?.textSecondary || "#25344E" }}>
                       {entry.sourceWarehouse
                         ? entry.sourceWarehouse.name
                         : "NA"}
@@ -271,13 +233,13 @@ const AllLedgerPage = () => {
                   ) : null}
 
                   {isAdmin || isSource ? (
-                    <TableCell sx={{ color: "#25344E" }}>
+                    <TableCell sx={{ color: colors?.textSecondary || "#25344E" }}>
                       {entry.destinationWarehouse
                         ? entry.destinationWarehouse.name
                         : "NA"}
                     </TableCell>
                   ) : null}
-                  <TableCell>{entry.parcels.length}</TableCell>
+                  <TableCell sx={{ color: colors?.textSecondary || "#25344E" }}>{entry.parcels.length}</TableCell>
                   <TableCell>
                     <span
                       className={`table-status ${entry.status.toLowerCase()}`}
@@ -288,7 +250,7 @@ const AllLedgerPage = () => {
                   </TableCell>
                   <TableCell sx={{textAlign: "center"}}>
                     <IconButton
-                      color="primary"
+                      sx={{ color: isDarkMode ? "#FFB74D" : "primary.main" }}
                       onClick={() =>
                         navigate(`/user/view/ledger/${entry.ledgerId}`)
                       }
@@ -300,7 +262,7 @@ const AllLedgerPage = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan="7" align="center" sx={{ color: "#7D8695" }}>
+                <TableCell colSpan="7" align="center" sx={{ color: colors?.textSecondary || "#7D8695" }}>
                   No ledger entries found for the selected date.
                 </TableCell>
               </TableRow>

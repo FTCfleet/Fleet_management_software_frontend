@@ -28,6 +28,7 @@ import {
   Tooltip,
   Zoom,
 } from "@mui/material";
+import ModernSpinner from "../components/ModernSpinner";
 import CustomDialog from "../components/CustomDialog";
 import { useDialog } from "../hooks/useDialog";
 import {
@@ -36,7 +37,7 @@ import {
   Link,
   useOutletContext,
 } from "react-router-dom";
-import ledger from "../assets/ledger.jpg";
+import ledger from "../assets/ledger.webp";
 import { useAuth } from "../routes/AuthContext";
 import {
   FaTrash,
@@ -57,7 +58,7 @@ export default function ViewLedgerPage() {
   const { id } = useParams();
   const [ledgerData, setLedgerData] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [totals, setTotals] = useState({ freight: 0, hamali: 0 });
+  const [totals, setTotals] = useState({ freight: 0, hamali: 0, charges: 0 });
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   // const [allWarehouse, setAllWarehouse] = useState([]);
@@ -75,13 +76,13 @@ export default function ViewLedgerPage() {
   });
   const { isAdmin, isSource } = useAuth();
   const navigate = useNavigate();
-  const { setIsScreenLoading, setIsScreenLoadingText } = useOutletContext();
+  const { setIsScreenLoading, setIsScreenLoadingText, isDarkMode, colors } = useOutletContext();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { dialogState, hideDialog, showAlert, showError, showSuccess } = useDialog();
 
-  const headerStyle = { color: "#1E3A5F", fontWeight: "bold" };
-  const rowStyle = { color: "#25344E" };
+  const headerStyle = { color: colors?.textPrimary || "#1E3A5F", fontWeight: "bold" };
+  const rowStyle = { color: colors?.textSecondary || "#25344E" };
 
   useEffect(() => {
     // fetchWarehouse();
@@ -91,14 +92,17 @@ export default function ViewLedgerPage() {
   useEffect(() => {
     let totalfreight = 0;
     let totalhamali = 0;
+    let totalcharges = 0;
     orders.forEach((element) => {
       totalfreight += element.freight;
       totalhamali += element.hamali;
+      totalcharges += element.charges;
     });
 
     setTotals({
       freight: totalfreight,
       hamali: totalhamali,
+      charges: totalcharges,
     });
   }, [orders]);
 
@@ -300,11 +304,17 @@ export default function ViewLedgerPage() {
     }
   };
 
+  const handleOrderValueChange = (index, field, value) => {
+    const updatedOrders = [...orders];
+    updatedOrders[index][field] = parseInt(value) || 0;
+    setOrders(updatedOrders);
+  };
+
   return (
     <Box
       sx={{
         padding: "20px",
-        backgroundColor: "#f5f5f5",
+        backgroundColor: colors?.bgPrimary || "#f5f5f5",
         minHeight: "100vh",
       }}
     >
@@ -315,11 +325,12 @@ export default function ViewLedgerPage() {
           flexDirection: { xs: "column", md: "row" },
           justifyContent: "flex-start",
           alignItems: { xs: "stretch", md: "flex-start" },
-          backgroundColor: "#ffffff",
+          backgroundColor: colors?.bgCard || "#ffffff",
           padding: { xs: "16px", md: "20px" },
           borderRadius: "12px",
           marginBottom: "20px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+          boxShadow: isDarkMode ? "0 2px 8px rgba(0,0,0,0.3)" : "0 2px 8px rgba(0,0,0,0.04)",
+          border: isDarkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid #e0e5eb",
         }}
       >
         {/* Left Section - Text Content */}
@@ -341,7 +352,7 @@ export default function ViewLedgerPage() {
                 height: "100px",
               }}
             >
-              <CircularProgress />
+              <ModernSpinner size={40} />
             </Box>
           ) : (
             <Box 
@@ -353,19 +364,19 @@ export default function ViewLedgerPage() {
             >
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Memo No</Typography>
+                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Memo No</Typography>
                   <Typography sx={{ ...rowStyle, fontWeight: 600 }}>{ledgerData.ledgerId}</Typography>
                 </Box>
                 <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Source Station</Typography>
+                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Source Station</Typography>
                   <Typography sx={rowStyle}>{ledgerData.sourceWarehouse?.name || "N/A"}</Typography>
                 </Box>
                 <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Destination Station</Typography>
+                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Destination Station</Typography>
                   <Typography sx={rowStyle}>{ledgerData.destinationWarehouse?.name || "N/A"}</Typography>
                 </Box>
                 <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Status</Typography>
+                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Status</Typography>
                   <Chip 
                     label={ledgerData.status?.charAt(0).toUpperCase() + ledgerData.status?.slice(1)} 
                     size="small"
@@ -380,29 +391,29 @@ export default function ViewLedgerPage() {
               </Box>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Lorry Freight</Typography>
+                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Lorry Freight</Typography>
                   <Typography sx={rowStyle}>{ledgerData.lorryFreight || "N/A"}</Typography>
                 </Box>
                 <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Created On</Typography>
+                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Created On</Typography>
                   <Typography sx={rowStyle}>{dateFormatter(ledgerData.dispatchedAt) || "N/A"}</Typography>
                 </Box>
                 <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Delivered On</Typography>
+                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Delivered On</Typography>
                   <Typography sx={rowStyle}>{dateFormatter(ledgerData.deliveredAt) || "N/A"}</Typography>
                 </Box>
               </Box>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Truck No</Typography>
+                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Truck No</Typography>
                   <Typography sx={{ ...rowStyle, fontWeight: 600 }}>{ledgerData.vehicleNo || "N/A"}</Typography>
                 </Box>
                 <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Driver Name</Typography>
+                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Driver Name</Typography>
                   <Typography sx={rowStyle}>{ledgerData.driverName || "N/A"}</Typography>
                 </Box>
                 <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Driver Phone</Typography>
+                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Driver Phone</Typography>
                   <Typography sx={rowStyle}>{ledgerData.driverPhone || "N/A"}</Typography>
                 </Box>
               </Box>
@@ -446,7 +457,7 @@ export default function ViewLedgerPage() {
       </Box>
 
       {/* Memo Table */}
-      <Box sx={{ backgroundColor: "#ffffff", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", overflow: "hidden" }}>
+      <Box sx={{ backgroundColor: colors?.bgCard || "#ffffff", borderRadius: "12px", boxShadow: isDarkMode ? "0 2px 8px rgba(0,0,0,0.3)" : "0 2px 8px rgba(0,0,0,0.04)", overflow: "hidden", border: isDarkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid #e0e5eb" }}>
         <Typography variant="h6" sx={{ padding: "16px", ...headerStyle }}>
           Memo orders ({counter}/{orders.length})
         </Typography>
@@ -456,12 +467,12 @@ export default function ViewLedgerPage() {
           <Box sx={{ p: 2, pt: 0 }}>
             {isLoading1 ? (
               <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                <CircularProgress sx={{ color: "#1E3A5F" }} />
+                <ModernSpinner size={36} />
               </Box>
             ) : orders.length !== 0 ? (
               <>
                 {orders.map((order, index) => (
-                  <Card key={order.trackingId} sx={{ mb: 1.5, borderRadius: 2, boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+                  <Card key={order.trackingId} sx={{ mb: 1.5, borderRadius: 2, boxShadow: isDarkMode ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(0,0,0,0.06)", backgroundColor: colors?.bgCard || "#ffffff", border: isDarkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid #e0e5eb" }}>
                     <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
                       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1.5 }}>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -470,10 +481,10 @@ export default function ViewLedgerPage() {
                             onChange={(e) => handleCheckboxChange(e.target.checked)}
                           />
                           <Box>
-                            <Typography sx={{ fontWeight: 700, color: "#1E3A5F", fontSize: "0.95rem" }}>
+                            <Typography sx={{ fontWeight: 700, color: colors?.textPrimary || "#1E3A5F", fontSize: "0.95rem" }}>
                               {index + 1}. {order.trackingId}
                             </Typography>
-                            <Typography sx={{ color: "#64748b", fontSize: "0.75rem" }}>
+                            <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem" }}>
                               {order.items.reduce((sum, item) => sum + item.quantity, 0)} packages
                             </Typography>
                           </Box>
@@ -491,72 +502,81 @@ export default function ViewLedgerPage() {
                       </Box>
                       <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, fontSize: "0.85rem" }}>
                         <Box>
-                          <Typography sx={{ color: "#64748b", fontSize: "0.7rem" }}>Sender</Typography>
-                          <Typography sx={{ color: "#1E3A5F", fontWeight: 500, fontSize: "0.85rem" }}>{order.sender.name}</Typography>
+                          <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.7rem" }}>Sender</Typography>
+                          <Typography sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500, fontSize: "0.85rem" }}>{order.sender.name}</Typography>
                         </Box>
                         <Box>
-                          <Typography sx={{ color: "#64748b", fontSize: "0.7rem" }}>Receiver</Typography>
-                          <Typography sx={{ color: "#1E3A5F", fontWeight: 500, fontSize: "0.85rem" }}>{order.receiver.name}</Typography>
+                          <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.7rem" }}>Receiver</Typography>
+                          <Typography sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500, fontSize: "0.85rem" }}>{order.receiver.name}</Typography>
                         </Box>
                       </Box>
-                      <Box sx={{ display: "flex", gap: 2, mt: 1.5, pt: 1.5, borderTop: "1px solid #f1f5f9" }}>
+                      <Box sx={{ display: "flex", gap: 2, mt: 1.5, pt: 1.5, borderTop: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #f1f5f9" }}>
                         <Box sx={{ flex: 1 }}>
-                          <Typography sx={{ color: "#64748b", fontSize: "0.7rem", mb: 0.5 }}>Freight</Typography>
+                          <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.7rem", mb: 0.5 }}>Freight</Typography>
                           <TextField
-                            type="text"
+                            type="number"
                             size="small"
                             value={order.freight}
+                            onChange={(e) => handleOrderValueChange(index, 'freight', e.target.value)}
                             sx={{ 
                               width: "100%",
                               "& .MuiInputBase-input": { 
                                 fontSize: "0.85rem", 
                                 fontWeight: 600, 
-                                color: "#1E3A5F",
-                                padding: "6px 8px"
+                                color: colors?.textPrimary || "#1E3A5F",
+                                padding: "6px 8px",
+                                cursor: ledgerData.status !== "pending" ? "default" : "text"
                               }
                             }}
                             InputProps={{
-                              startAdornment: <Typography sx={{ color: "#64748b", fontSize: "0.85rem", mr: 0.5 }}>₹</Typography>
+                              readOnly: ledgerData.status !== "pending",
+                              startAdornment: <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.85rem", mr: 0.5 }}>₹</Typography>
                             }}
                           />
                         </Box>
                         <Box sx={{ flex: 1 }}>
-                          <Typography sx={{ color: "#64748b", fontSize: "0.7rem", mb: 0.5 }}>Hamali</Typography>
+                          <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.7rem", mb: 0.5 }}>Hamali</Typography>
                           <TextField
-                            type="text"
+                            type="number"
                             size="small"
                             value={order.hamali}
+                            onChange={(e) => handleOrderValueChange(index, 'hamali', e.target.value)}
                             sx={{ 
                               width: "100%",
                               "& .MuiInputBase-input": { 
                                 fontSize: "0.85rem", 
                                 fontWeight: 600, 
-                                color: "#1E3A5F",
-                                padding: "6px 8px"
+                                color: colors?.textPrimary || "#1E3A5F",
+                                padding: "6px 8px",
+                                cursor: ledgerData.status !== "pending" ? "default" : "text"
                               }
                             }}
                             InputProps={{
-                              startAdornment: <Typography sx={{ color: "#64748b", fontSize: "0.85rem", mr: 0.5 }}>₹</Typography>
+                              readOnly: ledgerData.status !== "pending",
+                              startAdornment: <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.85rem", mr: 0.5 }}>₹</Typography>
                             }}
                           />
                         </Box>
                         <Box sx={{ flex: 1 }}>
-                          <Typography sx={{ color: "#64748b", fontSize: "0.7rem", mb: 0.5 }}>Charges</Typography>
+                          <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.7rem", mb: 0.5 }}>Charges</Typography>
                           <TextField
-                            type="text"
+                            type="number"
                             size="small"
-                            value={order.hamali}
+                            value={order.charges}
+                            onChange={(e) => handleOrderValueChange(index, 'charges', e.target.value)}
                             sx={{ 
                               width: "100%",
                               "& .MuiInputBase-input": { 
                                 fontSize: "0.85rem", 
                                 fontWeight: 600, 
-                                color: "#1E3A5F",
-                                padding: "6px 8px"
+                                color: colors?.textPrimary || "#1E3A5F",
+                                padding: "6px 8px",
+                                cursor: ledgerData.status !== "pending" ? "default" : "text"
                               }
                             }}
                             InputProps={{
-                              startAdornment: <Typography sx={{ color: "#64748b", fontSize: "0.85rem", mr: 0.5 }}>₹</Typography>
+                              readOnly: ledgerData.status !== "pending",
+                              startAdornment: <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.85rem", mr: 0.5 }}>₹</Typography>
                             }}
                           />
                         </Box>
@@ -565,36 +585,36 @@ export default function ViewLedgerPage() {
                   </Card>
                 ))}
                 {/* Mobile Totals */}
-                <Card sx={{ mt: 2, borderRadius: 2, backgroundColor: "#f8fafc" }}>
+                <Card sx={{ mt: 2, borderRadius: 2, backgroundColor: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: isDarkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid #e0e5eb" }}>
                   <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
-                    <Typography sx={{ fontWeight: 700, color: "#1E3A5F", mb: 1 }}>Totals</Typography>
+                    <Typography sx={{ fontWeight: 700, color: colors?.textPrimary || "#1E3A5F", mb: 1 }}>Totals</Typography>
                     <Box sx={{ display: "flex", gap: 2 }}>
                       <Box sx={{ flex: 1 }}>
-                        <Typography sx={{ color: "#64748b", fontSize: "0.7rem" }}>Freight</Typography>
-                        <Typography sx={{ color: "#1E3A5F", fontWeight: 700 }}>₹{totals.freight}</Typography>
+                        <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.7rem" }}>Freight</Typography>
+                        <Typography sx={{ color: isDarkMode ? colors?.accent : colors?.textPrimary || "#1E3A5F", fontWeight: 700 }}>₹{totals.freight}</Typography>
                       </Box>
                       <Box sx={{ flex: 1 }}>
-                        <Typography sx={{ color: "#64748b", fontSize: "0.7rem" }}>Hamali</Typography>
-                        <Typography sx={{ color: "#1E3A5F", fontWeight: 700 }}>₹{totals.hamali}</Typography>
+                        <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.7rem" }}>Hamali</Typography>
+                        <Typography sx={{ color: isDarkMode ? colors?.accent : colors?.textPrimary || "#1E3A5F", fontWeight: 700 }}>₹{totals.hamali}</Typography>
                       </Box>
                       <Box sx={{ flex: 1 }}>
-                        <Typography sx={{ color: "#64748b", fontSize: "0.7rem" }}>Charges</Typography>
-                        <Typography sx={{ color: "#1E3A5F", fontWeight: 700 }}>₹{totals.hamali}</Typography>
+                        <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.7rem" }}>Charges</Typography>
+                        <Typography sx={{ color: isDarkMode ? colors?.accent : colors?.textPrimary || "#1E3A5F", fontWeight: 700 }}>₹{totals.charges}</Typography>
                       </Box>
                     </Box>
                   </CardContent>
                 </Card>
               </>
             ) : (
-              <Box sx={{ textAlign: "center", py: 4, color: "#64748b" }}>No orders in this memo.</Box>
+              <Box sx={{ textAlign: "center", py: 4, color: colors?.textSecondary || "#64748b" }}>No orders in this memo.</Box>
             )}
           </Box>
         ) : (
           /* Desktop Table View */
-          <TableContainer component={Paper} sx={{ boxShadow: "none" }}>
+          <TableContainer component={Paper} sx={{ boxShadow: "none", backgroundColor: colors?.bgCard || "#ffffff" }}>
             <Table>
               <TableHead>
-                <TableRow>
+                <TableRow sx={{ backgroundColor: colors?.tableHeader || "#f8fafc" }}>
                   <TableCell sx={headerStyle}></TableCell>
                   <TableCell sx={headerStyle}>Sl No.</TableCell>
                   <TableCell sx={headerStyle}>LR No.</TableCell>
@@ -613,12 +633,8 @@ export default function ViewLedgerPage() {
               <TableBody>
                 {isLoading1 ? (
                   <TableRow>
-                    <TableCell colSpan={11} align="center">
-                      <CircularProgress
-                        size={22}
-                        className="spinner"
-                        sx={{ color: "#1E3A5F", animation: "none !important" }}
-                      />
+                    <TableCell colSpan={11} align="center" sx={{ py: 3 }}>
+                      <ModernSpinner size={28} />
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -637,26 +653,32 @@ export default function ViewLedgerPage() {
                       <TableCell sx={rowStyle}>{order.receiver.name}</TableCell>
                       <TableCell sx={rowStyle}>
                         <TextField 
-                          type="text" 
+                          type="number" 
                           size="small" 
                           value={order.freight} 
-                          sx={{ width: 80 }} 
+                          onChange={(e) => handleOrderValueChange(index, 'freight', e.target.value)}
+                          sx={{ width: 80, "& .MuiInputBase-input": { cursor: ledgerData.status !== "pending" ? "default" : "text" } }} 
+                          InputProps={{ readOnly: ledgerData.status !== "pending" }}
                         />
                       </TableCell>
                       <TableCell sx={rowStyle}>
                         <TextField 
-                          type="text" 
+                          type="number" 
                           size="small" 
                           value={order.hamali} 
-                          sx={{ width: 80 }} 
+                          onChange={(e) => handleOrderValueChange(index, 'hamali', e.target.value)}
+                          sx={{ width: 80, "& .MuiInputBase-input": { cursor: ledgerData.status !== "pending" ? "default" : "text" } }} 
+                          InputProps={{ readOnly: ledgerData.status !== "pending" }}
                         />
                       </TableCell>
                       <TableCell sx={rowStyle}>
                         <TextField 
-                          type="text" 
+                          type="number" 
                           size="small" 
-                          value={order.hamali} 
-                          sx={{ width: 80 }} 
+                          value={order.charges} 
+                          onChange={(e) => handleOrderValueChange(index, 'charges', e.target.value)}
+                          sx={{ width: 80, "& .MuiInputBase-input": { cursor: ledgerData.status !== "pending" ? "default" : "text" } }} 
+                          InputProps={{ readOnly: ledgerData.status !== "pending" }}
                         />
                       </TableCell>
                       {ledgerData.status === "pending" && (
@@ -700,7 +722,7 @@ export default function ViewLedgerPage() {
                     {totals.hamali}
                   </TableCell>
                   <TableCell sx={{ ...rowStyle, fontWeight: "bold" }}>
-                    {totals.hamali}
+                    {totals.charges}
                   </TableCell>
                   <TableCell></TableCell>
                 </TableRow>
@@ -795,11 +817,12 @@ export default function ViewLedgerPage() {
             left: "50%",
             transform: "translate(-50%, -50%)",
             width: 350,
-            bgcolor: "background.paper",
+            bgcolor: colors?.bgCard || "background.paper",
             borderRadius: 3,
             boxShadow: 24,
             p: 4,
             textAlign: "center",
+            border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "none",
           }}
         >
           <FaExclamationTriangle
@@ -822,7 +845,7 @@ export default function ViewLedgerPage() {
           <Typography
             sx={{
               marginBottom: "20px",
-              color: "#374151",
+              color: colors?.textSecondary || "#374151",
               fontSize: "15px",
             }}
           >
@@ -831,7 +854,14 @@ export default function ViewLedgerPage() {
           <Box sx={{ display: "flex", justifyContent: "center", gap: "12px" }}>
             <Button
               variant="outlined"
-              sx={{ borderColor: "#1E3A5F", color: "#1E3A5F" }}
+              sx={{ 
+                borderColor: isDarkMode ? colors?.accent : "#1E3A5F", 
+                color: isDarkMode ? colors?.accent : "#1E3A5F",
+                "&:hover": {
+                  borderColor: isDarkMode ? colors?.accentHover : "#1E3A5F",
+                  backgroundColor: isDarkMode ? "rgba(255,183,77,0.08)" : "rgba(30,58,95,0.04)",
+                }
+              }}
               onClick={() => setModalOpen(false)}
             >
               Cancel
