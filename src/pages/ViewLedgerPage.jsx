@@ -58,7 +58,7 @@ export default function ViewLedgerPage() {
   const { id } = useParams();
   const [ledgerData, setLedgerData] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [totals, setTotals] = useState({ freight: 0, hamali: 0, charges: 0 });
+  const [totals, setTotals] = useState({ freight: 0, hamali: 0 });
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   // const [allWarehouse, setAllWarehouse] = useState([]);
@@ -96,13 +96,11 @@ export default function ViewLedgerPage() {
     orders.forEach((element) => {
       totalfreight += element.freight;
       totalhamali += element.hamali;
-      totalcharges += element.charges;
     });
 
     setTotals({
       freight: totalfreight,
       hamali: totalhamali,
-      charges: totalcharges,
     });
   }, [orders]);
 
@@ -514,10 +512,9 @@ export default function ViewLedgerPage() {
                         <Box sx={{ flex: 1 }}>
                           <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.7rem", mb: 0.5 }}>Freight</Typography>
                           <TextField
-                            type="number"
+                            type="text"
                             size="small"
                             value={order.freight}
-                            onChange={(e) => handleOrderValueChange(index, 'freight', e.target.value)}
                             sx={{ 
                               width: "100%",
                               "& .MuiInputBase-input": { 
@@ -527,20 +524,15 @@ export default function ViewLedgerPage() {
                                 padding: "6px 8px",
                                 cursor: ledgerData.status !== "pending" ? "default" : "text"
                               }
-                            }}
-                            InputProps={{
-                              readOnly: ledgerData.status !== "pending",
-                              startAdornment: <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.85rem", mr: 0.5 }}>₹</Typography>
                             }}
                           />
                         </Box>
                         <Box sx={{ flex: 1 }}>
                           <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.7rem", mb: 0.5 }}>Hamali</Typography>
                           <TextField
-                            type="number"
+                            type="text"
                             size="small"
                             value={order.hamali}
-                            onChange={(e) => handleOrderValueChange(index, 'hamali', e.target.value)}
                             sx={{ 
                               width: "100%",
                               "& .MuiInputBase-input": { 
@@ -550,20 +542,15 @@ export default function ViewLedgerPage() {
                                 padding: "6px 8px",
                                 cursor: ledgerData.status !== "pending" ? "default" : "text"
                               }
-                            }}
-                            InputProps={{
-                              readOnly: ledgerData.status !== "pending",
-                              startAdornment: <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.85rem", mr: 0.5 }}>₹</Typography>
                             }}
                           />
                         </Box>
                         <Box sx={{ flex: 1 }}>
-                          <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.7rem", mb: 0.5 }}>Charges</Typography>
+                          <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.7rem", mb: 0.5 }}>Statistical Charges</Typography>
                           <TextField
-                            type="number"
+                            type="text"
                             size="small"
-                            value={order.charges}
-                            onChange={(e) => handleOrderValueChange(index, 'charges', e.target.value)}
+                            value={order.hamali}
                             sx={{ 
                               width: "100%",
                               "& .MuiInputBase-input": { 
@@ -573,10 +560,6 @@ export default function ViewLedgerPage() {
                                 padding: "6px 8px",
                                 cursor: ledgerData.status !== "pending" ? "default" : "text"
                               }
-                            }}
-                            InputProps={{
-                              readOnly: ledgerData.status !== "pending",
-                              startAdornment: <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.85rem", mr: 0.5 }}>₹</Typography>
                             }}
                           />
                         </Box>
@@ -598,8 +581,8 @@ export default function ViewLedgerPage() {
                         <Typography sx={{ color: isDarkMode ? colors?.accent : colors?.textPrimary || "#1E3A5F", fontWeight: 700 }}>₹{totals.hamali}</Typography>
                       </Box>
                       <Box sx={{ flex: 1 }}>
-                        <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.7rem" }}>Charges</Typography>
-                        <Typography sx={{ color: isDarkMode ? colors?.accent : colors?.textPrimary || "#1E3A5F", fontWeight: 700 }}>₹{totals.charges}</Typography>
+                        <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.7rem" }}>Statistical Charges</Typography>
+                        <Typography sx={{ color: isDarkMode ? colors?.accent : colors?.textPrimary || "#1E3A5F", fontWeight: 700 }}>₹{totals.hamali}</Typography>
                       </Box>
                     </Box>
                   </CardContent>
@@ -653,32 +636,26 @@ export default function ViewLedgerPage() {
                       <TableCell sx={rowStyle}>{order.receiver.name}</TableCell>
                       <TableCell sx={rowStyle}>
                         <TextField 
-                          type="number" 
+                          type="text" 
                           size="small" 
                           value={order.freight} 
-                          onChange={(e) => handleOrderValueChange(index, 'freight', e.target.value)}
-                          sx={{ width: 80, "& .MuiInputBase-input": { cursor: ledgerData.status !== "pending" ? "default" : "text" } }} 
-                          InputProps={{ readOnly: ledgerData.status !== "pending" }}
+                          sx={{ width: 80 }} 
                         />
                       </TableCell>
                       <TableCell sx={rowStyle}>
                         <TextField 
-                          type="number" 
+                          type="text" 
                           size="small" 
                           value={order.hamali} 
-                          onChange={(e) => handleOrderValueChange(index, 'hamali', e.target.value)}
-                          sx={{ width: 80, "& .MuiInputBase-input": { cursor: ledgerData.status !== "pending" ? "default" : "text" } }} 
-                          InputProps={{ readOnly: ledgerData.status !== "pending" }}
+                          sx={{ width: 80}} 
                         />
                       </TableCell>
                       <TableCell sx={rowStyle}>
                         <TextField 
-                          type="number" 
+                          type="text" 
                           size="small" 
-                          value={order.charges} 
-                          onChange={(e) => handleOrderValueChange(index, 'charges', e.target.value)}
-                          sx={{ width: 80, "& .MuiInputBase-input": { cursor: ledgerData.status !== "pending" ? "default" : "text" } }} 
-                          InputProps={{ readOnly: ledgerData.status !== "pending" }}
+                          value={order.hamali} 
+                          sx={{ width: 80}} 
                         />
                       </TableCell>
                       {ledgerData.status === "pending" && (
@@ -722,7 +699,7 @@ export default function ViewLedgerPage() {
                     {totals.hamali}
                   </TableCell>
                   <TableCell sx={{ ...rowStyle, fontWeight: "bold" }}>
-                    {totals.charges}
+                    {totals.hamali}
                   </TableCell>
                   <TableCell></TableCell>
                 </TableRow>

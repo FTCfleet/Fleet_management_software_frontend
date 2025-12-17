@@ -32,8 +32,6 @@ export default function EditOrderPage() {
   const [newItems, setNewItems] = useState([]);
   const [senderDetails, setSenderDetails] = useState({ name: "", phoneNo: "", address: "", gst: "", role: "sender" });
   const [receiverDetails, setReceiverDetails] = useState({ name: "", phoneNo: "", address: "", gst: "", role: "receiver" });
-  const [freightOld, setFreightOld] = useState(0);
-  const [hamaliOld, setHamaliOld] = useState(0);
   const [freight, setFreight] = useState(0);
   const [hamali, setHamali] = useState(0);
   const [isDoorDelivery, setIsDoorDelivery] = useState(false);
@@ -72,30 +70,47 @@ export default function EditOrderPage() {
     if (response.status === 201) { alert("No such LR"); return; }
     const data = (await response.json()).body;
     setSenderDetails(data.sender); setReceiverDetails(data.receiver); setSourceWarehouse(data.sourceWarehouse.warehouseID); setDestinationWarehouse(data.destinationWarehouse.warehouseID);
-    setFreightOld(data.freight || 0); setHamaliOld(data.hamali || 0); setIsDoorDelivery(data.isDoorDelivery); setDoorDeliveryCharge(data.doorDeliveryCharge || 0); setPayemnt(data.payment); setOldItems(data.items); setStatus(data.status); setIsPageLoading(false);
+    setIsDoorDelivery(data.isDoorDelivery); setDoorDeliveryCharge(data.doorDeliveryCharge || 0); setPayemnt(data.payment); setOldItems(data.items); setStatus(data.status); setIsPageLoading(false);
   };
   const fetchItemTypes = async () => { const token = localStorage.getItem("token"); const res = await fetch(`${BASE_URL}/api/admin/manage/item-type`, { headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` } }); const data = await res.json(); setItemTypes(data.body); };
 
   const handleSenderChange = (event, selectedOption) => { if (!selectedOption) return; selectedOption = selectedOption.toUpperCase(); let client = clients.find((client) => client.name === selectedOption && client.isSender); if (!client) { setSenderDetails({ ...senderDetails, name: selectedOption }); return; } setSenderDetails({ ...senderDetails, name: client.name, phoneNo: client.phoneNo, address: client.address, gst: client.gst }); };
   const handleReceiverChange = (event, selectedOption) => { if (!selectedOption) return; selectedOption = selectedOption.toUpperCase(); let client = clients.find((client) => client.name === selectedOption && !client.isSender); if (!client) { setReceiverDetails({ ...receiverDetails, name: selectedOption }); return; } fetchRegClientItems(client._id); setReceiverDetails({ ...receiverDetails, name: client.name, phoneNo: client.phoneNo, address: client.address, gst: client.gst }); };
-  const handleDelete = (item) => { delItems.push(item._id); setFreightOld((prev) => prev - item.quantity * item.freight); setHamaliOld((prev) => prev - item.quantity * item.hamali); setDelItems(delItems); setOldItems(oldItems.filter((element) => element._id !== item._id)); };
+  const handleDelete = (item) => { delItems.push(item._id); setDelItems(delItems); setOldItems(oldItems.filter((element) => element._id !== item._id)); };
   const handleAddRow = () => { setError(false); setNewItems([...newItems, { itemId: counter, name: "", quantity: 0, freight: 0, hamali: 0, type: "C/B" }]); setCounter(counter + 1); };
-  const handleRemoveRow = (itemId) => { const updatedItems = newItems.filter((item) => item.itemId !== itemId).map((item, index) => ({ ...item, itemId: index + 1 })); fixCharges(itemId, 0, 0, 0, updatedItems); setNewItems(updatedItems); setCounter(updatedItems.length + 1); };
-  const handleCopyRow = (itemId) => { const itemToCopy = newItems.find((item) => item.itemId === itemId); if (itemToCopy) { const copiedItem = { ...itemToCopy, itemId: counter }; const updatedItems = [...newItems, copiedItem]; fixCharges(copiedItem.itemId, copiedItem.quantity, copiedItem.freight, copiedItem.hamali, updatedItems); setNewItems(updatedItems); setCounter(counter + 1); } };
-  const fixCharges = (id, quantity_new, freight_new, hamali_new, itemsList = newItems) => { let ham = 0, frt = 0; itemsList.filter((item) => item.itemId !== id).forEach((item) => { ham += item.quantity * item.hamali; frt += item.quantity * item.freight; }); ham += hamali_new * quantity_new; frt += freight_new * quantity_new; setHamali(ham); setFreight(frt); };
+  const handleRemoveRow = (itemId) => { const updatedItems = newItems.filter((item) => item.itemId !== itemId).map((item, index) => ({ ...item, itemId: index + 1 })); setNewItems(updatedItems); setCounter(updatedItems.length + 1); };
+  const handleCopyRow = (itemId) => { const itemToCopy = newItems.find((item) => item.itemId === itemId); if (itemToCopy) { const copiedItem = { ...itemToCopy, itemId: counter }; const updatedItems = [...newItems, copiedItem]; setNewItems(updatedItems); setCounter(counter + 1); } };
+  
+  useEffect(() => {
+    const calculateTotals = () => {
+      let totalFreight = 0;
+      let totalHamali = 0;
+      oldItems.forEach((item) => {
+        totalFreight += (item.freight || 0) * (item.quantity || 0);
+        totalHamali += (item.hamali || 0) * (item.quantity || 0);
+      });
+      newItems.forEach((item) => {
+        totalFreight += (item.freight || 0) * (item.quantity || 0);
+        totalHamali += (item.hamali || 0) * (item.quantity || 0);
+      });
+      setFreight(totalFreight);
+      setHamali(totalHamali);
+    };
+    calculateTotals();
+  }, [oldItems, newItems]);
 
   const handleInputChange = (id, field, value, event) => {
-    if (field === "autoComplete") { const normalizedValue = normalizeName(value || event?.target.value); setNewItems((prevItems) => { let updatedItemForCharges = null; const updatedItems = prevItems.map((prevItem) => { if (prevItem.itemId !== id) return prevItem; const matchedItem = findRegItem(normalizedValue, prevItem.type); updatedItemForCharges = { ...prevItem, name: normalizedValue, freight: matchedItem ? matchedItem.freight || 0 : 0, hamali: matchedItem ? matchedItem.hamali || 0 : 0, quantity: prevItem.quantity || 1 }; return updatedItemForCharges; }); if (updatedItemForCharges) fixCharges(id, updatedItemForCharges.quantity, updatedItemForCharges.freight, updatedItemForCharges.hamali, updatedItems); return updatedItems; }); return; }
-    if (field === "type") { setNewItems((prevItems) => { let updatedItemForCharges = null; const updatedItems = prevItems.map((prevItem) => { if (prevItem.itemId !== id) return prevItem; const matchedItem = findRegItem(prevItem.name, value); updatedItemForCharges = { ...prevItem, type: value, freight: matchedItem ? matchedItem.freight || 0 : 0, hamali: matchedItem ? matchedItem.hamali || 0 : 0, quantity: prevItem.quantity || 1 }; return updatedItemForCharges; }); if (updatedItemForCharges) fixCharges(id, updatedItemForCharges.quantity, updatedItemForCharges.freight, updatedItemForCharges.hamali, updatedItems); return updatedItems; }); return; }
+    if (field === "autoComplete") { const normalizedValue = normalizeName(value || event?.target.value); setNewItems((prevItems) => { const updatedItems = prevItems.map((prevItem) => { if (prevItem.itemId !== id) return prevItem; const matchedItem = findRegItem(normalizedValue, prevItem.type); return { ...prevItem, name: normalizedValue, freight: matchedItem ? matchedItem.freight || 0 : 0, hamali: matchedItem ? matchedItem.hamali || 0 : 0, quantity: prevItem.quantity || 1 }; }); return updatedItems; }); return; }
+    if (field === "type") { setNewItems((prevItems) => { const updatedItems = prevItems.map((prevItem) => { if (prevItem.itemId !== id) return prevItem; const matchedItem = findRegItem(prevItem.name, value); return { ...prevItem, type: value, freight: matchedItem ? matchedItem.freight || 0 : 0, hamali: matchedItem ? matchedItem.hamali || 0 : 0, quantity: prevItem.quantity || 1 }; }); return updatedItems; }); return; }
     if (field === "quantity" || field === "freight" || field === "hamali") value = parseInt(value) || 0;
-    setNewItems((prevItems) => { const updatedItems = prevItems.map((prevItem) => prevItem.itemId === id ? { ...prevItem, [field]: value } : prevItem); if (field === "quantity" || field === "freight" || field === "hamali") { const updatedItem = updatedItems.find((itm) => itm.itemId === id); if (updatedItem) fixCharges(id, updatedItem.quantity, updatedItem.freight, updatedItem.hamali, updatedItems); } return updatedItems; });
+    setNewItems((prevItems) => { const updatedItems = prevItems.map((prevItem) => prevItem.itemId === id ? { ...prevItem, [field]: value } : prevItem); return updatedItems; });
   };
 
   const validateOrder = () => { if (senderDetails.name === "" || receiverDetails.name === "") { alert("Please fill all the required fields"); return false; } if (!destinationWarehouse || (isAdmin && !sourceWarehouse)) { alert("Please fill all the required fields"); return false; } if (newItems.some((item) => !item.name)) { alert("Please fill all the required fields"); return false; } if (oldItems.length === 0 && newItems.length === 0) { alert("Add items"); return false; } return true; };
   const handleOpenSaveModal = () => setSaveModalOpen(true);
   const handleCloseSaveModal = () => setSaveModalOpen(false);
   const handleEmptyDetails = (details) => { if (details.name) details.name = details.name.toUpperCase(); if (!details.phoneNo || details.phoneNo == "") details.phoneNo = "NA"; if (!details.address || details.address == "") details.address = "NA"; if (!details.gst || details.gst == "") details.gst = "NA"; return details; };
-  const confirmSave = async () => { setIsLoading(true); const token = localStorage.getItem("token"); await fetch(`${BASE_URL}/api/parcel/edit/${id}`, { method: "PUT", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ senderDetails: handleEmptyDetails(senderDetails), receiverDetails: handleEmptyDetails(receiverDetails), addItems: newItems, delItems: delItems, charges: hamali + hamaliOld, hamali: hamali + hamaliOld, freight: freight + freightOld, sourceWarehouse, destinationWarehouse, isDoorDelivery, payment, doorDeliveryCharge, ...(isAdmin ? { status } : {}) }) }).then((response) => response.json()).then((data) => { if (!data.flag) { setIsLoading(false); alert("Error occurred"); } else { setIsLoading(false); alert("LR Updated Successfully"); navigate(`/user/view/order/${id}`); } }); setIsLoading(false); handleCloseSaveModal(); };
+  const confirmSave = async () => { setIsLoading(true); const token = localStorage.getItem("token"); await fetch(`${BASE_URL}/api/parcel/edit/${id}`, { method: "PUT", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ senderDetails: handleEmptyDetails(senderDetails), receiverDetails: handleEmptyDetails(receiverDetails), addItems: newItems, delItems: delItems, hamali: hamali, freight: freight, sourceWarehouse, destinationWarehouse, isDoorDelivery, payment, doorDeliveryCharge, ...(isAdmin ? { status } : {}) }) }).then((response) => response.json()).then((data) => { if (!data.flag) { setIsLoading(false); alert("Error occurred"); } else { setIsLoading(false); alert("LR Updated Successfully"); navigate(`/user/view/order/${id}`); } }); setIsLoading(false); handleCloseSaveModal(); };
   const handleSaveChanges = () => { if (!validateOrder()) { setError(true); return; } handleOpenSaveModal(); };
 
   const accentColor = isDarkMode ? "#FFB74D" : "#1D3557";
@@ -191,10 +206,10 @@ export default function EditOrderPage() {
 
       <SectionCard title="Charges Summary" icon={<ReceiptLongIcon />} isDarkMode={isDarkMode} colors={colors} accentColor={accentColor}>
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(4, 1fr)" }, gap: 2 }}>
-          <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}><Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Freight</Typography><Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{freight + freightOld}</Typography></Box>
-          <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}><Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Hamali</Typography><Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{hamali + hamaliOld}</Typography></Box>
+          <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}><Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Freight</Typography><Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{freight}</Typography></Box>
+          <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}><Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Hamali</Typography><Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{hamali}</Typography></Box>
           <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}><Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Door Delivery</Typography><Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{isDoorDelivery ? doorDeliveryCharge : 0}</Typography></Box>
-          <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,183,77,0.1)" : "rgba(29,53,87,0.08)", border: isDarkMode ? "1px solid rgba(255,183,77,0.3)" : "1px solid rgba(29,53,87,0.2)" }}><Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Total</Typography><Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: isDarkMode ? "#FFB74D" : "#1D3557" }}>₹{freight + freightOld + (hamali + hamaliOld) * 2 + (isDoorDelivery ? doorDeliveryCharge : 0)}</Typography></Box>
+          <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,183,77,0.1)" : "rgba(29,53,87,0.08)", border: isDarkMode ? "1px solid rgba(255,183,77,0.3)" : "1px solid rgba(29,53,87,0.2)" }}><Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Total</Typography><Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: isDarkMode ? "#FFB74D" : "#1D3557" }}>₹{freight + hamali * 2 + (isDoorDelivery ? doorDeliveryCharge : 0)}</Typography></Box>
         </Box>
       </SectionCard>
 

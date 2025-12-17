@@ -196,7 +196,7 @@ export default function AddOrderPage({}) {
       const response = await fetch(`${BASE_URL}/api/parcel/new`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ senderDetails: handleEmptyDetails(senderDetails), receiverDetails: handleEmptyDetails(receiverDetails), items, destinationWarehouse, charges: hamali, hamali, freight, payment, isDoorDelivery, doorDeliveryCharge, ...(isAdmin ? { sourceWarehouse } : {}) }),
+        body: JSON.stringify({ senderDetails: handleEmptyDetails(senderDetails), receiverDetails: handleEmptyDetails(receiverDetails), items, destinationWarehouse, hamali, freight, payment, isDoorDelivery, doorDeliveryCharge, ...(isAdmin ? { sourceWarehouse } : {}) }),
       });
       const data = await response.json();
       if (!response.ok || !data.flag) { showError("Failed to create LR. Please try again.", "Error"); }
@@ -206,15 +206,19 @@ export default function AddOrderPage({}) {
   };
 
   const handleSenderChange = (event, selectedOption) => {
-    if (!selectedOption) return;
+    if (!selectedOption){
+      selectedOption = event?.target?.value?.toUpperCase();
+    }
     selectedOption = selectedOption.toUpperCase();
     let client = regClients.find((client) => client.name === selectedOption && client.isSender);
     if (!client) { setSenderDetails({ ...senderDetails, name: selectedOption }); return; }
     setSenderDetails({ ...senderDetails, name: client.name, phoneNo: client.phoneNo, address: client.address, gst: client.gst });
   };
-
+  
   const handleReceiverChange = (event, selectedOption) => {
-    if (!selectedOption) return;
+    if (!selectedOption){
+      selectedOption = event?.target?.value?.toUpperCase();
+    }
     selectedOption = selectedOption.toUpperCase();
     let client = regClients.find((client) => client.name === selectedOption && !client.isSender);
     if (!client) { setReceiverDetails({ ...receiverDetails, name: selectedOption }); return; }
@@ -236,19 +240,19 @@ export default function AddOrderPage({}) {
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" }, gap: 2.5 }}>
         <SectionCard title="Sender Details" icon={<PersonIcon />} isDarkMode={isDarkMode} colors={colors}>
           <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
-            <Autocomplete freeSolo inputValue={senderDetails.name} onInputChange={(event, newValue) => { if (event) setSenderDetails({ ...senderDetails, name: newValue }); }} options={regClients.filter(client => client.isSender).map((client) => client.name)} onChange={(event, newValue) => handleSenderChange(event, newValue)} filterOptions={createFilterOptions({ matchFrom: "start" })} getOptionLabel={(option) => option || ""} renderInput={(params) => <TextField {...params} label="Name" error={error && !senderDetails.name} sx={{ ...textFieldSx, "& input": { textTransform: "uppercase" } }} size="small" />} disableClearable slots={autocompleteSlots} />
+            <Autocomplete freeSolo inputValue={senderDetails.name} onInputChange={(event, newValue) => { if (event) setSenderDetails({ ...senderDetails, name: newValue }); }} options={regClients.filter(client => client.isSender).map((client) => client.name)} onChange={(event, newValue) => handleSenderChange(event, newValue)} onBlur={(event, newValue) => handleSenderChange(event, newValue)} filterOptions={createFilterOptions({ matchFrom: "start" })} getOptionLabel={(option) => option || ""} renderInput={(params) => <TextField {...params} label="Name *" error={error && !senderDetails.name} sx={{ ...textFieldSx, "& input": { textTransform: "uppercase" } }} size="small" />} disableClearable slots={autocompleteSlots} />
             <TextField label="Phone No." value={senderDetails.phoneNo} onChange={(e) => setSenderDetails({ ...senderDetails, phoneNo: e.target.value })} sx={textFieldSx} size="small" inputProps={{ tabIndex: 2 }} />
             <TextField label="Address" value={senderDetails.address} onChange={(e) => setSenderDetails({ ...senderDetails, address: e.target.value })} sx={textFieldSx} size="small" inputProps={{ tabIndex: 3 }} />
-            <TextField label="GST No." value={senderDetails.gst} onChange={(e) => setSenderDetails({ ...senderDetails, gst: e.target.value })} sx={textFieldSx} size="small" inputProps={{ tabIndex: 4 }} />
+            <TextField label="GST No." value={senderDetails.gst} onChange={(e) => setSenderDetails({ ...senderDetails, gst: e.target.value.toUpperCase() })} sx={textFieldSx} size="small" inputProps={{ tabIndex: 4 }} />
           </Box>
         </SectionCard>
 
         <SectionCard title="Receiver Details" icon={<PersonIcon />} isDarkMode={isDarkMode} colors={colors}>
           <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
-            <Autocomplete freeSolo inputValue={receiverDetails.name} onInputChange={(event, newValue) => { if (event) setReceiverDetails({ ...receiverDetails, name: newValue }); }} options={regClients.filter(client => !client.isSender).map((client) => client.name)} onChange={(event, newValue) => handleReceiverChange(event, newValue)} filterOptions={createFilterOptions({ matchFrom: "start" })} getOptionLabel={(option) => option || ""} renderInput={(params) => <TextField {...params} label="Name *" error={error && !receiverDetails.name} sx={{ ...textFieldSx, "& input": { textTransform: "uppercase" } }} size="small" />} disableClearable slots={autocompleteSlots} />
+            <Autocomplete freeSolo inputValue={receiverDetails.name} onInputChange={(event, newValue) => { if (event) setReceiverDetails({ ...receiverDetails, name: newValue }); }} options={regClients.filter(client => !client.isSender).map((client) => client.name)} onChange={(event, newValue) => handleReceiverChange(event, newValue)} onBlur={(event, newValue) => handleReceiverChange(event, newValue)} filterOptions={createFilterOptions({ matchFrom: "start" })} getOptionLabel={(option) => option || ""} renderInput={(params) => <TextField {...params} label="Name *" error={error && !receiverDetails.name} sx={{ ...textFieldSx, "& input": { textTransform: "uppercase" } }} size="small" />} disableClearable slots={autocompleteSlots} />
             <TextField label="Phone No." value={receiverDetails.phoneNo} onChange={(e) => setReceiverDetails({ ...receiverDetails, phoneNo: e.target.value })} sx={textFieldSx} size="small" inputProps={{ tabIndex: 6 }} />
             <TextField label="Address" value={receiverDetails.address} onChange={(e) => setReceiverDetails({ ...receiverDetails, address: e.target.value })} sx={textFieldSx} size="small" inputProps={{ tabIndex: 7 }} />
-            <TextField label="GST No." value={receiverDetails.gst} onChange={(e) => setReceiverDetails({ ...receiverDetails, gst: e.target.value })} sx={textFieldSx} size="small" inputProps={{ tabIndex: 8 }} />
+            <TextField label="GST No." value={receiverDetails.gst} onChange={(e) => setReceiverDetails({ ...receiverDetails, gst: e.target.value.toUpperCase() })} sx={textFieldSx} size="small" inputProps={{ tabIndex: 8 }} />
           </Box>
         </SectionCard>
       </Box>
@@ -304,7 +308,7 @@ export default function AddOrderPage({}) {
                   <TableRow key={item.id} sx={{ "&:hover": { backgroundColor: isDarkMode ? "rgba(255,183,77,0.03)" : "#fafafa" } }}>
                     <TableCell sx={{ color: colors?.textSecondary }}>{item.id}</TableCell>
                     <TableCell>
-                      <Autocomplete freeSolo inputValue={item.name} onInputChange={(event, newValue) => { if (event) handleInputChange(item.id, "autoComplete", newValue, event); }} options={itemNameOptions} onChange={(event, newValue) => handleInputChange(item.id, "autoComplete", newValue, event)} filterOptions={createFilterOptions({ matchFrom: "start" })} getOptionLabel={(option) => option || ""} renderInput={(params) => <TextField {...params} placeholder="Item name" variant="outlined" size="small" error={error && !item.name} sx={{ ...textFieldSx, minWidth: 140 }} />} disableClearable slots={autocompleteSlots} />
+                      <Autocomplete freeSolo inputValue={item.name} onInputChange={(event, newValue) => { if (event) handleInputChange(item.id, "autoComplete", newValue, event); }} options={itemNameOptions} onChange={(event, newValue) => handleInputChange(item.id, "autoComplete", newValue, event)} onBlur={(event, newValue) => handleInputChange(item.id, "autoComplete", newValue, event)} filterOptions={createFilterOptions({ matchFrom: "start" })} getOptionLabel={(option) => option || ""} renderInput={(params) => <TextField {...params} placeholder="Item name" variant="outlined" size="small" error={error && !item.name} sx={{ ...textFieldSx, minWidth: 140 }} />} disableClearable slots={autocompleteSlots} />
                     </TableCell>
                     <TableCell>
                       <FormControl fullWidth size="small" sx={textFieldSx}>
@@ -343,7 +347,7 @@ export default function AddOrderPage({}) {
             <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{hamali}</Typography>
           </Box>
           <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}>
-            <Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Statistical</Typography>
+            <Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Statistical Charges</Typography>
             <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{hamali}</Typography>
           </Box>
           <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,183,77,0.1)" : "rgba(29,53,87,0.08)", border: isDarkMode ? "1px solid rgba(255,183,77,0.3)" : "1px solid rgba(29,53,87,0.2)" }}>

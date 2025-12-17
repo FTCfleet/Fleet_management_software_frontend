@@ -204,7 +204,6 @@ export default function ViewOrderPage() {
                   <DetailRow label="Total" value={`₹${order.freight + order.hamali * 2}`} highlight colors={colors} isDarkMode={isDarkMode} />
                   <DetailRow label="Freight" value={`₹${order.freight}`} colors={colors} isDarkMode={isDarkMode} />
                   <DetailRow label="Hamali" value={`₹${order.hamali}`} colors={colors} isDarkMode={isDarkMode} />
-                  <DetailRow label="Packages" value={order.items?.reduce((sum, x) => sum + x.quantity, 0)} colors={colors} isDarkMode={isDarkMode} />
                   <DetailRow label="Door Delivery" value={order.isDoorDelivery ? `₹${order.doorDeliveryCharge}` : "No"} colors={colors} isDarkMode={isDarkMode} />
                 </Box>
               </Grid>
