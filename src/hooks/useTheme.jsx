@@ -9,7 +9,8 @@ const DARK_MODE_PAGES = ["/", "/about", "/track", "/locations", "/services"];
 export const ThemeProvider = ({ children }) => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem("darkMode");
-    return saved ? JSON.parse(saved) : false;
+    // Default to dark mode for dashboard if no preference is saved
+    return saved ? JSON.parse(saved) : true;
   });
   
   const location = useLocation();

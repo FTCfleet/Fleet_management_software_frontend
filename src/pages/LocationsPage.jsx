@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { Typography, Box, Container, useTheme, useMediaQuery } from "@mui/material";
 import { motion } from "framer-motion";
 import { FaMapMarkerAlt, FaPhoneAlt, FaBuilding } from "react-icons/fa";
@@ -15,19 +15,19 @@ const LocationsPage = () => {
   const staggerContainer = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 
   const bookingOffices = [
-    { name: "Old Feelkhana (HYD-01)", phone: "040-24614381", address: "Hyderabad", mapUrl: "https://maps.app.goo.gl/Ep8ncVerzcffE34e7" },
-    { name: "Goshamahal Road, Feelkhana (HYD-02)", phone: "040-24604381", address: "Hyderabad", mapUrl: "https://maps.app.goo.gl/Ep8ncVerzcffE34e7" },
-    { name: "Bahadurpura (BDPURA)", phone: "9515409041", address: "Hyderabad", mapUrl: "https://maps.app.goo.gl/Ep8ncVerzcffE34e7" },
-    { name: "Secunderabad (SECBAD)", phone: "040-29331533", address: "Secunderabad", mapUrl: "https://maps.app.goo.gl/6ytQH88X91XkjBda9" },
+    { badge: "FTC-1", name: "Head Office", location: "Old Feelkhana, Hyderabad", phone: "040-24614381", note: "Drop off point for Karimnagar, Sultanabad, Pedapally", mapUrl: "https://maps.app.goo.gl/gtTf3cu4dfDgRJL16" },
+    { badge: "FTC-2", name: "Goshamahal Road", location: "Feelkhana, Hyderabad", phone: "040-24604381", mapUrl: "https://maps.app.goo.gl/Ep8ncVerzcffE34e7" },
+    { badge: "FTC-3", name: "Bahadurpura", location: "Hyderabad", phone: "9515409041", mapUrl: "https://maps.app.goo.gl/auxyAkJLFrkrGikZ9" },
+    { badge: "FTC-4", name: "Secunderabad", location: "Secunderabad", phone: "040-29331533", mapUrl: "https://maps.app.goo.gl/CmwMjbafZeMJZiXz8" },
   ];
 
   const deliveryOffices = [
-    { name: "Karimnagar (KNR)", phone: "9908690827", address: "Karimnagar", mapUrl: "https://maps.app.goo.gl/1VBYHHEqUBg6dAyM7" },
-    { name: "Sultanabad (SBD)", phone: "9849701721", address: "Sultanabad", mapUrl: "https://maps.app.goo.gl/naRZdKJMTn9CUpNt6" },
-    { name: "Peddapally (PDPL)", phone: "9030478492", address: "Peddapally", mapUrl: "https://maps.app.goo.gl/ouFkftr4WGVQjnQo8" },
-    { name: "Ramagundam NTPC (NTPC)", phone: "9866239010", address: "Ramagundam", mapUrl: "https://maps.app.goo.gl/13o1fVkFemGnsUdX6" },
-    { name: "Godavarikhani (GDK)", phone: "9949121267", address: "Godavarikhani", mapUrl: "https://maps.app.goo.gl/2XebAQNTnD5KxehDA" },
-    { name: "Mancherial (MNCL)", phone: "8977185376", address: "Mancherial", mapUrl: "https://maps.app.goo.gl/GJyr48PkKHUjd1yS8" },
+    { name: "Karimnagar", code: "KNR", phone: "9908690827", mapUrl: "https://maps.app.goo.gl/1VBYHHEqUBg6dAyM7" },
+    { name: "Sultanabad", code: "SBD", phone: "9849701721", mapUrl: "https://maps.app.goo.gl/naRZdKJMTn9CUpNt6" },
+    { name: "Peddapally", code: "PDPL", phone: "9030478492", mapUrl: "https://maps.app.goo.gl/ouFkftr4WGVQjnQo8" },
+    { name: "Ramagundam NTPC", code: "NTPC", phone: "9866239010", mapUrl: "https://maps.app.goo.gl/13o1fVkFemGnsUdX6" },
+    { name: "Godavarikhani", code: "GDK", phone: "9949121267", mapUrl: "https://maps.app.goo.gl/2XebAQNTnD5KxehDA" },
+    { name: "Mancherial", code: "MNCL", phone: "8977185376", mapUrl: "https://maps.app.goo.gl/GJyr48PkKHUjd1yS8" },
   ];
 
   return (
@@ -131,25 +131,66 @@ const LocationsPage = () => {
           <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" }, gap: 3 }}>
             {bookingOffices.map((office, index) => (
               <motion.div key={index} variants={fadeIn}>
-                <GlassCard sx={{ p: { xs: 3, md: 4 }, height: "100%" }}>
-                  <Box sx={{ display: "flex", alignItems: "flex-start", gap: 3 }}>
-                    {office.mapUrl ? (
-                      <a href={office.mapUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-                        <Box sx={{ width: 56, height: 56, flexShrink: 0, background: "linear-gradient(135deg, rgba(255, 183, 77, 0.25) 0%, rgba(255, 183, 77, 0.08) 100%)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", color: "#FFB74D", cursor: "pointer", transition: "all 0.2s", "&:hover": { transform: "scale(1.05)" } }}><FaMapMarkerAlt size={24} /></Box>
-                      </a>
-                    ) : (
-                      <Box sx={{ width: 56, height: 56, flexShrink: 0, background: "linear-gradient(135deg, rgba(255, 183, 77, 0.25) 0%, rgba(255, 183, 77, 0.08) 100%)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", color: "#FFB74D" }}><FaMapMarkerAlt size={24} /></Box>
-                    )}
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ color: "#ffffff", fontWeight: 700, fontSize: "1.15rem", mb: 0.5 }}>{office.name}</Typography>
-                      <Typography sx={{ color: "rgba(255,255,255,0.8)", fontSize: "0.9rem", mb: 1.5 }}>{office.address}</Typography>
+                <GlassCard sx={{ p: { xs: 3, md: 4 }, height: "100%", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                  {/* FTC Badge with shine effect - golden bg, blue text */}
+                  <Box sx={{ 
+                    position: "absolute", top: 16, right: 16, 
+                    background: "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)", 
+                    borderRadius: "8px", px: 1.5, py: 0.5, 
+                    boxShadow: "0 4px 12px rgba(255, 183, 77, 0.3)",
+                    cursor: "pointer",
+                    overflow: "hidden",
+                    transition: "all 0.3s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    "&::before": {
+                      content: '""',
+                      position: "absolute",
+                      top: 0, left: "-100%",
+                      width: "100%", height: "100%",
+                      background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)",
+                      transition: "left 0.5s ease",
+                    },
+                    "&:hover": {
+                      transform: "scale(1.05)",
+                      "&::before": { left: "100%" },
+                    },
+                  }}>
+                    <Box component="span" sx={{ color: "#404269 !important", textShadow: "1px 1px 1px white", fontWeight: 800, fontSize: "0.8rem", letterSpacing: "1px", fontFamily: "'Segoe UI', sans-serif", position: "relative", zIndex: 1, lineHeight: 2, display: "block", textAlign: "center" }}>{office.badge}</Box>
+                  </Box>
+                  <Box sx={{ display: "flex", alignItems: "flex-start", gap: 3, flex: 1 }}>
+                    <Box sx={{ width: 56, height: 56, flexShrink: 0, background: "linear-gradient(135deg, rgba(255, 183, 77, 0.25) 0%, rgba(255, 183, 77, 0.08) 100%)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", color: "#FFB74D" }}><FaMapMarkerAlt size={24} /></Box>
+                    <Box sx={{ flex: 1, pr: 6, display: "flex", flexDirection: "column" }}>
+                      <Typography sx={{ color: "#ffffff", fontWeight: 700, fontSize: "1.15rem", mb: 0.25 }}>{office.name}</Typography>
+                      <Typography sx={{ color: "rgba(255,255,255,0.6)", fontSize: "0.85rem", mb: 1 }}>{office.location}</Typography>
+                      {office.note && (
+                        <Box sx={{ background: "rgba(255, 183, 77, 0.1)", border: "1px solid rgba(255, 183, 77, 0.2)", borderRadius: "8px", px: 1.5, py: 0.75, mb: 1.5, display: "inline-block", maxWidth: "fit-content" }}>
+                          <Typography sx={{ color: "#FFB74D", fontSize: "0.8rem", fontWeight: 500 }}>{office.note}</Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  </Box>
+                  {/* Phone + Call Now together like homepage, and See on Map */}
+                  <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mt: "auto", pt: 1, alignItems: "center" }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2, background: "rgba(255, 255, 255, 0.05)", borderRadius: "12px", px: 2, py: 1, border: "1px solid rgba(255, 255, 255, 0.1)" }}>
+                      <FaPhoneAlt size={14} color="#FFB74D" />
+                      <Typography sx={{ color: "#ffffff", fontSize: "0.95rem", fontWeight: 600 }}>{office.phone}</Typography>
                       <a href={`tel:${office.phone.replace(/-/g, "")}`} style={{ textDecoration: "none" }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, "&:hover": { opacity: 0.8 } }}>
-                          <FaPhoneAlt size={14} color="#FFB74D" />
-                          <Typography sx={{ color: "#FFB74D", fontSize: "1.05rem", fontWeight: 600 }}>{office.phone}</Typography>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, background: "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)", borderRadius: "8px", px: 2, py: 0.75, cursor: "pointer", transition: "all 0.2s", "&:hover": { transform: "scale(1.03)" } }}>
+                          <FaPhoneAlt size={12} color="#1D3557" />
+                          <Box component="span" sx={{ color: "#1D3557", fontSize: "0.85rem", fontWeight: 700 }}>Call Now</Box>
                         </Box>
                       </a>
                     </Box>
+                    {office.mapUrl && (
+                      <a href={office.mapUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, background: "linear-gradient(135deg, rgba(255, 183, 77, 0.2) 0%, rgba(255, 183, 77, 0.1) 100%)", border: "2px solid #FFB74D", borderRadius: "10px", px: 2.5, py: 1.15, cursor: "pointer", transition: "all 0.2s", "& svg": { transition: "all 0.2s" }, "&:hover": { background: "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)", "& p": { color: "#1D3557" }, "& svg": { color: "#1D3557 !important" } } }}>
+                          <FaMapMarkerAlt size={14} color="#FFB74D" style={{ transition: "all 0.2s" }} />
+                          <Typography sx={{ color: "#FFB74D", fontSize: "0.9rem", fontWeight: 600, transition: "all 0.2s" }}>See on Map</Typography>
+                        </Box>
+                      </a>
+                    )}
                   </Box>
                 </GlassCard>
               </motion.div>
@@ -174,24 +215,32 @@ const LocationsPage = () => {
           <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }, gap: 3 }}>
             {deliveryOffices.map((office, index) => (
               <motion.div key={index} variants={fadeIn}>
-                <GlassCard sx={{ p: { xs: 3, md: 4 }, height: "100%" }}>
-                  <Box sx={{ display: "flex", alignItems: "flex-start", gap: 3 }}>
-                    {office.mapUrl ? (
-                      <a href={office.mapUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-                        <Box sx={{ width: 56, height: 56, flexShrink: 0, background: "linear-gradient(135deg, rgba(100, 200, 255, 0.25) 0%, rgba(100, 200, 255, 0.08) 100%)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", color: "#64C8FF", cursor: "pointer", transition: "all 0.2s", "&:hover": { transform: "scale(1.05)" } }}><FaMapMarkerAlt size={24} /></Box>
-                      </a>
-                    ) : (
-                      <Box sx={{ width: 56, height: 56, flexShrink: 0, background: "linear-gradient(135deg, rgba(100, 200, 255, 0.25) 0%, rgba(100, 200, 255, 0.08) 100%)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", color: "#64C8FF" }}><FaMapMarkerAlt size={24} /></Box>
-                    )}
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ color: "#ffffff", fontWeight: 700, fontSize: "1.15rem", mb: 0.5 }}>{office.name}</Typography>
-                      <Typography sx={{ color: "rgba(255,255,255,0.8)", fontSize: "0.9rem", mb: 1.5 }}>{office.address}</Typography>
+                <GlassCard sx={{ p: { xs: 2.5, md: 3 }, height: "100%" }}>
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1, minWidth: 0 }}>
+                      <Box sx={{ width: 44, height: 44, flexShrink: 0, background: "linear-gradient(135deg, rgba(100, 200, 255, 0.25) 0%, rgba(100, 200, 255, 0.08) 100%)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", color: "#64C8FF" }}><FaMapMarkerAlt size={18} /></Box>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography sx={{ color: "#ffffff", fontWeight: 700, fontSize: "1rem", mb: 0.25 }}>{office.name}</Typography>
+                        <Typography sx={{ color: "#64C8FF", fontWeight: 600, fontSize: "0.8rem", mb: 0.5 }}>({office.code})</Typography>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <FaPhoneAlt size={11} color="rgba(255,255,255,0.5)" />
+                          <Typography sx={{ color: "rgba(255,255,255,0.7)", fontSize: "0.85rem" }}>{office.phone}</Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                    <Box sx={{ display: "flex", gap: 1, flexShrink: 0 }}>
                       <a href={`tel:${office.phone.replace(/-/g, "")}`} style={{ textDecoration: "none" }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, "&:hover": { opacity: 0.8 } }}>
-                          <FaPhoneAlt size={14} color="#64C8FF" />
-                          <Typography sx={{ color: "#64C8FF", fontSize: "1.05rem", fontWeight: 600 }}>{office.phone}</Typography>
+                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, background: "linear-gradient(135deg, #64C8FF 0%, #4BA8DF 100%)", borderRadius: "10px", cursor: "pointer", transition: "all 0.2s", "&:hover": { transform: "scale(1.05)", boxShadow: "0 4px 15px rgba(100, 200, 255, 0.4)" } }}>
+                          <FaPhoneAlt size={14} color="#1D3557" />
                         </Box>
                       </a>
+                      {office.mapUrl && (
+                        <a href={office.mapUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, background: "rgba(100, 200, 255, 0.15)", border: "1px solid rgba(100, 200, 255, 0.3)", borderRadius: "10px", cursor: "pointer", transition: "all 0.2s", "&:hover": { background: "rgba(100, 200, 255, 0.25)", borderColor: "rgba(100, 200, 255, 0.5)" } }}>
+                            <FaMapMarkerAlt size={14} color="#64C8FF" />
+                          </Box>
+                        </a>
+                      )}
                     </Box>
                   </Box>
                 </GlassCard>
@@ -208,12 +257,16 @@ const LocationsPage = () => {
             <Box sx={{ textAlign: "center" }}>
               <Typography variant="h4" sx={{ color: "#ffffff", fontWeight: 700, mb: 2, fontSize: { xs: "1.5rem", md: "2rem" } }}>Need Help Finding Us?</Typography>
               <Typography sx={{ color: "rgba(255,255,255,0.7)", mb: 3, fontSize: "1.05rem" }}>Contact our main office for directions and assistance</Typography>
-              <a href="tel:04024614381" style={{ textDecoration: "none" }}>
-                <GlassCard hover={false} sx={{ display: "inline-flex", alignItems: "center", gap: 2, px: 4, py: 2, cursor: "pointer", "&:hover": { opacity: 0.9 } }}>
-                  <FaPhoneAlt size={20} color="#FFB74D" />
-                  <Typography sx={{ color: "#ffffff", fontWeight: 600, fontSize: "1.1rem" }}>040-24614381</Typography>
-                </GlassCard>
-              </a>
+              <GlassCard hover={false} sx={{ display: "inline-flex", alignItems: "center", gap: 2, px: 3, py: 1.5 }}>
+                <FaPhoneAlt color="#FFB74D" size={18} />
+                <Typography sx={{ color: "#ffffff", fontWeight: 600 }}>040-24614381</Typography>
+                <a href="tel:04024614381" style={{ textDecoration: "none" }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, background: "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)", borderRadius: "8px", px: 2, py: 0.75, cursor: "pointer", transition: "all 0.2s", "&:hover": { transform: "scale(1.03)" } }}>
+                    <FaPhoneAlt size={12} color="#1D3557" />
+                    <Box component="span" sx={{ color: "#1D3557", fontSize: "0.85rem", fontWeight: 700 }}>Call Now</Box>
+                  </Box>
+                </a>
+              </GlassCard>
             </Box>
           </motion.div>
         </Container>

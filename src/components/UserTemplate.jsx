@@ -1,7 +1,7 @@
 ﻿import React, { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Box, List, ListItem, ListItemIcon, ListItemText, Typography, IconButton } from "@mui/material";
-import { FaRegFileAlt, FaTruckMoving, FaMoneyCheckAlt, FaBoxOpen, FaFileInvoice, FaPlus, FaChartBar } from "react-icons/fa";
+import { FaRegFileAlt, FaTruckMoving, FaMoneyCheckAlt, FaBoxOpen, FaFileInvoice, FaPlus, FaChartBar, FaEnvelope } from "react-icons/fa";
 import { useAuth } from "../routes/AuthContext";
 import { useSidebar } from "../hooks/useSidebar";
 import { useThemeMode, getThemeColors } from "../hooks/useTheme";
@@ -10,19 +10,77 @@ import ModernSpinner from "./ModernSpinner";
 import "../css/dashboard.css";
 import "../css/main.css";
 
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+
 const UserTemplate = () => {
   const [isMobileView, setIsMobileView] = useState(false);
   const { isSidebarOpen, setIsSidebarOpen } = useSidebar();
   const [isScreenLoading, setIsScreenLoading] = useState(false);
   const [isScreenLoadingText, setIsScreenLoadingText] = useState("");
+  const [unseenEnquiriesCount, setUnseenEnquiriesCount] = useState(0);
   const { isLoggedIn, isAdmin, isSource, setLastUserPage, stationCode } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
 
   const isAddOrderPage =
     location.pathname.startsWith("/user/add") ||
     location.pathname.startsWith("/user/edit") ||
     !isSource;
+
+  // Fetch unseen enquiries count
+  const fetchUnseenEnquiriesCount = async () => {
+    if (!isAdmin) return;
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${BASE_URL}/api/service-enquiry/unseen/count`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUnseenEnquiriesCount(data.count || 0);
+      }
+    } catch (error) {
+      console.error("Failed to fetch unseen enquiries count:", error);
+    }
+  };
+
+  // Mark enquiries as read when visiting the page
+  const markEnquiriesAsRead = async () => {
+    if (!isAdmin) return;
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${BASE_URL}/api/service-enquiry/mark-read`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        setUnseenEnquiriesCount(0);
+        // Notify other components that enquiries have been marked as read
+        window.dispatchEvent(new CustomEvent('enquiriesMarkedAsRead'));
+      }
+    } catch (error) {
+      console.error("Failed to mark enquiries as read:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchUnseenEnquiriesCount();
+      // Refresh count every 15 minutes
+      const interval = setInterval(fetchUnseenEnquiriesCount, 15 * 60 * 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isAdmin]);
+
+  // Mark as read when visiting enquiries page
+  useEffect(() => {
+    if (location.pathname === "/user/enquiries" && unseenEnquiriesCount > 0) {
+      markEnquiriesAsRead();
+    }
+  }, [location.pathname, unseenEnquiriesCount]);
+
+
 
   const menuSections = [
     {
@@ -52,6 +110,13 @@ const UserTemplate = () => {
             items: [
               { text: "Analytics", path: "/user/analytics", icon: <FaChartBar /> },
               { text: "Monthly Report", path: "/user/gen-report/", icon: <FaMoneyCheckAlt /> },
+            ],
+          },
+          {
+            heading: "Enquiries",
+            headingIcon: <FaEnvelope />,
+            items: [
+              { text: "Service Enquiries", path: "/user/enquiries", icon: <FaEnvelope />, notificationCount: unseenEnquiriesCount },
             ],
           },
           {
@@ -229,6 +294,25 @@ const UserTemplate = () => {
                           primary={item.text}
                           primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: "inherit", letterSpacing: "-0.01em" }}
                         />
+                        {item.notificationCount > 0 && (
+                          <Box
+                            sx={{
+                              minWidth: "20px",
+                              height: "20px",
+                              borderRadius: "10px",
+                              backgroundColor: "#FF4444",
+                              color: "#fff",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "0.7rem",
+                              fontWeight: 700,
+                              ml: 1,
+                            }}
+                          >
+                            {item.notificationCount > 99 ? "99+" : item.notificationCount}
+                          </Box>
+                        )}
                       </Box>
                     )}
                   </NavLink>

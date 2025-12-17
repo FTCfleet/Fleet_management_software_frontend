@@ -22,7 +22,7 @@ const CustomDialog = ({
   onConfirm,
   title,
   message,
-  type = "info", // "success", "error", "warning", "info", "confirm"
+  type = "info", // "success", "error", "warning", "info", "confirm", "delete"
   confirmText = "OK",
   cancelText = "Cancel",
   showCancel = false,
@@ -32,6 +32,7 @@ const CustomDialog = ({
       case "success":
         return <FaCheckCircle style={{ fontSize: "40px" }} />;
       case "error":
+      case "delete":
         return <FaExclamationTriangle style={{ fontSize: "40px" }} />;
       case "warning":
         return <FaExclamationTriangle style={{ fontSize: "40px" }} />;
@@ -48,6 +49,8 @@ const CustomDialog = ({
         return "#4CAF50";
       case "error":
         return "#ff6b6b";
+      case "delete":
+        return "#F44336";
       case "warning":
         return "#FFB74D";
       case "confirm":
@@ -72,12 +75,12 @@ const CustomDialog = ({
       fullWidth
       PaperProps={{
         sx: {
-          background: "linear-gradient(180deg, rgba(29, 53, 87, 0.9) 0%, rgba(10, 22, 40, 0.95) 100%)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          border: "1px solid rgba(255, 255, 255, 0.12)",
+          background: "linear-gradient(180deg, rgba(29, 53, 87, 0.75) 0%, rgba(10, 22, 40, 0.85) 100%)",
+          backdropFilter: "blur(30px)",
+          WebkitBackdropFilter: "blur(30px)",
+          border: "1px solid rgba(255, 255, 255, 0.15)",
           borderRadius: "24px",
-          boxShadow: "0 25px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
+          boxShadow: "0 25px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.2)",
           overflow: "hidden",
         },
       }}
@@ -103,12 +106,16 @@ const CustomDialog = ({
           height: 80, 
           mx: "auto", 
           mb: 3, 
-          background: `rgba(${type === "success" ? "76, 175, 80" : type === "error" ? "255, 107, 107" : "255, 183, 77"}, 0.15)`,
+          background: type === "delete" 
+            ? "rgba(244, 67, 54, 0.15)" 
+            : `rgba(${type === "success" ? "76, 175, 80" : type === "error" ? "255, 107, 107" : "255, 183, 77"}, 0.15)`,
           borderRadius: "20px", 
           display: "flex", 
           alignItems: "center", 
           justifyContent: "center",
           color: getIconColor(),
+          backdropFilter: "blur(10px)",
+          border: `1px solid ${type === "delete" ? "rgba(244, 67, 54, 0.25)" : "rgba(255, 255, 255, 0.1)"}`,
         }}>
           {getIcon()}
         </Box>
@@ -166,12 +173,14 @@ const CustomDialog = ({
         <Button
           onClick={handleConfirm}
           sx={{
-            background: type === "error" || type === "warning" || type === "confirm" 
-              ? "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)" 
-              : type === "success" 
-                ? "linear-gradient(135deg, #4CAF50 0%, #45a049 100%)"
-                : "linear-gradient(135deg, #64C8FF 0%, #4db8ff 100%)",
-            color: type === "error" || type === "warning" || type === "confirm" ? "#1D3557" : "#ffffff",
+            background: type === "delete"
+              ? "linear-gradient(135deg, #F44336 0%, #d32f2f 100%)"
+              : type === "error" || type === "warning" || type === "confirm" 
+                ? "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)" 
+                : type === "success" 
+                  ? "linear-gradient(135deg, #4CAF50 0%, #45a049 100%)"
+                  : "linear-gradient(135deg, #64C8FF 0%, #4db8ff 100%)",
+            color: type === "delete" ? "#ffffff" : (type === "error" || type === "warning" || type === "confirm" ? "#1D3557" : "#ffffff"),
             px: 3,
             py: 1.2,
             borderRadius: "12px",
@@ -179,13 +188,17 @@ const CustomDialog = ({
             textTransform: "none",
             fontSize: "0.95rem",
             minWidth: "100px",
-            boxShadow: type === "error" || type === "warning" || type === "confirm" 
-              ? "0 4px 15px rgba(255, 183, 77, 0.3)" 
-              : "0 4px 15px rgba(100, 200, 255, 0.3)",
+            boxShadow: type === "delete"
+              ? "0 4px 15px rgba(244, 67, 54, 0.35)"
+              : type === "error" || type === "warning" || type === "confirm" 
+                ? "0 4px 15px rgba(255, 183, 77, 0.3)" 
+                : "0 4px 15px rgba(100, 200, 255, 0.3)",
             "&:hover": {
-              boxShadow: type === "error" || type === "warning" || type === "confirm" 
-                ? "0 6px 20px rgba(255, 183, 77, 0.4)" 
-                : "0 6px 20px rgba(100, 200, 255, 0.4)",
+              boxShadow: type === "delete"
+                ? "0 6px 20px rgba(244, 67, 54, 0.45)"
+                : type === "error" || type === "warning" || type === "confirm" 
+                  ? "0 6px 20px rgba(255, 183, 77, 0.4)" 
+                  : "0 6px 20px rgba(100, 200, 255, 0.4)",
             },
           }}
         >

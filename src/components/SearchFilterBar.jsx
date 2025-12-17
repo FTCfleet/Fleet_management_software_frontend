@@ -32,7 +32,7 @@ const SearchFilterBar = ({
       borderRadius: "10px",
       backgroundColor: isDarkMode ? colors?.bgPrimary : "#f8fafc",
       color: colors?.textPrimary,
-      fontSize: "0.9rem",
+      fontSize: { xs: "0.85rem", sm: "0.875rem", md: "0.9rem" },
       height: "40px",
       "& .MuiOutlinedInput-notchedOutline": {
         borderColor: isDarkMode ? "rgba(255,255,255,0.12)" : "#e2e8f0",
@@ -55,7 +55,7 @@ const SearchFilterBar = ({
     borderRadius: "10px",
     backgroundColor: isDarkMode ? colors?.bgPrimary : "#f8fafc",
     color: colors?.textPrimary,
-    fontSize: "0.9rem",
+    fontSize: { xs: "0.85rem", sm: "0.875rem", md: "0.9rem" },
     height: "40px",
     "& .MuiOutlinedInput-notchedOutline": {
       borderColor: isDarkMode ? "rgba(255,255,255,0.12)" : "#e2e8f0",
@@ -79,12 +79,10 @@ const SearchFilterBar = ({
       : "linear-gradient(135deg, #1D3557 0%, #0a1628 100%)",
     color: isDarkMode ? "#0a1628" : "#fff",
     fontWeight: 600,
-    px: { xs: 2, sm: 2.5 },
     height: "40px",
-    minWidth: { xs: "70px", sm: "80px" },
     borderRadius: "10px",
     textTransform: "none",
-    fontSize: "0.875rem",
+    fontSize: { xs: "0.8rem", sm: "0.825rem", md: "0.875rem" },
     boxShadow: "none",
     "&:hover": {
       background: isDarkMode
@@ -102,10 +100,8 @@ const SearchFilterBar = ({
     color: colors?.textSecondary,
     borderRadius: "10px",
     textTransform: "none",
-    px: { xs: 1.5, sm: 2 },
     height: "40px",
-    minWidth: { xs: "60px", sm: "70px" },
-    fontSize: "0.875rem",
+    fontSize: { xs: "0.8rem", sm: "0.825rem", md: "0.875rem" },
     "&:hover": {
       borderColor: isDarkMode ? "rgba(255,183,77,0.5)" : "#1E3A5F",
       backgroundColor: isDarkMode ? "rgba(255,183,77,0.05)" : "rgba(30,58,95,0.05)",
@@ -116,10 +112,10 @@ const SearchFilterBar = ({
     <Box
       sx={{
         display: "flex",
-        flexDirection: { xs: "column", md: "row" },
-        alignItems: { xs: "stretch", md: "center" },
-        gap: { xs: 1.5, md: 2 },
-        p: { xs: 2, md: 2.5 },
+        flexDirection: { xs: "column", lg: "row" },
+        alignItems: { xs: "stretch", lg: "center" },
+        gap: { xs: 1.5, sm: 1.5, lg: 2 },
+        p: { xs: 1.5, sm: 1.75, md: 2, lg: 2.5 },
         mb: 3,
         backgroundColor: colors?.bgCard || "#ffffff",
         borderRadius: "16px",
@@ -127,9 +123,115 @@ const SearchFilterBar = ({
         border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e5e7eb",
       }}
     >
-      {/* Left Section: DatePicker */}
+      {/* Top Row on Tablet: DatePicker + Dropdown */}
+      {(showDatePicker && showDropdown) && (
+        <Box
+          sx={{
+            display: { xs: "none", sm: "flex", lg: "none" },
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 2,
+            width: "100%",
+            order: 0,
+          }}
+        >
+          {/* DatePicker - Leftmost */}
+          <Box sx={{ flexShrink: 0 }}>
+            <CustomDatePicker
+              value={dateValue}
+              onChange={onDateChange}
+              disabled={isLoading}
+              isDarkMode={isDarkMode}
+              colors={colors}
+            />
+          </Box>
+          
+          {/* Dropdown - Rightmost */}
+          <Box sx={{ flexShrink: 0, minWidth: "200px" }}>
+            <Select
+              value={dropdownValue}
+              onChange={(e) => onDropdownChange(e.target.value)}
+              displayEmpty
+              size="small"
+              sx={{
+                ...selectStyle,
+                width: "100%",
+              }}
+            >
+              <MenuItem value="">{dropdownPlaceholder}</MenuItem>
+              {dropdownOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
+        </Box>
+      )}
+      
+      {/* DatePicker only on Tablet when no Dropdown */}
+      {(showDatePicker && !showDropdown) && (
+        <Box
+          sx={{
+            display: { xs: "none", sm: "block", lg: "none" },
+            width: "100%",
+            order: 0,
+          }}
+        >
+          <CustomDatePicker
+            value={dateValue}
+            onChange={onDateChange}
+            disabled={isLoading}
+            isDarkMode={isDarkMode}
+            colors={colors}
+          />
+        </Box>
+      )}
+      
+      {/* Dropdown only on Tablet when no DatePicker */}
+      {(!showDatePicker && showDropdown) && (
+        <Box
+          sx={{
+            display: { xs: "none", sm: "block", lg: "none" },
+            width: "100%",
+            order: 0,
+          }}
+        >
+          <Select
+            value={dropdownValue}
+            onChange={(e) => onDropdownChange(e.target.value)}
+            displayEmpty
+            size="small"
+            sx={{
+              ...selectStyle,
+              width: "100%",
+            }}
+          >
+            <MenuItem value="">{dropdownPlaceholder}</MenuItem>
+            {dropdownOptions.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </Box>
+      )}
+
+      {/* DatePicker for Mobile and Desktop */}
       {showDatePicker && (
-        <Box sx={{ flexShrink: 0 }}>
+        <Box sx={{ 
+          display: { xs: "flex", sm: "none", lg: "block" },
+          flexShrink: 0,
+          order: { xs: 0, lg: 1 },
+          width: { xs: "100%", lg: "auto" },
+          justifyContent: { xs: "center", lg: "flex-start" },
+          "& .MuiTextField-root": {
+            width: { xs: "100%", lg: "auto" }
+          },
+          "& .MuiInputBase-root": {
+            width: { xs: "100%", lg: "auto" }
+          }
+        }}>
           <CustomDatePicker
             value={dateValue}
             onChange={onDateChange}
@@ -140,16 +242,21 @@ const SearchFilterBar = ({
         </Box>
       )}
 
-      {/* Search Section: Search + Apply/Clear - left aligned when no date picker, centered otherwise */}
+      {/* Search Section: Search + Apply/Clear */}
       <Box
         sx={{
           display: "flex",
           flexDirection: { xs: "column", sm: "row" },
           alignItems: { xs: "stretch", sm: "center" },
-          justifyContent: showDatePicker ? "center" : "flex-start",
-          gap: { xs: 1.5, sm: 1 },
+          justifyContent: { 
+            xs: "flex-start", 
+            sm: "flex-start", 
+            lg: showDatePicker ? "center" : "flex-start" 
+          },
+          gap: { xs: 1.5, sm: 1, md: 1.5 },
           flex: 1,
           minWidth: 0,
+          order: { xs: 1, sm: 1, lg: showDatePicker ? 2 : 1 },
         }}
       >
         {/* Search Input */}
@@ -162,8 +269,10 @@ const SearchFilterBar = ({
             size="small"
             sx={{
               ...inputStyle,
-              width: { xs: "100%", sm: "280px", md: "320px" },
-              minWidth: { sm: "280px" },
+              width: { xs: "100%", sm: "100%", md: "100%", lg: "320px" },
+              maxWidth: { sm: "none", md: "none", lg: "400px" },
+              minWidth: { lg: "280px" },
+              flex: { sm: 1, lg: "none" },
             }}
             InputProps={{
               startAdornment: (
@@ -175,14 +284,26 @@ const SearchFilterBar = ({
           />
         )}
 
-        {/* Apply & Clear Buttons - next to search */}
-        <Box sx={{ display: "flex", gap: 1, flexShrink: 0 }}>
+        {/* Apply & Clear Buttons */}
+        <Box sx={{ 
+          display: "flex", 
+          gap: { xs: 1, sm: 0.75, md: 1 }, 
+          flexShrink: 0,
+          width: { xs: "100%", sm: "auto" },
+          justifyContent: { xs: "stretch", sm: onApply ? "flex-end" : "flex-start" },
+          minWidth: { sm: "auto", md: onApply ? "140px" : "auto", lg: onApply ? "160px" : "auto" }
+        }}>
           {onApply && (
             <Button
               variant="contained"
               onClick={onApply}
               disabled={isLoading}
-              sx={applyButtonStyle}
+              sx={{
+                ...applyButtonStyle,
+                flex: { xs: 1, sm: "none" },
+                px: { xs: 2, sm: 1.5, md: 2, lg: 2.5 },
+                minWidth: { xs: "70px", sm: "60px", md: "70px", lg: "80px" },
+              }}
             >
               Apply
             </Button>
@@ -192,7 +313,12 @@ const SearchFilterBar = ({
               variant="outlined"
               onClick={onClear}
               disabled={isLoading}
-              sx={clearButtonStyle}
+              sx={{
+                ...clearButtonStyle,
+                flex: { xs: 1, sm: "none" },
+                px: { xs: 1.5, sm: 1.25, md: 1.5, lg: 2 },
+                minWidth: { xs: "60px", sm: "50px", md: "60px", lg: "70px" },
+              }}
             >
               Clear
             </Button>
@@ -200,36 +326,58 @@ const SearchFilterBar = ({
         </Box>
       </Box>
 
-      {/* Right Section: Dropdown + Extra Buttons */}
+      {/* Right Section: Dropdown + Extra Buttons (Mobile & Desktop) */}
       {(showDropdown || extraButtons) && (
         <Box
           sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
+            display: { 
+              xs: "flex", 
+              sm: extraButtons ? "flex" : "none", 
+              lg: "flex" 
+            },
+            flexDirection: { xs: "column" },
+            alignItems: { xs: "stretch" },
+            gap: { xs: 1.5 },
             flexShrink: 0,
+            width: { xs: "100%", lg: "auto" },
+            order: { xs: 2, lg: 3 },
+            justifyContent: { xs: "stretch", lg: "flex-end" },
           }}
         >
           {showDropdown && (
-            <Select
-              value={dropdownValue}
-              onChange={(e) => onDropdownChange(e.target.value)}
-              displayEmpty
-              size="small"
-              sx={{
-                ...selectStyle,
-                minWidth: { xs: "100%", sm: "160px" },
-              }}
-            >
-              <MenuItem value="">{dropdownPlaceholder}</MenuItem>
-              {dropdownOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
+            <Box sx={{ display: { xs: "block", sm: "none", lg: "block" } }}>
+              <Select
+                value={dropdownValue}
+                onChange={(e) => onDropdownChange(e.target.value)}
+                displayEmpty
+                size="small"
+                sx={{
+                  ...selectStyle,
+                  width: { xs: "100%", lg: "180px" },
+                  maxWidth: { lg: "200px" },
+                  minWidth: { lg: "160px" },
+                }}
+              >
+                <MenuItem value="">{dropdownPlaceholder}</MenuItem>
+                {dropdownOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Box>
           )}
-          {extraButtons}
+          {extraButtons && (
+            <Box sx={{ 
+              display: "flex", 
+              gap: 1,
+              width: { xs: "100%", sm: "auto" },
+              justifyContent: { xs: "stretch", sm: "flex-start" },
+              flexWrap: "wrap"
+            }}>
+              {extraButtons}
+            </Box>
+          )}
         </Box>
       )}
     </Box>

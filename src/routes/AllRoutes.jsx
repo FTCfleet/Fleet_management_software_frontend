@@ -31,6 +31,7 @@ import PrivateRoute from "./PrivateRoute";
 import ViewOrderPage from "../pages/ViewOrderPage";
 import ViewLedgerPage from "../pages/ViewLedgerPage";
 import Analytics_UI from "../pages/Analytics";
+import EnquiriesPage from "../pages/EnquiriesPage";
 
 
 function AllRoutes() {
@@ -73,7 +74,8 @@ function AllRoutes() {
       </Route>
       <Route path="/user/*" element={<UserTemplate />}>
         <Route exact path="dashboard" element={<DashboardPage />} />
-        <Route exact path="analytics" element={<Analytics_UI />} /> 
+        <Route exact path="analytics" element={<Analytics_UI />} />
+        <Route exact path="enquiries" element={<EnquiriesPage />} /> 
         <Route exact path="edit/*">
           <Route exact path="order/:id" element={<EditOrderPage />} />
         </Route>

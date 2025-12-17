@@ -54,18 +54,34 @@ export default function GenReportPage() {
   }, []);
 
   const fetchData = async () => {
-    setIsLoading(true);
-    const token = localStorage.getItem("token");
-    const res = await fetch(`${BASE_URL}/api/admin/get-all-warehouses`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const data = await res.json();
-    setWarehouses(data.body.filter((a) => a.isSource === false));
-    setIsLoading(false);
+    try {
+      const token = localStorage.getItem("token");
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+      
+      const res = await fetch(`${BASE_URL}/api/admin/get-all-warehouses`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (res.ok) {
+        const data = await res.json();
+        const destinationWarehouses = (data.body || []).filter((a) => a.isSource === false);
+        setWarehouses(destinationWarehouses);
+      } else {
+        console.error("Failed to fetch warehouses");
+        setWarehouses([]);
+      }
+    } catch (error) {
+      console.error("Error fetching warehouses:", error);
+      setWarehouses([]);
+    }
   };
 
   const formatDate = (dateString, type) => {
@@ -96,11 +112,7 @@ export default function GenReportPage() {
     "& .MuiInputLabel-root.Mui-focused": { color: "#FFB74D" },
   };
 
-  return isLoading ? (
-    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
-      <ModernSpinner size={48} />
-    </Box>
-  ) : (
+  return (
     <Box
       sx={{
         maxWidth: 600,
@@ -170,6 +182,7 @@ export default function GenReportPage() {
                   value={destinationWarehouse}
                   onChange={(e) => setDestinationWarehouse(e.target.value)}
                   displayEmpty
+                  disabled={isLoading}
                   MenuProps={{
                     PaperProps: {
                       sx: {
@@ -185,7 +198,16 @@ export default function GenReportPage() {
                     },
                   }}
                 >
-                  <MenuItem value="" disabled>Choose a station</MenuItem>
+                  <MenuItem value="" disabled>
+                    {isLoading ? (
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <ModernSpinner size={16} />
+                        <span>Loading stations...</span>
+                      </Box>
+                    ) : (
+                      "Choose a station"
+                    )}
+                  </MenuItem>
                   {warehouses.map((w) => (
                     <MenuItem key={w.warehouseID} value={w.warehouseID}>{w.name}</MenuItem>
                   ))}

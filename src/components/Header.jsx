@@ -6,7 +6,7 @@ import { useAuth } from "../routes/AuthContext";
 import { useSidebar } from "../hooks/useSidebar";
 import { useThemeMode } from "../hooks/useTheme";
 import React, { useState, useEffect } from "react";
-import { IconButton, useTheme, useMediaQuery } from "@mui/material";
+import { IconButton, useTheme, useMediaQuery, Tooltip } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import DashboardIcon from "@mui/icons-material/Dashboard";
@@ -23,6 +23,9 @@ import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import CustomDialog from "./CustomDialog";
 import { useDialog } from "../hooks/useDialog";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const MobileDrawer = ({ open, onClose }) => {
   const { isLoggedIn, resetAuth, lastUserPage } = useAuth();
@@ -204,14 +207,14 @@ const HeaderTabs = () => {
   }, [activeIndex, location.pathname]);
 
   return (
-    <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+    <Box sx={{ display: "flex", gap: { xs: 0.5, sm: 0.5, md: 1 }, alignItems: "center" }}>
       {/* Navigation Pills Container */}
       <Box sx={{ 
         display: "flex", 
-        gap: 0.5, 
+        gap: { xs: 0.25, sm: 0.25, md: 0.5 }, 
         background: "rgba(255, 255, 255, 0.08)", 
         borderRadius: "14px", 
-        p: 0.5,
+        p: { xs: 0.25, sm: 0.25, md: 0.5 },
         position: "relative",
         border: "1px solid rgba(255, 255, 255, 0.06)",
       }}>
@@ -235,8 +238,9 @@ const HeaderTabs = () => {
             {({ isActive }) => (
               <Box sx={{ 
                 color: isActive ? "#1D3557" : "rgba(255,255,255,0.75)", 
-                px: 2, py: 1, 
-                fontSize: "0.88rem", 
+                px: { xs: 1.5, sm: 1.25, md: 2 }, 
+                py: { xs: 0.75, sm: 0.75, md: 1 }, 
+                fontSize: { xs: "0.8rem", sm: "0.82rem", md: "0.88rem" }, 
                 fontWeight: isActive ? 600 : 500, 
                 cursor: "pointer",
                 borderRadius: "10px",
@@ -255,11 +259,11 @@ const HeaderTabs = () => {
       </Box>
 
       {/* Divider */}
-      <Box sx={{ width: "1px", height: "24px", background: "rgba(255,255,255,0.15)", mx: 1 }} />
+      <Box sx={{ width: "1px", height: "24px", background: "rgba(255,255,255,0.15)", mx: { xs: 1, sm: 0.5, md: 1 } }} />
 
       {/* Auth Section */}
       {isLoggedIn ? (
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.5, sm: 0.25, md: 0.5 } }}>
           <NavLink to={lastUserPage} style={{ textDecoration: "none" }}>
             <Box sx={{
               display: "flex", alignItems: "center", gap: 1,
@@ -268,8 +272,10 @@ const HeaderTabs = () => {
                 : "linear-gradient(135deg, rgba(255, 183, 77, 0.15) 0%, rgba(255, 183, 77, 0.05) 100%)",
               border: isDashboardActive ? "none" : "1px solid rgba(255, 183, 77, 0.3)",
               color: isDashboardActive ? "#1D3557" : "#FFB74D",
-              px: 2, py: 0.9,
-              fontSize: "0.88rem", fontWeight: 600,
+              px: { xs: 1.5, sm: 1.25, md: 2 }, 
+              py: { xs: 0.7, sm: 0.7, md: 0.9 },
+              fontSize: { xs: "0.8rem", sm: "0.82rem", md: "0.88rem" }, 
+              fontWeight: 600,
               borderRadius: "10px",
               transition: "all 0.25s ease",
               boxShadow: isDashboardActive ? "0 2px 10px rgba(255, 183, 77, 0.3)" : "none",
@@ -288,8 +294,9 @@ const HeaderTabs = () => {
             <Box sx={{ 
               color: isProfileActive ? "#1D3557" : "rgba(255,255,255,0.75)", 
               background: isProfileActive ? "linear-gradient(135deg, #FFB74D 0%, #FFC107 100%)" : "transparent",
-              px: 1.5, py: 0.9, 
-              fontSize: "0.88rem", 
+              px: { xs: 1.2, sm: 1.15, md: 1.5 }, 
+              py: { xs: 0.7, sm: 0.7, md: 0.9 }, 
+              fontSize: { xs: "0.8rem", sm: "0.82rem", md: "0.88rem" }, 
               fontWeight: isProfileActive ? 600 : 500, 
               borderRadius: "10px",
               boxShadow: isProfileActive ? "0 2px 10px rgba(255, 183, 77, 0.3)" : "none",
@@ -304,8 +311,9 @@ const HeaderTabs = () => {
           </NavLink>
           <Box onClick={handleLogout} sx={{ 
             color: "rgba(255,255,255,0.75)", 
-            px: 1.5, py: 1, 
-            fontSize: "0.88rem", 
+            px: { xs: 1.2, sm: 1.15, md: 1.5 }, 
+            py: { xs: 0.7, sm: 0.7, md: 1 }, 
+            fontSize: { xs: "0.8rem", sm: "0.82rem", md: "0.88rem" }, 
             fontWeight: 500, 
             cursor: "pointer", 
             borderRadius: "10px",
@@ -341,9 +349,11 @@ const HeaderTabs = () => {
 const Header = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isTablet = useMediaQuery(theme.breakpoints.between("md", "lg"));
   const { stationCode, isLoggedIn, isAdmin } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [unseenEnquiriesCount, setUnseenEnquiriesCount] = useState(0);
   const { isDarkMode: darkMode, toggleDarkMode } = useThemeMode();
   const { openSidebar } = useSidebar();
   const location = useLocation();
@@ -361,6 +371,65 @@ const Header = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Fetch unseen enquiries count for notification
+  const fetchUnseenEnquiriesCount = async () => {
+    if (!isAdmin) return;
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${BASE_URL}/api/service-enquiry/unseen/count`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUnseenEnquiriesCount(data.count || 0);
+      }
+    } catch (error) {
+      console.error("Failed to fetch unseen enquiries count:", error);
+    }
+  };
+
+  // Fetch notification count for admin users
+  useEffect(() => {
+    if (isAdmin && isDashboardPage) {
+      fetchUnseenEnquiriesCount();
+      // Refresh count every 15 minutes
+      const interval = setInterval(fetchUnseenEnquiriesCount, 15 * 60 * 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isAdmin, isDashboardPage]);
+
+  // Listen for enquiries marked as read from other components
+  useEffect(() => {
+    const handleEnquiriesRead = () => {
+      setUnseenEnquiriesCount(0);
+    };
+
+    window.addEventListener('enquiriesMarkedAsRead', handleEnquiriesRead);
+    return () => window.removeEventListener('enquiriesMarkedAsRead', handleEnquiriesRead);
+  }, []);
+
+  // Mark enquiries as read when visiting enquiries page
+  const markEnquiriesAsRead = async () => {
+    if (!isAdmin) return;
+    try {
+      const token = localStorage.getItem("token");
+      await fetch(`${BASE_URL}/api/service-enquiry/mark-read`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUnseenEnquiriesCount(0);
+    } catch (error) {
+      console.error("Failed to mark enquiries as read:", error);
+    }
+  };
+
+  // Reset count when visiting enquiries page
+  useEffect(() => {
+    if (location.pathname === "/user/enquiries" && unseenEnquiriesCount > 0) {
+      markEnquiriesAsRead();
+    }
+  }, [location.pathname, unseenEnquiriesCount]);
 
   // For dashboard pages, always use the solid background (no scroll effect)
   const shouldApplyScrollEffect = scrolled && !isDashboardPage;
@@ -393,7 +462,7 @@ const Header = () => {
           "&::before": {
             display: "none !important",
           },
-          "&::after": (isDashboardPage || shouldApplyScrollEffect) ? {
+          "&::after": {
             content: '""',
             position: "absolute",
             bottom: 0,
@@ -403,8 +472,6 @@ const Header = () => {
             background: "linear-gradient(90deg, transparent 0%, #FFB74D 20%, #FFC107 50%, #FFB74D 80%, transparent 100%)",
             opacity: 1,
             transition: "opacity 0.5s ease-in-out",
-          } : {
-            display: "none",
           },
           "&:focus, &:focus-visible, &:focus-within": {
             outline: "none !important",
@@ -417,7 +484,7 @@ const Header = () => {
           alignItems: "center", 
           justifyContent: "space-between", 
           height: "100%", 
-          px: { xs: 2, sm: 2.5, md: 4 }, 
+          px: { xs: 2, sm: 2.5, md: 3, lg: 4 }, 
           maxWidth: "1400px", 
           margin: "0 auto", 
           width: "100%" 
@@ -516,12 +583,64 @@ const Header = () => {
                   </Box>
                 )}
               </Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 2, sm: 1.5, lg: 2 } }}>
+                {/* Notification Icon - Large screens only (lg+), Admin Only, Only when unseen */}
+                {isDashboardPage && isAdmin && unseenEnquiriesCount > 0 && (
+                  <Box sx={{ display: { xs: "none", lg: "block" } }}>
+                  <Tooltip title={`${unseenEnquiriesCount} new enquir${unseenEnquiriesCount === 1 ? 'y' : 'ies'}`} arrow>
+                    <Box sx={{ position: "relative" }}>
+                      <Link to="/user/enquiries" style={{ textDecoration: "none" }}>
+                        <IconButton
+                          sx={{
+                            p: 1,
+                            background: "rgba(255, 255, 255, 0.05)",
+                            border: "1px solid rgba(255, 255, 255, 0.1)",
+                            borderRadius: "10px",
+                            transition: "all 0.3s ease",
+                            "&:hover": { 
+                              background: "rgba(255, 183, 77, 0.1)",
+                              borderColor: "rgba(255, 183, 77, 0.3)"
+                            },
+                            "&:focus": { outline: "none" },
+                            "&:focus-visible": { outline: "none" }
+                          }}
+                        >
+                          <NotificationsIcon sx={{ 
+                            fontSize: "1.2rem", 
+                            color: "#FFB74D"
+                          }} />
+                        </IconButton>
+                      </Link>
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: -2,
+                          right: -2,
+                          minWidth: "20px",
+                          height: "20px",
+                          borderRadius: "10px",
+                          backgroundColor: "#FF4444",
+                          color: "#fff",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "0.7rem",
+                          fontWeight: 700,
+                          border: "2px solid rgba(10, 22, 40, 0.9)",
+                          boxShadow: "0 2px 8px rgba(255, 68, 68, 0.4)",
+                        }}
+                      >
+                        {unseenEnquiriesCount > 99 ? "99+" : unseenEnquiriesCount}
+                      </Box>
+                    </Box>
+                  </Tooltip>
+                  </Box>
+                )}
                 {isDashboardPage && (
                   <IconButton
                     onClick={toggleDarkMode}
                     sx={{ 
-                      p: 1,
+                      p: { xs: 1, sm: 0.75, lg: 1 },
                       borderRadius: "10px",
                       background: "rgba(255, 255, 255, 0.05)",
                       border: "1px solid rgba(255, 255, 255, 0.1)",
@@ -534,9 +653,9 @@ const Header = () => {
                     }}
                   >
                     {darkMode ? (
-                      <DarkModeIcon sx={{ fontSize: "1.2rem", color: "#FFB74D" }} />
+                      <DarkModeIcon sx={{ fontSize: { xs: "1.2rem", sm: "1.1rem", lg: "1.2rem" }, color: "#FFB74D" }} />
                     ) : (
-                      <LightModeIcon sx={{ fontSize: "1.2rem", color: "rgba(255,255,255,0.7)" }} />
+                      <LightModeIcon sx={{ fontSize: { xs: "1.2rem", sm: "1.1rem", lg: "1.2rem" }, color: "rgba(255,255,255,0.7)" }} />
                     )}
                   </IconButton>
                 )}

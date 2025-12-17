@@ -363,12 +363,19 @@ const HomePage = () => {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn}>
             <Typography variant="h3" sx={{ color: "#ffffff", fontWeight: 700, mb: 2, fontSize: { xs: "1.75rem", md: "2.5rem" } }}>Ready to Ship?</Typography>
             <Typography sx={{ color: "rgba(255,255,255,0.85)", mb: 4, fontSize: { xs: "1rem", md: "1.15rem" } }}>Contact us today and experience reliable shipping services</Typography>
-            <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 3, justifyContent: "center", mb: 5 }}>
-              <a href="tel:04024614381" style={{ textDecoration: "none" }}>
-                <GlassCard sx={{ px: 4, py: 2, display: "flex", alignItems: "center", gap: 2, cursor: "pointer" }}><FaPhoneAlt color="#FFB74D" size={20} /><Typography sx={{ color: "#ffffff", fontWeight: 600 }}>040-24614381</Typography></GlassCard>
-              </a>
+            <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 3, justifyContent: "center", alignItems: "center", mb: 5 }}>
+              <GlassCard sx={{ px: 3, py: 1.5, display: "flex", alignItems: "center", gap: 2 }}>
+                <FaPhoneAlt color="#FFB74D" size={18} />
+                <Typography sx={{ color: "#ffffff", fontWeight: 600 }}>040-24614381</Typography>
+                <a href="tel:04024614381" style={{ textDecoration: "none" }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, background: "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)", borderRadius: "8px", px: 2, py: 0.75, cursor: "pointer", transition: "all 0.2s", "&:hover": { transform: "scale(1.03)" } }}>
+                    <FaPhoneAlt size={12} color="#1D3557" />
+                    <Box component="span" sx={{ color: "#1D3557", fontSize: "0.85rem", fontWeight: 700 }}>Call Now</Box>
+                  </Box>
+                </a>
+              </GlassCard>
               <a href="mailto:ftchydindia@gmail.com" style={{ textDecoration: "none" }}>
-                <GlassCard sx={{ px: 4, py: 2, display: "flex", alignItems: "center", gap: 2, cursor: "pointer" }}><FaEnvelope color="#FFB74D" size={20} /><Typography sx={{ color: "#ffffff", fontWeight: 600 }}>ftchydindia@gmail.com</Typography></GlassCard>
+                <GlassCard sx={{ px: 3, py: 1.5, display: "flex", alignItems: "center", gap: 2, cursor: "pointer", transition: "all 0.2s", "&:hover": { borderColor: "rgba(255, 183, 77, 0.5)" } }}><FaEnvelope color="#FFB74D" size={18} /><Typography sx={{ color: "#ffffff", fontWeight: 600 }}>ftchydindia@gmail.com</Typography></GlassCard>
               </a>
             </Box>
             <Link to="/track" style={{ textDecoration: "none" }}>

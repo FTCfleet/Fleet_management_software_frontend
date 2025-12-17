@@ -81,186 +81,129 @@ const Analytics_UI = () => {
 
   useEffect(() => {
     fetchData();
+    fetchWarehouses();
   }, []);
+
+  // Refetch data when filters change
+  useEffect(() => {
+    if (!isLoading) {
+      fetchData();
+    }
+  }, [selectedWarehouse, chartType, selectedMonth, selectedYear]);
 
   const fetchData = async () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
       
-      // Fetch orders for the last 60 days in batches
-      const allOrders = [];
-      const today = new Date();
-      
-      // Fetch in parallel but limit concurrent requests
-      const batchSize = 10;
-      for (let batch = 0; batch < 6; batch++) {
-        const promises = [];
-        for (let i = 0; i < batchSize; i++) {
-          const dayOffset = batch * batchSize + i;
-          if (dayOffset >= 60) break;
-          
-          const date = new Date();
-          date.setDate(today.getDate() - dayOffset);
-          const dateStr = date.toISOString().split("T")[0];
-          
-          promises.push(
-            fetch(`${BASE_URL}/api/parcel/all`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({ date: dateStr }),
-            })
-            .then(res => res.json())
-            .then(result => ({ result, dayOffset, date: new Date(date) }))
-            .catch(() => ({ result: { flag: false }, dayOffset, date: new Date(date) }))
-          );
-        }
-        
-        const results = await Promise.all(promises);
-        results.forEach(({ result, date }) => {
-          if (result.flag && result.body) {
-            result.body.forEach(order => {
-              allOrders.push({
-                ...order,
-                fetchDate: date.toISOString(),
-              });
-            });
-          }
-        });
+      // Build query parameters for filters
+      const params = new URLSearchParams();
+      if (selectedWarehouse && selectedWarehouse !== 'All') {
+        params.append('warehouse', selectedWarehouse);
       }
-
-      // Fetch warehouses
-      const warehouseResponse = await fetch(`${BASE_URL}/api/admin/get-all-warehouses`, {
+      params.append('period', chartType);
+      if (chartType === 'month') {
+        params.append('month', selectedMonth.toString());
+        params.append('year', selectedYear.toString());
+      }
+      
+      // Single optimized API call for dashboard analytics with filters
+      const response = await fetch(`${BASE_URL}/api/analytics/dashboard?${params.toString()}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
-      const warehouseData = await warehouseResponse.json();
       
-      if (warehouseData.flag) {
-        setWarehouses(["All", ...warehouseData.body.map(w => w.name)]);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      setOrders(allOrders);
+      
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        const { timeCounts, statusDistribution, stationSummary, chartData } = result.data;
+        
+        // Set stats from API response
+        setStats({
+          today: timeCounts.today,
+          week: timeCounts.thisWeek,
+          month: timeCounts.thisMonth,
+          total: timeCounts.last60Days
+        });
+        
+        // Set chart data from API response
+        setChartData(chartData.map(item => ({
+          name: item.day,
+          orders: item.count,
+          fullDate: new Date(item.date).toLocaleDateString('en', { 
+            weekday: chartType === 'week' ? 'long' : 'short', 
+            month: 'short', 
+            day: 'numeric' 
+          })
+        })));
+        
+        // Set status data for pie chart
+        const statusList = [
+          { name: 'Arrived', value: statusDistribution.arrived, color: STATUS_COLORS.Arrived },
+          { name: 'Dispatched', value: statusDistribution.dispatched, color: STATUS_COLORS.Dispatched },
+          { name: 'Delivered', value: statusDistribution.delivered, color: STATUS_COLORS.Delivered }
+        ].filter(item => item.value > 0);
+        setStatusData(statusList);
+        
+        // Set warehouse table data (only if not filtered by warehouse)
+        if (!selectedWarehouse || selectedWarehouse === 'All') {
+          setWarehouseTable(stationSummary.map(station => ({
+            name: station.stationName,
+            arrived: station.arrived,
+            dispatched: station.dispatched,
+            delivered: station.delivered,
+            total: station.total
+          })));
+        } else {
+          setWarehouseTable([]); // Clear table when filtered by specific warehouse
+        }
+        
+        // For backward compatibility
+        setOrders([]);
+        
+      } else {
+        throw new Error(result.message || "Failed to fetch analytics data");
+      }
     } catch (error) {
+      console.error("Analytics fetch error:", error);
       showError("Failed to fetch analytics data. Please try again.", "Error");
     } finally {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (!isLoading && orders.length >= 0) computeAnalytics();
-  }, [orders, chartType, selectedMonth, selectedYear, selectedWarehouse, isLoading]);
-
-  const isSameDay = (d1, d2) => {
-    const date1 = new Date(d1);
-    const date2 = new Date(d2);
-    return date1.toDateString() === date2.toDateString();
-  };
-
-  const getOrderDate = (order) => {
-    // Use the order's actual date if available, otherwise use fetchDate
-    return order.date || order.createdAt || order.fetchDate;
-  };
-
-  const computeAnalytics = () => {
-    const today = new Date();
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay());
-    startOfWeek.setHours(0, 0, 0, 0);
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
-    // Calculate stats
-    const ordersToday = orders.filter((o) => isSameDay(getOrderDate(o), today));
-    const ordersThisWeek = orders.filter((o) => new Date(getOrderDate(o)) >= startOfWeek);
-    const ordersThisMonth = orders.filter((o) => new Date(getOrderDate(o)) >= startOfMonth);
-
-    setStats({ 
-      today: ordersToday.length, 
-      week: ordersThisWeek.length, 
-      month: ordersThisMonth.length,
-      total: orders.length 
-    });
-
-    // Bar/Area Chart Data
-    if (chartType === "week") {
-      const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      const dailyCounts = weekDays.map((day, idx) => {
-        const date = new Date(startOfWeek);
-        date.setDate(startOfWeek.getDate() + idx);
-        const count = orders.filter((o) => isSameDay(getOrderDate(o), date)).length;
-        return { 
-          name: day, 
-          orders: count,
-          fullDate: date.toLocaleDateString('en', { weekday: 'long', month: 'short', day: 'numeric' })
-        };
+  
+  // Fetch warehouse names on mount
+  const fetchWarehouses = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${BASE_URL}/api/analytics/warehouses`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
-      setChartData(dailyCounts);
-    } else {
-      const endOfSelected = new Date(selectedYear, selectedMonth + 1, 0);
-      const daysInMonth = endOfSelected.getDate();
-      const dailyCounts = Array.from({ length: daysInMonth }, (_, i) => {
-        const day = i + 1;
-        const date = new Date(selectedYear, selectedMonth, day);
-        const count = orders.filter((o) => isSameDay(getOrderDate(o), date)).length;
-        return { 
-          name: day.toString(), 
-          orders: count,
-          fullDate: date.toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' })
-        };
-      });
-      setChartData(dailyCounts);
-    }
-
-    // Status Distribution (Pie Chart)
-    let relevantOrders = [...orders];
-    if (selectedWarehouse !== "All") {
-      relevantOrders = relevantOrders.filter((o) => 
-        o.sourceWarehouse?.name === selectedWarehouse || 
-        o.destinationWarehouse?.name === selectedWarehouse
-      );
-    }
-    
-    const statusMap = { arrived: 0, dispatched: 0, delivered: 0 };
-    relevantOrders.forEach((o) => {
-      const status = o.status?.toLowerCase();
-      if (statusMap.hasOwnProperty(status)) {
-        statusMap[status]++;
-      }
-    });
-    
-    const statusList = Object.entries(statusMap)
-      .filter(([_, value]) => value > 0)
-      .map(([name, value]) => ({ 
-        name: name.charAt(0).toUpperCase() + name.slice(1), 
-        value,
-        color: STATUS_COLORS[name.charAt(0).toUpperCase() + name.slice(1)]
-      }));
-    setStatusData(statusList);
-
-    // Warehouse Table
-    const warehouseNames = warehouses.filter((w) => w !== "All");
-    const table = warehouseNames.map((w) => {
-      const whOrders = orders.filter((o) => 
-        o.sourceWarehouse?.name === w || o.destinationWarehouse?.name === w
-      );
-      const counts = { arrived: 0, dispatched: 0, delivered: 0, total: whOrders.length };
-      whOrders.forEach((o) => {
-        const status = o.status?.toLowerCase();
-        if (counts.hasOwnProperty(status)) {
-          counts[status]++;
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          setWarehouses(["All", ...result.data.map(w => w.name)]);
         }
-      });
-      return { warehouse: w, ...counts };
-    });
-    setWarehouseTable(table);
+      }
+    } catch (error) {
+      console.error("Failed to fetch warehouses:", error);
+    }
   };
+
+
+
 
   if (isLoading) {
     return (
@@ -342,6 +285,7 @@ const Analytics_UI = () => {
                     const [month, year] = e.target.value.split("-");
                     setSelectedMonth(parseInt(month));
                     setSelectedYear(parseInt(year));
+                    // Data will be refetched automatically via useEffect
                   }}
                   sx={{
                     borderRadius: "8px",
@@ -361,7 +305,12 @@ const Analytics_UI = () => {
             <ToggleButtonGroup
               value={chartType}
               exclusive
-              onChange={(_, v) => v && setChartType(v)}
+              onChange={(_, v) => {
+                if (v) {
+                  setChartType(v);
+                  // Data will be refetched automatically via useEffect
+                }
+              }}
               size="small"
               sx={{
                 "& .MuiToggleButton-root": {
@@ -446,7 +395,10 @@ const Analytics_UI = () => {
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <Select
                 value={selectedWarehouse}
-                onChange={(e) => setSelectedWarehouse(e.target.value)}
+                onChange={(e) => {
+                  setSelectedWarehouse(e.target.value);
+                  // Data will be refetched automatically via useEffect
+                }}
                 sx={{
                   borderRadius: "8px",
                   backgroundColor: colors?.bgPrimary,
@@ -538,7 +490,7 @@ const Analytics_UI = () => {
                   }}>
                     <Box sx={{ 
                       height: "100%", 
-                      width: `${(status.value / orders.length) * 100}%`,
+                      width: `${statusData.length > 0 ? (status.value / statusData.reduce((sum, s) => sum + s.value, 0)) * 100 : 0}%`,
                       backgroundColor: status.color,
                       borderRadius: 3,
                       transition: "width 0.5s ease"
@@ -591,7 +543,7 @@ const Analytics_UI = () => {
                   }}
                 >
                   <TableCell sx={{ fontWeight: 500, color: colors?.textPrimary, fontSize: "0.85rem" }}>
-                    {row.warehouse}
+                    {row.name}
                   </TableCell>
                   <TableCell align="center">
                     <StatusBadge value={row.arrived} color={STATUS_COLORS.Arrived} isDarkMode={isDarkMode} />

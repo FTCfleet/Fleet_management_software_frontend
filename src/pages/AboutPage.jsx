@@ -237,13 +237,13 @@ const AboutPage = () => {
                   <Box key={index} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1, py: 1.5, borderBottom: index < bookingOffices.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
                     {office.mapUrl ? (
                       <a href={office.mapUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-                        <Typography sx={{ color: "#ffffff", fontWeight: 500, fontSize: "0.95rem", cursor: "pointer", transition: "all 0.2s", "&:hover": { color: "#FFB74D" } }}>{office.name}</Typography>
+                        <Typography sx={{ color: "#ffffff", fontWeight: 500, fontSize: "0.95rem", cursor: "pointer", transition: "all 0.2s", "&:hover": { color: "#fff" } }}>{office.name}</Typography>
                       </a>
                     ) : (
                       <Typography sx={{ color: "#ffffff", fontWeight: 500, fontSize: "0.95rem" }}>{office.name}</Typography>
                     )}
                     <a href={`tel:${office.phone.replace(/-/g, "")}`} style={{ textDecoration: "none" }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, "&:hover": { opacity: 0.8 } }}><FaPhoneAlt size={12} color="#FFB74D" /><Typography sx={{ fontSize: "0.95rem", fontWeight: 600, color: "#ffffff" }}>{office.phone}</Typography></Box>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, transition: "all 0.2s", "&:hover p": { color: "#fff" } }}><FaPhoneAlt size={12} color="#FFB74D" /><Typography sx={{ fontSize: "0.95rem", fontWeight: 600, color: "#FFB74D", transition: "all 0.2s" }}>{office.phone}</Typography></Box>
                     </a>
                   </Box>
                 ))}
@@ -261,13 +261,13 @@ const AboutPage = () => {
                   <Box key={index} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1, py: 1.5, borderBottom: index < deliveryOffices.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
                     {office.mapUrl ? (
                       <a href={office.mapUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-                        <Typography sx={{ color: "#ffffff", fontWeight: 500, fontSize: "0.95rem", cursor: "pointer", transition: "all 0.2s", "&:hover": { color: "#FFB74D" } }}>{office.name}</Typography>
+                        <Typography sx={{ color: "#ffffff", fontWeight: 500, fontSize: "0.95rem", cursor: "pointer", transition: "all 0.2s", "&:hover": { color: "#fff" } }}>{office.name}</Typography>
                       </a>
                     ) : (
                       <Typography sx={{ color: "#ffffff", fontWeight: 500, fontSize: "0.95rem" }}>{office.name}</Typography>
                     )}
                     <a href={`tel:${office.phone.replace(/-/g, "")}`} style={{ textDecoration: "none" }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, "&:hover": { opacity: 0.8 } }}><FaPhoneAlt size={12} color="#64C8FF" /><Typography sx={{ fontSize: "0.95rem", fontWeight: 600, color: "#ffffff" }}>{office.phone}</Typography></Box>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, transition: "all 0.2s", "&:hover p": { color: "#fff" } }}><FaPhoneAlt size={12} color="#64C8FF" /><Typography sx={{ fontSize: "0.95rem", fontWeight: 600, color: "#64C8FF", transition: "all 0.2s" }}>{office.phone}</Typography></Box>
                     </a>
                   </Box>
                 ))}

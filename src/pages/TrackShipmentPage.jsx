@@ -156,7 +156,7 @@ const TrackShipmentPage = () => {
         <motion.div initial="hidden" animate="visible" variants={fadeIn}>
           <Box sx={{ maxWidth: "800px", mx: "auto", textAlign: "center", mb: { xs: 4, md: 6 } }}>
             <Typography component="span" sx={{ display: "inline-block", background: "rgba(255, 183, 77, 0.15)", backdropFilter: "blur(10px)", border: "1px solid rgba(255, 183, 77, 0.3)", borderRadius: "50px", px: 3, py: 0.75, mb: 3, color: "#FFB74D", fontSize: "0.85rem", fontWeight: 600, letterSpacing: "1px" }}>
-              📦 REAL-TIME TRACKING
+               REAL-TIME TRACKING
             </Typography>
             <Typography variant="h2" sx={{ color: "#ffffff", fontWeight: 800, fontSize: { xs: "2rem", sm: "2.5rem", md: "3.5rem" }, mb: 2, lineHeight: 1.1 }}>
               Track Your <Box component="span" sx={{ background: "linear-gradient(135deg, #FFB74D 0%, #fff 50%, #FFB74D 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Shipment</Box>
