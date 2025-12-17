@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Box,
   Typography,
@@ -12,38 +12,32 @@ import {
   Button,
   TextField,
   IconButton,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Modal,
-  CircularProgress,
   Checkbox,
   useMediaQuery,
   useTheme,
   Card,
   CardContent,
   Chip,
-  Fab,
-  Tooltip,
-  Zoom,
 } from "@mui/material";
+import { motion, AnimatePresence } from "framer-motion";
 import ModernSpinner from "../components/ModernSpinner";
 import CustomDialog from "../components/CustomDialog";
 import { useDialog } from "../hooks/useDialog";
 import {
   useParams,
   useNavigate,
-  Link,
   useOutletContext,
 } from "react-router-dom";
-import ledger from "../assets/ledger.webp";
+
 import { useAuth } from "../routes/AuthContext";
 import {
   FaTrash,
   FaExclamationTriangle,
   FaTruckLoading,
   FaPrint,
+  FaTruck,
+  FaMapMarkerAlt,
+  FaFileAlt,
 } from "react-icons/fa";
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
 import { TbTruckDelivery } from "react-icons/tb";
@@ -79,23 +73,22 @@ export default function ViewLedgerPage() {
   const { setIsScreenLoading, setIsScreenLoadingText, isDarkMode, colors } = useOutletContext();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const { dialogState, hideDialog, showAlert, showError, showSuccess } = useDialog();
+  const { dialogState, hideDialog, showError, showSuccess } = useDialog();
 
   const headerStyle = { color: colors?.textPrimary || "#1E3A5F", fontWeight: "bold" };
   const rowStyle = { color: colors?.textSecondary || "#25344E" };
 
   useEffect(() => {
-    // fetchWarehouse();
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     let totalfreight = 0;
     let totalhamali = 0;
-    let totalcharges = 0;
     orders.forEach((element) => {
-      totalfreight += element.freight;
-      totalhamali += element.hamali;
+      totalfreight += Number(element.freight) || 0;
+      totalhamali += Number(element.hamali) || 0;
     });
 
     setTotals({
@@ -284,7 +277,7 @@ export default function ViewLedgerPage() {
       //   iframe.contentWindow?.print();
       // });
       // document.body.appendChild(iframe);
-    } catch (error) {
+    } catch {
       showError("Failed to load or print the PDF. Please try again.", "Error");
     }
     setIsScreenLoadingText("");
@@ -316,117 +309,258 @@ export default function ViewLedgerPage() {
         minHeight: "100vh",
       }}
     >
-      {/* Top Section: Memo Details + Image */}
+      {/* Memo Details Section */}
       <Box
         sx={{
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          justifyContent: "flex-start",
-          alignItems: { xs: "stretch", md: "flex-start" },
           backgroundColor: colors?.bgCard || "#ffffff",
-          padding: { xs: "16px", md: "20px" },
-          borderRadius: "12px",
+          borderRadius: "16px",
           marginBottom: "20px",
-          boxShadow: isDarkMode ? "0 2px 8px rgba(0,0,0,0.3)" : "0 2px 8px rgba(0,0,0,0.04)",
-          border: isDarkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid #e0e5eb",
+          boxShadow: isDarkMode ? "0 4px 20px rgba(0,0,0,0.3)" : "0 4px 20px rgba(0,0,0,0.08)",
+          border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e0e5eb",
+          overflow: "hidden",
         }}
       >
-        {/* Left Section - Text Content */}
-        <Box sx={{ flex: 1, textAlign: "left" }}>
-          <Typography
-            variant="h5"
-            sx={{ marginBottom: "16px", fontSize: { xs: "1.25rem", md: "1.5rem" }, ...headerStyle }}
-          >
-            Memo Details
-          </Typography>
-
-          {/* Conditional Loader for Data */}
-          {isLoading1 ? (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100px",
-              }}
-            >
-              <ModernSpinner size={40} />
-            </Box>
-          ) : (
+        {isLoading1 ? (
+          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "200px" }}>
+            <ModernSpinner size={40} />
+          </Box>
+        ) : (
+          <Box sx={{ padding: { xs: "16px", md: "24px" } }}>
+            {/* Top Row: Memo ID, Status, Lorry Freight */}
             <Box 
               sx={{ 
-                display: "grid", 
-                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", lg: "1fr 1fr 1fr" },
-                gap: { xs: 2, md: 3 },
+                display: "flex", 
+                flexDirection: { xs: "column", md: "row" },
+                justifyContent: "space-between",
+                alignItems: { xs: "flex-start", md: "center" },
+                gap: 2,
+                mb: 3,
+                pb: 3,
+                borderBottom: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e2e8f0",
               }}
             >
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Memo No</Typography>
-                  <Typography sx={{ ...rowStyle, fontWeight: 600 }}>{ledgerData.ledgerId}</Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <Box
+                  sx={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: "14px",
+                    background: isDarkMode 
+                      ? "linear-gradient(135deg, rgba(255,183,77,0.2) 0%, rgba(255,183,77,0.1) 100%)"
+                      : "linear-gradient(135deg, #1E3A5F 0%, #2d4a6f 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <FaFileAlt size={24} color={isDarkMode ? colors?.accent : "#fff"} />
                 </Box>
-                <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Source Station</Typography>
-                  <Typography sx={rowStyle}>{ledgerData.sourceWarehouse?.name || "N/A"}</Typography>
+                <Box>
+                  <Typography sx={{ color: colors?.textSecondary, fontSize: "0.75rem", fontWeight: 500, mb: 0.25 }}>
+                    Memo Number
+                  </Typography>
+                  <Typography sx={{ color: colors?.textPrimary, fontSize: "1.4rem", fontWeight: 700 }}>
+                    {ledgerData.ledgerId || "N/A"}
+                  </Typography>
                 </Box>
-                <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Destination Station</Typography>
-                  <Typography sx={rowStyle}>{ledgerData.destinationWarehouse?.name || "N/A"}</Typography>
-                </Box>
-                <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Status</Typography>
-                  <Chip 
-                    label={ledgerData.status?.charAt(0).toUpperCase() + ledgerData.status?.slice(1)} 
-                    size="small"
-                    sx={{ 
-                      width: "fit-content",
-                      backgroundColor: ledgerData.status === "completed" ? "#dcfce7" : ledgerData.status === "dispatched" ? "#fef3c7" : "#fee2e2",
-                      color: ledgerData.status === "completed" ? "#166534" : ledgerData.status === "dispatched" ? "#92400e" : "#991b1b",
-                      fontWeight: 600,
+              </Box>
+              
+              <Chip 
+                label={ledgerData.status?.charAt(0).toUpperCase() + ledgerData.status?.slice(1) || "Loading"} 
+                sx={{ 
+                  backgroundColor: ledgerData.status === "completed" ? "#22c55e" : ledgerData.status === "dispatched" ? "#f59e0b" : "#ef4444",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: "0.9rem",
+                  padding: "6px 12px",
+                  height: "auto",
+                }}
+              />
+            </Box>
+
+            {/* Route Section - Full Width with Visual Timeline */}
+            <Box 
+              sx={{ 
+                mb: 3,
+                pb: 3,
+                borderBottom: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e2e8f0",
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+                <FaMapMarkerAlt size={16} color={isDarkMode ? colors?.accent : "#1E3A5F"} />
+                <Typography sx={{ color: colors?.textPrimary, fontSize: "0.9rem", fontWeight: 600 }}>
+                  Route
+                </Typography>
+              </Box>
+              
+              <Box 
+                sx={{ 
+                  display: "flex", 
+                  alignItems: "center",
+                  gap: { xs: 2, md: 4 },
+                  flexDirection: { xs: "column", sm: "row" },
+                }}
+              >
+                {/* Source */}
+                <Box 
+                  sx={{ 
+                    flex: 1,
+                    backgroundColor: isDarkMode ? "rgba(34, 197, 94, 0.1)" : "#f0fdf4",
+                    borderRadius: "12px",
+                    padding: "16px 20px",
+                    border: isDarkMode ? "1px solid rgba(34, 197, 94, 0.2)" : "1px solid #bbf7d0",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                    width: { xs: "100%", sm: "auto" },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      backgroundColor: "#22c55e",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
                     }}
-                  />
+                  >
+                    <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "0.85rem" }}>A</Typography>
+                  </Box>
+                  <Box>
+                    <Typography sx={{ color: isDarkMode ? "#86efac" : "#166534", fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      From
+                    </Typography>
+                    <Typography sx={{ color: colors?.textPrimary, fontWeight: 600, fontSize: "0.95rem" }}>
+                      {ledgerData.sourceWarehouse?.name || "N/A"}
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Lorry Freight</Typography>
-                  <Typography sx={rowStyle}>{ledgerData.lorryFreight || "N/A"}</Typography>
+
+                {/* Arrow/Line */}
+                <Box 
+                  sx={{ 
+                    display: { xs: "none", sm: "flex" },
+                    alignItems: "center",
+                    flex: "0 0 auto",
+                  }}
+                >
+                  <Box sx={{ width: 40, height: 2, backgroundColor: isDarkMode ? "rgba(255,255,255,0.2)" : "#cbd5e1" }} />
+                  <FaTruck size={20} color={isDarkMode ? colors?.accent : "#1E3A5F"} style={{ margin: "0 8px" }} />
+                  <Box sx={{ width: 40, height: 2, backgroundColor: isDarkMode ? "rgba(255,255,255,0.2)" : "#cbd5e1" }} />
                 </Box>
-                <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Created On</Typography>
-                  <Typography sx={rowStyle}>{dateFormatter(ledgerData.dispatchedAt) || "N/A"}</Typography>
+                
+                {/* Mobile Arrow */}
+                <Box sx={{ display: { xs: "block", sm: "none" } }}>
+                  <Typography sx={{ color: colors?.textSecondary, fontSize: "1.2rem" }}>↓</Typography>
                 </Box>
-                <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Delivered On</Typography>
-                  <Typography sx={rowStyle}>{dateFormatter(ledgerData.deliveredAt) || "N/A"}</Typography>
-                </Box>
-              </Box>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Truck No</Typography>
-                  <Typography sx={{ ...rowStyle, fontWeight: 600 }}>{ledgerData.vehicleNo || "N/A"}</Typography>
-                </Box>
-                <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Driver Name</Typography>
-                  <Typography sx={rowStyle}>{ledgerData.driverName || "N/A"}</Typography>
-                </Box>
-                <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem", fontWeight: 500 }}>Driver Phone</Typography>
-                  <Typography sx={rowStyle}>{ledgerData.driverPhone || "N/A"}</Typography>
+
+                {/* Destination */}
+                <Box 
+                  sx={{ 
+                    flex: 1,
+                    backgroundColor: isDarkMode ? "rgba(239, 68, 68, 0.1)" : "#fef2f2",
+                    borderRadius: "12px",
+                    padding: "16px 20px",
+                    border: isDarkMode ? "1px solid rgba(239, 68, 68, 0.2)" : "1px solid #fecaca",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                    width: { xs: "100%", sm: "auto" },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      backgroundColor: "#ef4444",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "0.85rem" }}>B</Typography>
+                  </Box>
+                  <Box>
+                    <Typography sx={{ color: isDarkMode ? "#fca5a5" : "#991b1b", fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      To
+                    </Typography>
+                    <Typography sx={{ color: colors?.textPrimary, fontWeight: 600, fontSize: "0.95rem" }}>
+                      {ledgerData.destinationWarehouse?.name || "N/A"}
+                    </Typography>
+                  </Box>
                 </Box>
               </Box>
             </Box>
-          )}
-        </Box>
 
-        {/* Right Section - Image (hidden on mobile) */}
-        <Box sx={{ display: { xs: "none", lg: "block" }, flex: "0 0 120px", marginLeft: "20px" }}>
-          <img
-            src={ledger}
-            alt="Memo"
-            style={{ width: "100%", height: "auto", borderRadius: "8px" }}
-          />
-        </Box>
+            {/* Bottom Row: Info Cards Grid */}
+            <Box 
+              sx={{ 
+                display: "grid",
+                gridTemplateColumns: { xs: "repeat(2, 1fr)", sm: "repeat(3, 1fr)", md: "repeat(6, 1fr)" },
+                gap: 2,
+              }}
+            >
+              <Box sx={{ backgroundColor: isDarkMode ? "rgba(255,255,255,0.04)" : "#f8fafc", borderRadius: "10px", padding: "14px 16px", border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e2e8f0" }}>
+                <Typography sx={{ color: colors?.textSecondary, fontSize: "0.7rem", fontWeight: 500, mb: 0.5 }}>
+                  Truck No
+                </Typography>
+                <Typography sx={{ color: colors?.textPrimary, fontWeight: 600, fontSize: "0.95rem" }}>
+                  {ledgerData.vehicleNo || "N/A"}
+                </Typography>
+              </Box>
+
+              <Box sx={{ backgroundColor: isDarkMode ? "rgba(255,255,255,0.04)" : "#f8fafc", borderRadius: "10px", padding: "14px 16px", border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e2e8f0" }}>
+                <Typography sx={{ color: colors?.textSecondary, fontSize: "0.7rem", fontWeight: 500, mb: 0.5 }}>
+                  Driver Name
+                </Typography>
+                <Typography sx={{ color: colors?.textPrimary, fontWeight: 600, fontSize: "0.95rem" }}>
+                  {ledgerData.driverName || "N/A"}
+                </Typography>
+              </Box>
+
+              <Box sx={{ backgroundColor: isDarkMode ? "rgba(255,255,255,0.04)" : "#f8fafc", borderRadius: "10px", padding: "14px 16px", border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e2e8f0" }}>
+                <Typography sx={{ color: colors?.textSecondary, fontSize: "0.7rem", fontWeight: 500, mb: 0.5 }}>
+                  Driver Phone
+                </Typography>
+                <Typography sx={{ color: colors?.textPrimary, fontWeight: 600, fontSize: "0.95rem" }}>
+                  {ledgerData.driverPhone || "N/A"}
+                </Typography>
+              </Box>
+
+              <Box sx={{ backgroundColor: isDarkMode ? "rgba(255,255,255,0.04)" : "#f8fafc", borderRadius: "10px", padding: "14px 16px", border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e2e8f0" }}>
+                <Typography sx={{ color: colors?.textSecondary, fontSize: "0.7rem", fontWeight: 500, mb: 0.5 }}>
+                  Created On
+                </Typography>
+                <Typography sx={{ color: colors?.textPrimary, fontWeight: 600, fontSize: "0.95rem" }}>
+                  {dateFormatter(ledgerData.dispatchedAt) || "N/A"}
+                </Typography>
+              </Box>
+
+              <Box sx={{ backgroundColor: isDarkMode ? "rgba(255,255,255,0.04)" : "#f8fafc", borderRadius: "10px", padding: "14px 16px", border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e2e8f0" }}>
+                <Typography sx={{ color: colors?.textSecondary, fontSize: "0.7rem", fontWeight: 500, mb: 0.5 }}>
+                  Delivered On
+                </Typography>
+                <Typography sx={{ color: ledgerData.deliveredAt ? (isDarkMode ? "#86efac" : "#166534") : colors?.textSecondary, fontWeight: 600, fontSize: "0.95rem" }}>
+                  {dateFormatter(ledgerData.deliveredAt) || "Pending"}
+                </Typography>
+              </Box>
+
+              <Box sx={{ backgroundColor: isDarkMode ? "rgba(255,183,77,0.1)" : "#fffbeb", borderRadius: "10px", padding: "14px 16px", border: isDarkMode ? "1px solid rgba(255,183,77,0.2)" : "1px solid #fde68a" }}>
+                <Typography sx={{ color: isDarkMode ? colors?.accent : "#92400e", fontSize: "0.7rem", fontWeight: 500, mb: 0.5 }}>
+                  Lorry Freight
+                </Typography>
+                <Typography sx={{ color: isDarkMode ? colors?.accent : "#1E3A5F", fontWeight: 700, fontSize: "1.05rem" }}>
+                  ₹{ledgerData.lorryFreight || 0}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        )}
       </Box>
 
       {/* Action Buttons Above Table */}
@@ -436,13 +570,49 @@ export default function ViewLedgerPage() {
           Download Memo
         </button>
 
+        {(isSource || isAdmin) && ledgerData.status === "pending" && (
+          <button
+            className="button button-large"
+            onClick={() =>
+              handleModalOpen(
+                "Dispatch Truck",
+                "Are you sure you want to dispatch this truck?",
+                "Dispatch",
+                "#25344e",
+                handleDispatch
+              )
+            }
+          >
+            <FaTruckLoading style={{ marginRight: "8px" }} />
+            Dispatch Truck
+          </button>
+        )}
+
+        {(isSource || isAdmin) && ledgerData.status === "dispatched" && (
+          <button
+            className="button button-large"
+            onClick={() =>
+              handleModalOpen(
+                "Deliver Truck",
+                "Are you sure you want to mark this truck as delivered?",
+                "Deliver",
+                "#25344e",
+                handleVerify
+              )
+            }
+          >
+            <TbTruckDelivery size="19" style={{ marginRight: "8px" }} />
+            Deliver Truck
+          </button>
+        )}
+
         {isAdmin && (
           <button
             className="button button-large"
             onClick={() =>
               handleModalOpen(
                 "Delete Memo",
-                "Are you sure you want to delete this?",
+                "Are you sure you want to delete this memo? This action cannot be undone.",
                 "Delete",
                 "#d32f2f",
                 handleDeleteLedger
@@ -515,6 +685,8 @@ export default function ViewLedgerPage() {
                             type="text"
                             size="small"
                             value={order.freight}
+                            onChange={(e) => handleOrderValueChange(index, "freight", e.target.value)}
+                            InputProps={{ readOnly: ledgerData.status !== "pending" }}
                             sx={{ 
                               width: "100%",
                               "& .MuiInputBase-input": { 
@@ -522,7 +694,7 @@ export default function ViewLedgerPage() {
                                 fontWeight: 600, 
                                 color: colors?.textPrimary || "#1E3A5F",
                                 padding: "6px 8px",
-                                cursor: ledgerData.status !== "pending" ? "default" : "text"
+                                backgroundColor: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.02)",
                               }
                             }}
                           />
@@ -533,6 +705,8 @@ export default function ViewLedgerPage() {
                             type="text"
                             size="small"
                             value={order.hamali}
+                            onChange={(e) => handleOrderValueChange(index, "hamali", e.target.value)}
+                            InputProps={{ readOnly: ledgerData.status !== "pending" }}
                             sx={{ 
                               width: "100%",
                               "& .MuiInputBase-input": { 
@@ -540,7 +714,7 @@ export default function ViewLedgerPage() {
                                 fontWeight: 600, 
                                 color: colors?.textPrimary || "#1E3A5F",
                                 padding: "6px 8px",
-                                cursor: ledgerData.status !== "pending" ? "default" : "text"
+                                backgroundColor: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.02)",
                               }
                             }}
                           />
@@ -550,7 +724,8 @@ export default function ViewLedgerPage() {
                           <TextField
                             type="text"
                             size="small"
-                            value={order.hamali}
+                            value={Number(order.hamali) || 0}
+                            InputProps={{ readOnly: true }}
                             sx={{ 
                               width: "100%",
                               "& .MuiInputBase-input": { 
@@ -558,7 +733,7 @@ export default function ViewLedgerPage() {
                                 fontWeight: 600, 
                                 color: colors?.textPrimary || "#1E3A5F",
                                 padding: "6px 8px",
-                                cursor: ledgerData.status !== "pending" ? "default" : "text"
+                                backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.02)",
                               }
                             }}
                           />
@@ -638,31 +813,54 @@ export default function ViewLedgerPage() {
                         <TextField 
                           type="text" 
                           size="small" 
-                          value={order.freight} 
-                          sx={{ width: 80 }} 
+                          value={order.freight}
+                          onChange={(e) => handleOrderValueChange(index, "freight", e.target.value)}
+                          InputProps={{ readOnly: ledgerData.status !== "pending" }}
+                          sx={{ 
+                            width: 80,
+                            "& .MuiInputBase-input": { 
+                              color: colors?.textPrimary || "#1E3A5F",
+                              backgroundColor: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.02)",
+                            }
+                          }} 
                         />
                       </TableCell>
                       <TableCell sx={rowStyle}>
                         <TextField 
                           type="text" 
                           size="small" 
-                          value={order.hamali} 
-                          sx={{ width: 80}} 
+                          value={order.hamali}
+                          onChange={(e) => handleOrderValueChange(index, "hamali", e.target.value)}
+                          InputProps={{ readOnly: ledgerData.status !== "pending" }}
+                          sx={{ 
+                            width: 80,
+                            "& .MuiInputBase-input": { 
+                              color: colors?.textPrimary || "#1E3A5F",
+                              backgroundColor: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.02)",
+                            }
+                          }} 
                         />
                       </TableCell>
                       <TableCell sx={rowStyle}>
                         <TextField 
                           type="text" 
                           size="small" 
-                          value={order.hamali} 
-                          sx={{ width: 80}} 
+                          value={Number(order.hamali) || 0}
+                          InputProps={{ readOnly: true }}
+                          sx={{ 
+                            width: 80,
+                            "& .MuiInputBase-input": { 
+                              color: colors?.textPrimary || "#1E3A5F",
+                              backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.02)",
+                            }
+                          }} 
                         />
                       </TableCell>
                       {ledgerData.status === "pending" && (
                         <TableCell>
                           <IconButton
                             color="error"
-                            onClick={(e) => handleDelete(index)}
+                            onClick={() => handleDelete(index)}
                           >
                             <FaTrash size={20} />
                           </IconButton>
@@ -707,163 +905,168 @@ export default function ViewLedgerPage() {
             </Table>
           </TableContainer>
         )}
-      </Box>
 
-      {/* Desktop Action Buttons */}
-      <Box sx={{ display: { xs: "none", md: "flex" }, flexWrap: "wrap", gap: 1, mt: 2 }}>
-        {(isSource || isAdmin) && ledgerData.status === "pending" && (
-          <button
-            className="button button-large"
-            onClick={() =>
-              handleModalOpen(
-                "Dispatch Truck",
-                "",
-                "Confirm",
-                "#25344e",
-                handleDispatch
-              )
-            }
-          >
-            <FaTruckLoading style={{ marginRight: "8px" }} />
-            Dispatch Truck
-          </button>
-        )}
-        {(isSource || isAdmin) && ledgerData.status === "dispatched" && (
-          <button
-            className="button button-large"
-            onClick={() =>
-              handleModalOpen(
-                "Deliver Truck",
-                "",
-                "Confirm",
-                "#25344e",
-                handleVerify
-              )
-            }
-          >
-            <TbTruckDelivery size="19" style={{ marginRight: "8px" }} />
-            Deliver Truck
-          </button>
-        )}
-      </Box>
-
-      {/* Mobile Action Buttons */}
-      <Box sx={{ display: { xs: "flex", md: "none" }, flexWrap: "wrap", gap: 1, mt: 2 }}>
-        {(isSource || isAdmin) && ledgerData.status === "pending" && (
-          <button
-            className="button button-large"
-            onClick={() =>
-              handleModalOpen(
-                "Dispatch Truck",
-                "",
-                "Confirm",
-                "#25344e",
-                handleDispatch
-              )
-            }
-          >
-            <FaTruckLoading style={{ marginRight: "8px" }} />
-            Dispatch Truck
-          </button>
-        )}
-        {(isSource || isAdmin) && ledgerData.status === "dispatched" && (
-          <button
-            className="button button-large"
-            onClick={() =>
-              handleModalOpen(
-                "Deliver Truck",
-                "",
-                "Confirm",
-                "#25344e",
-                handleVerify
-              )
-            }
-          >
-            <TbTruckDelivery size="19" style={{ marginRight: "8px" }} />
-            Deliver Truck
-          </button>
-        )}
-      </Box>
-
-      {/* Confirmation Modal */}
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 350,
-            bgcolor: colors?.bgCard || "background.paper",
-            borderRadius: 3,
-            boxShadow: 24,
-            p: 4,
-            textAlign: "center",
-            border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "none",
-          }}
-        >
-          <FaExclamationTriangle
-            style={{
-              color: modalData.current.textColor,
-              fontSize: "36px",
-              marginBottom: "12px",
-            }}
-          />
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: "bold",
-              marginBottom: "12px",
-              color: modalData.current.textColor,
-            }}
-          >
-            {modalData.current.headingText}
-          </Typography>
-          <Typography
-            sx={{
-              marginBottom: "20px",
-              color: colors?.textSecondary || "#374151",
-              fontSize: "15px",
-            }}
-          >
-            {modalData.current.text}
-          </Typography>
-          <Box sx={{ display: "flex", justifyContent: "center", gap: "12px" }}>
-            <Button
-              variant="outlined"
-              sx={{ 
-                borderColor: isDarkMode ? colors?.accent : "#1E3A5F", 
-                color: isDarkMode ? colors?.accent : "#1E3A5F",
-                "&:hover": {
-                  borderColor: isDarkMode ? colors?.accentHover : "#1E3A5F",
-                  backgroundColor: isDarkMode ? "rgba(255,183,77,0.08)" : "rgba(30,58,95,0.04)",
-                }
-              }}
-              onClick={() => setModalOpen(false)}
+        {/* Deliver Truck Button at bottom of table if more than 10 entries */}
+        {orders.length > 10 && (isSource || isAdmin) && ledgerData.status === "dispatched" && (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+            <button
+              className="button button-large"
+              onClick={() =>
+                handleModalOpen(
+                  "Deliver Truck",
+                  "Are you sure you want to mark this truck as delivered?",
+                  "Deliver",
+                  "#25344e",
+                  handleVerify
+                )
+              }
             >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: modalData.current.textColor,
-                display: "flex",
-                gap: "8px",
-              }}
-              onClick={modalData.current.func}
-            >
-              {modalData.current.buttonText}
-              {isLoading && (
-                <CircularProgress
-                  size={15}
-                  className="spinner"
-                  sx={{ color: "#fff", animation: "none !important", ml: 1 }}
-                />
-              )}
-            </Button>
+              <TbTruckDelivery size="19" style={{ marginRight: "8px" }} />
+              Deliver Truck
+            </button>
           </Box>
-        </Box>
-      </Modal>
+        )}
+      </Box>
+
+      {/* Modern Glass Confirmation Modal */}
+      <AnimatePresence>
+        {modalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              backdropFilter: "blur(8px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1300,
+              padding: "16px",
+            }}
+            onClick={() => setModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "100%",
+                maxWidth: "420px",
+                background: isDarkMode
+                  ? "linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%)"
+                  : "linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%)",
+                borderRadius: "20px",
+                padding: "32px",
+                boxShadow: isDarkMode
+                  ? "0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)"
+                  : "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)",
+                textAlign: "center",
+              }}
+            >
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: "50%",
+                  backgroundColor: modalData.current.textColor === "#d32f2f" 
+                    ? "rgba(211, 47, 47, 0.1)" 
+                    : isDarkMode ? "rgba(255, 183, 77, 0.15)" : "rgba(30, 58, 95, 0.1)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 20px",
+                }}
+              >
+                <FaExclamationTriangle
+                  style={{
+                    color: modalData.current.textColor === "#d32f2f" 
+                      ? "#d32f2f" 
+                      : isDarkMode ? colors?.accent : "#1E3A5F",
+                    fontSize: "28px",
+                  }}
+                />
+              </Box>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 700,
+                  marginBottom: "12px",
+                  color: colors?.textPrimary || "#1E3A5F",
+                  fontSize: "1.25rem",
+                }}
+              >
+                {modalData.current.headingText}
+              </Typography>
+              <Typography
+                sx={{
+                  marginBottom: "28px",
+                  color: colors?.textSecondary || "#64748b",
+                  fontSize: "0.95rem",
+                  lineHeight: 1.6,
+                }}
+              >
+                {modalData.current.text}
+              </Typography>
+              <Box sx={{ display: "flex", justifyContent: "center", gap: "12px" }}>
+                <Button
+                  variant="outlined"
+                  sx={{
+                    borderColor: isDarkMode ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)",
+                    color: colors?.textPrimary || "#1E3A5F",
+                    borderRadius: "12px",
+                    padding: "10px 24px",
+                    fontWeight: 600,
+                    textTransform: "none",
+                    "&:hover": {
+                      borderColor: isDarkMode ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)",
+                      backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.02)",
+                    },
+                  }}
+                  onClick={() => setModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="contained"
+                  sx={{
+                    backgroundColor: modalData.current.textColor === "#d32f2f" 
+                      ? "#d32f2f" 
+                      : isDarkMode ? colors?.accent : "#1E3A5F",
+                    color: modalData.current.textColor === "#d32f2f" || !isDarkMode ? "#fff" : "#1E3A5F",
+                    borderRadius: "12px",
+                    padding: "10px 24px",
+                    fontWeight: 600,
+                    textTransform: "none",
+                    boxShadow: "none",
+                    "&:hover": {
+                      backgroundColor: modalData.current.textColor === "#d32f2f" 
+                        ? "#b71c1c" 
+                        : isDarkMode ? colors?.accentHover : "#152a45",
+                      boxShadow: "none",
+                    },
+                  }}
+                  onClick={modalData.current.func}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <ModernSpinner size={20} />
+                  ) : (
+                    modalData.current.buttonText
+                  )}
+                </Button>
+              </Box>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <CustomDialog
         open={dialogState.open}

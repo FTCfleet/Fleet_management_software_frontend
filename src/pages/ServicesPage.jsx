@@ -54,12 +54,22 @@ const ServicesPage = () => {
   const whoWeServe = [{ icon: <FaStore />, title: "Traders & Wholesalers" }, { icon: <FaBuilding />, title: "Retailers & Suppliers" }, { icon: <FaIndustry />, title: "Manufacturers & Companies" }, { icon: <FaUser />, title: "Individuals" }];
 
   const inputStyle = {
-    "& .MuiOutlinedInput-root": { borderRadius: "12px", backgroundColor: "rgba(255, 255, 255, 0.18)", color: "#fff", outline: "none", "& fieldset": { borderColor: "rgba(255,255,255,0.3)" }, "&:hover fieldset": { borderColor: "rgba(255,255,255,0.5)" }, "&.Mui-focused fieldset": { borderColor: "#FFB74D", borderWidth: "2px" } },
-    "& .MuiOutlinedInput-input": { color: "#fff", caretColor: "#FFB74D", outline: "none", "&::placeholder": { color: "rgba(255,255,255,0.6)", opacity: 1 } },
-    "& .MuiOutlinedInput-inputMultiline": { color: "#fff", caretColor: "#FFB74D", outline: "none", "&::placeholder": { color: "rgba(255,255,255,0.6)", opacity: 1 } },
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "12px",
+      background: "linear-gradient(180deg, rgba(100,200,255,0.06), rgba(20,40,60,0.06))",
+      border: "1px solid rgba(100,200,255,0.10)",
+      boxShadow: "inset 0 1px 0 rgba(100,200,255,0.03)",
+      color: "#fff",
+      outline: "none",
+      "& fieldset": { borderColor: "rgba(100,200,255,0.14)" },
+      "&:hover fieldset": { borderColor: "rgba(100,200,255,0.22)" },
+      "&.Mui-focused fieldset": { borderColor: "#6FB3FF", borderWidth: "2px", boxShadow: "0 0 0 8px rgba(111,179,255,0.07)" },
+    },
+    "& .MuiOutlinedInput-input": { color: "#fff", caretColor: "#6FB3FF", outline: "none", "&::placeholder": { color: "rgba(255,255,255,0.8)", opacity: 1 } },
+    "& .MuiOutlinedInput-inputMultiline": { color: "#fff", caretColor: "#6FB3FF", outline: "none", "&::placeholder": { color: "rgba(255,255,255,0.8)", opacity: 1 } },
     "& textarea": { outline: "none !important" },
     "& input": { outline: "none !important" },
-    "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.8)" }, "& .MuiInputLabel-root.Mui-focused": { color: "#FFB74D" }, "& .MuiSelect-icon": { color: "rgba(255,255,255,0.7)" },
+    "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.85)" }, "& .MuiInputLabel-root.Mui-focused": { color: "#6FB3FF" }, "& .MuiSelect-icon": { color: "rgba(255,255,255,0.85)" },
   };
 
   const particles = isMobile
@@ -222,8 +232,8 @@ const ServicesPage = () => {
                 <TextField name="name" label="Your Name" value={formData.name} onChange={handleInputChange} required fullWidth InputProps={{ startAdornment: <FaUser style={{ marginRight: 10, color: "rgba(255,255,255,0.4)" }} /> }} sx={inputStyle} />
                 <TextField name="phone" label="Phone Number" value={formData.phone} onChange={handleInputChange} required fullWidth InputProps={{ startAdornment: <FaPhone style={{ marginRight: 10, color: "rgba(255,255,255,0.4)" }} /> }} sx={inputStyle} />
               </Box>
-              <FormControl fullWidth sx={{ ...inputStyle, ...(highlightDropdown && { "& .MuiOutlinedInput-root": { ...inputStyle["& .MuiOutlinedInput-root"], animation: "highlightPulse 1.5s ease-out" }, "@keyframes highlightPulse": { "0%": { boxShadow: "0 0 0 0 rgba(255, 183, 77, 0.7)" }, "50%": { boxShadow: "0 0 20px 5px rgba(255, 183, 77, 0.5)" }, "100%": { boxShadow: "0 0 0 0 rgba(255, 183, 77, 0)" } } }) }} required>
-                <Select name="serviceType" value={formData.serviceType} onChange={handleInputChange} displayEmpty required sx={{ borderRadius: "12px", "& .MuiSelect-select": { color: formData.serviceType ? "#fff" : "rgba(255,255,255,0.4)" } }} MenuProps={{ PaperProps: { sx: { background: "#1D3557", border: "1px solid rgba(255,255,255,0.15)", "& .MuiMenuItem-root": { color: "#fff", "&:hover": { background: "rgba(255, 183, 77, 0.15)" }, "&.Mui-selected": { background: "rgba(255, 183, 77, 0.25)" } } } } }}>
+              <FormControl fullWidth sx={{ ...inputStyle, ...(highlightDropdown && { "& .MuiOutlinedInput-root": { ...inputStyle["& .MuiOutlinedInput-root"], animation: "highlightPulse 1.5s ease-out" }, "@keyframes highlightPulse": { "0%": { boxShadow: "0 0 0 0 rgba(111, 179, 255, 0.8)" }, "50%": { boxShadow: "0 0 20px 5px rgba(111, 179, 255, 0.45)" }, "100%": { boxShadow: "0 0 0 0 rgba(111, 179, 255, 0)" } } }) }} required>
+                <Select name="serviceType" value={formData.serviceType} onChange={handleInputChange} displayEmpty required sx={{ borderRadius: "12px", background: "linear-gradient(180deg, rgba(100,200,255,0.04), rgba(20,40,60,0.04))", "& .MuiSelect-select": { color: formData.serviceType ? "#fff" : "rgba(255,255,255,0.5)" } }} MenuProps={{ PaperProps: { sx: { background: "rgba(20,40,60,0.95)", backdropFilter: "blur(10px)", border: "1px solid rgba(100,200,255,0.08)", "& .MuiMenuItem-root": { color: "#fff", "&:hover": { background: "rgba(100,200,255,0.12)" }, "&.Mui-selected": { background: "rgba(100,200,255,0.18)" } } } } }}>
                   <MenuItem value="" disabled>Select Service Type</MenuItem>
                   <MenuItem value="parcel">Parcel</MenuItem>
                   <MenuItem value="ftl">FTL</MenuItem>

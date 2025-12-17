@@ -169,8 +169,8 @@ const TrackShipmentPage = () => {
           {/* Search Box */}
           <GlassCard hover={false} sx={{ maxWidth: "700px", mx: "auto", p: { xs: 2, md: 3 } }}>
             <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2 }}>
-              <Box sx={{ flex: 1, position: "relative" }}>
-                <Box sx={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.4)", zIndex: 1 }}><FaSearch /></Box>
+              <Box sx={{ flex: 1, position: "relative"}}>
+                <Box sx={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "rgba(100,200,255,0.6)", zIndex: 1 }}><FaSearch /></Box>
                 <TextField
                   variant="outlined"
                   placeholder="Enter Tracking ID (e.g., LR-1234)"
@@ -182,14 +182,14 @@ const TrackShipmentPage = () => {
                   sx={{
                     "& .MuiOutlinedInput-root": {
                       borderRadius: "14px",
-                      backgroundColor: "rgba(255, 255, 255, 0.18)",
+                      background: "linear-gradient(180deg, rgba(100,200,255,0.06), rgba(20,40,60,0.06))",
                       color: "#ffffff",
                       pl: 4,
-                      "& fieldset": { borderColor: "rgba(255,255,255,0.3)" },
-                      "&:hover fieldset": { borderColor: "rgba(255,255,255,0.5)" },
-                      "&.Mui-focused fieldset": { borderColor: "#FFB74D", borderWidth: "2px" },
+                      "& fieldset": { borderColor: "rgba(100,200,255,0.14)" },
+                      "&:hover fieldset": { borderColor: "rgba(100,200,255,0.22)" },
+                      "&.Mui-focused fieldset": { borderColor: "#6FB3FF", borderWidth: "2px", boxShadow: "0 0 0 6px rgba(111,179,255,0.06)" },
                     },
-                    "& .MuiOutlinedInput-input": { color: "#ffffff", caretColor: "#FFB74D", outline: "none", "&::placeholder": { color: "rgba(255,255,255,0.6)", opacity: 1, textTransform: "none" } },
+                    "& .MuiOutlinedInput-input": { color: "#ffffff", caretColor: "#6FB3FF", outline: "none", "&::placeholder": { color: "rgba(255,255,255,0.6)", opacity: 1, textTransform: "none" } },
                   }}
                 />
               </Box>
@@ -311,26 +311,26 @@ const TrackShipmentPage = () => {
               <Box sx={{ width: 44, height: 44, background: "linear-gradient(135deg, rgba(100, 200, 255, 0.2) 0%, rgba(100, 200, 255, 0.05) 100%)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", color: "#64C8FF" }}><FaCubes size={20} /></Box>
               <Typography sx={{ color: "#ffffff", fontWeight: 700, fontSize: "1.15rem" }}>Items in Package</Typography>
             </Box>
-            <TableContainer sx={{ background: "rgba(255, 255, 255, 0.15)", borderRadius: "16px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.25)" }}>
+            <TableContainer sx={{ background: "linear-gradient(180deg, rgba(100,200,255,0.03), rgba(20,40,60,0.06))", borderRadius: "16px", overflow: "hidden", border: "1px solid rgba(100,200,255,0.08)" }}>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ background: "rgba(255,255,255,0.12)" }}>
-                    <TableCell sx={{ fontWeight: 700, color: "#FFB74D", borderBottom: "1px solid rgba(255,255,255,0.15)", py: 2 }}>Item Name</TableCell>
-                    <TableCell sx={{ fontWeight: 700, color: "#FFB74D", borderBottom: "1px solid rgba(255,255,255,0.15)", py: 2 }}>Quantity</TableCell>
+                  <TableRow sx={{ background: "rgba(100,200,255,0.06)" }}>
+                    <TableCell sx={{ fontWeight: 700, color: "#64C8FF", borderBottom: "1px solid rgba(100,200,255,0.08)", py: 2 }}>Item Name</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: "#64C8FF", borderBottom: "1px solid rgba(100,200,255,0.08)", py: 2 }}>Quantity</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {items.length > 0 ? (
                     items.map((item) => (
                       <TableRow key={item._id} sx={{ "&:hover": { background: "rgba(255,255,255,0.05)" } }}>
-                        <TableCell sx={{ color: "rgba(255,255,255,0.9)", borderBottom: "1px solid rgba(255,255,255,0.1)", py: 2 }}>{item.name}</TableCell>
-                        <TableCell sx={{ color: "rgba(255,255,255,0.9)", borderBottom: "1px solid rgba(255,255,255,0.1)", py: 2 }}>{item.quantity}</TableCell>
+                        <TableCell sx={{ color: "rgba(255,255,255,0.9)", borderBottom: "1px solid rgba(100,200,255,0.04)", py: 2 }}>{item.name}</TableCell>
+                        <TableCell sx={{ color: "rgba(255,255,255,0.9)", borderBottom: "1px solid rgba(100,200,255,0.04)", py: 2 }}>{item.quantity}</TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
                       <TableCell colSpan={2} sx={{ textAlign: "center", py: 5, color: "rgba(255,255,255,0.7)", borderBottom: "none" }}>
-                        <FaCubes size={32} style={{ marginBottom: 8, opacity: 0.4 }} />
+                        <FaCubes size={32} style={{ marginBottom: 8, opacity: 0.4, color: "rgba(100,200,255,0.4)" }} />
                         <Typography sx={{ fontSize: "0.95rem" }}>{hasSearched ? "No items found" : "Enter a tracking ID to view package items"}</Typography>
                       </TableCell>
                     </TableRow>

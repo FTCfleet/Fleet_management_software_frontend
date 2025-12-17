@@ -268,35 +268,7 @@ const UserTemplate = () => {
               gap: 3,
             }}
           >
-            <Box
-              sx={{
-                position: "relative",
-                width: 80,
-                height: 80,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {/* Spinning Ring */}
-              <Box
-                sx={{
-                  position: "absolute",
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: "50%",
-                  border: "3px solid transparent",
-                  borderTopColor: "#FFB74D",
-                  borderRightColor: "rgba(255, 183, 77, 0.3)",
-                  animation: "spin 1.2s linear infinite",
-                  "@keyframes spin": {
-                    "0%": { transform: "rotate(0deg)" },
-                    "100%": { transform: "rotate(360deg)" },
-                  },
-                }}
-              />
-              <ModernSpinner size={32} />
-            </Box>
+            <ModernSpinner size={48} />
             {isScreenLoadingText && (
               <Box sx={{ textAlign: "center" }}>
                 <Typography sx={{ fontSize: "1.1rem", color: "#ffffff", fontWeight: 600, letterSpacing: "0.5px" }}>

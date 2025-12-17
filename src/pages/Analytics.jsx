@@ -486,7 +486,9 @@ const Analytics_UI = () => {
                     border: `1px solid ${colors?.border}`,
                     backgroundColor: colors?.bgCard,
                     boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                    color: colors?.textPrimary,
                   }}
+                  itemStyle={{ color: colors?.textPrimary }}
                   formatter={(value, name) => [`${value} orders`, name]}
                 />
                 <Legend 
