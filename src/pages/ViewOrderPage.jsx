@@ -124,6 +124,33 @@ export default function ViewOrderPage() {
     setIsScreenLoading(false);
   };
 
+  const handleLRPrintThermal = async () => {
+    try {
+      setIsScreenLoadingText("Generating LR Receipt...");
+      setIsScreenLoading(true);
+      const response = await fetch(
+        `${BASE_URL}/api/parcel/generate-lr-receipt-thermal/${id}` 
+      );
+      const blob = await response.blob();
+      const pdfURL = URL.createObjectURL(blob);
+
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = pdfURL;
+
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      };
+    } catch (error) {
+      alert("Failed to load or print the PDF.");
+    }
+    setIsScreenLoadingText("");
+    setIsScreenLoading(false);
+  };
+
   const getStatusColor = (status) => {
     const colors = {
       delivered: { bg: "#dcfce7", color: "#166534" },
@@ -304,6 +331,12 @@ export default function ViewOrderPage() {
         <button className="button" onClick={handleLRPrint} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
           <FaPrint /> Download Receipt
         </button>
+        {
+          !isMobile &&
+          <button className="button" onClick={handleLRPrintThermal} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
+            <FaPrint /> Download Thermal
+          </button>
+        }
         <Link to={`/user/edit/order/${id}`} style={{ textDecoration: "none", flex: isMobile ? "1 1 45%" : "0 0 auto" }}>
           <button className="button" style={{ width: "100%" }}>
             <FaEdit /> Edit LR

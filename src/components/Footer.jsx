@@ -147,7 +147,7 @@ const Footer = () => {
                 Monday - Saturday
               </Typography>
               <Typography sx={{ color: "rgba(255,255,255,0.8)", fontSize: "0.95rem" }}>
-                9:00 AM - 7:00 PM
+                11:00 AM - 9:00 PM
               </Typography>
               <Typography sx={{ color: "rgba(255,255,255,0.5)", fontSize: "0.9rem", mt: 1 }}>
                 Sunday: Closed

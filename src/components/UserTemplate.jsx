@@ -232,6 +232,7 @@ const UserTemplate = () => {
               : "none"
           }}>
             <Typography
+              component="div"
               sx={{
                 display: "flex",
                 alignItems: "center",
