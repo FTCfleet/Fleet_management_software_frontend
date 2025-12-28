@@ -12,6 +12,7 @@ import { getDate } from "../utils/dateFormatter";
 import CustomDialog from "../components/CustomDialog";
 import { useDialog } from "../hooks/useDialog";
 import CustomDatePicker from "../components/CustomDatePicker";
+import { fromDbValue, toDbValue } from "../utils/currencyUtils";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -31,7 +32,8 @@ export default function AddLedgerPage({}) {
   const [driverPhone, setDriverPhone] = useState("");
   const [allTruckDetails, setAllTruckDetails] = useState([]);
   const [error, setError] = useState(false);
-  const [lorryFreight, setLorryFreight] = useState(0);
+  // Store lorryFreight as display value (decimal string)
+  const [lorryFreight, setLorryFreight] = useState("");
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [orders, setOrders] = useState([]);
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
@@ -70,7 +72,15 @@ export default function AddLedgerPage({}) {
       const response = await fetch(`${BASE_URL}/api/ledger/new`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ ids: Array.from(selectedOrders.current), destinationWarehouse, lorryFreight: lorryFreight, vehicleNo: truckNo.toUpperCase(), driverName: driverName, driverPhone: driverPhone, ...(sourceWarehouse !== 'all' ? {sourceWarehouse} : {}) }),
+        body: JSON.stringify({ 
+          ids: Array.from(selectedOrders.current), 
+          destinationWarehouse, 
+          lorryFreight: parseFloat(lorryFreight) || 0, // Send display value - backend will multiply by 100
+          vehicleNo: truckNo.toUpperCase(), 
+          driverName: driverName, 
+          driverPhone: driverPhone, 
+          ...(sourceWarehouse !== 'all' ? {sourceWarehouse} : {}) 
+        }),
       });
       const data = await response.json();
       if (!response.ok || !data.flag) { showError("Failed to create memo. Please try again.", "Error"); }
@@ -121,7 +131,7 @@ export default function AddLedgerPage({}) {
           <Autocomplete freeSolo inputValue={truckNo} onInputChange={(event, newValue) => { if (event) setTruckNo(newValue); }} options={allTruckDetails.map((truck) => truck.vehicleNo)} onChange={(event, newValue) => handleTruckChange(event, newValue)} filterOptions={createFilterOptions({ matchFrom: "start" })} getOptionLabel={(option) => option || ""} renderInput={(params) => <TextField {...params} label="Truck No. *" error={error && !truckNo} sx={{ ...textFieldSx, "& input": { textTransform: "uppercase" } }} size="small" />} disableClearable slots={autocompleteSlots} />
           <TextField label="Driver Name" value={driverName} onChange={(e) => setDriverName(e.target.value)} sx={textFieldSx} size="small" inputProps={{ tabIndex: 2 }} />
           <TextField label="Driver Phone" value={driverPhone} onChange={(e) => setDriverPhone(e.target.value)} sx={textFieldSx} size="small" inputProps={{ tabIndex: 3 }} />
-          <TextField label="Lorry Freight" type="text" value={lorryFreight} onChange={(e) => setLorryFreight(parseInt(e.target.value) || 0)} sx={textFieldSx} size="small" inputProps={{ tabIndex: 4 }} />
+          <TextField label="Lorry Freight" type="text" value={lorryFreight} onChange={(e) => setLorryFreight(e.target.value)} sx={textFieldSx} size="small" inputProps={{ tabIndex: 4 }} />
           <FormControl size="small" sx={textFieldSx}>
             <InputLabel>Source Station *</InputLabel>
             <Select label="Source Station *" value={sourceWarehouse} onChange={(e) => handleWarehouseChange(e.target.value, "source")} error={error && !sourceWarehouse} inputProps={{ tabIndex: 5 }}>
@@ -202,7 +212,7 @@ export default function AddLedgerPage({}) {
             </Box>
             <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}>
               <Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Lorry Freight</Typography>
-              <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{lorryFreight}</Typography>
+              <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{parseFloat(lorryFreight || 0).toFixed(2)}</Typography>
             </Box>
             <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,183,77,0.1)" : "rgba(29,53,87,0.08)", border: isDarkMode ? "1px solid rgba(255,183,77,0.3)" : "1px solid rgba(29,53,87,0.2)" }}>
               <Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Vehicle</Typography>

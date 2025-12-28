@@ -24,6 +24,7 @@ import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
 import ModernSpinner from "../components/ModernSpinner";
 import SearchFilterBar, { highlightMatch } from "../components/SearchFilterBar";
 import Pagination from "../components/Pagination";
+import { fromDbValue, toDbValue } from "../utils/currencyUtils";
 import "../css/main.css";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -152,8 +153,9 @@ export default function AllItemPage() {
 
   const handleEdit = (Item) => {
     const curItem = { ...Item };
-    // console.log(Item);
-    // curItem.name = Item.name.replace(`(${Item.itemType.name})`, '');
+    // Convert DB values to display values for editing
+    curItem.freight = fromDbValue(Item.freight || 0);
+    curItem.hamali = fromDbValue(Item.hamali || 0);
     setCurrentItemList([curItem]);
     setIsModalOpen(true);
     setIsAdding(false);
@@ -230,8 +232,8 @@ export default function AllItemPage() {
     setCurrentItemList([
       {
         name: "",
-        freight: 0,
-        hamali: 0,
+        freight: "",
+        hamali: "",
         type: "C/B",
       },
     ]);
@@ -243,12 +245,18 @@ export default function AllItemPage() {
     setIsLoading1(true);
     const token = localStorage.getItem("token");
     let method, body;
+    // Convert string values to floats for API - backend will multiply by 100
+    const itemsForApi = currentItemList.map(item => ({
+      ...item,
+      freight: parseFloat(item.freight) || 0,
+      hamali: parseFloat(item.hamali) || 0
+    }));
     if (isAdding) {
       method = "POST";
-      body = { items: currentItemList };
+      body = { items: itemsForApi };
     } else {
       method = "PUT";
-      body = { items: currentItemList };
+      body = { items: itemsForApi };
     }
     const res = await fetch(`${BASE_URL}/api/admin/manage/regular-item`, {
       method: method,
@@ -277,9 +285,7 @@ export default function AllItemPage() {
 
   const handleItemChange = (index, field, value) => {
     const updatedItems = [...currentItemList];
-    if (field === "freight" || field === "hamali") {
-      value = parseInt(value) || 0;
-    }
+    // Keep freight/hamali as strings for decimal input
     if (field === "name") {
       value = value.toUpperCase();
     }
@@ -578,10 +584,10 @@ export default function AllItemPage() {
                             Type: {item.itemType?.name || "NA"}
                           </Typography>
                           <Typography variant="body2" sx={rowStyle}>
-                            Freight: {item.freight}
+                            Freight: ₹{fromDbValue(item.freight)}
                           </Typography>
                           <Typography variant="body2" sx={rowStyle}>
-                            Hamali: {item.hamali}
+                            Hamali: ₹{fromDbValue(item.hamali)}
                           </Typography>
                           <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
                             <IconButton

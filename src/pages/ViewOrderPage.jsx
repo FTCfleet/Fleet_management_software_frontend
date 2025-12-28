@@ -23,6 +23,7 @@ import {
 import { Link, useNavigate, useOutletContext, useParams, useLocation } from "react-router-dom";
 import { FaEdit, FaTrash, FaPrint, FaExclamationTriangle } from "react-icons/fa";
 import { dateFormatter } from "../utils/dateFormatter";
+import { fromDbValue, formatCurrency } from "../utils/currencyUtils";
 import { useAuth } from "../routes/AuthContext";
 import ModernSpinner from "../components/ModernSpinner";
 import "../css/table.css";
@@ -228,10 +229,10 @@ export default function ViewOrderPage() {
                     Order Info
                   </Typography>
                   <DetailRow label="Payment" value={order.payment} colors={colors} isDarkMode={isDarkMode} />
-                  <DetailRow label="Total" value={`₹${order.freight + order.hamali * 2}`} highlight colors={colors} isDarkMode={isDarkMode} />
-                  <DetailRow label="Freight" value={`₹${order.freight}`} colors={colors} isDarkMode={isDarkMode} />
-                  <DetailRow label="Hamali" value={`₹${order.hamali}`} colors={colors} isDarkMode={isDarkMode} />
-                  <DetailRow label="Door Delivery" value={order.isDoorDelivery ? `₹${order.doorDeliveryCharge}` : "No"} colors={colors} isDarkMode={isDarkMode} />
+                  <DetailRow label="Total" value={`₹${fromDbValue((order.freight || 0) + (order.hamali || 0) * 2)}`} highlight colors={colors} isDarkMode={isDarkMode} />
+                  <DetailRow label="Freight" value={formatCurrency(order.freight)} colors={colors} isDarkMode={isDarkMode} />
+                  <DetailRow label="Hamali" value={formatCurrency(order.hamali)} colors={colors} isDarkMode={isDarkMode} />
+                  <DetailRow label="Door Delivery" value={order.isDoorDelivery ? formatCurrency(order.doorDeliveryCharge) : "No"} colors={colors} isDarkMode={isDarkMode} />
                 </Box>
               </Grid>
 
@@ -300,10 +301,10 @@ export default function ViewOrderPage() {
                         <TableCell sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500 }}>{item.name}</TableCell>
                         <TableCell sx={{ color: colors?.textSecondary || "#64748b" }}>{item.itemType?.name}</TableCell>
                         <TableCell align="center" sx={{ color: colors?.textSecondary || "#64748b" }}>{item.quantity}</TableCell>
-                        <TableCell align="right" sx={{ color: colors?.textSecondary || "#64748b" }}>₹{item.freight}</TableCell>
-                        <TableCell align="right" sx={{ color: colors?.textSecondary || "#64748b" }}>₹{item.hamali}</TableCell>
+                        <TableCell align="right" sx={{ color: colors?.textSecondary || "#64748b" }}>{formatCurrency(item.freight)}</TableCell>
+                        <TableCell align="right" sx={{ color: colors?.textSecondary || "#64748b" }}>{formatCurrency(item.hamali)}</TableCell>
                         <TableCell align="right" sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500 }}>
-                          ₹{(item.freight + 2 * item.hamali) * item.quantity}
+                          {formatCurrency(((item.freight || 0) + 2 * (item.hamali || 0)) * (item.quantity || 1))}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -312,10 +313,10 @@ export default function ViewOrderPage() {
                       <TableCell align="center" sx={{ fontWeight: 600, color: colors?.textPrimary || "#1E3A5F" }}>
                         {order.items?.reduce((prev, item) => prev + item.quantity, 0)}
                       </TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, color: colors?.textPrimary || "#1E3A5F" }}>₹{order.freight}</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, color: colors?.textPrimary || "#1E3A5F" }}>₹{order.hamali}</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: colors?.textPrimary || "#1E3A5F" }}>{formatCurrency(order.freight)}</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: colors?.textPrimary || "#1E3A5F" }}>{formatCurrency(order.hamali)}</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 700, color: isDarkMode ? colors?.accent : colors?.textPrimary || "#1E3A5F" }}>
-                        ₹{order.freight + order.hamali * 2}
+                        {formatCurrency((order.freight || 0) + (order.hamali || 0) * 2)}
                       </TableCell>
                     </TableRow>
                   </>

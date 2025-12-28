@@ -30,6 +30,7 @@ import "../css/main.css";
 import { useAuth } from "../routes/AuthContext";
 import CustomDialog from "../components/CustomDialog";
 import { useDialog } from "../hooks/useDialog";
+import { fromDbValue, toDbValue } from "../utils/currencyUtils";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -49,6 +50,7 @@ export default function AddOrderPage({}) {
   const [senderDetails, setSenderDetails] = useState({ name: "", phoneNo: "", address: "", gst: "", role: "sender" });
   const [receiverDetails, setReceiverDetails] = useState({ name: "", phoneNo: "", address: "", gst: "", role: "receiver" });
   const [error, setError] = useState(false);
+  // Store freight/hamali as DB values (integers * 100)
   const [freight, setFreight] = useState(0);
   const [hamali, setHamali] = useState(0);
   const [allWarehouse, setAllWarehouse] = useState([]);
@@ -59,7 +61,8 @@ export default function AddOrderPage({}) {
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [payment, setPayemnt] = useState("To Pay");
   const [isDoorDelivery, setIsDoorDelivery] = useState(false);
-  const [doorDeliveryCharge, setDoorDeliveryCharge] = useState(0);
+  // Store doorDeliveryCharge as display value (decimal string)
+  const [doorDeliveryCharge, setDoorDeliveryCharge] = useState("");
   const { isAdmin } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -113,7 +116,8 @@ export default function AddOrderPage({}) {
     setItemTypes(data.body);
   };
 
-  const handleAddRow = () => { setItems([...items, { id: counter, name: "", quantity: 0, freight: 0, hamali: 0, type: "C/B" }]); setCounter(counter + 1); };
+  // Items store freight/hamali as display values (decimal strings)
+  const handleAddRow = () => { setItems([...items, { id: counter, name: "", quantity: 0, freight: "", hamali: "", type: "C/B" }]); setCounter(counter + 1); };
 
   const handleRemoveRow = (id) => {
     const updatedItems = items.filter((item) => item.id !== id).map((item, index) => ({ ...item, id: index + 1 }));
@@ -125,10 +129,17 @@ export default function AddOrderPage({}) {
     if (itemToCopy) { const copiedItem = { ...itemToCopy, id: counter }; const updatedItems = [...items, copiedItem]; fixCharges(copiedItem.id, copiedItem.quantity, copiedItem.freight, copiedItem.hamali, updatedItems); setItems(updatedItems); setCounter(counter + 1); }
   };
 
+  // fixCharges calculates totals in DB format (integers * 100)
   const fixCharges = (id, quantity_new, freight_new, hamali_new, itemsList = items) => {
     let ham = 0, frt = 0;
-    itemsList.filter((item) => item.id !== id).forEach((item) => { ham += item.quantity * item.hamali; frt += item.quantity * item.freight; });
-    ham += hamali_new * quantity_new; frt += freight_new * quantity_new; setHamali(ham); setFreight(frt);
+    itemsList.filter((item) => item.id !== id).forEach((item) => { 
+      ham += (item.quantity || 0) * toDbValue(item.hamali); 
+      frt += (item.quantity || 0) * toDbValue(item.freight); 
+    });
+    ham += toDbValue(hamali_new) * (quantity_new || 0); 
+    frt += toDbValue(freight_new) * (quantity_new || 0); 
+    setHamali(ham); 
+    setFreight(frt);
   };
 
   const handleInputChange = (id, field, value, event) => {
@@ -139,7 +150,14 @@ export default function AddOrderPage({}) {
         const updatedItems = prevItems.map((prevItem) => {
           if (prevItem.id !== id) return prevItem;
           const matchedItem = findRegItem(normalizedValue, prevItem.type);
-          updatedItemForCharges = { ...prevItem, name: normalizedValue, freight: matchedItem ? matchedItem.freight || 0 : 0, hamali: matchedItem ? matchedItem.hamali || 0 : 0, quantity: prevItem.quantity || 1 };
+          // Convert DB values to display values for matched items
+          updatedItemForCharges = { 
+            ...prevItem, 
+            name: normalizedValue, 
+            freight: matchedItem ? fromDbValue(matchedItem.freight || 0) : "", 
+            hamali: matchedItem ? fromDbValue(matchedItem.hamali || 0) : "", 
+            quantity: prevItem.quantity || 1 
+          };
           return updatedItemForCharges;
         });
         if (updatedItemForCharges) fixCharges(id, updatedItemForCharges.quantity, updatedItemForCharges.freight, updatedItemForCharges.hamali, updatedItems);
@@ -153,7 +171,14 @@ export default function AddOrderPage({}) {
         const updatedItems = prevItems.map((prevItem) => {
           if (prevItem.id !== id) return prevItem;
           const matchedItem = findRegItem(prevItem.name, value);
-          updatedItemForCharges = { ...prevItem, type: value, freight: matchedItem ? matchedItem.freight || 0 : 0, hamali: matchedItem ? matchedItem.hamali || 0 : 0, quantity: prevItem.quantity || 1 };
+          // Convert DB values to display values for matched items
+          updatedItemForCharges = { 
+            ...prevItem, 
+            type: value, 
+            freight: matchedItem ? fromDbValue(matchedItem.freight || 0) : "", 
+            hamali: matchedItem ? fromDbValue(matchedItem.hamali || 0) : "", 
+            quantity: prevItem.quantity || 1 
+          };
           return updatedItemForCharges;
         });
         if (updatedItemForCharges) fixCharges(id, updatedItemForCharges.quantity, updatedItemForCharges.freight, updatedItemForCharges.hamali, updatedItems);
@@ -161,7 +186,9 @@ export default function AddOrderPage({}) {
       });
       return;
     }
-    if (field === "quantity" || field === "freight" || field === "hamali") value = parseInt(value) || 0;
+    // quantity is integer, freight/hamali are decimal strings
+    if (field === "quantity") value = parseInt(value) || 0;
+    // For freight/hamali, keep as string for decimal input
     setItems((prevItems) => {
       const updatedItems = prevItems.map((prevItem) => prevItem.id === id ? { ...prevItem, [field]: value } : prevItem);
       if (field === "quantity" || field === "freight" || field === "hamali") {
@@ -193,10 +220,27 @@ export default function AddOrderPage({}) {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
+      // Send display values directly - backend will multiply by 100
+      const itemsForApi = items.map(item => ({
+        ...item,
+        freight: parseFloat(item.freight) || 0,
+        hamali: parseFloat(item.hamali) || 0
+      }));
       const response = await fetch(`${BASE_URL}/api/parcel/new`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ senderDetails: handleEmptyDetails(senderDetails), receiverDetails: handleEmptyDetails(receiverDetails), items, destinationWarehouse, hamali, freight, payment, isDoorDelivery, doorDeliveryCharge, ...(isAdmin ? { sourceWarehouse } : {}) }),
+        body: JSON.stringify({ 
+          senderDetails: handleEmptyDetails(senderDetails), 
+          receiverDetails: handleEmptyDetails(receiverDetails), 
+          items: itemsForApi, 
+          destinationWarehouse, 
+          hamali: parseFloat(fromDbValue(hamali)) || 0, // Convert back to display value for backend
+          freight: parseFloat(fromDbValue(freight)) || 0, // Convert back to display value for backend
+          payment, 
+          isDoorDelivery, 
+          doorDeliveryCharge: parseFloat(doorDeliveryCharge) || 0, 
+          ...(isAdmin ? { sourceWarehouse } : {}) 
+        }),
       });
       const data = await response.json();
       if (!response.ok || !data.flag) { showError("Failed to create LR. Please try again.", "Error"); }
@@ -281,7 +325,7 @@ export default function AddOrderPage({}) {
             </Select>
           </FormControl>
           <FormControlLabel control={<Checkbox checked={isDoorDelivery} onChange={(e) => setIsDoorDelivery(e.target.checked)} sx={{ color: isDarkMode ? "#FFB74D" : "#1D3557", "&.Mui-checked": { color: isDarkMode ? "#FFB74D" : "#1D3557" } }} inputProps={{ tabIndex: isAdmin ? 12 : 11 }} />} label="Door Delivery" sx={{ "& .MuiFormControlLabel-label": { fontSize: "0.9rem" } }} />
-          {isDoorDelivery && <TextField label="Delivery Charge" value={doorDeliveryCharge} onChange={(e) => setDoorDeliveryCharge(parseInt(e.target.value) || 0)} type="text" sx={textFieldSx} size="small" inputProps={{ tabIndex: isAdmin ? 13 : 12 }} />}
+          {isDoorDelivery && <TextField label="Delivery Charge" value={doorDeliveryCharge} onChange={(e) => setDoorDeliveryCharge(e.target.value)} type="text" sx={textFieldSx} size="small" inputProps={{ tabIndex: isAdmin ? 13 : 12 }} />}
         </Box>
       </SectionCard>
 
@@ -293,10 +337,10 @@ export default function AddOrderPage({}) {
                 <TableCell sx={{ width: 50 }}>#</TableCell>
                 <TableCell>Item Name</TableCell>
                 <TableCell sx={{ width: 120 }}>Type</TableCell>
-                <TableCell sx={{ width: 80 }}>Qty</TableCell>
-                <TableCell sx={{ width: 80 }}>Freight</TableCell>
-                <TableCell sx={{ width: 80 }}>Hamali</TableCell>
-                <TableCell sx={{ width: 90 }}>Amount</TableCell>
+                <TableCell sx={{ width: 70 }}>Qty</TableCell>
+                <TableCell sx={{ width: 100 }}>Freight</TableCell>
+                <TableCell sx={{ width: 100 }}>Hamali</TableCell>
+                <TableCell sx={{ width: 100 }}>Amount</TableCell>
                 <TableCell sx={{ width: 90 }}>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -317,10 +361,10 @@ export default function AddOrderPage({}) {
                         </Select>
                       </FormControl>
                     </TableCell>
-                    <TableCell><TextField type="text" value={item.quantity} onChange={(e) => handleInputChange(item.id, "quantity", e.target.value)} variant="outlined" size="small" sx={textFieldSx} inputProps={{ tabIndex: 102 + idx * 6 }} /></TableCell>
-                    <TableCell><TextField type="text" value={item.freight} onChange={(e) => handleInputChange(item.id, "freight", e.target.value)} variant="outlined" size="small" sx={textFieldSx} inputProps={{ tabIndex: 103 + idx * 6 }} /></TableCell>
-                    <TableCell><TextField type="text" value={item.hamali} onChange={(e) => handleInputChange(item.id, "hamali", e.target.value)} variant="outlined" size="small" sx={textFieldSx} inputProps={{ tabIndex: 104 + idx * 6 }} /></TableCell>
-                    <TableCell><Typography sx={{ fontWeight: 600, color: colors?.textPrimary }}>₹{(2 * item.hamali + item.freight) * item.quantity}</Typography></TableCell>
+                    <TableCell><TextField type="text" value={item.quantity} onChange={(e) => handleInputChange(item.id, "quantity", e.target.value)} variant="outlined" size="small" sx={{ ...textFieldSx, minWidth: 60 }} inputProps={{ tabIndex: 102 + idx * 6 }} /></TableCell>
+                    <TableCell><TextField type="text" value={item.freight} onChange={(e) => handleInputChange(item.id, "freight", e.target.value)} variant="outlined" size="small" sx={{ ...textFieldSx, minWidth: 80 }} inputProps={{ tabIndex: 103 + idx * 6 }} /></TableCell>
+                    <TableCell><TextField type="text" value={item.hamali} onChange={(e) => handleInputChange(item.id, "hamali", e.target.value)} variant="outlined" size="small" sx={{ ...textFieldSx, minWidth: 80 }} inputProps={{ tabIndex: 104 + idx * 6 }} /></TableCell>
+                    <TableCell><Typography sx={{ fontWeight: 600, color: colors?.textPrimary }}>₹{fromDbValue((2 * toDbValue(item.hamali) + toDbValue(item.freight)) * item.quantity)}</Typography></TableCell>
                     <TableCell>
                       <Box sx={{ display: "flex", gap: 0.5 }}>
                         <IconButton size="small" onClick={() => handleCopyRow(item.id)} sx={{ color: colors?.textSecondary, "&:hover": { color: isDarkMode ? "#FFB74D" : "#1D3557" } }} tabIndex={105 + idx * 6}><FaCopy size={14} /></IconButton>
@@ -340,19 +384,19 @@ export default function AddOrderPage({}) {
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(4, 1fr)" }, gap: 2 }}>
           <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}>
             <Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Freight</Typography>
-            <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{freight}</Typography>
+            <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{fromDbValue(freight)}</Typography>
           </Box>
           <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}>
             <Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Hamali</Typography>
-            <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{hamali}</Typography>
+            <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{fromDbValue(hamali)}</Typography>
           </Box>
           <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}>
             <Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Statistical Charges</Typography>
-            <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{hamali}</Typography>
+            <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{fromDbValue(hamali)}</Typography>
           </Box>
           <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,183,77,0.1)" : "rgba(29,53,87,0.08)", border: isDarkMode ? "1px solid rgba(255,183,77,0.3)" : "1px solid rgba(29,53,87,0.2)" }}>
             <Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Total</Typography>
-            <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: isDarkMode ? "#FFB74D" : "#1D3557" }}>₹{freight + hamali * 2 + (isDoorDelivery ? doorDeliveryCharge : 0)}</Typography>
+            <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: isDarkMode ? "#FFB74D" : "#1D3557" }}>₹{fromDbValue(freight + hamali * 2 + (isDoorDelivery ? toDbValue(doorDeliveryCharge) : 0))}</Typography>
           </Box>
         </Box>
       </SectionCard>

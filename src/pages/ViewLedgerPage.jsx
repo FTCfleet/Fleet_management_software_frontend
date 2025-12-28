@@ -42,6 +42,7 @@ import {
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
 import { TbTruckDelivery } from "react-icons/tb";
 import { dateFormatter } from "../utils/dateFormatter";
+import { fromDbValue, toDbValue, formatCurrency } from "../utils/currencyUtils";
 // import { Delete } from "react-feather";
 // import { Memory } from "@mui/icons-material";
 
@@ -52,7 +53,7 @@ export default function ViewLedgerPage() {
   const { id } = useParams();
   const [ledgerData, setLedgerData] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [totals, setTotals] = useState({ freight: 0, hamali: 0 });
+  const [totals, setTotals] = useState({ freight: "0.00", hamali: "0.00" });
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   // const [allWarehouse, setAllWarehouse] = useState([]);
@@ -92,8 +93,8 @@ export default function ViewLedgerPage() {
     });
 
     setTotals({
-      freight: totalfreight,
-      hamali: totalhamali,
+      freight: fromDbValue(totalfreight),
+      hamali: fromDbValue(totalhamali),
     });
   }, [orders]);
 
@@ -153,11 +154,12 @@ export default function ViewLedgerPage() {
   };
 
   const handleDispatch = async () => {
+    // Send display values - backend will multiply by 100
     let hamali_freight = orders.map((item) => {
       return {
         trackingId: item.trackingId,
-        hamali: item.hamali,
-        freight: item.freight,
+        hamali: parseFloat(fromDbValue(item.hamali)) || 0,
+        freight: parseFloat(fromDbValue(item.freight)) || 0,
       };
     });
 
@@ -297,7 +299,8 @@ export default function ViewLedgerPage() {
 
   const handleOrderValueChange = (index, field, value) => {
     const updatedOrders = [...orders];
-    updatedOrders[index][field] = parseInt(value) || 0;
+    // Store as DB value for internal calculations (multiply by 100)
+    updatedOrders[index][field] = toDbValue(value);
     setOrders(updatedOrders);
   };
 
@@ -555,7 +558,7 @@ export default function ViewLedgerPage() {
                   Lorry Freight
                 </Typography>
                 <Typography sx={{ color: isDarkMode ? colors?.accent : "#1E3A5F", fontWeight: 700, fontSize: "1.05rem" }}>
-                  ₹{ledgerData.lorryFreight || 0}
+                  {formatCurrency(ledgerData.lorryFreight || 0)}
                 </Typography>
               </Box>
             </Box>
@@ -684,7 +687,7 @@ export default function ViewLedgerPage() {
                           <TextField
                             type="text"
                             size="small"
-                            value={order.freight}
+                            value={fromDbValue(order.freight)}
                             onChange={(e) => handleOrderValueChange(index, "freight", e.target.value)}
                             InputProps={{ readOnly: ledgerData.status !== "pending" }}
                             sx={{ 
@@ -704,7 +707,7 @@ export default function ViewLedgerPage() {
                           <TextField
                             type="text"
                             size="small"
-                            value={order.hamali}
+                            value={fromDbValue(order.hamali)}
                             onChange={(e) => handleOrderValueChange(index, "hamali", e.target.value)}
                             InputProps={{ readOnly: ledgerData.status !== "pending" }}
                             sx={{ 
@@ -724,7 +727,7 @@ export default function ViewLedgerPage() {
                           <TextField
                             type="text"
                             size="small"
-                            value={Number(order.hamali) || 0}
+                            value={fromDbValue(order.hamali)}
                             InputProps={{ readOnly: true }}
                             sx={{ 
                               width: "100%",
@@ -813,7 +816,7 @@ export default function ViewLedgerPage() {
                         <TextField 
                           type="text" 
                           size="small" 
-                          value={order.freight}
+                          value={fromDbValue(order.freight)}
                           onChange={(e) => handleOrderValueChange(index, "freight", e.target.value)}
                           InputProps={{ readOnly: ledgerData.status !== "pending" }}
                           sx={{ 
@@ -829,7 +832,7 @@ export default function ViewLedgerPage() {
                         <TextField 
                           type="text" 
                           size="small" 
-                          value={order.hamali}
+                          value={fromDbValue(order.hamali)}
                           onChange={(e) => handleOrderValueChange(index, "hamali", e.target.value)}
                           InputProps={{ readOnly: ledgerData.status !== "pending" }}
                           sx={{ 
@@ -845,7 +848,7 @@ export default function ViewLedgerPage() {
                         <TextField 
                           type="text" 
                           size="small" 
-                          value={Number(order.hamali) || 0}
+                          value={fromDbValue(order.hamali)}
                           InputProps={{ readOnly: true }}
                           sx={{ 
                             width: 80,
