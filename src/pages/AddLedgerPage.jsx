@@ -101,13 +101,42 @@ export default function AddLedgerPage({}) {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${BASE_URL}/api/parcel/all?src=${selectedSourceWarehouse}&dest=${selectedDestinationWarehouse}`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ date: date }) });
-      if (!response.ok) { showError("Failed to fetch orders. Please try again.", "Error"); throw new Error("Failed to fetch orders"); }
+      
+      // Build query parameters for the new endpoint
+      const params = new URLSearchParams();
+      params.append("date", date);
+      params.append("dest", selectedDestinationWarehouse);
+      if (selectedSourceWarehouse && selectedSourceWarehouse !== 'all') {
+        params.append("src", selectedSourceWarehouse);
+      }
+      
+      // Use the new dedicated endpoint for memo creation
+      const response = await fetch(`${BASE_URL}/api/parcel/for-memo?${params.toString()}`, { 
+        method: "GET", 
+        headers: { 
+          "Content-Type": "application/json", 
+          Authorization: `Bearer ${token}` 
+        }
+      });
+      
+      if (!response.ok) { 
+        showError("Failed to fetch orders. Please try again.", "Error"); 
+        throw new Error("Failed to fetch orders"); 
+      }
+      
       const data = await response.json();
-      if (!data.flag) { showError("Please login first to continue.", "Authentication Required"); throw new Error("Please login first"); }
+      
+      if (!data.flag) { 
+        showError(data.message || "Please login first to continue.", "Authentication Required"); 
+        throw new Error("Please login first"); 
+      }
+      
       setOrders(data.body);
-    } catch (error) { /* Error already shown */ }
-    finally { setIsLoading(false); }
+    } catch (error) { 
+      /* Error already shown */ 
+    } finally { 
+      setIsLoading(false); 
+    }
   };
 
   const applyFilter = () => { if (nameFilter) { let filtered = orders.filter((order) => order.sender.name.toLowerCase().startsWith(nameFilter.toLowerCase()) || order.receiver.name.toLowerCase().startsWith(nameFilter.toLowerCase()) || order.trackingId.toLowerCase().startsWith(nameFilter.toLowerCase())); setFilteredOrders(filtered); } else setFilteredOrders(orders); };
