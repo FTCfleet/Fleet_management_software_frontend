@@ -316,11 +316,11 @@ export default function AllClientPage() {
         dropdownValue={clientType}
         onDropdownChange={setClientType}
         dropdownOptions={[
-          { value: "all", label: "All Clients" },
           { value: "sender", label: "Sender" },
           { value: "receiver", label: "Receiver" },
         ]}
         dropdownPlaceholder="All Clients"
+        dropdownPlaceholderValue='all'
         extraButtons={
           <Button
             variant="contained"

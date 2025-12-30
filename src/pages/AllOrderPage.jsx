@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -15,6 +15,7 @@ import {
   Card,
   CardContent,
   Chip,
+  Button,
 } from "@mui/material";
 import { useNavigate, useParams, useOutletContext } from "react-router-dom";
 import "../css/table.css";
@@ -23,20 +24,26 @@ import { useAuth } from "../routes/AuthContext";
 import { getDate } from "../utils/dateFormatter";
 import ModernSpinner from "../components/ModernSpinner";
 import SearchFilterBar, { highlightMatch } from "../components/SearchFilterBar";
+import Pagination from "../components/Pagination";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
+const PAGE_LIMIT = 200;
 
 const AllOrderPage = () => {
   const { type } = useParams();
   const [orders, setOrders] = useState([]);
-  const [filteredOrders, setFilteredOrders] = useState([]);
   const [selectedDate, setSelectedDate] = useState(getDate());
   const [warehouses, setWarehouses] = useState([]);
   const { isSource, isAdmin } = useAuth();
+  const [idFilter, setIdFilter] = useState("");
   const [nameFilter, setNameFilter] = useState("");
   const [warehouseFilter, setWarehouseFilter] = useState("");
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalOrders, setTotalOrders] = useState(0);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { isDarkMode, colors } = useOutletContext() || {};
@@ -44,17 +51,19 @@ const AllOrderPage = () => {
   const cellStyle = { color: colors?.textPrimary || "#1E3A5F", fontWeight: 600, fontSize: "0.85rem" };
   const rowCellStyle = { color: colors?.textSecondary || "#25344E", fontSize: "0.9rem" };
 
+  // Fetch data when dependencies change
   useEffect(() => {
-    fetchData();
-  }, [selectedDate]);
-
-  useEffect(() => {
-    filterOrdersByTypeAndDate(type);
-  }, [type, orders]);
+    fetchData({page: currentPage, idFilterValue: idFilter, nameFilterValue: nameFilter, warehouseFilterValue: warehouseFilter});
+  }, [selectedDate, type, currentPage]);
 
   useEffect(() => {
     fetchWarehouses();
   }, []);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [type, selectedDate]);
 
   const fetchWarehouses = async () => {
     const token = localStorage.getItem("token");
@@ -66,80 +75,152 @@ const AllOrderPage = () => {
     setWarehouses(data.body.filter((w) => w.isSource !== isSource || isAdmin));
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async ({page, idFilterValue, nameFilterValue, warehouseFilterValue}) => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${BASE_URL}/api/parcel/all`, {
-        method: "POST",
+      
+      // Build query params
+      const params = new URLSearchParams();
+      params.append("date", selectedDate);
+      params.append("page", page.toString());
+      
+      // Status filter - map type to backend status
+      if (type !== "all") {
+        params.append("status", type);
+      }
+      
+      // Optional filters - only add if there's a value
+      if (idFilterValue.trim()) {
+        params.append("id", idFilterValue.trim());
+      }
+      if (nameFilterValue.trim()) {
+        params.append("name", nameFilterValue.trim());
+      }
+      if (warehouseFilterValue) {
+        // Determine if source or dest based on user role
+        if (isAdmin) {
+          // For admin, try both
+          params.append("src", warehouseFilterValue);
+          params.append("dest", warehouseFilterValue);
+        } else if (isSource) {
+          params.append("dest", warehouseFilterValue);
+        } else {
+          params.append("src", warehouseFilterValue);
+        }
+      }
+      
+      const response = await fetch(`${BASE_URL}/api/parcel/all?${params.toString()}`, {
+        method: "GET",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ date: selectedDate }),
       });
+      
       if (!response.ok) throw new Error("Failed to fetch orders");
       const data = await response.json();
       if (!data.flag) {
         alert("Please login first");
         return;
       }
-      setOrders(data.body);
+      console.log(data);
+      const fetchedOrders = data.body?.parcels || [];
+      setOrders(fetchedOrders);
+      setPageSize(data.body?.pageSize || fetchedOrders.length);
+      setTotalPages(data.body?.totalPages || 0);
+      setTotalOrders(data.body?.totalParcels || 0);
     } catch (error) {
+      console.error("Error fetching orders:", error);
       alert("Error fetching orders");
     }
     setIsLoading(false);
-  };
+  }, [selectedDate, type, isSource, isAdmin]);
 
-  const filterOrdersByTypeAndDate = (type) => {
-    if (type === "all") {
-      setFilteredOrders(orders);
-    } else {
-      setFilteredOrders(orders.filter((order) => order.status === type));
+  // Client-side filtering for immediate feedback (filters already applied on server)
+  const filteredOrders = useMemo(() => {
+    let filtered = orders;
+    
+    // Additional client-side filtering for warehouse if admin (since we passed both src and dest)
+    if (isAdmin && warehouseFilter) {
+      filtered = filtered.filter(
+        (order) =>
+          order.sourceWarehouse?.name === warehouseFilter ||
+          order.destinationWarehouse?.name === warehouseFilter
+      );
     }
-  };
+    
+    return filtered;
+  }, [orders, warehouseFilter, isAdmin]);
+
+  // Memoized orders with serial numbers for performance
+  const memoizedOrders = useMemo(() => {
+    const perPage = pageSize || filteredOrders.length || 0;
+    const offset = perPage ? (currentPage - 1) * perPage : 0;
+    return filteredOrders.map((order, index) => ({
+      ...order,
+      serial: offset + index + 1,
+    }));
+  }, [filteredOrders, currentPage, pageSize]);
+
+  // Resolved total pages with fallback calculation
+  const resolvedTotalPages = useMemo(() => {
+    if (totalPages) return totalPages;
+    if (totalOrders && pageSize) return Math.ceil(totalOrders / pageSize);
+    return totalOrders > 0 ? 1 : 0;
+  }, [totalPages, totalOrders, pageSize]);
+
+  // Visible range for pagination info
+  const visibleRange = useMemo(() => {
+    if (!memoizedOrders.length) return { start: 0, end: 0 };
+    return {
+      start: memoizedOrders[0].serial,
+      end: memoizedOrders[memoizedOrders.length - 1].serial,
+    };
+  }, [memoizedOrders]);
 
   const applyFilter = () => {
-    let filtered = orders.filter((order) => order.status === type || type === "all");
-    const searchTerm = nameFilter.toLowerCase().trim();
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (order) =>
-          order.sender.name.toLowerCase().includes(searchTerm) ||
-          order.receiver.name.toLowerCase().includes(searchTerm) ||
-          order.trackingId.toLowerCase().includes(searchTerm)
-      );
-    }
-    if (warehouseFilter) {
-      filtered = filtered.filter(
-        (order) =>
-          order.sourceWarehouse.name === warehouseFilter ||
-          order.destinationWarehouse.name === warehouseFilter
-      );
-    }
-    setFilteredOrders(filtered);
+    setCurrentPage(1);
+    fetchData({page: 1, idFilterValue: idFilter, nameFilterValue: nameFilter, warehouseFilterValue: warehouseFilter});
   };
 
   const clearFilter = () => {
+    setIdFilter("");
     setNameFilter("");
     setWarehouseFilter("");
-    filterOrdersByTypeAndDate(type);
+    setCurrentPage(1);
+    fetchData({page: 1, idFilterValue: "", nameFilterValue: "", warehouseFilterValue: ""});
   };
 
   const handleDateChange = (newDate) => {
     setSelectedDate(newDate);
+    setCurrentPage(1);
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
   };
 
   const getStatusColor = (status) => {
-    const colors = {
+    const statusColors = {
       delivered: { bg: "#dcfce7", color: "#166534" },
       dispatched: { bg: "#fef3c7", color: "#92400e" },
       arrived: { bg: "#dbeafe", color: "#1e40af" },
       pending: { bg: "#fee2e2", color: "#991b1b" },
     };
-    return colors[status] || { bg: "#f1f5f9", color: "#475569" };
+    return statusColors[status] || { bg: "#f1f5f9", color: "#475569" };
   };
 
-  // Mobile Card View
-  const MobileOrderCard = ({ order, idx }) => {
+  // Mobile Card View - Memoized for performance
+  const MobileOrderCard = React.memo(({ order, idx }) => {
     const statusColor = getStatusColor(order.status);
+    const searchTerm = idFilter || nameFilter;
+    
     return (
       <Card sx={{ 
         mb: 1.5, 
@@ -152,7 +233,7 @@ const AllOrderPage = () => {
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1.5 }}>
             <Box>
               <Typography sx={{ fontWeight: 700, color: colors?.textPrimary || "#1E3A5F", fontSize: "0.95rem" }}>
-                {order.trackingId}
+                {highlightMatch(order.trackingId, idFilter, isDarkMode)}
               </Typography>
               <Chip
                 label={order.status.charAt(0).toUpperCase() + order.status.slice(1)}
@@ -167,11 +248,15 @@ const AllOrderPage = () => {
           <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, fontSize: "0.85rem" }}>
             <Box>
               <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem" }}>Sender</Typography>
-              <Typography sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500 }}>{order.sender.name}</Typography>
+              <Typography sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500 }}>
+                {highlightMatch(order.sender?.name, nameFilter, isDarkMode)}
+              </Typography>
             </Box>
             <Box>
               <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem" }}>Receiver</Typography>
-              <Typography sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500 }}>{order.receiver.name}</Typography>
+              <Typography sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500 }}>
+                {highlightMatch(order.receiver?.name, nameFilter, isDarkMode)}
+              </Typography>
             </Box>
             <Box sx={{ gridColumn: "1 / -1" }}>
               <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem" }}>
@@ -179,17 +264,17 @@ const AllOrderPage = () => {
               </Typography>
               <Typography sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500 }}>
                 {isAdmin
-                  ? `${order.sourceWarehouse.name} → ${order.destinationWarehouse.name}`
+                  ? `${order.sourceWarehouse?.name} → ${order.destinationWarehouse?.name}`
                   : isSource
-                  ? order.destinationWarehouse.name
-                  : order.sourceWarehouse.name}
+                  ? order.destinationWarehouse?.name
+                  : order.sourceWarehouse?.name}
               </Typography>
             </Box>
           </Box>
         </CardContent>
       </Card>
     );
-  };
+  });
 
   return (
     <Box sx={{ backgroundColor: colors?.bgPrimary || "#f8fafc", minHeight: "100%" }}>
@@ -197,13 +282,17 @@ const AllOrderPage = () => {
         {type.charAt(0).toUpperCase() + type.slice(1)} LRs
       </Typography>
 
-      {/* Filters */}
+      {/* Filters - Two search bars */}
       <SearchFilterBar
         isDarkMode={isDarkMode}
         colors={colors}
-        searchValue={nameFilter}
-        onSearchChange={setNameFilter}
-        searchPlaceholder="Search by ID/Name"
+        searchValue={idFilter}
+        onSearchChange={setIdFilter}
+        searchPlaceholder="Search by LR ID"
+        searchValue2={nameFilter}
+        onSearchChange2={setNameFilter}
+        searchPlaceholder2="Search by Name"
+        showSearch2={true}
         onApply={applyFilter}
         onClear={clearFilter}
         isLoading={isLoading}
@@ -217,6 +306,21 @@ const AllOrderPage = () => {
         dropdownPlaceholder="All Warehouses"
       />
 
+      {/* Pagination Controls - Above table */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={resolvedTotalPages}
+        onPrevious={handlePreviousPage}
+        onNext={handleNextPage}
+        isLoading={isLoading}
+        showInfo={true}
+        infoText={memoizedOrders.length > 0
+          ? `Showing ${visibleRange.start} - ${visibleRange.end} of ${totalOrders} orders`
+          : `Showing 0 of ${totalOrders} orders`}
+        isDarkMode={isDarkMode}
+        colors={colors}
+      />
+
       {/* Content */}
       {isMobile ? (
         // Mobile Card View
@@ -225,8 +329,8 @@ const AllOrderPage = () => {
             <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
               <ModernSpinner size={40} />
             </Box>
-          ) : filteredOrders.length > 0 ? (
-            filteredOrders.map((order, idx) => <MobileOrderCard key={order.trackingId} order={order} idx={idx} />)
+          ) : memoizedOrders.length > 0 ? (
+            memoizedOrders.map((order) => <MobileOrderCard key={order.trackingId || order.serial} order={order} idx={order.serial} />)
           ) : (
             <Box sx={{ textAlign: "center", py: 4, color: colors?.textSecondary || "#64748b" }}>No orders found for the selected date.</Box>
           )}
@@ -265,21 +369,21 @@ const AllOrderPage = () => {
                     <ModernSpinner size={28} />
                   </TableCell>
                 </TableRow>
-              ) : filteredOrders.length > 0 ? (
-                filteredOrders.map((order, idx) => (
-                  <TableRow key={order.trackingId} hover>
-                    <TableCell sx={rowCellStyle}>{idx + 1}</TableCell>
-                    <TableCell sx={{ ...rowCellStyle, fontWeight: 600 }}>{highlightMatch(order.trackingId, nameFilter, isDarkMode)}</TableCell>
-                    <TableCell sx={rowCellStyle}>{highlightMatch(order.sender.name, nameFilter, isDarkMode)}</TableCell>
-                    <TableCell sx={rowCellStyle}>{highlightMatch(order.receiver.name, nameFilter, isDarkMode)}</TableCell>
+              ) : memoizedOrders.length > 0 ? (
+                memoizedOrders.map((order) => (
+                  <TableRow key={order.trackingId || order.serial} hover>
+                    <TableCell sx={rowCellStyle}>{order.serial}.</TableCell>
+                    <TableCell sx={{ ...rowCellStyle, fontWeight: 600 }}>{highlightMatch(order.trackingId, idFilter, isDarkMode)}</TableCell>
+                    <TableCell sx={rowCellStyle}>{highlightMatch(order.sender?.name, nameFilter, isDarkMode)}</TableCell>
+                    <TableCell sx={rowCellStyle}>{highlightMatch(order.receiver?.name, nameFilter, isDarkMode)}</TableCell>
                     {isAdmin ? (
                       <>
-                        <TableCell sx={rowCellStyle}>{order.sourceWarehouse.name}</TableCell>
-                        <TableCell sx={rowCellStyle}>{order.destinationWarehouse.name}</TableCell>
+                        <TableCell sx={rowCellStyle}>{order.sourceWarehouse?.name}</TableCell>
+                        <TableCell sx={rowCellStyle}>{order.destinationWarehouse?.name}</TableCell>
                       </>
                     ) : (
                       <TableCell sx={rowCellStyle}>
-                        {isSource ? order.destinationWarehouse.name : order.sourceWarehouse.name}
+                        {isSource ? order.destinationWarehouse?.name : order.sourceWarehouse?.name}
                       </TableCell>
                     )}
                     <TableCell>

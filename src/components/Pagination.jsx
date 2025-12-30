@@ -74,7 +74,7 @@ const Pagination = ({
           startIcon={<ChevronLeft sx={{ fontSize: "1.2rem" }} />}
           sx={buttonStyle}
         >
-          Previous
+          Prev
         </Button>
         <Typography
           sx={{

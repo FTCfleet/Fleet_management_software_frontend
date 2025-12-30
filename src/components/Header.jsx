@@ -348,7 +348,8 @@ const HeaderTabs = () => {
 
 const Header = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  // Use 1050px to match UserTemplate's sidebar breakpoint
+  const isMobile = useMediaQuery("(max-width: 1049px)");
   const { stationCode, isLoggedIn, isAdmin } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);

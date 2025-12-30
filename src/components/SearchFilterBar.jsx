@@ -13,6 +13,10 @@ const SearchFilterBar = ({
   searchValue = "",
   onSearchChange,
   searchPlaceholder = "Search...",
+  searchValue2 = "",
+  onSearchChange2,
+  searchPlaceholder2 = "Search...",
+  showSearch2 = false,
   onApply,
   onClear,
   isLoading = false,
@@ -24,6 +28,7 @@ const SearchFilterBar = ({
   onDropdownChange,
   dropdownOptions = [],
   dropdownPlaceholder = "All",
+  dropdownPlaceholderValue = "",
   extraButtons,
   showSearch = true,
 }) => {
@@ -158,7 +163,7 @@ const SearchFilterBar = ({
                 width: "100%",
               }}
             >
-              <MenuItem value="">{dropdownPlaceholder}</MenuItem>
+              <MenuItem value={dropdownPlaceholderValue}>{dropdownPlaceholder}</MenuItem>
               {dropdownOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
                   {option.label}
@@ -207,7 +212,7 @@ const SearchFilterBar = ({
               width: "100%",
             }}
           >
-            <MenuItem value="">{dropdownPlaceholder}</MenuItem>
+            <MenuItem value={dropdownPlaceholderValue}>{dropdownPlaceholder}</MenuItem>
             {dropdownOptions.map((option) => (
               <MenuItem key={option.value} value={option.value}>
                 {option.label}
@@ -242,17 +247,12 @@ const SearchFilterBar = ({
         </Box>
       )}
 
-      {/* Search Section: Search + Apply/Clear */}
+      {/* Search Section: Search + Apply/Clear - All in one row for tablet/desktop, column for mobile */}
       <Box
         sx={{
           display: "flex",
           flexDirection: { xs: "column", sm: "row" },
           alignItems: { xs: "stretch", sm: "center" },
-          justifyContent: { 
-            xs: "flex-start", 
-            sm: "flex-start", 
-            lg: showDatePicker ? "center" : "flex-start" 
-          },
           gap: { xs: 1.5, sm: 1, md: 1.5 },
           flex: 1,
           minWidth: 0,
@@ -269,61 +269,83 @@ const SearchFilterBar = ({
             size="small"
             sx={{
               ...inputStyle,
-              width: { xs: "100%", sm: "100%", md: "100%", lg: "320px" },
-              maxWidth: { sm: "none", md: "none", lg: "400px" },
-              minWidth: { lg: "280px" },
-              flex: { sm: 1, lg: "none" },
+              flex: { xs: "none", sm: 1 },
+              minWidth: { sm: "120px", md: "150px" },
             }}
-            InputProps={{
+            slotProps={{
+              input:{
               startAdornment: (
                 <InputAdornment position="start">
                   <SearchIcon sx={{ color: colors?.textMuted, fontSize: "1.2rem" }} />
                 </InputAdornment>
               ),
+            }}}
+          />
+        )}
+        
+        {/* Second Search Input */}
+        {showSearch2 && onSearchChange2 && (
+          <TextField
+            placeholder={searchPlaceholder2}
+            value={searchValue2}
+            onChange={(e) => onSearchChange2(e.target.value)}
+            variant="outlined"
+            size="small"
+            sx={{
+              ...inputStyle,
+              flex: { xs: "none", sm: 1 },
+              minWidth: { sm: "120px", md: "150px" },
             }}
+            slotProps={{
+              input:{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: colors?.textMuted, fontSize: "1.2rem" }} />
+                </InputAdornment>
+              ),
+            }}}
           />
         )}
 
         {/* Apply & Clear Buttons */}
-        <Box sx={{ 
-          display: "flex", 
-          gap: { xs: 1, sm: 0.75, md: 1 }, 
-          flexShrink: 0,
-          width: { xs: "100%", sm: "auto" },
-          justifyContent: { xs: "stretch", sm: onApply ? "flex-end" : "flex-start" },
-          minWidth: { sm: "auto", md: onApply ? "140px" : "auto", lg: onApply ? "160px" : "auto" }
-        }}>
-          {onApply && (
-            <Button
-              variant="contained"
-              onClick={onApply}
-              disabled={isLoading}
-              sx={{
-                ...applyButtonStyle,
-                flex: { xs: 1, sm: "none" },
-                px: { xs: 2, sm: 1.5, md: 2, lg: 2.5 },
-                minWidth: { xs: "70px", sm: "60px", md: "70px", lg: "80px" },
-              }}
-            >
-              Apply
-            </Button>
-          )}
-          {onClear && (
-            <Button
-              variant="outlined"
-              onClick={onClear}
-              disabled={isLoading}
-              sx={{
-                ...clearButtonStyle,
-                flex: { xs: 1, sm: "none" },
-                px: { xs: 1.5, sm: 1.25, md: 1.5, lg: 2 },
-                minWidth: { xs: "60px", sm: "50px", md: "60px", lg: "70px" },
-              }}
-            >
-              Clear
-            </Button>
-          )}
-        </Box>
+        {(onApply || onClear) && (
+          <Box sx={{ 
+            display: "flex", 
+            gap: { xs: 1, sm: 0.75, md: 1 }, 
+            flexShrink: 0,
+          }}>
+            {onApply && (
+              <Button
+                variant="contained"
+                onClick={onApply}
+                disabled={isLoading}
+                sx={{
+                  ...applyButtonStyle,
+                  flex: { xs: 1, sm: "none" },
+                  px: { xs: 2, sm: 1.5, md: 2, lg: 2.5 },
+                  minWidth: { xs: "70px", sm: "60px", md: "70px", lg: "80px" },
+                }}
+              >
+                Apply
+              </Button>
+            )}
+            {onClear && (
+              <Button
+                variant="outlined"
+                onClick={onClear}
+                disabled={isLoading}
+                sx={{
+                  ...clearButtonStyle,
+                  flex: { xs: 1, sm: "none" },
+                  px: { xs: 1.5, sm: 1.25, md: 1.5, lg: 2 },
+                  minWidth: { xs: "60px", sm: "50px", md: "60px", lg: "70px" },
+                }}
+              >
+                Clear
+              </Button>
+            )}
+          </Box>
+        )}
       </Box>
 
       {/* Right Section: Dropdown + Extra Buttons (Mobile & Desktop) */}
@@ -335,7 +357,7 @@ const SearchFilterBar = ({
               sm: extraButtons ? "flex" : "none", 
               lg: "flex" 
             },
-            flexDirection: { xs: "column" },
+            flexDirection: { xs: "column", sm: "row" },
             alignItems: { xs: "stretch" },
             gap: { xs: 1.5 },
             flexShrink: 0,
@@ -358,7 +380,7 @@ const SearchFilterBar = ({
                   minWidth: { lg: "160px" },
                 }}
               >
-                <MenuItem value="">{dropdownPlaceholder}</MenuItem>
+                <MenuItem value={dropdownPlaceholderValue}>{dropdownPlaceholder}</MenuItem>
                 {dropdownOptions.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
                     {option.label}
