@@ -111,8 +111,8 @@ const AllLedgerPage = () => {
     if (warehouseFilter) {
       filtered = filtered.filter(
         (order) =>
-          order.sourceWarehouse.name === warehouseFilter ||
-          order.destinationWarehouse.name === warehouseFilter
+          order.sourceWarehouse.warehouseID === warehouseFilter ||
+          order.destinationWarehouse.warehouseID === warehouseFilter
       );
     }
     setFilteredLedger(filtered);
@@ -162,7 +162,7 @@ const AllLedgerPage = () => {
         showDropdown={true}
         dropdownValue={warehouseFilter}
         onDropdownChange={setWarehouseFilter}
-        dropdownOptions={warehouses.map(w => ({ value: w.name, label: w.name }))}
+        dropdownOptions={warehouses.map(w => ({ value: w.warehouseID, label: w.name }))}
         dropdownPlaceholder="All Warehouses"
       />
 

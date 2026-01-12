@@ -135,20 +135,7 @@ const AllOrderPage = () => {
   }, [selectedDate, type, isSource, isAdmin]);
 
   // Client-side filtering for immediate feedback (filters already applied on server)
-  const filteredOrders = useMemo(() => {
-    let filtered = orders;
-    
-    // Additional client-side filtering for warehouse if admin (since we passed both src and dest)
-    if (isAdmin && warehouseFilter) {
-      filtered = filtered.filter(
-        (order) =>
-          order.sourceWarehouse?.name === warehouseFilter ||
-          order.destinationWarehouse?.name === warehouseFilter
-      );
-    }
-    
-    return filtered;
-  }, [orders, warehouseFilter, isAdmin]);
+  const filteredOrders = orders;
 
   // Memoized orders with serial numbers for performance
   const memoizedOrders = useMemo(() => {
@@ -302,7 +289,7 @@ const AllOrderPage = () => {
         showDropdown={true}
         dropdownValue={warehouseFilter}
         onDropdownChange={setWarehouseFilter}
-        dropdownOptions={warehouses.map(w => ({ value: w.name, label: w.name }))}
+        dropdownOptions={warehouses.map(w => ({ value: w.warehouseID, label: w.name }))}
         dropdownPlaceholder="All Warehouses"
       />
 
