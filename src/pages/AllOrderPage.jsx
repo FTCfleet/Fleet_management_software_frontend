@@ -17,7 +17,7 @@ import {
   Chip,
   Button,
 } from "@mui/material";
-import { useNavigate, useParams, useOutletContext } from "react-router-dom";
+import { useNavigate, useParams, useOutletContext, Link } from "react-router-dom";
 import "../css/table.css";
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
 import { useAuth } from "../routes/AuthContext";
@@ -121,7 +121,6 @@ const AllOrderPage = () => {
         alert("Please login first");
         return;
       }
-      console.log(data);
       const fetchedOrders = data.body?.parcels || [];
       setOrders(fetchedOrders);
       setPageSize(data.body?.pageSize || fetchedOrders.length);
@@ -228,34 +227,49 @@ const AllOrderPage = () => {
                 sx={{ mt: 0.5, backgroundColor: statusColor.bg, color: statusColor.color, fontWeight: 600, fontSize: "0.75rem" }}
               />
             </Box>
-            <IconButton sx={{ color: isDarkMode ? "#FFB74D" : "primary.main" }} onClick={() => navigate(`/user/view/order/${order.trackingId}`)}>
-              <IoArrowForwardCircleOutline size={28} />
-            </IconButton>
+            <Box>
+              <IconButton sx={{ color: isDarkMode ? "#FFB74D" : "primary.main" }} onClick={() => navigate(`/user/view/order/${order.trackingId}`)}>
+                <IoArrowForwardCircleOutline size={28} />
+              </IconButton>
+            </Box>
           </Box>
-          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, fontSize: "0.85rem" }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1.5 }}>
             <Box>
-              <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem" }}>Sender</Typography>
-              <Typography sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500 }}>
-                {highlightMatch(order.sender?.name, nameFilter, isDarkMode)}
-              </Typography>
+              <Box>
+                <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem" }}>Sender</Typography>
+                <Typography sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500 }}>
+                  {highlightMatch(order.sender?.name, nameFilter, isDarkMode)}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem" }}>
+                  {isAdmin ? "Route" : isSource ? "Destination" : "Source"}
+                </Typography>
+                <Typography sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500 }}>
+                  {isAdmin
+                    ? `${order.sourceWarehouse?.warehouseID} → ${order.destinationWarehouse?.warehouseID}`
+                    : isSource
+                    ? order.destinationWarehouse?.warehouseID
+                    : order.sourceWarehouse?.warehouseID}
+                </Typography>
+              </Box>
             </Box>
             <Box>
-              <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem" }}>Receiver</Typography>
-              <Typography sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500 }}>
-                {highlightMatch(order.receiver?.name, nameFilter, isDarkMode)}
-              </Typography>
-            </Box>
-            <Box sx={{ gridColumn: "1 / -1" }}>
-              <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem" }}>
-                {isAdmin ? "Route" : isSource ? "Destination" : "Source"}
-              </Typography>
-              <Typography sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500 }}>
-                {isAdmin
-                  ? `${order.sourceWarehouse?.name} → ${order.destinationWarehouse?.name}`
-                  : isSource
-                  ? order.destinationWarehouse?.name
-                  : order.sourceWarehouse?.name}
-              </Typography>
+              <Box>
+                <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem" }}>Receiver</Typography>
+                <Typography sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500 }}>
+                  {highlightMatch(order.receiver?.name, nameFilter, isDarkMode)}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.75rem" }}>
+                  Amount (Items)
+                </Typography>
+                <Typography sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500 }}>
+                  {parseFloat(order.items?.reduce((acc, item) => acc + (item.freight+2*item.hamali)*item.quantity, 0)/100 || 0).toFixed(2)}
+                  {" "}({order.items?.reduce((acc, item) => acc + item.quantity, 0)} items)
+                </Typography>
+              </Box>
             </Box>
           </Box>
         </CardContent>
@@ -345,6 +359,8 @@ const AllOrderPage = () => {
                 ) : (
                   <TableCell sx={cellStyle}>{isSource ? "Destination" : "Source"}</TableCell>
                 )}
+                <TableCell sx={cellStyle}>Items</TableCell>
+                <TableCell sx={cellStyle}>Amount</TableCell>
                 <TableCell sx={cellStyle}>Status</TableCell>
                 <TableCell sx={cellStyle} align="center">View</TableCell>
               </TableRow>
@@ -365,29 +381,37 @@ const AllOrderPage = () => {
                     <TableCell sx={rowCellStyle}>{highlightMatch(order.receiver?.name, nameFilter, isDarkMode)}</TableCell>
                     {isAdmin ? (
                       <>
-                        <TableCell sx={rowCellStyle}>{order.sourceWarehouse?.name}</TableCell>
-                        <TableCell sx={rowCellStyle}>{order.destinationWarehouse?.name}</TableCell>
+                        <TableCell sx={rowCellStyle}>{order.sourceWarehouse?.warehouseID}</TableCell>
+                        <TableCell sx={rowCellStyle}>{order.destinationWarehouse?.warehouseID}</TableCell>
                       </>
                     ) : (
                       <TableCell sx={rowCellStyle}>
-                        {isSource ? order.destinationWarehouse?.name : order.sourceWarehouse?.name}
+                        {isSource ? order.destinationWarehouse?.warehouseID : order.sourceWarehouse?.warehouseID}
                       </TableCell>
                     )}
+                    <TableCell sx={rowCellStyle}>
+                      {order.items?.reduce((acc, item) => acc + item.quantity, 0)}
+                    </TableCell>
+                    <TableCell sx={rowCellStyle}>
+                      {parseFloat(order.items?.reduce((acc, item) => acc + (item.freight+2*item.hamali)*item.quantity, 0)/100 || 0).toFixed(2)}
+                    </TableCell>
                     <TableCell>
                       <span className={`table-status ${order.status}`}>
                         {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                       </span>
                     </TableCell>
                     <TableCell align="center">
-                      <IconButton color="primary" onClick={() => navigate(`/user/view/order/${order.trackingId}`)}>
-                        <IoArrowForwardCircleOutline size={24} />
-                      </IconButton>
+                      <Link to={`/user/view/order/${order.trackingId}`}>
+                        <IconButton color="primary">
+                          <IoArrowForwardCircleOutline size={24} />
+                        </IconButton>
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={isAdmin ? 8 : 7} align="center" sx={{ py: 4, color: colors?.textSecondary || "#64748b" }}>
+                  <TableCell colSpan={isAdmin ? 10 : 9} align="center" sx={{ py: 4, color: colors?.textSecondary || "#64748b" }}>
                     No orders found for the selected date.
                   </TableCell>
                 </TableRow>

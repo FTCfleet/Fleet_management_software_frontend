@@ -337,12 +337,14 @@ export default function ViewOrderPage() {
           <button className="button" onClick={handleLRPrintThermal} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
             <FaPrint /> Download Thermal
           </button>
-        }
-        <Link to={`/user/edit/order/${id}`} style={{ textDecoration: "none", flex: isMobile ? "1 1 45%" : "0 0 auto" }}>
+        }{
+          isAdmin &&
+          <Link to={`/user/edit/order/${id}`} style={{ textDecoration: "none", flex: isMobile ? "1 1 45%" : "0 0 auto" }}>
           <button className="button" style={{ width: "100%" }}>
             <FaEdit /> Edit LR
           </button>
         </Link>
+        }
         {isAdmin && (
           <button
             className="button button-danger"

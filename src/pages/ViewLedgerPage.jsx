@@ -60,7 +60,9 @@ export default function ViewLedgerPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
   const [counter, setCounter] = useState(0);
+  const [allChecked, setAllChecked] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const parcelsList = useRef(new Set());
   const modalData = useRef({
     headingText: "",
     text: "",
@@ -119,7 +121,6 @@ export default function ViewLedgerPage() {
       return;
     }
     setLedgerData(data.body);
-    console.log(data.body);
     if (data.body.sourceWarehouse)
       setSourceWarehouse(data.body.sourceWarehouse.warehouseID);
     if (data.body.destinationWarehouse)
@@ -210,6 +211,9 @@ export default function ViewLedgerPage() {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          parcels: [...parcelsList.current],
+        }),
       }
     );
     if (!response.ok) {
@@ -226,6 +230,7 @@ export default function ViewLedgerPage() {
     } else {
       showSuccess("Orders delivered successfully!", "Success");
       setModalOpen(false);
+      parcelsList.current.clear();
       setCounter(0);
       fetchData();
     }
@@ -286,14 +291,28 @@ export default function ViewLedgerPage() {
     setIsScreenLoading(false);
   };
 
-  const handleCheckboxChange = (value) => {
-    // console.log(value);
-    if (value) {
+  const handleCheckboxChange = (value, isChecked) => {
+    if (isChecked) {
       // counter++;
+      parcelsList.current.add(value);
       setCounter((prev) => prev + 1);
     } else {
       setCounter((prev) => prev - 1);
+      parcelsList.current.delete(value);
+      setAllChecked(false);
       // counter--;
+    }
+  };
+
+  const handleCheckboxAllChange = (isChecked) => {
+    if (isChecked) {
+      orders.map((order) => parcelsList.current.add(order._id));
+      setCounter(orders.length);
+      setAllChecked(true);
+    } else {
+      setCounter(0);
+      parcelsList.current.clear();
+      setAllChecked(false);
     }
   };
 
@@ -591,7 +610,7 @@ export default function ViewLedgerPage() {
           </button>
         )}
 
-        {(isSource || isAdmin) && ledgerData.status === "dispatched" && (
+        {(!isSource || isAdmin) && (
           <button
             className="button button-large"
             onClick={() =>
@@ -630,6 +649,10 @@ export default function ViewLedgerPage() {
       {/* Memo Table */}
       <Box sx={{ backgroundColor: colors?.bgCard || "#ffffff", borderRadius: "12px", boxShadow: isDarkMode ? "0 2px 8px rgba(0,0,0,0.3)" : "0 2px 8px rgba(0,0,0,0.04)", overflow: "hidden", border: isDarkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid #e0e5eb" }}>
         <Typography variant="h6" sx={{ padding: "16px", ...headerStyle }}>
+          <Checkbox
+            size="small"
+            onChange={(e) => handleCheckboxAllChange(e.target.checked)}
+          />
           Memo orders ({counter}/{orders.length})
         </Typography>
         
@@ -649,7 +672,8 @@ export default function ViewLedgerPage() {
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                           <Checkbox
                             size="small"
-                            onChange={(e) => handleCheckboxChange(e.target.checked)}
+                            checked={parcelsList.current.has(order._id)}
+                            onChange={(e) => handleCheckboxChange(order._id, e.target.checked)}
                           />
                           <Box>
                             <Typography sx={{ fontWeight: 700, color: colors?.textPrimary || "#1E3A5F", fontSize: "0.95rem" }}>
@@ -804,7 +828,8 @@ export default function ViewLedgerPage() {
                     <TableRow key={order.trackingId}>
                       <TableCell sx={rowStyle}>
                         <Checkbox
-                          onChange={(e) => handleCheckboxChange(e.target.checked)}
+                          checked={parcelsList.current.has(order._id)}
+                          onChange={(e) => handleCheckboxChange(order._id, e.target.checked)}
                         />
                       </TableCell>
                       <TableCell sx={rowStyle}>{index + 1}.</TableCell>
