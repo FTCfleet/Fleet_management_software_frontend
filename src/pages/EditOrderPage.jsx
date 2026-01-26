@@ -11,7 +11,7 @@ import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import EditIcon from "@mui/icons-material/Edit";
 import { useAuth } from "../routes/AuthContext";
-import { fromDbValue, toDbValue } from "../utils/currencyUtils";
+import { fromDbValue, toDbValue, formatInputDisplay, isValidDecimalInput } from "../utils/currencyUtils";
 import "../css/main.css";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -92,13 +92,15 @@ export default function EditOrderPage() {
       let totalHamali = 0;
       // oldItems have DB values (integers)
       oldItems.forEach((item) => {
-        totalFreight += (item.freight || 0) * (item.quantity || 0);
-        totalHamali += (item.hamali || 0) * (item.quantity || 0);
+        totalFreight += ((item.freight !== null ? item.freight : 0) || 0) * (item.quantity || 0);
+        totalHamali += ((item.hamali !== null ? item.hamali : 0) || 0) * (item.quantity || 0);
       });
       // newItems have display values (decimal strings), convert to DB format
       newItems.forEach((item) => {
-        totalFreight += toDbValue(item.freight) * (item.quantity || 0);
-        totalHamali += toDbValue(item.hamali) * (item.quantity || 0);
+        const freightDb = toDbValue(item.freight);
+        const hamaliDb = toDbValue(item.hamali);
+        totalFreight += (freightDb || 0) * (item.quantity || 0);
+        totalHamali += (hamaliDb || 0) * (item.quantity || 0);
       });
       setFreight(totalFreight);
       setHamali(totalHamali);
@@ -114,11 +116,12 @@ export default function EditOrderPage() {
           if (prevItem.itemId !== id) return prevItem; 
           const matchedItem = findRegItem(normalizedValue, prevItem.type); 
           // Convert DB values to display values for matched items
+          // If matched item has null freight/hamali, keep as empty string
           return { 
             ...prevItem, 
             name: normalizedValue, 
-            freight: matchedItem ? fromDbValue(matchedItem.freight || 0) : "", 
-            hamali: matchedItem ? fromDbValue(matchedItem.hamali || 0) : "", 
+            freight: matchedItem && matchedItem.freight !== null ? formatInputDisplay(fromDbValue(matchedItem.freight)) : "", 
+            hamali: matchedItem && matchedItem.hamali !== null ? formatInputDisplay(fromDbValue(matchedItem.hamali)) : "", 
             quantity: prevItem.quantity || 1 
           }; 
         }); 
@@ -132,11 +135,12 @@ export default function EditOrderPage() {
           if (prevItem.itemId !== id) return prevItem; 
           const matchedItem = findRegItem(prevItem.name, value); 
           // Convert DB values to display values for matched items
+          // If matched item has null freight/hamali, keep as empty string
           return { 
             ...prevItem, 
             type: value, 
-            freight: matchedItem ? fromDbValue(matchedItem.freight || 0) : "", 
-            hamali: matchedItem ? fromDbValue(matchedItem.hamali || 0) : "", 
+            freight: matchedItem && matchedItem.freight !== null ? formatInputDisplay(fromDbValue(matchedItem.freight)) : "", 
+            hamali: matchedItem && matchedItem.hamali !== null ? formatInputDisplay(fromDbValue(matchedItem.hamali)) : "", 
             quantity: prevItem.quantity || 1 
           }; 
         }); 
@@ -146,7 +150,9 @@ export default function EditOrderPage() {
     }
     // quantity is integer, freight/hamali are decimal strings
     if (field === "quantity") value = parseInt(value) || 0;
-    // For freight/hamali, keep as string for decimal input
+    // For freight/hamali, validate decimal input
+    if ((field === "freight" || field === "hamali") && !isValidDecimalInput(value)) return;
+    
     setNewItems((prevItems) => { 
       const updatedItems = prevItems.map((prevItem) => prevItem.itemId === id ? { ...prevItem, [field]: value } : prevItem); 
       return updatedItems; 
@@ -160,11 +166,11 @@ export default function EditOrderPage() {
   const confirmSave = async () => { 
     setIsLoading(true); 
     const token = localStorage.getItem("token"); 
-    // Send display values directly - backend will multiply by 100
+    // Send display values or null for empty fields - backend will multiply by 100
     const newItemsForApi = newItems.map(item => ({
       ...item,
-      freight: parseFloat(item.freight) || 0,
-      hamali: parseFloat(item.hamali) || 0
+      freight: item.freight === '' || item.freight === null ? null : parseFloat(item.freight),
+      hamali: item.hamali === '' || item.hamali === null ? null : parseFloat(item.hamali)
     }));
     await fetch(`${BASE_URL}/api/parcel/edit/${id}`, { 
       method: "PUT", 
@@ -247,9 +253,9 @@ export default function EditOrderPage() {
                   <TableCell sx={{ color: colors?.textPrimary, fontWeight: 500 }}>{item.name}</TableCell>
                   <TableCell sx={{ color: colors?.textSecondary }}>{item.itemType.name}</TableCell>
                   <TableCell sx={{ color: colors?.textSecondary }}>{item.quantity}</TableCell>
-                  <TableCell sx={{ color: colors?.textSecondary }}>₹{fromDbValue(item.freight)}</TableCell>
-                  <TableCell sx={{ color: colors?.textSecondary }}>₹{fromDbValue(item.hamali)}</TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: colors?.textPrimary }}>₹{fromDbValue((item.freight + item.hamali * 2) * item.quantity)}</TableCell>
+                  <TableCell sx={{ color: colors?.textSecondary }}>₹{fromDbValue(item.freight !== null ? item.freight : null, true)}</TableCell>
+                  <TableCell sx={{ color: colors?.textSecondary }}>₹{fromDbValue(item.hamali !== null ? item.hamali : null, true)}</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: colors?.textPrimary }}>₹{fromDbValue(((item.freight || 0) + (item.hamali || 0) * 2) * item.quantity, true)}</TableCell>
                   <TableCell><IconButton size="small" onClick={() => handleDelete(item)} sx={{ color: colors?.textSecondary, "&:hover": { color: "#EF4444" } }}><Delete /></IconButton></TableCell>
                 </TableRow>
               )) : <TableRow><TableCell colSpan={8} sx={{ textAlign: "center", py: 3, color: colors?.textSecondary }}>No existing items</TableCell></TableRow>}
@@ -272,7 +278,7 @@ export default function EditOrderPage() {
                     <TableCell><TextField type="text" value={item.quantity} onChange={(e) => handleInputChange(item.itemId, "quantity", e.target.value)} variant="outlined" size="small" sx={{ ...textFieldSx, minWidth: 60 }} inputProps={{ tabIndex: 102 + idx * 6 }} /></TableCell>
                     <TableCell><TextField type="text" value={item.freight} onChange={(e) => handleInputChange(item.itemId, "freight", e.target.value)} variant="outlined" size="small" sx={{ ...textFieldSx, minWidth: 80 }} inputProps={{ tabIndex: 103 + idx * 6 }} /></TableCell>
                     <TableCell><TextField type="text" value={item.hamali} onChange={(e) => handleInputChange(item.itemId, "hamali", e.target.value)} variant="outlined" size="small" sx={{ ...textFieldSx, minWidth: 80 }} inputProps={{ tabIndex: 104 + idx * 6 }} /></TableCell>
-                    <TableCell><Typography sx={{ fontWeight: 600, color: colors?.textPrimary }}>₹{fromDbValue((toDbValue(item.freight) + toDbValue(item.hamali) * 2) * item.quantity)}</Typography></TableCell>
+                    <TableCell><Typography sx={{ fontWeight: 600, color: colors?.textPrimary }}>₹{fromDbValue(((toDbValue(item.freight) || 0) + (toDbValue(item.hamali) || 0) * 2) * item.quantity, true)}</Typography></TableCell>
                     <TableCell><Box sx={{ display: "flex", gap: 0.5 }}><IconButton size="small" onClick={() => handleCopyRow(item.itemId)} sx={{ color: colors?.textSecondary, "&:hover": { color: isDarkMode ? "#FFB74D" : "#1D3557" } }} tabIndex={105 + idx * 6}><FaCopy size={14} /></IconButton><IconButton size="small" onClick={() => handleRemoveRow(item.itemId)} sx={{ color: colors?.textSecondary, "&:hover": { color: "#EF4444" } }}><FaTrash size={14} /></IconButton></Box></TableCell>
                   </TableRow>
                 ))
@@ -285,10 +291,10 @@ export default function EditOrderPage() {
 
       <SectionCard title="Charges Summary" icon={<ReceiptLongIcon />} isDarkMode={isDarkMode} colors={colors} accentColor={accentColor}>
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(4, 1fr)" }, gap: 2 }}>
-          <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}><Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Freight</Typography><Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{fromDbValue(freight)}</Typography></Box>
-          <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}><Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Hamali</Typography><Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{fromDbValue(hamali)}</Typography></Box>
-          <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}><Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Door Delivery</Typography><Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{isDoorDelivery ? fromDbValue(doorDeliveryCharge) : "0.00"}</Typography></Box>
-          <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,183,77,0.1)" : "rgba(29,53,87,0.08)", border: isDarkMode ? "1px solid rgba(255,183,77,0.3)" : "1px solid rgba(29,53,87,0.2)" }}><Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Total</Typography><Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: isDarkMode ? "#FFB74D" : "#1D3557" }}>₹{fromDbValue(freight + hamali * 2 + (isDoorDelivery ? doorDeliveryCharge : 0))}</Typography></Box>
+          <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}><Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Freight</Typography><Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{fromDbValue(freight, true)}</Typography></Box>
+          <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}><Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Hamali</Typography><Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{fromDbValue(hamali, true)}</Typography></Box>
+          <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}><Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Door Delivery</Typography><Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{isDoorDelivery ? fromDbValue(doorDeliveryCharge, true) : "0.00"}</Typography></Box>
+          <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,183,77,0.1)" : "rgba(29,53,87,0.08)", border: isDarkMode ? "1px solid rgba(255,183,77,0.3)" : "1px solid rgba(29,53,87,0.2)" }}><Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Total</Typography><Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: isDarkMode ? "#FFB74D" : "#1D3557" }}>₹{fromDbValue(freight + hamali * 2 + (isDoorDelivery ? doorDeliveryCharge : 0), true)}</Typography></Box>
         </Box>
       </SectionCard>
 

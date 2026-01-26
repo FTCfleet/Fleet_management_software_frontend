@@ -55,7 +55,7 @@ export default function ViewOrderPage() {
   const [isLoading1, setIsLoading1] = useState(false);
   const { setIsScreenLoading, setIsScreenLoadingText, isDarkMode, colors } = useOutletContext();
   const location = useLocation();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isSource, stationCode } = useAuth();
   const hasTriggered = useRef(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -229,10 +229,10 @@ export default function ViewOrderPage() {
                     Order Info
                   </Typography>
                   <DetailRow label="Payment" value={order.payment} colors={colors} isDarkMode={isDarkMode} />
-                  <DetailRow label="Total" value={`₹${fromDbValue((order.freight || 0) + (order.hamali || 0) * 2)}`} highlight colors={colors} isDarkMode={isDarkMode} />
-                  <DetailRow label="Freight" value={formatCurrency(order.freight)} colors={colors} isDarkMode={isDarkMode} />
-                  <DetailRow label="Hamali" value={formatCurrency(order.hamali)} colors={colors} isDarkMode={isDarkMode} />
-                  <DetailRow label="Door Delivery" value={order.isDoorDelivery ? formatCurrency(order.doorDeliveryCharge) : "No"} colors={colors} isDarkMode={isDarkMode} />
+                  <DetailRow label="Total" value={`₹${fromDbValue((order.freight || 0) + (order.hamali || 0) * 2, true)}`} highlight colors={colors} isDarkMode={isDarkMode} />
+                  <DetailRow label="Freight" value={formatCurrency(order.freight, "₹", true)} colors={colors} isDarkMode={isDarkMode} />
+                  <DetailRow label="Hamali" value={formatCurrency(order.hamali, "₹", true)} colors={colors} isDarkMode={isDarkMode} />
+                  <DetailRow label="Door Delivery" value={order.isDoorDelivery ? formatCurrency(order.doorDeliveryCharge, "₹", true) : "No"} colors={colors} isDarkMode={isDarkMode} />
                 </Box>
               </Grid>
 
@@ -301,10 +301,10 @@ export default function ViewOrderPage() {
                         <TableCell sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500 }}>{item.name}</TableCell>
                         <TableCell sx={{ color: colors?.textSecondary || "#64748b" }}>{item.itemType?.name}</TableCell>
                         <TableCell align="center" sx={{ color: colors?.textSecondary || "#64748b" }}>{item.quantity}</TableCell>
-                        <TableCell align="right" sx={{ color: colors?.textSecondary || "#64748b" }}>{formatCurrency(item.freight)}</TableCell>
-                        <TableCell align="right" sx={{ color: colors?.textSecondary || "#64748b" }}>{formatCurrency(item.hamali)}</TableCell>
+                        <TableCell align="right" sx={{ color: colors?.textSecondary || "#64748b" }}>{formatCurrency(item.freight, "₹", true)}</TableCell>
+                        <TableCell align="right" sx={{ color: colors?.textSecondary || "#64748b" }}>{formatCurrency(item.hamali, "₹", true)}</TableCell>
                         <TableCell align="right" sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500 }}>
-                          {formatCurrency(((item.freight || 0) + 2 * (item.hamali || 0)) * (item.quantity || 1))}
+                          {formatCurrency(((item.freight || 0) + 2 * (item.hamali || 0)) * (item.quantity || 1), "₹", true)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -313,10 +313,10 @@ export default function ViewOrderPage() {
                       <TableCell align="center" sx={{ fontWeight: 600, color: colors?.textPrimary || "#1E3A5F" }}>
                         {order.items?.reduce((prev, item) => prev + item.quantity, 0)}
                       </TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, color: colors?.textPrimary || "#1E3A5F" }}>{formatCurrency(order.freight)}</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, color: colors?.textPrimary || "#1E3A5F" }}>{formatCurrency(order.hamali)}</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: colors?.textPrimary || "#1E3A5F" }}>{formatCurrency(order.freight, "₹", true)}</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: colors?.textPrimary || "#1E3A5F" }}>{formatCurrency(order.hamali, "₹", true)}</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 700, color: isDarkMode ? colors?.accent : colors?.textPrimary || "#1E3A5F" }}>
-                        {formatCurrency((order.freight || 0) + (order.hamali || 0) * 2)}
+                        {formatCurrency((order.freight || 0) + (order.hamali || 0) * 2, "₹", true)}
                       </TableCell>
                     </TableRow>
                   </>
@@ -338,7 +338,11 @@ export default function ViewOrderPage() {
             <FaPrint /> Download Thermal
           </button>
         }{
-          isAdmin &&
+          /* Show Edit LR button only for:
+             1. Admin (can edit any LR)
+             2. Source warehouse staff (can edit LRs from their warehouse)
+             NOT for destination warehouse staff */
+          (isAdmin || (isSource && order.sourceWarehouse?.warehouseID === stationCode)) &&
           <Link to={`/user/edit/order/${id}`} style={{ textDecoration: "none", flex: isMobile ? "1 1 45%" : "0 0 auto" }}>
           <button className="button" style={{ width: "100%" }}>
             <FaEdit /> Edit LR

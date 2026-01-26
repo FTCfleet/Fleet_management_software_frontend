@@ -24,7 +24,7 @@ import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
 import ModernSpinner from "../components/ModernSpinner";
 import SearchFilterBar, { highlightMatch } from "../components/SearchFilterBar";
 import Pagination from "../components/Pagination";
-import { fromDbValue, toDbValue } from "../utils/currencyUtils";
+import { fromDbValue, toDbValue, formatInputDisplay, isValidDecimalInput } from "../utils/currencyUtils";
 import "../css/main.css";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -154,8 +154,9 @@ export default function AllItemPage() {
   const handleEdit = (Item) => {
     const curItem = { ...Item };
     // Convert DB values to display values for editing
-    curItem.freight = fromDbValue(Item.freight || 0);
-    curItem.hamali = fromDbValue(Item.hamali || 0);
+    // If null, keep as empty string (don't show 0.00)
+    curItem.freight = Item.freight !== null ? formatInputDisplay(fromDbValue(Item.freight)) : "";
+    curItem.hamali = Item.hamali !== null ? formatInputDisplay(fromDbValue(Item.hamali)) : "";
     setCurrentItemList([curItem]);
     setIsModalOpen(true);
     setIsAdding(false);
@@ -248,8 +249,8 @@ export default function AllItemPage() {
     // Convert string values to floats for API - backend will multiply by 100
     const itemsForApi = currentItemList.map(item => ({
       ...item,
-      freight: parseFloat(item.freight) || 0,
-      hamali: parseFloat(item.hamali) || 0
+      freight: item.freight === '' || item.freight === null ? null : parseFloat(item.freight),
+      hamali: item.hamali === '' || item.hamali === null ? null : parseFloat(item.hamali)
     }));
     if (isAdding) {
       method = "POST";
@@ -285,7 +286,9 @@ export default function AllItemPage() {
 
   const handleItemChange = (index, field, value) => {
     const updatedItems = [...currentItemList];
-    // Keep freight/hamali as strings for decimal input
+    // Keep freight/hamali as strings for decimal input, validate input
+    if ((field === "freight" || field === "hamali") && !isValidDecimalInput(value)) return;
+    
     if (field === "name") {
       value = value.toUpperCase();
     }
@@ -584,10 +587,10 @@ export default function AllItemPage() {
                             Type: {item.itemType?.name || "NA"}
                           </Typography>
                           <Typography variant="body2" sx={rowStyle}>
-                            Freight: ₹{fromDbValue(item.freight)}
+                            Freight: ₹{fromDbValue(item.freight, true)}
                           </Typography>
                           <Typography variant="body2" sx={rowStyle}>
-                            Hamali: ₹{fromDbValue(item.hamali)}
+                            Hamali: ₹{fromDbValue(item.hamali, true)}
                           </Typography>
                           <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
                             <IconButton

@@ -30,7 +30,7 @@ import "../css/main.css";
 import { useAuth } from "../routes/AuthContext";
 import CustomDialog from "../components/CustomDialog";
 import { useDialog } from "../hooks/useDialog";
-import { fromDbValue, toDbValue } from "../utils/currencyUtils";
+import { fromDbValue, toDbValue, formatInputDisplay, isValidDecimalInput } from "../utils/currencyUtils";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -133,11 +133,15 @@ export default function AddOrderPage({}) {
   const fixCharges = (id, quantity_new, freight_new, hamali_new, itemsList = items) => {
     let ham = 0, frt = 0;
     itemsList.filter((item) => item.id !== id).forEach((item) => { 
-      ham += (item.quantity || 0) * toDbValue(item.hamali); 
-      frt += (item.quantity || 0) * toDbValue(item.freight); 
+      const freightDb = toDbValue(item.freight);
+      const hamaliDb = toDbValue(item.hamali);
+      ham += (item.quantity || 0) * (hamaliDb || 0); 
+      frt += (item.quantity || 0) * (freightDb || 0); 
     });
-    ham += toDbValue(hamali_new) * (quantity_new || 0); 
-    frt += toDbValue(freight_new) * (quantity_new || 0); 
+    const freightNewDb = toDbValue(freight_new);
+    const hamaliNewDb = toDbValue(hamali_new);
+    ham += (hamaliNewDb || 0) * (quantity_new || 0); 
+    frt += (freightNewDb || 0) * (quantity_new || 0); 
     setHamali(ham); 
     setFreight(frt);
   };
@@ -151,11 +155,12 @@ export default function AddOrderPage({}) {
           if (prevItem.id !== id) return prevItem;
           const matchedItem = findRegItem(normalizedValue, prevItem.type);
           // Convert DB values to display values for matched items
+          // If matched item has null freight/hamali, keep as empty string
           updatedItemForCharges = { 
             ...prevItem, 
             name: normalizedValue, 
-            freight: matchedItem ? fromDbValue(matchedItem.freight || 0) : "", 
-            hamali: matchedItem ? fromDbValue(matchedItem.hamali || 0) : "", 
+            freight: matchedItem && matchedItem.freight !== null ? formatInputDisplay(fromDbValue(matchedItem.freight)) : "", 
+            hamali: matchedItem && matchedItem.hamali !== null ? formatInputDisplay(fromDbValue(matchedItem.hamali)) : "", 
             quantity: prevItem.quantity || 1 
           };
           return updatedItemForCharges;
@@ -172,11 +177,12 @@ export default function AddOrderPage({}) {
           if (prevItem.id !== id) return prevItem;
           const matchedItem = findRegItem(prevItem.name, value);
           // Convert DB values to display values for matched items
+          // If matched item has null freight/hamali, keep as empty string
           updatedItemForCharges = { 
             ...prevItem, 
             type: value, 
-            freight: matchedItem ? fromDbValue(matchedItem.freight || 0) : "", 
-            hamali: matchedItem ? fromDbValue(matchedItem.hamali || 0) : "", 
+            freight: matchedItem && matchedItem.freight !== null ? formatInputDisplay(fromDbValue(matchedItem.freight)) : "", 
+            hamali: matchedItem && matchedItem.hamali !== null ? formatInputDisplay(fromDbValue(matchedItem.hamali)) : "", 
             quantity: prevItem.quantity || 1 
           };
           return updatedItemForCharges;
@@ -188,7 +194,9 @@ export default function AddOrderPage({}) {
     }
     // quantity is integer, freight/hamali are decimal strings
     if (field === "quantity") value = parseInt(value) || 0;
-    // For freight/hamali, keep as string for decimal input
+    // For freight/hamali, validate decimal input
+    if ((field === "freight" || field === "hamali") && !isValidDecimalInput(value)) return;
+    
     setItems((prevItems) => {
       const updatedItems = prevItems.map((prevItem) => prevItem.id === id ? { ...prevItem, [field]: value } : prevItem);
       if (field === "quantity" || field === "freight" || field === "hamali") {
@@ -220,11 +228,11 @@ export default function AddOrderPage({}) {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
-      // Send display values directly - backend will multiply by 100
+      // Send display values or null for empty fields - backend will multiply by 100
       const itemsForApi = items.map(item => ({
         ...item,
-        freight: parseFloat(item.freight) || 0,
-        hamali: parseFloat(item.hamali) || 0
+        freight: item.freight === '' || item.freight === null ? null : parseFloat(item.freight),
+        hamali: item.hamali === '' || item.hamali === null ? null : parseFloat(item.hamali)
       }));
       const response = await fetch(`${BASE_URL}/api/parcel/new`, {
         method: "POST",
@@ -364,7 +372,7 @@ export default function AddOrderPage({}) {
                     <TableCell><TextField type="text" value={item.quantity} onChange={(e) => handleInputChange(item.id, "quantity", e.target.value)} variant="outlined" size="small" sx={{ ...textFieldSx, minWidth: 60 }} inputProps={{ tabIndex: 102 + idx * 6 }} /></TableCell>
                     <TableCell><TextField type="text" value={item.freight} onChange={(e) => handleInputChange(item.id, "freight", e.target.value)} variant="outlined" size="small" sx={{ ...textFieldSx, minWidth: 80 }} inputProps={{ tabIndex: 103 + idx * 6 }} /></TableCell>
                     <TableCell><TextField type="text" value={item.hamali} onChange={(e) => handleInputChange(item.id, "hamali", e.target.value)} variant="outlined" size="small" sx={{ ...textFieldSx, minWidth: 80 }} inputProps={{ tabIndex: 104 + idx * 6 }} /></TableCell>
-                    <TableCell><Typography sx={{ fontWeight: 600, color: colors?.textPrimary }}>₹{fromDbValue((2 * toDbValue(item.hamali) + toDbValue(item.freight)) * item.quantity)}</Typography></TableCell>
+                    <TableCell><Typography sx={{ fontWeight: 600, color: colors?.textPrimary }}>₹{fromDbValue(((toDbValue(item.freight) || 0) + 2 * (toDbValue(item.hamali) || 0)) * item.quantity, true)}</Typography></TableCell>
                     <TableCell>
                       <Box sx={{ display: "flex", gap: 0.5 }}>
                         <IconButton size="small" onClick={() => handleCopyRow(item.id)} sx={{ color: colors?.textSecondary, "&:hover": { color: isDarkMode ? "#FFB74D" : "#1D3557" } }} tabIndex={105 + idx * 6}><FaCopy size={14} /></IconButton>
@@ -384,19 +392,19 @@ export default function AddOrderPage({}) {
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(4, 1fr)" }, gap: 2 }}>
           <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}>
             <Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Freight</Typography>
-            <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{fromDbValue(freight)}</Typography>
+            <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{fromDbValue(freight, true)}</Typography>
           </Box>
           <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}>
             <Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Hamali</Typography>
-            <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{fromDbValue(hamali)}</Typography>
+            <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{fromDbValue(hamali, true)}</Typography>
           </Box>
           <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", border: `1px solid ${isDarkMode ? colors?.border : "#e5e7eb"}` }}>
             <Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Statistical Charges</Typography>
-            <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{fromDbValue(hamali)}</Typography>
+            <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: colors?.textPrimary }}>₹{fromDbValue(hamali, true)}</Typography>
           </Box>
           <Box sx={{ p: 2, borderRadius: "10px", background: isDarkMode ? "rgba(255,183,77,0.1)" : "rgba(29,53,87,0.08)", border: isDarkMode ? "1px solid rgba(255,183,77,0.3)" : "1px solid rgba(29,53,87,0.2)" }}>
             <Typography sx={{ fontSize: "0.8rem", color: colors?.textSecondary, mb: 0.5 }}>Total</Typography>
-            <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: isDarkMode ? "#FFB74D" : "#1D3557" }}>₹{fromDbValue(freight + hamali * 2 + (isDoorDelivery ? toDbValue(doorDeliveryCharge) : 0))}</Typography>
+            <Typography sx={{ fontSize: "1.25rem", fontWeight: 700, color: isDarkMode ? "#FFB74D" : "#1D3557" }}>₹{fromDbValue(freight + hamali * 2 + (isDoorDelivery ? toDbValue(doorDeliveryCharge) : 0), true)}</Typography>
           </Box>
         </Box>
       </SectionCard>

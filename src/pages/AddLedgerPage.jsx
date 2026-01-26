@@ -37,7 +37,7 @@ export default function AddLedgerPage({}) {
   const [allWarehouse, setAllWarehouse] = useState([]);
   const [orders, setOrders] = useState([]);
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
-  const [sourceWarehouse, setSourceWarehouse] = useState("");
+  const [sourceWarehouse, setSourceWarehouse] = useState([]);
   const [nameFilter, setNameFilter] = useState("");
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [isAllSelected, setIsAllSelected] = useState(false);
@@ -59,7 +59,7 @@ export default function AddLedgerPage({}) {
 
   const validateOrder = () => {
     if (truckNo.trim() === "") { showError("Please enter the truck number", "Validation Error"); return false; }
-    if (!destinationWarehouse || !sourceWarehouse) { showError("Please select both source and destination stations", "Validation Error"); return false; }
+    if (!destinationWarehouse || sourceWarehouse.length === 0) { showError("Please select both source and destination stations", "Validation Error"); return false; }
     if (selectedOrders.current.size === 0) { showError("Please select at least one order for the memo", "Validation Error"); return false; }
     return true;
   };
@@ -69,6 +69,15 @@ export default function AddLedgerPage({}) {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
+      
+      // Build source warehouse parameter
+      let sourceParam = {};
+      if (!sourceWarehouse.includes('all')) {
+        // Send comma-separated warehouse IDs if not "all"
+        sourceParam = { sourceWarehouse: sourceWarehouse.join(',') };
+      }
+      // If "all" is selected, don't send sourceWarehouse parameter
+      
       const response = await fetch(`${BASE_URL}/api/ledger/new`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -79,7 +88,7 @@ export default function AddLedgerPage({}) {
           vehicleNo: truckNo.toUpperCase(), 
           driverName: driverName, 
           driverPhone: driverPhone, 
-          ...(sourceWarehouse !== 'all' ? {sourceWarehouse} : {}) 
+          ...sourceParam
         }),
       });
       const data = await response.json();
@@ -97,7 +106,7 @@ export default function AddLedgerPage({}) {
     setTruckNo(selectedOption);
   };
 
-  const fetchOrders = async (date, selectedSourceWarehouse, selectedDestinationWarehouse) => {
+  const fetchOrders = async (date, selectedSourceWarehouses, selectedDestinationWarehouse) => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -106,8 +115,15 @@ export default function AddLedgerPage({}) {
       const params = new URLSearchParams();
       params.append("date", date);
       params.append("dest", selectedDestinationWarehouse);
-      if (selectedSourceWarehouse && selectedSourceWarehouse !== 'all') {
-        params.append("src", selectedSourceWarehouse);
+      
+      // Handle multi-warehouse selection
+      if (selectedSourceWarehouses && selectedSourceWarehouses.length > 0) {
+        if (selectedSourceWarehouses.includes('all')) {
+          params.append("src", "all");
+        } else {
+          // Join multiple warehouses with comma
+          params.append("src", selectedSourceWarehouses.join(','));
+        }
       }
       
       // Use the new dedicated endpoint for memo creation
@@ -142,7 +158,31 @@ export default function AddLedgerPage({}) {
   const applyFilter = () => { if (nameFilter) { let filtered = orders.filter((order) => order.sender.name.toLowerCase().startsWith(nameFilter.toLowerCase()) || order.receiver.name.toLowerCase().startsWith(nameFilter.toLowerCase()) || order.trackingId.toLowerCase().startsWith(nameFilter.toLowerCase())); setFilteredOrders(filtered); } else setFilteredOrders(orders); };
   const clearFilter = () => { setNameFilter(""); setFilteredOrders(orders); };
   const handleDateChangeNew = (newDate) => { setSelectedDate(newDate); fetchOrders(newDate, sourceWarehouse, destinationWarehouse); };
-  const handleWarehouseChange = (value, type) => { if (type === "destination") { setDestinationWarehouse(value); fetchOrders(selectedDate, sourceWarehouse, value); } else { setSourceWarehouse(value); if (destinationWarehouse) fetchOrders(selectedDate, value, destinationWarehouse); } };
+  const handleWarehouseChange = (value, type) => { 
+    if (type === "destination") { 
+      setDestinationWarehouse(value); 
+      if (sourceWarehouse.length > 0) {
+        fetchOrders(selectedDate, sourceWarehouse, value); 
+      }
+    } else { 
+      // Handle multi-select for source warehouse
+      let newSelection = [...value];
+      
+      // If "All Stations" is selected, clear other selections
+      if (newSelection.includes('all') && !sourceWarehouse.includes('all')) {
+        newSelection = ['all'];
+      } 
+      // If other warehouses are selected after "All Stations", remove "All Stations"
+      else if (newSelection.includes('all') && newSelection.length > 1) {
+        newSelection = newSelection.filter(w => w !== 'all');
+      }
+      
+      setSourceWarehouse(newSelection); 
+      if (destinationWarehouse && newSelection.length > 0) {
+        fetchOrders(selectedDate, newSelection, destinationWarehouse); 
+      }
+    } 
+  };
   const handleChange = (e, trackingId) => { if (e.target.checked) selectedOrders.current.add(trackingId); else selectedOrders.current.delete(trackingId); forceRender(); };
   const handleAllSelect = (event) => { if (event.target.checked) filteredOrders.forEach((order) => selectedOrders.current.add(order.trackingId)); else filteredOrders.forEach(order => selectedOrders.current.delete(order.trackingId)); setIsAllSelected((prev) => !prev); };
   const handleRemoveAll = () => { selectedOrders.current.clear(); setIsAllSelected(false); forceRender(); };
@@ -162,10 +202,32 @@ export default function AddLedgerPage({}) {
           <TextField label="Driver Phone" value={driverPhone} onChange={(e) => setDriverPhone(e.target.value)} sx={textFieldSx} size="small" inputProps={{ tabIndex: 3 }} />
           <TextField label="Lorry Freight" type="text" value={lorryFreight} onChange={(e) => setLorryFreight(e.target.value)} sx={textFieldSx} size="small" inputProps={{ tabIndex: 4 }} />
           <FormControl size="small" sx={textFieldSx}>
-            <InputLabel>Source Station *</InputLabel>
-            <Select label="Source Station *" value={sourceWarehouse} onChange={(e) => handleWarehouseChange(e.target.value, "source")} error={error && !sourceWarehouse} inputProps={{ tabIndex: 5 }}>
-              {allWarehouse.filter((w) => w.isSource).map((w) => <MenuItem key={w.warehouseID} value={w.warehouseID}>{w.name}</MenuItem>)}
-              <MenuItem value="all">All Stations</MenuItem>
+            <InputLabel>Source Station(s) *</InputLabel>
+            <Select 
+              multiple
+              label="Source Station(s) *" 
+              value={sourceWarehouse} 
+              onChange={(e) => handleWarehouseChange(e.target.value, "source")} 
+              error={error && sourceWarehouse.length === 0} 
+              inputProps={{ tabIndex: 5 }}
+              renderValue={(selected) => {
+                if (selected.includes('all')) return 'All Stations';
+                return selected.map(id => {
+                  const warehouse = allWarehouse.find(w => w.warehouseID === id);
+                  return warehouse ? warehouse.name : id;
+                }).join(', ');
+              }}
+            >
+              <MenuItem value="all">
+                <Checkbox checked={sourceWarehouse.includes('all')} sx={{ color: isDarkMode ? "#FFB74D" : "#1D3557", "&.Mui-checked": { color: isDarkMode ? "#FFB74D" : "#1D3557" } }} />
+                All Stations
+              </MenuItem>
+              {allWarehouse.filter((w) => w.isSource).map((w) => (
+                <MenuItem key={w.warehouseID} value={w.warehouseID}>
+                  <Checkbox checked={sourceWarehouse.includes(w.warehouseID)} sx={{ color: isDarkMode ? "#FFB74D" : "#1D3557", "&.Mui-checked": { color: isDarkMode ? "#FFB74D" : "#1D3557" } }} />
+                  {w.name}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
           <FormControl size="small" sx={textFieldSx}>
@@ -177,7 +239,7 @@ export default function AddLedgerPage({}) {
         </Box>
       </SectionCard>
 
-      {sourceWarehouse && truckNo && destinationWarehouse && (
+      {sourceWarehouse.length > 0 && truckNo && destinationWarehouse && (
         <SectionCard title={`Select Orders (${selectedOrders.current.size} selected)`} icon={<ListAltIcon />} isDarkMode={isDarkMode} colors={colors} accentColor={accentColor}>
           <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, mb: 2.5, alignItems: { xs: "stretch", md: "center" }, flexWrap: "wrap" }}>
             <CustomDatePicker

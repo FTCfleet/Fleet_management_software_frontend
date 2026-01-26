@@ -118,7 +118,7 @@ const AllOrderPage = () => {
       if (!response.ok) throw new Error("Failed to fetch orders");
       const data = await response.json();
       if (!data.flag) {
-        alert("Please login first");
+        // Auth issues are handled by global interceptor in AuthContext
         return;
       }
       const fetchedOrders = data.body?.parcels || [];
@@ -128,7 +128,11 @@ const AllOrderPage = () => {
       setTotalOrders(data.body?.totalParcels || 0);
     } catch (error) {
       console.error("Error fetching orders:", error);
-      alert("Error fetching orders");
+      // Auth errors are handled by global interceptor
+      // Only log non-auth errors
+      if (!error.message?.includes("authenticate")) {
+        console.error("Error fetching orders:", error);
+      }
     }
     setIsLoading(false);
   }, [selectedDate, type, isSource, isAdmin]);
@@ -266,7 +270,10 @@ const AllOrderPage = () => {
                   Amount (Items)
                 </Typography>
                 <Typography sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 500 }}>
-                  {parseFloat(order.items?.reduce((acc, item) => acc + (item.freight+2*item.hamali)*item.quantity, 0)/100 || 0).toFixed(2)}
+                  {(() => {
+                    const total = order.items?.reduce((acc, item) => acc + ((item.freight || 0) + 2 * (item.hamali || 0)) * item.quantity, 0) || 0;
+                    return total === 0 ? '-' : parseFloat(total / 100).toFixed(2);
+                  })()}
                   {" "}({order.items?.reduce((acc, item) => acc + item.quantity, 0)} items)
                 </Typography>
               </Box>
@@ -393,7 +400,10 @@ const AllOrderPage = () => {
                       {order.items?.reduce((acc, item) => acc + item.quantity, 0)}
                     </TableCell>
                     <TableCell sx={rowCellStyle}>
-                      {parseFloat(order.items?.reduce((acc, item) => acc + (item.freight+2*item.hamali)*item.quantity, 0)/100 || 0).toFixed(2)}
+                      {(() => {
+                        const total = order.items?.reduce((acc, item) => acc + ((item.freight || 0) + 2 * (item.hamali || 0)) * item.quantity, 0) || 0;
+                        return total === 0 ? '-' : parseFloat(total / 100).toFixed(2);
+                      })()}
                     </TableCell>
                     <TableCell>
                       <span className={`table-status ${order.status}`}>
