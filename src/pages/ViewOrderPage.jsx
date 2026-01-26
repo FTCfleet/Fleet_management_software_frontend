@@ -332,12 +332,10 @@ export default function ViewOrderPage() {
         <button className="button" onClick={handleLRPrint} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
           <FaPrint /> Download Receipt
         </button>
+        <button className="button" onClick={handleLRPrintThermal} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
+          <FaPrint /> Download Thermal
+        </button>
         {
-          !isMobile &&
-          <button className="button" onClick={handleLRPrintThermal} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
-            <FaPrint /> Download Thermal
-          </button>
-        }{
           /* Show Edit LR button only for:
              1. Admin (can edit any LR)
              2. Source warehouse staff (can edit LRs from their warehouse)
