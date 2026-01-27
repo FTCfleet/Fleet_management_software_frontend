@@ -1,10 +1,18 @@
 export const dateFormatter = (dateString) => {
     if (!dateString) return "N/A"; 
-    const year = dateString.substring(0, 4);
-    const month = dateString.substring(5, 7);
-    const day = dateString.substring(8, 10);
-    const hour24 = parseInt(dateString.substring(11, 13));
-    const minute = dateString.substring(14, 16);
+    
+    // Parse the date string and convert to IST
+    const date = new Date(dateString);
+    
+    // Convert to IST (UTC+5:30)
+    const istOffset = 5.5 * 60 * 60 * 1000; // IST offset in milliseconds
+    const istDate = new Date(date.getTime() + istOffset);
+    
+    const year = istDate.getUTCFullYear();
+    const month = (istDate.getUTCMonth() + 1).toString().padStart(2, '0');
+    const day = istDate.getUTCDate().toString().padStart(2, '0');
+    const hour24 = istDate.getUTCHours();
+    const minute = istDate.getUTCMinutes().toString().padStart(2, '0');
 
     let ampm = hour24 >= 12 ? 'PM' : 'AM';
     let hour12 = (hour24 % 12 || 12).toString().padStart(2,'0'); 

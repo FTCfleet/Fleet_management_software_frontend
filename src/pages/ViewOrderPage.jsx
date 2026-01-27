@@ -337,10 +337,10 @@ export default function ViewOrderPage() {
         </button>
         {
           /* Show Edit LR button only for:
-             1. Admin (can edit any LR)
-             2. Source warehouse staff (can edit LRs from their warehouse)
+             1. Admin (can edit any LR regardless of status)
+             2. Source warehouse staff (can edit LRs from their warehouse ONLY when status is "arrived")
              NOT for destination warehouse staff */
-          (isAdmin || (isSource && order.sourceWarehouse?.warehouseID === stationCode)) &&
+          (isAdmin || (isSource && order.sourceWarehouse?.warehouseID === stationCode && order.status === "arrived")) &&
           <Link to={`/user/edit/order/${id}`} style={{ textDecoration: "none", flex: isMobile ? "1 1 45%" : "0 0 auto" }}>
           <button className="button" style={{ width: "100%" }}>
             <FaEdit /> Edit LR

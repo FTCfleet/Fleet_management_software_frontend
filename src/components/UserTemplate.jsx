@@ -102,6 +102,13 @@ const UserTemplate = () => {
         { text: "Completed Memo", path: "/user/ledgers/completed", icon: <FaTruckMoving /> },
       ],
     },
+    ...(!isSource || isAdmin ? [{
+      heading: "Payments",
+      headingIcon: <FaMoneyCheckAlt />,
+      items: [
+        { text: "Payment Tracking", path: "/user/payment-tracking", icon: <FaMoneyCheckAlt /> },
+      ],
+    }] : []),
     ...(isAdmin
       ? [
           {
