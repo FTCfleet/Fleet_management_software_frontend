@@ -33,6 +33,7 @@ import ViewLedgerPage from "../pages/ViewLedgerPage";
 import Analytics_UI from "../pages/Analytics";
 import EnquiriesPage from "../pages/EnquiriesPage";
 import PaymentTrackingPage from "../pages/PaymentTrackingPage";
+import MemoPaymentDetailsPage from "../pages/MemoPaymentDetailsPage";
 
 
 function AllRoutes() {
@@ -77,7 +78,8 @@ function AllRoutes() {
         <Route exact path="dashboard" element={<DashboardPage />} />
         <Route exact path="analytics" element={<Analytics_UI />} />
         <Route exact path="enquiries" element={<EnquiriesPage />} />
-        <Route exact path="payment-tracking" element={<PaymentTrackingPage />} /> 
+        <Route exact path="payment-tracking" element={<PaymentTrackingPage />} />
+        <Route exact path="payment-tracking/:memoId" element={<MemoPaymentDetailsPage />} /> 
         <Route exact path="edit/*">
           <Route exact path="order/:id" element={<EditOrderPage />} />
         </Route>
