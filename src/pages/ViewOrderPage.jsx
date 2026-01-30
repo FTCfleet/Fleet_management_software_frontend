@@ -24,6 +24,7 @@ import { Link, useNavigate, useOutletContext, useParams, useLocation } from "rea
 import { FaEdit, FaTrash, FaPrint, FaExclamationTriangle } from "react-icons/fa";
 import { dateFormatter } from "../utils/dateFormatter";
 import { fromDbValue, formatCurrency } from "../utils/currencyUtils";
+import { printThermalLRWithAutoCut, getQZTrayErrorMessage } from "../utils/qzTrayUtils";
 import { useAuth } from "../routes/AuthContext";
 import ModernSpinner from "../components/ModernSpinner";
 import "../css/table.css";
@@ -129,12 +130,43 @@ export default function ViewOrderPage() {
     try {
       setIsScreenLoadingText("Generating LR Receipt...");
       setIsScreenLoading(true);
+      
+      // Use the utility function for QZ Tray printing
+      const result = await printThermalLRWithAutoCut(id, BASE_URL);
+      
+      alert(`${result.message}\n\nTracking ID: ${id}`);
+      
+    } catch (error) {
+      console.error("Print error:", error);
+      
+      // Get user-friendly error message
+      const errorMessage = getQZTrayErrorMessage(error);
+      alert(errorMessage);
+      
+    } finally {
+      setIsScreenLoadingText("");
+      setIsScreenLoading(false);
+    }
+  };
+
+  const handlePreviewThermalLR = async () => {
+    try {
+      setIsScreenLoadingText("Generating Thermal LR Preview...");
+      setIsScreenLoading(true);
+      
+      // Fetch thermal LR preview (PDF with print menu)
       const response = await fetch(
-        `${BASE_URL}/api/parcel/generate-lr-receipt-thermal/${id}` 
+        `${BASE_URL}/api/parcel/preview-lr-thermal/${id}`
       );
+      
+      if (!response.ok) {
+        throw new Error("Failed to generate thermal LR preview");
+      }
+      
       const blob = await response.blob();
       const pdfURL = URL.createObjectURL(blob);
 
+      // Create iframe to show print menu
       const iframe = document.createElement("iframe");
       iframe.style.display = "none";
       iframe.src = pdfURL;
@@ -145,11 +177,14 @@ export default function ViewOrderPage() {
         iframe.contentWindow.focus();
         iframe.contentWindow.print();
       };
+      
     } catch (error) {
-      alert("Failed to load or print the PDF.");
+      console.error("Preview error:", error);
+      alert("Failed to generate thermal LR preview. Please try again.");
+    } finally {
+      setIsScreenLoadingText("");
+      setIsScreenLoading(false);
     }
-    setIsScreenLoadingText("");
-    setIsScreenLoading(false);
   };
 
   const getStatusColor = (status) => {
@@ -333,7 +368,10 @@ export default function ViewOrderPage() {
           <FaPrint /> Download Receipt
         </button>
         <button className="button" onClick={handleLRPrintThermal} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
-          <FaPrint /> Download Thermal
+          <FaPrint /> Print Thermal (Auto-Cut)
+        </button>
+        <button className="button" onClick={handlePreviewThermalLR} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
+          <FaPrint /> Preview Thermal LR
         </button>
         {
           /* Show Edit LR button only for:

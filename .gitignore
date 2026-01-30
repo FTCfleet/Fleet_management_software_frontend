@@ -13,6 +13,10 @@ dist
 dist-ssr
 *.local
 
+PRINTER_NAME_SETUP_GUIDE.md
+QZ_TRAY_IMPLEMENTATION_SUMMARY.md
+THERMAL_PRINT_BUTTONS_SUMMARY.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

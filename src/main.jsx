@@ -7,6 +7,9 @@ import { ThemeProvider } from "./hooks/useTheme.jsx";
 import "./index.css";
 import App from "./App.jsx";
 
+// Import QZ Tray test utilities (available in browser console)
+import "./utils/testQZTray.js";
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
