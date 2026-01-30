@@ -4,7 +4,7 @@
  */
 
 import { dateFormatter } from "./dateFormatter";
-import { fromDbValue } from "./currencyUtils";
+import { fromDbValueNum } from "./currencyUtils";
 
 // ESC/POS Commands
 const ESC = '\x1B';
@@ -15,7 +15,8 @@ const LF = '\n';
  * Display value as number or blank
  */
 const displayValueNum = (dbValue) => {
-  return fromDbValue(dbValue, false); // Returns number, not formatted string
+  const value = fromDbValueNum(dbValue); // Returns number, not string
+  return typeof value === 'number' && !isNaN(value) ? value : 0;
 };
 
 /**
@@ -113,9 +114,11 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
       receipt += `${itemLine.padEnd(20, ' ')} ${item.quantity}${LF}`;
     } else {
       // 4 column layout with amount
-      const itemRate = displayValueNum(item.freight) + displayValueNum(item.hamali) + displayValueNum(item.hamali);
+      const itemFreight = displayValueNum(item.freight) || 0;
+      const itemHamali = displayValueNum(item.hamali) || 0;
+      const itemRate = itemFreight + itemHamali + itemHamali;
       const itemAmount = itemRate * item.quantity;
-      const amountStr = itemAmount === 0 ? '____' : `₹${itemAmount.toFixed(2)}`;
+      const amountStr = itemAmount === 0 ? '____' : `₹${Number(itemAmount).toFixed(2)}`;
       receipt += `${itemLine.padEnd(15, ' ')} ${item.quantity.toString().padStart(3, ' ')} ${amountStr.padStart(8, ' ')}${LF}`;
     }
     index++;
@@ -123,10 +126,10 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
 
   // Total row
   receipt += '- - - - - - - - - - - - - - - -' + LF;
-  const totalFreight = displayValueNum(parcel.freight);
-  const totalHamali = displayValueNum(parcel.hamali);
+  const totalFreight = displayValueNum(parcel.freight) || 0;
+  const totalHamali = displayValueNum(parcel.hamali) || 0;
   const totalAmount = totalFreight + 2 * totalHamali;
-  const displayTotal = totalAmount === 0 ? '____' : `₹${totalAmount.toFixed(2)}`;
+  const displayTotal = totalAmount === 0 ? '____' : `₹${Number(totalAmount).toFixed(2)}`;
   
   receipt += ESC + '!' + '\x10'; // Bold
   if (auto === 1 && parcel.payment === 'To Pay') {
