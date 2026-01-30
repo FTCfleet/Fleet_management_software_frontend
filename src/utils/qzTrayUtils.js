@@ -64,18 +64,25 @@ export const printThermalLRWithAutoCut = async (trackingId, baseUrl, printerName
     throw new Error("QZ Tray is not installed. Please install QZ Tray for thermal printing.\n\nDownload from: https://qz.io/download/");
   }
 
-  // Fetch LR data from backend
-  const response = await fetch(`${baseUrl}/api/parcel/generate-lr-qz-tray/${trackingId}`);
+  // Fetch parcel data from backend using track endpoint
+  const response = await fetch(`${baseUrl}/api/parcel/track/${trackingId}`);
   
   if (!response.ok) {
-    throw new Error("Failed to fetch LR data from server");
+    throw new Error("Failed to fetch parcel data from server");
   }
   
   const data = await response.json();
   
   if (!data.flag) {
-    throw new Error(data.message || "Failed to generate LR receipt");
+    throw new Error(data.message || "Failed to fetch parcel data");
   }
+
+  // Import ESC/POS generator dynamically
+  const { generateCopiesArray } = await import('./escPosGenerator.js');
+  
+  // Generate ESC/POS commands for 3 copies
+  // Backend returns data in 'body' field
+  const escPosReceipts = generateCopiesArray(data.body);
 
   // Connect to QZ Tray
   await connectQZTray();
@@ -84,32 +91,20 @@ export const printThermalLRWithAutoCut = async (trackingId, baseUrl, printerName
     // Configure printer
     const config = qz.configs.create(printerName);
 
-    // Build print data with auto-cut after each receipt
-    const printData = [];
-    
-    data.receipts.forEach((receiptHtml, index) => {
-      // Add receipt HTML with styles
-      printData.push({
-        type: 'html',
-        format: 'plain',
-        data: `<html><head><style>${data.styles}</style></head><body>${receiptHtml}</body></html>`
-      });
-      
-      // Add partial cut command after each receipt
-      printData.push({
-        type: 'raw',
-        format: 'plain',
-        data: ESC_POS_COMMANDS.PARTIAL_CUT
-      });
-    });
+    // Build print data - send raw ESC/POS commands
+    const printData = escPosReceipts.map(receiptCommands => ({
+      type: 'raw',
+      format: 'plain',
+      data: receiptCommands
+    }));
 
     // Send to printer
     await qz.print(config, printData);
     
     return {
       success: true,
-      message: `Successfully printed ${data.receipts.length} copies with auto-cut`,
-      copies: data.receipts.length
+      message: `Successfully printed ${escPosReceipts.length} copies with auto-cut`,
+      copies: escPosReceipts.length
     };
     
   } finally {
