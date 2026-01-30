@@ -51,6 +51,8 @@ export default function ViewOrderPage() {
   const [qrCount, setQrCount] = useState(0);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false);
+  const [printerNameDialogOpen, setPrinterNameDialogOpen] = useState(false);
+  const [printerName, setPrinterName] = useState("TVS-E RP 3230");
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
@@ -126,15 +128,29 @@ export default function ViewOrderPage() {
     setIsScreenLoading(false);
   };
 
-  const handleLRPrintThermal = async () => {
+  const handleLRPrintThermal = () => {
+    // Open printer name dialog instead of printing directly
+    setPrinterNameDialogOpen(true);
+  };
+
+  const handlePrinterNameConfirm = async () => {
+    // Close dialog
+    setPrinterNameDialogOpen(false);
+    
+    // Validate printer name
+    if (!printerName || printerName.trim() === "") {
+      alert("Please enter a printer name");
+      return;
+    }
+    
     try {
       setIsScreenLoadingText("Generating LR Receipt...");
       setIsScreenLoading(true);
       
-      // Use the utility function for QZ Tray printing
-      const result = await printThermalLRWithAutoCut(id, BASE_URL);
+      // Use the utility function for QZ Tray printing with user-provided printer name
+      const result = await printThermalLRWithAutoCut(id, BASE_URL, printerName.trim());
       
-      alert(`${result.message}\n\nTracking ID: ${id}`);
+      alert(`${result.message}\n\nTracking ID: ${id}\nPrinter: ${printerName}`);
       
     } catch (error) {
       console.error("Print error:", error);
@@ -147,6 +163,10 @@ export default function ViewOrderPage() {
       setIsScreenLoadingText("");
       setIsScreenLoading(false);
     }
+  };
+
+  const handlePrinterNameCancel = () => {
+    setPrinterNameDialogOpen(false);
   };
 
   const handlePreviewThermalLR = async () => {
@@ -430,6 +450,94 @@ export default function ViewOrderPage() {
               disabled={isLoading}
             >
               Delete {isLoading && <CircularProgress size={16} sx={{ color: "#fff", ml: 1 }} />}
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      {/* Printer Name Dialog */}
+      <Modal open={printerNameDialogOpen} onClose={handlePrinterNameCancel}>
+        <Box sx={getModalStyle(colors, isDarkMode)}>
+          <Box sx={{ textAlign: "center", mb: 2 }}>
+            <FaPrint style={{ color: isDarkMode ? colors?.accent : "#1E3A5F", fontSize: "2.5rem" }} />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: colors?.textPrimary || "#1E3A5F", textAlign: "center", mb: 1 }}>
+            Thermal Printer Setup
+          </Typography>
+          <Typography sx={{ color: colors?.textSecondary || "#64748b", textAlign: "center", mb: 3, fontSize: "0.9rem" }}>
+            Enter the exact printer name as shown in your system settings
+          </Typography>
+          <TextField
+            fullWidth
+            label="Printer Name"
+            value={printerName}
+            onChange={(e) => setPrinterName(e.target.value)}
+            placeholder="TVS-E RP 3230"
+            autoFocus
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handlePrinterNameConfirm();
+              }
+            }}
+            sx={{
+              mb: 3,
+              "& .MuiOutlinedInput-root": {
+                backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc",
+                "& fieldset": {
+                  borderColor: isDarkMode ? "rgba(255,255,255,0.1)" : "#e0e5eb",
+                },
+                "&:hover fieldset": {
+                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
+                },
+              },
+              "& .MuiInputLabel-root": {
+                color: colors?.textSecondary,
+              },
+              "& .MuiInputBase-input": {
+                color: colors?.textPrimary,
+              },
+            }}
+            helperText={
+              <Box component="span" sx={{ fontSize: "0.75rem", color: colors?.textSecondary }}>
+                💡 Tip: Run <code style={{ 
+                  backgroundColor: isDarkMode ? "rgba(255,183,77,0.1)" : "rgba(30,58,95,0.1)", 
+                  padding: "2px 6px", 
+                  borderRadius: "4px",
+                  color: isDarkMode ? colors?.accent : colors?.primary
+                }}>listPrinters()</code> in browser console to see available printers
+              </Box>
+            }
+          />
+          <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
+            <Button 
+              variant="outlined" 
+              onClick={handlePrinterNameCancel}
+              sx={{
+                borderColor: isDarkMode ? "rgba(255,255,255,0.2)" : "#d1d5db",
+                color: colors?.textSecondary,
+                "&:hover": {
+                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
+                  backgroundColor: isDarkMode ? "rgba(255,183,77,0.08)" : "rgba(30,58,95,0.04)",
+                }
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handlePrinterNameConfirm}
+              sx={{ 
+                backgroundColor: isDarkMode ? colors?.accent : "#1E3A5F",
+                color: isDarkMode ? "#0a1628" : "#fff",
+                "&:hover": { 
+                  backgroundColor: isDarkMode ? colors?.accentHover : "#2d5a87" 
+                } 
+              }}
+            >
+              Print with Auto-Cut
             </Button>
           </Box>
         </Box>

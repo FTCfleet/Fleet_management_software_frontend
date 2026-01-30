@@ -3,14 +3,14 @@
  * For thermal printer integration with auto-cut support
  */
 
-// Default printer name for TVS RP 3230 ABW
+// Default printer name for TVS-E RP 3230
 // IMPORTANT: This must match the EXACT printer name in Windows/System settings
 // To find your printer name:
 // - Windows: Settings → Devices → Printers & scanners
 // - macOS: System Preferences → Printers & Scanners
 // - Linux: System Settings → Printers
-// Current printer: RP3230ABW-5BE6 (Bluetooth name)
-export const DEFAULT_THERMAL_PRINTER = "RP3230ABW-5BE6";
+// Or run listPrinters() in browser console to see all available printers
+export const DEFAULT_THERMAL_PRINTER = "TVS-E RP 3230";
 
 // ESC/POS Commands
 export const ESC_POS_COMMANDS = {
