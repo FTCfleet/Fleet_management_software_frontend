@@ -1,214 +1,206 @@
 /**
  * ESC/POS Command Generator for Thermal LR Printing
- * Generates raw ESC/POS commands for TVS RP 3230 ABW thermal printer
+ * TVS RP 3230 ABW – 80mm
  */
 
 import { dateFormatter } from "./dateFormatter";
 import { fromDbValueNum } from "./currencyUtils";
 
-// ESC/POS Commands
-const ESC = '\x1B';
-const GS = '\x1D';
-const LF = '\n';
+/* -------------------------------------------------- */
+/* ESC/POS BASICS                                     */
+/* -------------------------------------------------- */
 
-/**
- * Display value as number or blank
- */
+const ESC = '\x1B';
+const GS  = '\x1D';
+const LF  = '\n';
+
+const INIT      = ESC + '@';
+const ALIGN_L   = ESC + 'a' + '\x00';
+const ALIGN_C   = ESC + 'a' + '\x01';
+
+const BOLD_ON   = ESC + 'E' + '\x01';
+const BOLD_OFF  = ESC + 'E' + '\x00';
+
+const SIZE_1X   = GS + '!' + '\x00';
+const SIZE_W2   = GS + '!' + '\x10';
+const SIZE_2X   = GS + '!' + '\x11';
+
+const CUT       = GS + 'V' + 'A' + '\x00';
+
+/* 80mm = ~42 characters */
+const LINE = '-'.repeat(42);
+
+/* -------------------------------------------------- */
+/* HELPERS                                             */
+/* -------------------------------------------------- */
+
 const displayValueNum = (dbValue) => {
-  const value = fromDbValueNum(dbValue); // Returns number, not string
+  const value = fromDbValueNum(dbValue);
   return typeof value === 'number' && !isNaN(value) ? value : 0;
 };
 
-/**
- * Display value as currency or blank
- */
 const displayOrBlank = (dbValue) => {
-  if (dbValue === null || dbValue === undefined || dbValue === 0) {
-    return '____';
-  }
+  if (!dbValue) return '____';
   const num = displayValueNum(dbValue);
   return num === 0 ? '____' : `Rs.${num.toFixed(2)}`;
 };
 
-/**
- * Generate ESC/POS receipt for a single copy
- * @param {Object} parcel - Parcel data from backend
- * @param {number} auto - 0 for normal copy, 1 for auto copy (hides amounts for To Pay)
- * @returns {string} ESC/POS command string
- */
+/* Column widths (important for alignment) */
+const ITEM_W = 20;
+const QTY_W  = 6;
+const AMT_W  = 10;
+
+/* -------------------------------------------------- */
+/* MAIN RECEIPT                                        */
+/* -------------------------------------------------- */
+
 export const generateESCPOSReceipt = (parcel, auto = 0) => {
+
   let receipt = '';
 
-  // Initialize printer
-  receipt += ESC + '@'; // Initialize
-  receipt += ESC + 'a' + '\x00'; // Left align
-  receipt+= ESC + 'M' + '\x01';
+  receipt += INIT + ALIGN_L + SIZE_1X;
 
-  // Date (small font)
-  receipt += ESC + '!' + '\x00'; // Normal font
-  receipt += `Date: ${dateFormatter(parcel.placedAt)}`;
+  /* ---------- Date ---------- */
+  receipt += `Date: ${dateFormatter(parcel.placedAt)}  `;
   receipt += `Created By: ${parcel.addedBy?.name || "____"}${LF}`;
 
-  // Company name (bold, large)
-  receipt+= ESC + 'a' + '\x01'; 
-  receipt += ESC + '!' + '\x31'; // Double height + bold
+  /* ---------- Company ---------- */
+  receipt += ALIGN_C + SIZE_2X + BOLD_ON;
   receipt += 'FRIENDS TRANSPORT CO.' + LF;
-  receipt += ESC + '!' + '\x00';
+  receipt += SIZE_1X + BOLD_OFF;
 
-  //lr  no
-  receipt+= ESC + '!' + '\x11';
+  /* ---------- LR ---------- */
+  receipt += SIZE_W2 + BOLD_ON;
   receipt += `LR No: ${parcel.trackingId}${LF}`;
-  receipt += ESC + '!' + '\x00'; // Reset to normal
-   
+  receipt += SIZE_1X + BOLD_OFF;
 
-  // Phone numbers
-  receipt += `${parcel.sourceWarehouse.warehouseID} Ph.: ${parcel.sourceWarehouse.phoneNo || "____"}`;
+  /* ---------- Phones (CENTERED) ---------- */
+  receipt += ALIGN_C;
+  receipt += `${parcel.sourceWarehouse.warehouseID} Ph.: ${parcel.sourceWarehouse.phoneNo || "____"}   `;
   receipt += `${parcel.destinationWarehouse.warehouseID} Ph.: ${parcel.destinationWarehouse.phoneNo || "____"}${LF}`;
 
-  // Website
-  receipt += ESC + '!' + '\x10'; // Bold
-  receipt += 'Track your order at: www.friendstransport.in' + LF;
-  receipt += ESC + '!' + '\x00'; // Reset
+  /* ---------- Track URL (CENTERED + bold only) ---------- */
+  receipt += BOLD_ON + 'Track your order at: www.friendstransport.in' + BOLD_OFF + LF + LF;
 
-  receipt+= ESC + 'a' + '\x00';
+  receipt += ALIGN_L;
 
-  receipt+='\n';
+  /* ---------- From / To ---------- */
+  receipt += BOLD_ON + 'From: ' + BOLD_OFF + `${parcel.sourceWarehouse.name}${LF}`;
+  receipt += BOLD_ON + 'To: '   + BOLD_OFF + `${parcel.destinationWarehouse.name}${LF}${LF}`;
 
-  // Route bar
-  receipt += ESC + 'a' + '\x00'; // Left align
-  receipt += ESC + '!' + '\x10'; // Bold
-  receipt += 'From: ';
-  receipt += ESC + '!' + '\x00';
-  receipt += `${parcel.sourceWarehouse.name}${LF}`;
-  receipt += ESC + '!' + '\x10'; // Bold
-  receipt += 'To: ';
-  receipt += ESC + '!' + '\x00';
-  receipt += `${parcel.destinationWarehouse.name}${LF}`;
-  receipt += ESC + '!' + '\x00'; // Reset
-  receipt += LF;
-
-  // Party section
-  receipt += ESC + '!' + '\x10'; // Bold
+  /* ---------- Consignor / Consignee ---------- */
+  receipt += BOLD_ON;
   receipt += `Consignor: ${parcel.sender.name}${LF}`;
-  receipt += `Ph: ${parcel.sender.phoneNo || "NA"}${LF}`;
-  receipt+='\n';
+  receipt += `Ph: ${parcel.sender.phoneNo || "NA"}${LF}${LF}`;
   receipt += `Consignee: ${parcel.receiver.name}${LF}`;
   receipt += `Ph: ${parcel.receiver.phoneNo || "NA"}${LF}`;
-  receipt += ESC + '!' + '\x00'; // Reset
-  receipt += LF;
+  receipt += BOLD_OFF + LF;
 
-  // Items table header
-  receipt += '- - - - - - - - - - - - - - - - - - -' + LF;
-  if (auto === 1 && parcel.payment === 'To Pay') {
-    receipt += 'No.     Item                     Qty' + LF;
-  } else {
-    receipt += 'No.  Item             Qty     Amount' + LF;
-  }
-  receipt += '- - - - - - - - - - - - - - - - - - -' + LF;
+  /* ---------- Table Header ---------- */
+  receipt += LINE + LF;
+  receipt += BOLD_ON;
 
-  // Items
+  if (auto === 1 && parcel.payment === 'To Pay')
+    receipt += 'No  Item'.padEnd(ITEM_W) + 'Qty'.padStart(QTY_W) + LF;
+  else
+    receipt += 'No  Item'.padEnd(ITEM_W) + 'Qty'.padStart(QTY_W) + 'Amount'.padStart(AMT_W) + LF;
+
+  receipt += BOLD_OFF;
+  receipt += LINE + LF;
+
+  /* ---------- Items ---------- */
+
   let index = 1;
   let totalQty = 0;
+
   for (const item of parcel.items) {
-    totalQty += item.quantity;
-    const itemLine = `${index}. ${item.name} (${item.itemType.name})`;
-    
+
+    const qty = item.quantity || 0;
+    totalQty += qty;
+
+    const label = `${index}. ${item.name} (${item.itemType.name})`;
+
     if (auto === 1 && parcel.payment === 'To Pay') {
-      // 3 column layout
-      receipt += `${itemLine.padEnd(20, ' ')} ${item.quantity}${LF}`;
+
+      receipt += label.padEnd(ITEM_W) + qty.toString().padStart(QTY_W) + LF;
+
     } else {
-      // 4 column layout with amount
-      const itemFreight = displayValueNum(item.freight) || 0;
-      const itemHamali = displayValueNum(item.hamali) || 0;
-      const itemRate = itemFreight + itemHamali + itemHamali;
-      const itemAmount = itemRate * item.quantity;
-      const amountStr = itemAmount === 0 ? '____' : `Rs.${Number(itemAmount).toFixed(2)}`;
-      receipt += `${itemLine.padEnd(15, ' ')} ${item.quantity.toString().padStart(3, ' ')} ${amountStr.padStart(8, ' ')}${LF}`;
+
+      const freight = displayValueNum(item.freight);
+      const hamali  = displayValueNum(item.hamali);
+      const rate = freight + hamali + hamali;
+      const amount = rate * qty;
+
+      const amtStr = amount === 0
+        ? '____'
+        : `Rs.${amount.toFixed(2)}`;
+
+      receipt +=
+        label.padEnd(ITEM_W) +
+        qty.toString().padStart(QTY_W) +
+        amtStr.padStart(AMT_W) +
+        LF;
     }
+
     index++;
   }
 
-  // Total row
-  receipt += '- - - - - - - - - - - - - - - - - - -' + LF;
+  /* ---------- Totals (PERFECT COLUMN ALIGNMENT) ---------- */
 
-  const totalFreight = displayValueNum(parcel.freight) || 0;
-  const totalHamali = displayValueNum(parcel.hamali) || 0;
-  const totalAmount = totalFreight + 2 * totalHamali;
-  const displayTotal = totalAmount === 0 ? '____' : `Rs.${Number(totalAmount).toFixed(2)}`;
-  
-  receipt += ESC + '!' + '\x10'; // Bold
+  const totalFreight = displayValueNum(parcel.freight);
+  const totalHamali  = displayValueNum(parcel.hamali);
+  const totalAmount  = totalFreight + 2 * totalHamali;
+
+  const amtStr = totalAmount === 0
+    ? '____'
+    : `Rs.${totalAmount.toFixed(2)}`;
+
+  receipt += LINE + LF;
+  receipt += BOLD_ON;
+
   if (auto === 1 && parcel.payment === 'To Pay') {
-    receipt += `Total:              ${totalQty}${LF}`;
+    receipt += 'Total'.padEnd(ITEM_W) + totalQty.toString().padStart(QTY_W) + LF;
   } else {
-    receipt += `Total:         ${totalQty}     ${displayTotal}${LF}`;
+    receipt +=
+      'Total'.padEnd(ITEM_W) +
+      totalQty.toString().padStart(QTY_W) +
+      amtStr.padStart(AMT_W) +
+      LF;
   }
-  receipt += ESC + '!' + '\x00'; // Reset
-  receipt += '--------------------------------' + LF;
-  receipt += LF;
 
-  // Footer info
-  const doorDelivery = parcel.isDoorDelivery 
+  receipt += BOLD_OFF;
+  receipt += LINE + LF + LF;
+
+  /* ---------- Footer ---------- */
+
+  const doorDelivery = parcel.isDoorDelivery
     ? (auto ? 'Yes' : displayOrBlank(parcel.doorDeliveryCharge))
     : 'No';
 
-  receipt += ESC + 'a' + '\x00';
-  
-  if (!(auto === 1 && parcel.payment === 'To Pay')) {
-    // Show both Door Delivery and Total on same line
-    receipt += `Door Delivery: ${doorDelivery.padEnd(6, ' ')}`;
-    receipt += ESC + '!' + '\x10'; // Bold
-    receipt += `Payment: ${parcel.payment.toUpperCase()}`;
-    receipt += ESC + '!' + '\x00'; // Reset
-    receipt += LF;
-  } else {
-    // For auto copy with To Pay, only show Door Delivery
-    receipt += `Door Delivery: ${doorDelivery}${LF}`;
-  }
-  receipt += LF;
+  receipt += `Door Delivery: ${doorDelivery.padEnd(6)} `;
+  receipt += BOLD_ON + `Payment: ${parcel.payment.toUpperCase()}` + BOLD_OFF + LF + LF;
 
-  receipt += ESC + 'a' + '\x01';
+  receipt += ALIGN_C;
   receipt += 'GST: 36AAFFF2744R1ZX' + LF;
   receipt += 'SUBJECT TO HYDERABAD JURISDICTION' + LF;
-  receipt += ESC + 'a' + '\x00';
+  receipt += 'WhatsApp: +917075124426' + LF;
 
-  // Feed lines before cut (ensures content is past cutter)
-  receipt += '\n\n';
-
-  // Cut paper - using partial cut for better compatibility
-  receipt += GS + 'V' + 'A' + '\x00'; // Partial cut (GS V A 0)
+  receipt += LF + LF + CUT;
 
   return receipt;
 };
 
-/**
- * Generate 3 copies of the receipt (2 normal + 1 auto)
- * @param {Object} parcel - Parcel data from backend
- * @returns {string} ESC/POS command string for all 3 copies
- */
-export const generateThreeCopies = (parcel) => {
-  let receipt = '';
+/* -------------------------------------------------- */
+/* COPIES                                              */
+/* -------------------------------------------------- */
 
-  // Copy 1 (normal)
-  receipt += generateESCPOSReceipt(parcel, 0);
+export const generateThreeCopies = (parcel) =>
+  generateESCPOSReceipt(parcel, 0) +
+  generateESCPOSReceipt(parcel, 0) +
+  generateESCPOSReceipt(parcel, 1);
 
-  // Copy 2 (normal)
-  receipt += generateESCPOSReceipt(parcel, 0);
-
-  // Copy 3 (auto - for To Pay parcels)
-  receipt += generateESCPOSReceipt(parcel, 1);
-
-  return receipt;
-};
-
-/**
- * Generate individual copies as array (for QZ Tray)
- * @param {Object} parcel - Parcel data from backend
- * @returns {Array<string>} Array of ESC/POS command strings
- */
-export const generateCopiesArray = (parcel) => {
-  return [
-    generateESCPOSReceipt(parcel, 0), // Copy 1
-    generateESCPOSReceipt(parcel, 0), // Copy 2
-    generateESCPOSReceipt(parcel, 1), // Copy 3 (auto)
-  ];
-};
+export const generateCopiesArray = (parcel) => [
+  generateESCPOSReceipt(parcel, 0),
+  generateESCPOSReceipt(parcel, 0),
+  generateESCPOSReceipt(parcel, 1),
+];

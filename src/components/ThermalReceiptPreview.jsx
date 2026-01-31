@@ -52,6 +52,17 @@ const ThermalReceiptPreview = ({ escPosData, onClose, onPrint, onReload }) => {
           continue;
         }
         
+        // ESC E - Emphasized (bold) mode
+        if (nextChar === 'E') {
+          const emphasisCode = escPosString.charCodeAt(i + 2);
+          // Don't push current line - keep building it with new style
+          
+          // 0x00 = turn off, non-zero = turn on
+          currentStyle.bold = emphasisCode !== 0x00;
+          i += 3;
+          continue;
+        }
+        
         // ESC a - Alignment
         if (nextChar === 'a') {
           const alignCode = escPosString.charCodeAt(i + 2);
@@ -80,6 +91,26 @@ const ThermalReceiptPreview = ({ escPosData, onClose, onPrint, onReload }) => {
       // GS commands (cut, etc.)
       if (char === '\x1D') {
         const nextChar = escPosString[i + 1];
+        
+        // GS ! - Character size
+        if (nextChar === '!') {
+          const sizeCode = escPosString.charCodeAt(i + 2);
+          // Don't push current line - keep building it with new style
+          
+          // Lower nibble = width, upper nibble = height
+          // 0x00 = 1x1 (normal)
+          // 0x10 = 2x1 (double width)
+          // 0x01 = 1x2 (double height)
+          // 0x11 = 2x2 (double both)
+          const widthMultiplier = (sizeCode & 0xF0) >> 4;
+          const heightMultiplier = sizeCode & 0x0F;
+          
+          currentStyle.doubleHeight = heightMultiplier > 0;
+          // Note: We can't easily show double width in preview, so we'll just use doubleHeight
+          
+          i += 3;
+          continue;
+        }
         
         // GS V - Cut paper
         if (nextChar === 'V') {
