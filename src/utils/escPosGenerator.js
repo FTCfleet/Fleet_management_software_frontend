@@ -95,18 +95,18 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
   receipt += ALIGN_L;
 
   /* ---------- From / To (tall + bold) ---------- */
-  receipt += SIZE_H2 + BOLD_ON;
+  receipt += SIZE_H2 ;
   receipt += `From: ${parcel.sourceWarehouse.name}${LF}`;
   receipt += `To: ${parcel.destinationWarehouse.name}${LF}`;
-  receipt += SIZE_1X + BOLD_OFF + LF;
+  receipt += SIZE_1X + LF;
 
   /* ---------- Consignor / Consignee (tall + bold) ---------- */
-  receipt += SIZE_H2 + BOLD_ON;
+  receipt += SIZE_H2;
   receipt += `Consignor: ${parcel.sender.name}${LF}`;
   receipt += `Ph: ${parcel.sender.phoneNo || "NA"}${LF}${LF}`;
   receipt += `Consignee: ${parcel.receiver.name}${LF}`;
   receipt += `Ph: ${parcel.receiver.phoneNo || "NA"}${LF}`;
-  receipt += SIZE_1X + BOLD_OFF + LF;
+  receipt += SIZE_1X + LF;
 
   /* ---------- Table header ---------- */
   receipt += LF;
@@ -137,10 +137,32 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
 
     const label = `${index}. ${item.name} (${item.itemType.name})`;
 
+    // Wrap long item names to multiple lines
+    const wrapText = (text, maxWidth) => {
+      const lines = [];
+      let currentPos = 0;
+      
+      while (currentPos < text.length) {
+        lines.push(text.substring(currentPos, currentPos + maxWidth));
+        currentPos += maxWidth;
+      }
+      
+      return lines;
+    };
+
+    const wrappedLines = wrapText(label, ITEM_W);
+
     if (auto === 1 && parcel.payment === 'To Pay') {
 
-      receipt += label.padEnd(ITEM_W) +
+      // First line with qty
+      receipt += wrappedLines[0].padEnd(ITEM_W) +
                  qty.toString().padStart(QTY_W) + LF;
+      
+      // Additional lines (item name continuation) - no qty
+      for (let i = 1; i < wrappedLines.length; i++) {
+        receipt += wrappedLines[i].padEnd(ITEM_W) +
+                   ' '.repeat(QTY_W) + LF;
+      }
 
     } else {
 
@@ -151,11 +173,21 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
 
       const amtStr = amount === 0 ? '____' : `Rs.${amount.toFixed(2)}`;
 
-      receipt += label.padEnd(ITEM_W) +
+      // First line with qty and amount
+      receipt += wrappedLines[0].padEnd(ITEM_W) +
                  qty.toString().padStart(QTY_W) +
                  ' '.repeat(GAP_W) +
                  amtStr.padStart(AMT_W) +
                  LF;
+      
+      // Additional lines (item name continuation) - no qty or amount
+      for (let i = 1; i < wrappedLines.length; i++) {
+        receipt += wrappedLines[i].padEnd(ITEM_W) +
+                   ' '.repeat(QTY_W) +
+                   ' '.repeat(GAP_W) +
+                   ' '.repeat(AMT_W) +
+                   LF;
+      }
     }
 
     index++;
