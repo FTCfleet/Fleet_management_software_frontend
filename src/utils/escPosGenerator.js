@@ -27,7 +27,7 @@ const displayOrBlank = (dbValue) => {
     return '____';
   }
   const num = displayValueNum(dbValue);
-  return num === 0 ? '____' : `₹${num.toFixed(2)}`;
+  return num === 0 ? '____' : `Rs.${num.toFixed(2)}`;
 };
 
 /**
@@ -42,65 +42,69 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
   // Initialize printer
   receipt += ESC + '@'; // Initialize
   receipt += ESC + 'a' + '\x00'; // Left align
+  receipt+= ESC + 'M' + '\x01';
 
   // Date (small font)
   receipt += ESC + '!' + '\x00'; // Normal font
-  receipt += `Date: ${dateFormatter(parcel.placedAt)}${LF}`;
-
-  // LR Number (bold, slightly larger)
-  receipt += ESC + '!' + '\x10'; // Bold
-  receipt += `LR No: ${parcel.trackingId}${LF}`;
-  receipt += ESC + '!' + '\x00'; // Reset to normal
-
-  // Separator line
-  receipt += ESC + 'a' + '\x01'; // Center align
-  receipt += '--------------------------------' + LF;
+  receipt += `Date: ${dateFormatter(parcel.placedAt)}`;
+  receipt += `Created By: ${parcel.addedBy?.name || "____"}${LF}`;
 
   // Company name (bold, large)
-  receipt += ESC + '!' + '\x30'; // Double height + bold
+  receipt+= ESC + 'a' + '\x01'; 
+  receipt += ESC + '!' + '\x31'; // Double height + bold
   receipt += 'FRIENDS TRANSPORT CO.' + LF;
-  receipt += ESC + '!' + '\x00'; // Reset
+  receipt += ESC + '!' + '\x00';
+
+  //lr  no
+  receipt+= ESC + '!' + '\x11';
+  receipt += `LR No: ${parcel.trackingId}${LF}`;
+  receipt += ESC + '!' + '\x00'; // Reset to normal
+   
 
   // Phone numbers
-  receipt += `${parcel.sourceWarehouse.warehouseID} Ph.: ${parcel.sourceWarehouse.phoneNo || "____"}${LF}`;
+  receipt += `${parcel.sourceWarehouse.warehouseID} Ph.: ${parcel.sourceWarehouse.phoneNo || "____"}`;
   receipt += `${parcel.destinationWarehouse.warehouseID} Ph.: ${parcel.destinationWarehouse.phoneNo || "____"}${LF}`;
 
   // Website
-  receipt += 'Track your order at:' + LF;
   receipt += ESC + '!' + '\x10'; // Bold
-  receipt += 'www.friendstransport.in' + LF;
+  receipt += 'Track your order at: www.friendstransport.in' + LF;
   receipt += ESC + '!' + '\x00'; // Reset
 
-  // Separator line (dashed)
-  receipt += '- - - - - - - - - - - - - - - -' + LF;
+  receipt+= ESC + 'a' + '\x00';
+
+  receipt+='\n';
 
   // Route bar
   receipt += ESC + 'a' + '\x00'; // Left align
   receipt += ESC + '!' + '\x10'; // Bold
-  receipt += `From: ${parcel.sourceWarehouse.name}${LF}`;
-  receipt += `To: ${parcel.destinationWarehouse.name}${LF}`;
+  receipt += 'From: ';
+  receipt += ESC + '!' + '\x00';
+  receipt += `${parcel.sourceWarehouse.name}${LF}`;
+  receipt += ESC + '!' + '\x10'; // Bold
+  receipt += 'To: ';
+  receipt += ESC + '!' + '\x00';
+  receipt += `${parcel.destinationWarehouse.name}${LF}`;
   receipt += ESC + '!' + '\x00'; // Reset
   receipt += LF;
 
   // Party section
   receipt += ESC + '!' + '\x10'; // Bold
   receipt += `Consignor: ${parcel.sender.name}${LF}`;
-  receipt += ESC + '!' + '\x00'; // Reset
   receipt += `Ph: ${parcel.sender.phoneNo || "NA"}${LF}`;
-  receipt += ESC + '!' + '\x10'; // Bold
+  receipt+='\n';
   receipt += `Consignee: ${parcel.receiver.name}${LF}`;
-  receipt += ESC + '!' + '\x00'; // Reset
   receipt += `Ph: ${parcel.receiver.phoneNo || "NA"}${LF}`;
+  receipt += ESC + '!' + '\x00'; // Reset
   receipt += LF;
 
   // Items table header
-  receipt += '--------------------------------' + LF;
+  receipt += '- - - - - - - - - - - - - - - - - - -' + LF;
   if (auto === 1 && parcel.payment === 'To Pay') {
-    receipt += 'No. Item              Qty' + LF;
+    receipt += 'No.     Item                     Qty' + LF;
   } else {
-    receipt += 'No. Item         Qty  Amount' + LF;
+    receipt += 'No.  Item             Qty     Amount' + LF;
   }
-  receipt += '--------------------------------' + LF;
+  receipt += '- - - - - - - - - - - - - - - - - - -' + LF;
 
   // Items
   let index = 1;
@@ -118,24 +122,25 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
       const itemHamali = displayValueNum(item.hamali) || 0;
       const itemRate = itemFreight + itemHamali + itemHamali;
       const itemAmount = itemRate * item.quantity;
-      const amountStr = itemAmount === 0 ? '____' : `₹${Number(itemAmount).toFixed(2)}`;
+      const amountStr = itemAmount === 0 ? '____' : `Rs.${Number(itemAmount).toFixed(2)}`;
       receipt += `${itemLine.padEnd(15, ' ')} ${item.quantity.toString().padStart(3, ' ')} ${amountStr.padStart(8, ' ')}${LF}`;
     }
     index++;
   }
 
   // Total row
-  receipt += '- - - - - - - - - - - - - - - -' + LF;
+  receipt += '- - - - - - - - - - - - - - - - - - -' + LF;
+
   const totalFreight = displayValueNum(parcel.freight) || 0;
   const totalHamali = displayValueNum(parcel.hamali) || 0;
   const totalAmount = totalFreight + 2 * totalHamali;
-  const displayTotal = totalAmount === 0 ? '____' : `₹${Number(totalAmount).toFixed(2)}`;
+  const displayTotal = totalAmount === 0 ? '____' : `Rs.${Number(totalAmount).toFixed(2)}`;
   
   receipt += ESC + '!' + '\x10'; // Bold
   if (auto === 1 && parcel.payment === 'To Pay') {
     receipt += `Total:              ${totalQty}${LF}`;
   } else {
-    receipt += `Total:         ${totalQty}  ${displayTotal}${LF}`;
+    receipt += `Total:         ${totalQty}     ${displayTotal}${LF}`;
   }
   receipt += ESC + '!' + '\x00'; // Reset
   receipt += '--------------------------------' + LF;
@@ -145,23 +150,29 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
   const doorDelivery = parcel.isDoorDelivery 
     ? (auto ? 'Yes' : displayOrBlank(parcel.doorDeliveryCharge))
     : 'No';
-  receipt += `Door Delivery: ${doorDelivery}${LF}`;
+
+  receipt += ESC + 'a' + '\x00';
   
   if (!(auto === 1 && parcel.payment === 'To Pay')) {
+    // Show both Door Delivery and Total on same line
+    receipt += `Door Delivery: ${doorDelivery.padEnd(6, ' ')}`;
     receipt += ESC + '!' + '\x10'; // Bold
-    receipt += `Total: ${displayTotal} (${parcel.payment.toUpperCase()})${LF}`;
+    receipt += `Payment: ${parcel.payment.toUpperCase()}`;
     receipt += ESC + '!' + '\x00'; // Reset
+    receipt += LF;
+  } else {
+    // For auto copy with To Pay, only show Door Delivery
+    receipt += `Door Delivery: ${doorDelivery}${LF}`;
   }
   receipt += LF;
 
-  receipt += ESC + 'a' + '\x01'; // Center align
+  receipt += ESC + 'a' + '\x01';
   receipt += 'GST: 36AAFFF2744R1ZX' + LF;
-  receipt += `Created By: ${parcel.addedBy?.name || "____"}${LF}`;
-  receipt += 'SUBJECT TO HYDERABAD' + LF;
-  receipt += 'JURISDICTION' + LF;
+  receipt += 'SUBJECT TO HYDERABAD JURISDICTION' + LF;
+  receipt += ESC + 'a' + '\x00';
 
   // Feed lines before cut (ensures content is past cutter)
-  receipt += '\n\n\n';
+  receipt += '\n\n';
 
   // Cut paper - using partial cut for better compatibility
   receipt += GS + 'V' + 'A' + '\x00'; // Partial cut (GS V A 0)

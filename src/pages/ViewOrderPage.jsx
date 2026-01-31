@@ -21,12 +21,15 @@ import {
   Grid,
 } from "@mui/material";
 import { Link, useNavigate, useOutletContext, useParams, useLocation } from "react-router-dom";
-import { FaEdit, FaTrash, FaPrint, FaExclamationTriangle } from "react-icons/fa";
+import { FaEdit, FaTrash, FaPrint, FaExclamationTriangle, FaEye } from "react-icons/fa";
 import { dateFormatter } from "../utils/dateFormatter";
 import { fromDbValue, formatCurrency } from "../utils/currencyUtils";
 import { printThermalLRWithAutoCut, getQZTrayErrorMessage } from "../utils/qzTrayUtils";
+import { generateCopiesArray } from "../utils/escPosGenerator";
 import { useAuth } from "../routes/AuthContext";
 import ModernSpinner from "../components/ModernSpinner";
+import ThermalReceiptPreview from "../components/ThermalReceiptPreview";
+import { useThermalPreview } from "../hooks/useThermalPreview";
 import "../css/table.css";
 import "../css/main.css";
 
@@ -48,6 +51,7 @@ export default function ViewOrderPage() {
     addedBy: {},
   });
   const [qrCode, setQrCode] = useState(0);
+  const { previewData, isPreviewOpen, showPreview, closePreview } = useThermalPreview();
   const [qrCount, setQrCount] = useState(0);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false);
@@ -167,6 +171,49 @@ export default function ViewOrderPage() {
 
   const handlePrinterNameCancel = () => {
     setPrinterNameDialogOpen(false);
+  };
+
+  const handleThermalPreview = async () => {
+    try {
+      setIsScreenLoadingText("Generating Preview...");
+      setIsScreenLoading(true);
+      
+      // Fetch parcel data
+      const response = await fetch(`${BASE_URL}/api/parcel/track/${id}`);
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch parcel data");
+      }
+      
+      const data = await response.json();
+      
+      if (!data.flag) {
+        throw new Error(data.message || "Failed to fetch parcel data");
+      }
+
+      // Generate ESC/POS commands for first copy (preview)
+      const escPosReceipts = generateCopiesArray(data.body);
+      
+      // Show preview of first copy
+      showPreview(escPosReceipts[0]);
+      
+    } catch (error) {
+      console.error("Preview error:", error);
+      alert(`Failed to generate preview: ${error.message}`);
+    } finally {
+      setIsScreenLoadingText("");
+      setIsScreenLoading(false);
+    }
+  };
+
+  const handleReloadPreview = async () => {
+    closePreview();
+    await handleThermalPreview();
+  };
+
+  const handlePrintFromPreview = async () => {
+    closePreview();
+    handleLRPrintThermal();
   };
 
   const handlePreviewThermalLR = async () => {
@@ -387,6 +434,9 @@ export default function ViewOrderPage() {
         <button className="button" onClick={handleLRPrint} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
           <FaPrint /> Download Receipt
         </button>
+        <button className="button" onClick={handleThermalPreview} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
+          <FaEye /> Preview ESC/POS cmd
+        </button>
         <button className="button" onClick={handleLRPrintThermal} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
           <FaPrint /> Print Thermal (Auto-Cut)
         </button>
@@ -542,6 +592,16 @@ export default function ViewOrderPage() {
           </Box>
         </Box>
       </Modal>
+
+      {/* Thermal Receipt Preview */}
+      {isPreviewOpen && previewData && (
+        <ThermalReceiptPreview
+          escPosData={previewData}
+          onClose={closePreview}
+          onPrint={handlePrintFromPreview}
+          onReload={handleReloadPreview}
+        />
+      )}
     </Box>
   );
 }
