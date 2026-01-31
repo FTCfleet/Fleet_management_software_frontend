@@ -21,14 +21,21 @@ const ALIGN_C   = ESC + 'a' + '\x01';
 const BOLD_ON   = ESC + 'E' + '\x01';
 const BOLD_OFF  = ESC + 'E' + '\x00';
 
-const SIZE_1X   = GS + '!' + '\x00';
-const SIZE_W2   = GS + '!' + '\x10';
-const SIZE_2X   = GS + '!' + '\x11';
+const SIZE_1X   = GS + '!' + '\x00'; // normal
+const SIZE_H2   = GS + '!' + '\x01'; // tall only
+const SIZE_W2   = GS + '!' + '\x10'; // wide only
+const SIZE_2X   = GS + '!' + '\x11'; // big
 
 const CUT       = GS + 'V' + 'A' + '\x00';
 
-/* 80mm = ~42 characters */
+/* 80mm ≈ 42 chars */
 const LINE = '-'.repeat(42);
+
+/* Column widths (space added between qty & amount) */
+const ITEM_W = 20;
+const QTY_W  = 6;
+const GAP_W  = 3;   // NEW space
+const AMT_W  = 10;
 
 /* -------------------------------------------------- */
 /* HELPERS                                             */
@@ -45,11 +52,6 @@ const displayOrBlank = (dbValue) => {
   return num === 0 ? '____' : `Rs.${num.toFixed(2)}`;
 };
 
-/* Column widths (important for alignment) */
-const ITEM_W = 20;
-const QTY_W  = 6;
-const AMT_W  = 10;
-
 /* -------------------------------------------------- */
 /* MAIN RECEIPT                                        */
 /* -------------------------------------------------- */
@@ -61,49 +63,64 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
   receipt += INIT + ALIGN_L + SIZE_1X;
 
   /* ---------- Date ---------- */
-  receipt += `Date: ${dateFormatter(parcel.placedAt)}  `;
+  receipt += `Date: ${dateFormatter(parcel.placedAt)} `;
   receipt += `Created By: ${parcel.addedBy?.name || "____"}${LF}`;
+
+  receipt += LF;
 
   /* ---------- Company ---------- */
   receipt += ALIGN_C + SIZE_2X + BOLD_ON;
   receipt += 'FRIENDS TRANSPORT CO.' + LF;
-  receipt += SIZE_1X + BOLD_OFF;
+  receipt += BOLD_OFF + SIZE_1X;
+
+  receipt += LF; // vertical space below company
 
   /* ---------- LR ---------- */
   receipt += SIZE_W2 + BOLD_ON;
   receipt += `LR No: ${parcel.trackingId}${LF}`;
   receipt += SIZE_1X + BOLD_OFF;
 
+  receipt += LF;
+
   /* ---------- Phones (CENTERED) ---------- */
   receipt += ALIGN_C;
   receipt += `${parcel.sourceWarehouse.warehouseID} Ph.: ${parcel.sourceWarehouse.phoneNo || "____"}   `;
   receipt += `${parcel.destinationWarehouse.warehouseID} Ph.: ${parcel.destinationWarehouse.phoneNo || "____"}${LF}`;
 
-  /* ---------- Track URL (CENTERED + bold only) ---------- */
-  receipt += BOLD_ON + 'Track your order at: www.friendstransport.in' + BOLD_OFF + LF + LF;
+  /* ---------- Track URL ---------- */
+  receipt += BOLD_ON + 'Track your order at: www.friendstransport.in' + BOLD_OFF + LF;
+  receipt += LF; // NEW extra line below track
+  receipt += LINE + LF;
 
   receipt += ALIGN_L;
 
-  /* ---------- From / To ---------- */
-  receipt += BOLD_ON + 'From: ' + BOLD_OFF + `${parcel.sourceWarehouse.name}${LF}`;
-  receipt += BOLD_ON + 'To: '   + BOLD_OFF + `${parcel.destinationWarehouse.name}${LF}${LF}`;
+  /* ---------- From / To (tall + bold) ---------- */
+  receipt += SIZE_H2 + BOLD_ON;
+  receipt += `From: ${parcel.sourceWarehouse.name}${LF}`;
+  receipt += `To: ${parcel.destinationWarehouse.name}${LF}`;
+  receipt += SIZE_1X + BOLD_OFF + LF;
 
-  /* ---------- Consignor / Consignee ---------- */
-  receipt += BOLD_ON;
+  /* ---------- Consignor / Consignee (tall + bold) ---------- */
+  receipt += SIZE_H2 + BOLD_ON;
   receipt += `Consignor: ${parcel.sender.name}${LF}`;
   receipt += `Ph: ${parcel.sender.phoneNo || "NA"}${LF}${LF}`;
   receipt += `Consignee: ${parcel.receiver.name}${LF}`;
   receipt += `Ph: ${parcel.receiver.phoneNo || "NA"}${LF}`;
-  receipt += BOLD_OFF + LF;
+  receipt += SIZE_1X + BOLD_OFF + LF;
 
-  /* ---------- Table Header ---------- */
-  receipt += LINE + LF;
+  /* ---------- Table header ---------- */
+  receipt += LF;
   receipt += BOLD_ON;
 
-  if (auto === 1 && parcel.payment === 'To Pay')
-    receipt += 'No  Item'.padEnd(ITEM_W) + 'Qty'.padStart(QTY_W) + LF;
-  else
-    receipt += 'No  Item'.padEnd(ITEM_W) + 'Qty'.padStart(QTY_W) + 'Amount'.padStart(AMT_W) + LF;
+  if (auto === 1 && parcel.payment === 'To Pay') {
+    receipt += 'No  Item'.padEnd(ITEM_W) +
+               'Qty'.padStart(QTY_W) + LF;
+  } else {
+    receipt += 'No  Item'.padEnd(ITEM_W) +
+               'Qty'.padStart(QTY_W) +
+               ' '.repeat(GAP_W) +
+               'Amount'.padStart(AMT_W) + LF;
+  }
 
   receipt += BOLD_OFF;
   receipt += LINE + LF;
@@ -122,7 +139,8 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
 
     if (auto === 1 && parcel.payment === 'To Pay') {
 
-      receipt += label.padEnd(ITEM_W) + qty.toString().padStart(QTY_W) + LF;
+      receipt += label.padEnd(ITEM_W) +
+                 qty.toString().padStart(QTY_W) + LF;
 
     } else {
 
@@ -131,45 +149,44 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
       const rate = freight + hamali + hamali;
       const amount = rate * qty;
 
-      const amtStr = amount === 0
-        ? '____'
-        : `Rs.${amount.toFixed(2)}`;
+      const amtStr = amount === 0 ? '____' : `Rs.${amount.toFixed(2)}`;
 
-      receipt +=
-        label.padEnd(ITEM_W) +
-        qty.toString().padStart(QTY_W) +
-        amtStr.padStart(AMT_W) +
-        LF;
+      receipt += label.padEnd(ITEM_W) +
+                 qty.toString().padStart(QTY_W) +
+                 ' '.repeat(GAP_W) +
+                 amtStr.padStart(AMT_W) +
+                 LF;
     }
 
     index++;
   }
 
-  /* ---------- Totals (PERFECT COLUMN ALIGNMENT) ---------- */
+  /* ---------- Totals ---------- */
 
   const totalFreight = displayValueNum(parcel.freight);
   const totalHamali  = displayValueNum(parcel.hamali);
   const totalAmount  = totalFreight + 2 * totalHamali;
 
-  const amtStr = totalAmount === 0
-    ? '____'
-    : `Rs.${totalAmount.toFixed(2)}`;
+  const amtStr = totalAmount === 0 ? '____' : `Rs.${totalAmount.toFixed(2)}`;
 
   receipt += LINE + LF;
   receipt += BOLD_ON;
 
   if (auto === 1 && parcel.payment === 'To Pay') {
-    receipt += 'Total'.padEnd(ITEM_W) + totalQty.toString().padStart(QTY_W) + LF;
+
+    receipt += 'Total'.padEnd(ITEM_W) +
+               totalQty.toString().padStart(QTY_W) + LF;
+
   } else {
-    receipt +=
-      'Total'.padEnd(ITEM_W) +
-      totalQty.toString().padStart(QTY_W) +
-      amtStr.padStart(AMT_W) +
-      LF;
+
+    receipt += 'Total'.padEnd(ITEM_W) +
+               totalQty.toString().padStart(QTY_W) +
+               ' '.repeat(GAP_W) +
+               amtStr.padStart(AMT_W) + LF;
   }
 
   receipt += BOLD_OFF;
-  receipt += LINE + LF + LF;
+  receipt += LF + LF;
 
   /* ---------- Footer ---------- */
 
@@ -177,13 +194,22 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
     ? (auto ? 'Yes' : displayOrBlank(parcel.doorDeliveryCharge))
     : 'No';
 
-  receipt += `Door Delivery: ${doorDelivery.padEnd(6)} `;
-  receipt += BOLD_ON + `Payment: ${parcel.payment.toUpperCase()}` + BOLD_OFF + LF + LF;
+  receipt += `Door Delivery: ${doorDelivery.padEnd(6)}`;
 
+  /* shift Payment 5 chars right */
+  receipt += ' '.repeat(5) +
+             BOLD_ON + `Payment: ${parcel.payment.toUpperCase()}` + BOLD_OFF + LF + LF;
+
+  /* ---------- Footer center ---------- */
   receipt += ALIGN_C;
+
+  /* WhatsApp logo + spaced number */
+  
   receipt += 'GST: 36AAFFF2744R1ZX' + LF;
   receipt += 'SUBJECT TO HYDERABAD JURISDICTION' + LF;
-  receipt += 'WhatsApp: +917075124426' + LF;
+
+  receipt += '\x1d\x76\x30\x00\x02\x00\x10\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff';
+  receipt += ' WhatsApp: +91 7075124426' + LF;
 
   receipt += LF + LF + CUT;
 
