@@ -32,10 +32,10 @@ const CUT       = GS + 'V' + 'A' + '\x00';
 const LINE = '-'.repeat(42);
 
 /* Column widths (space added between qty & amount) */
-const ITEM_W = 20;
+const ITEM_W = 24;
 const QTY_W  = 6;
-const GAP_W  = 3;   // NEW space
-const AMT_W  = 10;
+const GAP_W  = 4;   // NEW space
+const AMT_W  = 12;
 
 /* -------------------------------------------------- */
 /* HELPERS                                             */
@@ -64,7 +64,7 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
 
   /* ---------- Date ---------- */
   receipt += `Date: ${dateFormatter(parcel.placedAt)} `;
-  receipt += `Created By: ${parcel.addedBy?.name || "____"}${LF}`;
+  receipt += `Created by: ${parcel.addedBy?.name || "____"}${LF}`;
 
   receipt += LF;
 
@@ -113,10 +113,10 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
   receipt += BOLD_ON;
 
   if (auto === 1 && parcel.payment === 'To Pay') {
-    receipt += 'No  Item'.padEnd(ITEM_W) +
+    receipt += 'No.  Item'.padEnd(ITEM_W) +
                'Qty'.padStart(QTY_W) + LF;
   } else {
-    receipt += 'No  Item'.padEnd(ITEM_W) +
+    receipt += 'No.  Item'.padEnd(ITEM_W) +
                'Qty'.padStart(QTY_W) +
                ' '.repeat(GAP_W) +
                'Amount'.padStart(AMT_W) + LF;
@@ -208,7 +208,6 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
   receipt += 'GST: 36AAFFF2744R1ZX' + LF;
   receipt += 'SUBJECT TO HYDERABAD JURISDICTION' + LF;
 
-  receipt += '\x1d\x76\x30\x00\x02\x00\x10\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff';
   receipt += ' WhatsApp: +91 7075124426' + LF;
 
   receipt += LF + LF + CUT;
