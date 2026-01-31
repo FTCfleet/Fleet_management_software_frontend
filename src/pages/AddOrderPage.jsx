@@ -250,9 +250,13 @@ export default function AddOrderPage({}) {
           ...(isAdmin ? { sourceWarehouse } : {}) 
         }),
       });
-      const data = await response.json();
-      if (!response.ok || !data.flag) { showError("Failed to create LR. Please try again.", "Error"); }
-      else { showSuccess("LR Created Successfully!", "Success"); setTimeout(() => { navigate(`/user/view/order/${data.body}`, { state: {print: true} }); }, 1500); }
+    const data = await response.json();
+      if (!response.ok || !data.flag) { 
+        showError("Failed to create LR. Please try again.", "Error"); 
+      } else { 
+        // Navigate directly to view page with print flag (no success dialog)
+        navigate(`/user/view/order/${data.body}`, { state: {print: true} }); 
+      }
     } catch (error) { showError("Network error occurred. Please check your connection.", "Network Error"); }
     finally { setIsLoading(false); }
   };

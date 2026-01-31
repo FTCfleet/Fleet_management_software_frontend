@@ -55,8 +55,6 @@ export default function ViewOrderPage() {
   const [qrCount, setQrCount] = useState(0);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false);
-  const [printerNameDialogOpen, setPrinterNameDialogOpen] = useState(false);
-  const [printerName, setPrinterName] = useState("TVS-E RP 3230");
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
@@ -94,7 +92,7 @@ export default function ViewOrderPage() {
     if (location.state?.print && !hasTriggered.current) {
       navigate(location.pathname, { replace: true, state: null });
       hasTriggered.current = true;
-      handleLRPrint();
+      handleLRPrintThermal();
     }
   };
 
@@ -124,35 +122,36 @@ export default function ViewOrderPage() {
       const response = await fetch(`${BASE_URL}/api/parcel/generate-lr-receipt/${id}`);
       const blob = await response.blob();
       const pdfURL = URL.createObjectURL(blob);
-      window.location.href = pdfURL;
+      
+      // Create iframe to show print dialog
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = pdfURL;
+      document.body.appendChild(iframe);
+      
+      iframe.onload = () => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      };
     } catch (error) {
       alert("Failed to load or print the PDF.");
+    } finally {
+      setIsScreenLoadingText("");
+      setIsScreenLoading(false);
     }
-    setIsScreenLoadingText("");
-    setIsScreenLoading(false);
   };
 
-  const handleLRPrintThermal = () => {
-    // Open printer name dialog instead of printing directly
-    setPrinterNameDialogOpen(true);
-  };
-
-  const handlePrinterNameConfirm = async () => {
-    // Close dialog
-    setPrinterNameDialogOpen(false);
-    
-    // Validate printer name
-    if (!printerName || printerName.trim() === "") {
-      alert("Please enter a printer name");
-      return;
-    }
-    
+  const handleLRPrintThermal = async () => {
     try {
-      setIsScreenLoadingText("Generating LR Receipt...");
+      setIsScreenLoadingText("Printing Thermal LR...");
       setIsScreenLoading(true);
       
-      // Use the utility function for QZ Tray printing with user-provided printer name
-      const result = await printThermalLRWithAutoCut(id, BASE_URL, printerName.trim());
+      // Get printer name from localStorage or use default
+      const savedPrinterName = localStorage.getItem('thermalPrinterName');
+      const printerName = savedPrinterName || 'TVS-E RP 3230';
+      
+      // Use the utility function for QZ Tray printing
+      const result = await printThermalLRWithAutoCut(id, BASE_URL, printerName);
       
       alert(`${result.message}\n\nTracking ID: ${id}\nPrinter: ${printerName}`);
       
@@ -167,10 +166,6 @@ export default function ViewOrderPage() {
       setIsScreenLoadingText("");
       setIsScreenLoading(false);
     }
-  };
-
-  const handlePrinterNameCancel = () => {
-    setPrinterNameDialogOpen(false);
   };
 
   const handleThermalPreview = async () => {
@@ -432,17 +427,17 @@ export default function ViewOrderPage() {
       {/* Action Buttons */}
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, justifyContent: { xs: "stretch", sm: "center" } }}>
         <button className="button" onClick={handleLRPrint} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
-          <FaPrint /> Download Receipt
+          <FaPrint /> Print A4 LR
         </button>
-        <button className="button" onClick={handleThermalPreview} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
+        {/* <button className="button" onClick={handleThermalPreview} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
           <FaEye /> Preview ESC/POS cmd
-        </button>
+        </button> */}
         <button className="button" onClick={handleLRPrintThermal} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
-          <FaPrint /> Print Thermal (Auto-Cut)
+          <FaPrint /> Print Thermal LR
         </button>
-        <button className="button" onClick={handlePreviewThermalLR} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
+        {/* <button className="button" onClick={handlePreviewThermalLR} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
           <FaPrint /> Preview Thermal LR
-        </button>
+        </button> */}
         {
           /* Show Edit LR button only for:
              1. Admin (can edit any LR regardless of status)
@@ -450,16 +445,31 @@ export default function ViewOrderPage() {
              NOT for destination warehouse staff */
           (isAdmin || (isSource && order.sourceWarehouse?.warehouseID === stationCode && order.status === "arrived")) &&
           <Link to={`/user/edit/order/${id}`} style={{ textDecoration: "none", flex: isMobile ? "1 1 45%" : "0 0 auto" }}>
-          <button className="button" style={{ width: "100%" }}>
+          <button 
+            className="button" 
+            style={{ 
+              width: "100%",
+              background: isDarkMode ? colors?.accent : "linear-gradient(180deg, #FFB74D 0%, #FFA726 100%)",
+              color: isDarkMode ? "#0a1628" : "#1E3A5F",
+              boxShadow: isDarkMode 
+                ? "0 4px 15px rgba(255, 183, 77, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.2)"
+                : "0 4px 15px rgba(255, 183, 77, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.2)"
+            }}
+          >
             <FaEdit /> Edit LR
           </button>
         </Link>
         }
         {isAdmin && (
           <button
-            className="button button-danger"
+            className="button"
             onClick={() => setDeleteModalOpen(true)}
-            style={{ flex: isMobile ? "1 1 45%" : "0 0 auto", backgroundColor: "#dc2626" }}
+            style={{ 
+              flex: isMobile ? "1 1 45%" : "0 0 auto", 
+              background: "linear-gradient(180deg, #dc2626 0%, #b91c1c 100%)",
+              color: "#ffffff",
+              boxShadow: "0 4px 15px rgba(220, 38, 38, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.2)"
+            }}
           >
             <FaTrash /> Delete
           </button>
@@ -500,94 +510,6 @@ export default function ViewOrderPage() {
               disabled={isLoading}
             >
               Delete {isLoading && <CircularProgress size={16} sx={{ color: "#fff", ml: 1 }} />}
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
-
-      {/* Printer Name Dialog */}
-      <Modal open={printerNameDialogOpen} onClose={handlePrinterNameCancel}>
-        <Box sx={getModalStyle(colors, isDarkMode)}>
-          <Box sx={{ textAlign: "center", mb: 2 }}>
-            <FaPrint style={{ color: isDarkMode ? colors?.accent : "#1E3A5F", fontSize: "2.5rem" }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, color: colors?.textPrimary || "#1E3A5F", textAlign: "center", mb: 1 }}>
-            Thermal Printer Setup
-          </Typography>
-          <Typography sx={{ color: colors?.textSecondary || "#64748b", textAlign: "center", mb: 3, fontSize: "0.9rem" }}>
-            Enter the exact printer name as shown in your system settings
-          </Typography>
-          <TextField
-            fullWidth
-            label="Printer Name"
-            value={printerName}
-            onChange={(e) => setPrinterName(e.target.value)}
-            placeholder="TVS-E RP 3230"
-            autoFocus
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handlePrinterNameConfirm();
-              }
-            }}
-            sx={{
-              mb: 3,
-              "& .MuiOutlinedInput-root": {
-                backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc",
-                "& fieldset": {
-                  borderColor: isDarkMode ? "rgba(255,255,255,0.1)" : "#e0e5eb",
-                },
-                "&:hover fieldset": {
-                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
-                },
-              },
-              "& .MuiInputLabel-root": {
-                color: colors?.textSecondary,
-              },
-              "& .MuiInputBase-input": {
-                color: colors?.textPrimary,
-              },
-            }}
-            helperText={
-              <Box component="span" sx={{ fontSize: "0.75rem", color: colors?.textSecondary }}>
-                💡 Tip: Run <code style={{ 
-                  backgroundColor: isDarkMode ? "rgba(255,183,77,0.1)" : "rgba(30,58,95,0.1)", 
-                  padding: "2px 6px", 
-                  borderRadius: "4px",
-                  color: isDarkMode ? colors?.accent : colors?.primary
-                }}>listPrinters()</code> in browser console to see available printers
-              </Box>
-            }
-          />
-          <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
-            <Button 
-              variant="outlined" 
-              onClick={handlePrinterNameCancel}
-              sx={{
-                borderColor: isDarkMode ? "rgba(255,255,255,0.2)" : "#d1d5db",
-                color: colors?.textSecondary,
-                "&:hover": {
-                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
-                  backgroundColor: isDarkMode ? "rgba(255,183,77,0.08)" : "rgba(30,58,95,0.04)",
-                }
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handlePrinterNameConfirm}
-              sx={{ 
-                backgroundColor: isDarkMode ? colors?.accent : "#1E3A5F",
-                color: isDarkMode ? "#0a1628" : "#fff",
-                "&:hover": { 
-                  backgroundColor: isDarkMode ? colors?.accentHover : "#2d5a87" 
-                } 
-              }}
-            >
-              Print with Auto-Cut
             </Button>
           </Box>
         </Box>

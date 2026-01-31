@@ -180,19 +180,25 @@ export const runDiagnostics = async () => {
   }
 };
 
+/**
+ * Change thermal printer name
+ * Usage: changePrinterName('TVS-E RP 3230')
+ */
+const changePrinterName = (name) => {
+  if (!name || typeof name !== 'string') {
+    console.error('❌ Please provide a valid printer name');
+    console.log('Usage: changePrinterName("TVS-E RP 3230")');
+    return;
+  }
+  
+  localStorage.setItem('thermalPrinterName', name);
+  console.log(`✅ Printer name changed to: ${name}`);
+  console.log('This will be used for all thermal printing');
+};
+
 // Make functions available in browser console
 if (typeof window !== 'undefined') {
-  window.testQZTray = testQZTray;
-  window.listPrinters = listPrinters;
-  window.findTVSPrinter = findTVSPrinter;
-  window.testPrint = testPrint;
-  window.runDiagnostics = runDiagnostics;
+  window.changePrinterName = changePrinterName;
   
-  console.log("🔧 QZ Tray test utilities loaded!");
-  console.log("Available commands:");
-  console.log("  - runDiagnostics()  : Run complete diagnostic test");
-  console.log("  - testQZTray()      : Test QZ Tray connection");
-  console.log("  - listPrinters()    : List all available printers");
-  console.log("  - findTVSPrinter()  : Find TVS printer automatically");
-  console.log("  - testPrint('name') : Test print to specific printer");
+  console.log("🔧 Thermal printer utility loaded. Use: changePrinterName('printer name')");
 }
