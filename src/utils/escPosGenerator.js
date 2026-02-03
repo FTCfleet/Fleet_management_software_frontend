@@ -218,7 +218,7 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
   }
 
   receipt += BOLD_OFF;
-  receipt += LF + LF;
+  receipt += LF;
 
   /* ---------- Footer ---------- */
 
@@ -242,7 +242,7 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
 
   receipt += ' WhatsApp: +91 7075124426' + LF;
 
-  receipt += LF + LF + CUT;
+  receipt += CUT;
 
   return receipt;
 };
