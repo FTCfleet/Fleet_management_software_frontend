@@ -29,7 +29,7 @@ const SIZE_2X   = GS + '!' + '\x11'; // big
 const CUT       = GS + 'V' + 'A' + '\x00';
 
 /* 80mm ≈ 42 chars */
-const LINE = '-'.repeat(42);
+const LINE = '-'.repeat(44);
 
 /* Column widths (space added between qty & amount) */
 const ITEM_W = 24;
@@ -101,8 +101,12 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
 
   /* ---------- Consignor / Consignee (tall + bold) ---------- */
   receipt += SIZE_H2;
-  receipt += `Consignor: ${parcel.sender.name}${LF}`;
-  receipt += `Ph: ${parcel.sender.phoneNo || "NA"}${LF}${LF}`;
+  if(!(parcel.sender.name && parcel.sender.phoneNo)){
+    receipt += 'Consignor: NA   Ph: NA';
+  }else{
+    receipt += `Consignor: ${parcel.sender.name}${LF}`;
+    receipt += `Ph: ${parcel.sender.phoneNo || "NA"}${LF}${LF}`;
+  }
   receipt += `Consignee: ${parcel.receiver.name}${LF}`;
   receipt += `Ph: ${parcel.receiver.phoneNo || "NA"}${LF}`;
   receipt += SIZE_1X + LF;
@@ -239,7 +243,7 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
   receipt += 'GST: 36AAFFF2744R1ZX' + LF;
   receipt += 'SUBJECT TO HYDERABAD JURISDICTION' + LF;
 
-  receipt += ' WhatsApp: +91 7075124426';
+  receipt += ' WhatsApp: +91 7075124426' + LF;
 
   receipt += CUT;
 
