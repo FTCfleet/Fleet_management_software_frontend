@@ -100,7 +100,7 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
   /* ---------- Consignor / Consignee (tall + bold) ---------- */
   receipt += SIZE_H2;
   if(parcel.sender.name=="NA" && parcel.sender.phoneNo=="NA"){
-    receipt += 'Consignor: NA   Ph: NA' + LF;
+    receipt += 'Consignor: NA   Ph: NA' + LF + LF;
   }else{
     receipt += `Consignor: ${parcel.sender.name}${LF}`;
     receipt += `Ph: ${parcel.sender.phoneNo || "NA"}${LF}${LF}`;
