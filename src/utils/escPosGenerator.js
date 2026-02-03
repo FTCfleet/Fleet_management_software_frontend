@@ -89,7 +89,6 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
 
   /* ---------- Track URL ---------- */
   receipt += BOLD_ON + 'Track your order at: www.friendstransport.in' + BOLD_OFF + LF;
-  receipt += LF; // NEW extra line below track
   receipt += LINE + LF;
 
   receipt += ALIGN_L;
@@ -240,7 +239,7 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
   receipt += 'GST: 36AAFFF2744R1ZX' + LF;
   receipt += 'SUBJECT TO HYDERABAD JURISDICTION' + LF;
 
-  receipt += ' WhatsApp: +91 7075124426' + LF;
+  receipt += ' WhatsApp: +91 7075124426';
 
   receipt += CUT;
 
