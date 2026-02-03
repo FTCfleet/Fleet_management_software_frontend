@@ -80,8 +80,6 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
   receipt += `LR No: ${parcel.trackingId}${LF}`;
   receipt += SIZE_1X + BOLD_OFF;
 
-  receipt += LF;
-
   /* ---------- Phones (CENTERED) ---------- */
   receipt += ALIGN_C;
   receipt += `${parcel.sourceWarehouse.warehouseID} Ph.: ${parcel.sourceWarehouse.phoneNo || "____"}   `;
@@ -101,8 +99,8 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
 
   /* ---------- Consignor / Consignee (tall + bold) ---------- */
   receipt += SIZE_H2;
-  if(!(parcel.sender.name && parcel.sender.phoneNo)){
-    receipt += 'Consignor: NA   Ph: NA';
+  if(parcel.sender.name=="NA" && parcel.sender.phoneNo=="NA"){
+    receipt += 'Consignor: NA   Ph: NA' + LF;
   }else{
     receipt += `Consignor: ${parcel.sender.name}${LF}`;
     receipt += `Ph: ${parcel.sender.phoneNo || "NA"}${LF}${LF}`;
@@ -112,7 +110,6 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
   receipt += SIZE_1X + LF;
 
   /* ---------- Table header ---------- */
-  receipt += LF;
   receipt += BOLD_ON;
 
   if (auto === 1 && parcel.payment === 'To Pay') {
