@@ -25,6 +25,7 @@ import { FaEdit, FaTrash, FaPrint, FaExclamationTriangle, FaEye } from "react-ic
 import { dateFormatter } from "../utils/dateFormatter";
 import { fromDbValue, formatCurrency } from "../utils/currencyUtils";
 import { printThermalLRWithAutoCut, getQZTrayErrorMessage } from "../utils/qzTrayUtils";
+import { printThermalLRNetwork, getNetworkPrintErrorMessage, discoverNetworkPrinters } from "../utils/networkPrintUtils";
 import { generateCopiesArray } from "../utils/escPosGenerator";
 import { useAuth } from "../routes/AuthContext";
 import ModernSpinner from "../components/ModernSpinner";
@@ -55,6 +56,13 @@ export default function ViewOrderPage() {
   const [qrCount, setQrCount] = useState(0);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false);
+  const [printerNameDialogOpen, setPrinterNameDialogOpen] = useState(false);
+  const [networkPrinterDialogOpen, setNetworkPrinterDialogOpen] = useState(false);
+  const [printerName, setPrinterName] = useState("TVS-E RP 3230");
+  const [printerIP, setPrinterIP] = useState("192.168.1.100");
+  const [printerPort, setPrinterPort] = useState("9100");
+  const [discoveredPrinters, setDiscoveredPrinters] = useState([]);
+  const [isScanning, setIsScanning] = useState(false);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
@@ -67,6 +75,12 @@ export default function ViewOrderPage() {
 
   useEffect(() => {
     fetchData();
+    
+    // Load saved network printer settings
+    const savedIP = localStorage.getItem('networkPrinterIP');
+    const savedPort = localStorage.getItem('networkPrinterPort');
+    if (savedIP) setPrinterIP(savedIP);
+    if (savedPort) setPrinterPort(savedPort);
   }, []);
 
   const fetchData = async () => {
@@ -209,6 +223,84 @@ export default function ViewOrderPage() {
   const handlePrintFromPreview = async () => {
     closePreview();
     handleLRPrintThermal();
+  };
+
+  const handleNetworkPrint = () => {
+    // Open network printer dialog
+    setNetworkPrinterDialogOpen(true);
+  };
+
+  const handleNetworkPrintConfirm = async () => {
+    // Close dialog
+    setNetworkPrinterDialogOpen(false);
+    
+    // Validate inputs
+    if (!printerIP || printerIP.trim() === "") {
+      alert("Please enter printer IP address");
+      return;
+    }
+    
+    const port = parseInt(printerPort);
+    if (isNaN(port) || port < 1 || port > 65535) {
+      alert("Please enter a valid port number (1-65535)");
+      return;
+    }
+    
+    try {
+      setIsScreenLoadingText("Printing via Network...");
+      setIsScreenLoading(true);
+      
+      // Save printer settings to localStorage
+      localStorage.setItem('networkPrinterIP', printerIP.trim());
+      localStorage.setItem('networkPrinterPort', port.toString());
+      
+      // Print via network
+      const result = await printThermalLRNetwork(id, BASE_URL, printerIP.trim(), port);
+      
+      if (result.success) {
+        alert(`✅ ${result.message}\n\nTracking ID: ${id}\nPrinter: ${printerIP}:${port}`);
+      } else {
+        const errorMessage = getNetworkPrintErrorMessage(result.error);
+        alert(errorMessage);
+      }
+      
+    } catch (error) {
+      console.error("Network print error:", error);
+      const errorMessage = getNetworkPrintErrorMessage(error);
+      alert(errorMessage);
+    } finally {
+      setIsScreenLoadingText("");
+      setIsScreenLoading(false);
+    }
+  };
+
+  const handleNetworkPrintCancel = () => {
+    setNetworkPrinterDialogOpen(false);
+  };
+
+  const handleScanNetwork = async () => {
+    setIsScanning(true);
+    
+    try {
+      const result = await discoverNetworkPrinters(BASE_URL);
+      
+      if (result.success && result.printers.length > 0) {
+        setDiscoveredPrinters(result.printers);
+        // Auto-select first printer
+        setPrinterIP(result.printers[0].ip);
+        setPrinterPort(result.printers[0].port.toString());
+        alert(`✅ Found ${result.printers.length} printer(s)!\n\nFirst printer selected: ${result.printers[0].ip}:${result.printers[0].port}`);
+      } else if (result.success && result.printers.length === 0) {
+        alert('⚠️ No printers found on network\n\nMake sure:\n• Printer is powered on\n• Printer is connected to WiFi\n• Printer and server are on same network');
+      } else {
+        alert(`❌ Scan failed\n\n${result.message}`);
+      }
+    } catch (error) {
+      console.error('Scan error:', error);
+      alert('❌ Failed to scan network\n\nPlease enter printer IP manually');
+    } finally {
+      setIsScanning(false);
+    }
   };
 
   const handlePreviewThermalLR = async () => {
@@ -429,15 +521,15 @@ export default function ViewOrderPage() {
         <button className="button" onClick={handleLRPrint} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
           <FaPrint /> Print A4 LR
         </button>
-        {/* <button className="button" onClick={handleThermalPreview} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
-          <FaEye /> Preview ESC/POS cmd
-        </button> */}
-        <button className="button" onClick={handleLRPrintThermal} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
-          <FaPrint /> Print Thermal LR
+        <button className="button" onClick={handleThermalPreview} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
+          <FaEye /> Preview Thermal
         </button>
-        {/* <button className="button" onClick={handlePreviewThermalLR} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
-          <FaPrint /> Preview Thermal LR
-        </button> */}
+        <button className="button" onClick={handleLRPrintThermal} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
+          <FaPrint /> Print via QZ Tray
+        </button>
+        <button className="button" onClick={handleNetworkPrint} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
+          <FaPrint /> Print via Network
+        </button>
         {
           /* Show Edit LR button only for:
              1. Admin (can edit any LR regardless of status)
@@ -510,6 +602,151 @@ export default function ViewOrderPage() {
               disabled={isLoading}
             >
               Delete {isLoading && <CircularProgress size={16} sx={{ color: "#fff", ml: 1 }} />}
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      {/* Network Printer Dialog */}
+      <Modal open={networkPrinterDialogOpen} onClose={handleNetworkPrintCancel}>
+        <Box sx={getModalStyle(colors, isDarkMode)}>
+          <Box sx={{ textAlign: "center", mb: 2 }}>
+            <FaPrint style={{ color: isDarkMode ? colors?.accent : "#1E3A5F", fontSize: "2.5rem" }} />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: colors?.textPrimary || "#1E3A5F", textAlign: "center", mb: 1 }}>
+            Network Printer Setup
+          </Typography>
+          <Typography sx={{ color: colors?.textSecondary || "#64748b", textAlign: "center", mb: 2, fontSize: "0.9rem" }}>
+            Enter your thermal printer's network details
+          </Typography>
+          
+          {/* Scan Network Button */}
+          <Box sx={{ mb: 3, textAlign: "center" }}>
+            <Button
+              variant="outlined"
+              onClick={handleScanNetwork}
+              disabled={isScanning}
+              sx={{
+                borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
+                color: isDarkMode ? colors?.accent : "#1E3A5F",
+                "&:hover": {
+                  borderColor: isDarkMode ? colors?.accentHover : "#2d5a87",
+                  backgroundColor: isDarkMode ? "rgba(255,183,77,0.08)" : "rgba(30,58,95,0.04)",
+                },
+                "&:disabled": {
+                  borderColor: "#ccc",
+                  color: "#999",
+                }
+              }}
+            >
+              {isScanning ? (
+                <>
+                  <CircularProgress size={16} sx={{ mr: 1 }} />
+                  Scanning Network...
+                </>
+              ) : (
+                '🔍 Auto-Detect Printer'
+              )}
+            </Button>
+            {discoveredPrinters.length > 0 && (
+              <Typography sx={{ color: colors?.accent || "#FFB74D", fontSize: "0.75rem", mt: 1 }}>
+                ✓ Found {discoveredPrinters.length} printer(s)
+              </Typography>
+            )}
+          </Box>
+          
+          <TextField
+            fullWidth
+            label="Printer IP Address"
+            value={printerIP}
+            onChange={(e) => setPrinterIP(e.target.value)}
+            placeholder="192.168.1.100"
+            autoFocus
+            sx={{
+              mb: 2,
+              "& .MuiOutlinedInput-root": {
+                backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc",
+                "& fieldset": {
+                  borderColor: isDarkMode ? "rgba(255,255,255,0.1)" : "#e0e5eb",
+                },
+                "&:hover fieldset": {
+                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
+                },
+              },
+              "& .MuiInputLabel-root": {
+                color: colors?.textSecondary,
+              },
+              "& .MuiInputBase-input": {
+                color: colors?.textPrimary,
+              },
+            }}
+            helperText="Example: 192.168.1.100 or 10.0.0.50"
+          />
+          <TextField
+            fullWidth
+            label="Printer Port"
+            value={printerPort}
+            onChange={(e) => setPrinterPort(e.target.value)}
+            placeholder="9100"
+            type="number"
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleNetworkPrintConfirm();
+              }
+            }}
+            sx={{
+              mb: 3,
+              "& .MuiOutlinedInput-root": {
+                backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc",
+                "& fieldset": {
+                  borderColor: isDarkMode ? "rgba(255,255,255,0.1)" : "#e0e5eb",
+                },
+                "&:hover fieldset": {
+                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
+                },
+              },
+              "& .MuiInputLabel-root": {
+                color: colors?.textSecondary,
+              },
+              "& .MuiInputBase-input": {
+                color: colors?.textPrimary,
+              },
+            }}
+            helperText="Default ESC/POS port is 9100"
+          />
+          <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
+            <Button 
+              variant="outlined" 
+              onClick={handleNetworkPrintCancel}
+              sx={{
+                borderColor: isDarkMode ? "rgba(255,255,255,0.2)" : "#d1d5db",
+                color: colors?.textSecondary,
+                "&:hover": {
+                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
+                  backgroundColor: isDarkMode ? "rgba(255,183,77,0.08)" : "rgba(30,58,95,0.04)",
+                }
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleNetworkPrintConfirm}
+              sx={{ 
+                backgroundColor: isDarkMode ? colors?.accent : "#1E3A5F",
+                color: isDarkMode ? "#0a1628" : "#fff",
+                "&:hover": { 
+                  backgroundColor: isDarkMode ? colors?.accentHover : "#2d5a87" 
+                } 
+              }}
+            >
+              Print via Network
             </Button>
           </Box>
         </Box>
