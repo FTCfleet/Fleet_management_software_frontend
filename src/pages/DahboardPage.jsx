@@ -53,7 +53,7 @@ const DashboardPage = () => {
   const [newWarehouse, setNewWarehouse] = useState("");
   const [stationModal, setStationModal] = useState(false);
   const [allWarehouse, setAllWarehouse] = useState([]);
-  const { checkAuthStatus, resetAuth } = useAuth();
+  const { checkAuthStatus, resetAuth, isAdmin } = useAuth();
   const { dialogState, hideDialog, showAlert, showError, showSuccess, showConfirm } = useDialog();
   const { isDarkMode, colors } = useOutletContext() || {};
 
@@ -402,14 +402,16 @@ const DashboardPage = () => {
                   </Typography>
                   
                   <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    <CompactActionButton
-                      icon={<FaMapMarkerAlt />}
-                      title="Change Station"
-                      onClick={() => setStationModal(true)}
-                      colors={colors}
-                      isDarkMode={isDarkMode}
-                      variant="primary"
-                    />
+                    {isAdmin && (
+                      <CompactActionButton
+                        icon={<FaMapMarkerAlt />}
+                        title="Change Station"
+                        onClick={() => setStationModal(true)}
+                        colors={colors}
+                        isDarkMode={isDarkMode}
+                        variant="primary"
+                      />
+                    )}
                     <CompactActionButton
                       icon={<FaKey />}
                       title="Change Password"
