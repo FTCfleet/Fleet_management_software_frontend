@@ -12,22 +12,7 @@ class WebBluetoothPrinter {
     this.device = null;
     this.characteristic = null;
     this.isConnected = false;
-    this.chunkSize = parseInt(localStorage.getItem('bluetoothChunkSize')) || 50;
-  }
-
-  /**
-   * Set chunk size for data transmission
-   */
-  setChunkSize(size) {
-    this.chunkSize = size;
-    localStorage.setItem('bluetoothChunkSize', size.toString());
-  }
-
-  /**
-   * Get current chunk size
-   */
-  getChunkSize() {
-    return this.chunkSize;
+    this.chunkSize = 180; // Fixed chunk size
   }
 
   /**
@@ -210,6 +195,7 @@ class WebBluetoothPrinter {
       }
 
       const savedDeviceId = localStorage.getItem('bluetoothPrinterId');
+      const savedDeviceName = localStorage.getItem('bluetoothPrinterName');
       const savedServiceUUID = localStorage.getItem('bluetoothPrinterServiceUUID');
       const savedCharUUID = localStorage.getItem('bluetoothPrinterCharUUID');
       
@@ -217,25 +203,43 @@ class WebBluetoothPrinter {
         return { success: false, error: 'No saved device found' };
       }
 
-      console.log('Attempting to reconnect to saved device:', savedDeviceId);
+      console.log('Attempting to reconnect to saved device:', savedDeviceName, savedDeviceId);
 
       // Get previously paired devices
-      const devices = await navigator.bluetooth.getDevices();
+      let devices = [];
+      try {
+        devices = await navigator.bluetooth.getDevices();
+        console.log('Found', devices.length, 'paired devices');
+      } catch (e) {
+        console.error('Failed to get devices:', e);
+        return { success: false, error: 'Failed to access paired devices. Please reconnect manually.' };
+      }
+
       const savedDevice = devices.find(d => d.id === savedDeviceId);
 
       if (!savedDevice) {
+        console.log('Saved device not found in paired devices list');
+        // Clear saved data since device is no longer available
+        this.forgetDevice();
         return { success: false, error: 'Saved device not found. Please pair again.' };
       }
 
       this.device = savedDevice;
+      console.log('Found saved device:', this.device.name);
 
-      // Connect to GATT server
-      const server = await this.device.gatt.connect();
-      console.log('Reconnected to GATT server');
+      // Check if already connected
+      if (this.device.gatt.connected) {
+        console.log('Device already connected');
+      } else {
+        // Connect to GATT server
+        console.log('Connecting to GATT server...');
+        const server = await this.device.gatt.connect();
+        console.log('Reconnected to GATT server');
+      }
       
       // Get service (use saved UUID if available)
       const serviceUUID = savedServiceUUID || PRINTER_SERVICE_UUID;
-      const service = await server.getPrimaryService(serviceUUID);
+      const service = await this.device.gatt.getPrimaryService(serviceUUID);
       console.log('Got service:', serviceUUID);
       
       // Get characteristic (use saved UUID if available)
@@ -244,6 +248,12 @@ class WebBluetoothPrinter {
       console.log('Got characteristic:', charUUID);
       
       this.isConnected = true;
+
+      // Listen for disconnection
+      this.device.addEventListener('gattserverdisconnected', () => {
+        this.isConnected = false;
+        console.log('Printer disconnected');
+      });
 
       return {
         success: true,
@@ -284,6 +294,8 @@ class WebBluetoothPrinter {
   forgetDevice() {
     localStorage.removeItem('bluetoothPrinterId');
     localStorage.removeItem('bluetoothPrinterName');
+    localStorage.removeItem('bluetoothPrinterServiceUUID');
+    localStorage.removeItem('bluetoothPrinterCharUUID');
     this.disconnect();
   }
 

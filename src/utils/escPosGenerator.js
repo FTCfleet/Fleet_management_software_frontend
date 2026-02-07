@@ -3,7 +3,7 @@
  * TVS RP 3230 ABW – 80mm
  */
 
-import { dateFormatter } from "./dateFormatter";
+import { dateFormatterForThermal } from "./dateFormatter";
 import { fromDbValueNum } from "./currencyUtils";
 
 /* -------------------------------------------------- */
@@ -63,7 +63,7 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
   receipt += INIT + ALIGN_L + SIZE_1X;
 
   /* ---------- Date ---------- */
-  receipt += `Date: ${dateFormatter(parcel.placedAt)} `;
+  receipt += `Date: ${dateFormatterForThermal(parcel.placedAt)} `;
   receipt += `Created by: ${parcel.addedBy?.name || "____"}${LF}`;
 
   receipt += LF;

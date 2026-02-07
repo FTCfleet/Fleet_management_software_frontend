@@ -23,13 +23,13 @@ import {
   Alert,
 } from "@mui/material";
 import { Link, useNavigate, useOutletContext, useParams, useLocation } from "react-router-dom";
-import { FaEdit, FaTrash, FaPrint, FaExclamationTriangle, FaBluetooth, FaBluetoothB, FaCog } from "react-icons/fa";
+import { FaEdit, FaTrash, FaPrint, FaExclamationTriangle, FaBluetooth, FaBluetoothB } from "react-icons/fa";
 import { MdBluetoothConnected, MdBluetoothDisabled } from "react-icons/md";
 import { dateFormatter } from "../utils/dateFormatter";
 import { fromDbValue, formatCurrency } from "../utils/currencyUtils";
 import { printThermalLRWithAutoCut, getQZTrayErrorMessage } from "../utils/qzTrayUtils";
 import { generateThreeCopies } from "../utils/escPosGenerator";
-import { webBluetoothPrinter, connectBluetoothPrinter, printViaWebBluetooth, isWebBluetoothSupported, getBluetoothChunkSize, setBluetoothChunkSize } from "../utils/webBluetoothPrint";
+import { webBluetoothPrinter, connectBluetoothPrinter, printViaWebBluetooth, isWebBluetoothSupported } from "../utils/webBluetoothPrint";
 import { useAuth } from "../routes/AuthContext";
 import ModernSpinner from "../components/ModernSpinner";
 import InstallAppButton from "../components/InstallAppButton";
@@ -61,8 +61,6 @@ export default function ViewOrderPage() {
   const [printerName, setPrinterName] = useState("TVS-E RP 3230");
   const [bluetoothConnected, setBluetoothConnected] = useState(false);
   const [bluetoothPrinterName, setBluetoothPrinterName] = useState('');
-  const [chunkSizeDialogOpen, setChunkSizeDialogOpen] = useState(false);
-  const [chunkSize, setChunkSize] = useState(50);
   const [toast, setToast] = useState({ open: false, message: '', severity: 'info' });
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -76,10 +74,6 @@ export default function ViewOrderPage() {
 
   useEffect(() => {
     fetchData();
-    
-    // Load saved chunk size
-    const savedChunkSize = getBluetoothChunkSize();
-    setChunkSize(savedChunkSize);
     
     // Check for saved Bluetooth printer and try to reconnect
     const checkBluetoothPrinter = async () => {
@@ -339,25 +333,6 @@ export default function ViewOrderPage() {
       open: true,
       message: 'Printer disconnected',
       severity: 'info'
-    });
-  };
-
-  const handleSaveChunkSize = () => {
-    const size = parseInt(chunkSize);
-    if (size < 20 || size > 512) {
-      setToast({
-        open: true,
-        message: 'Chunk size must be between 20 and 512 bytes',
-        severity: 'error'
-      });
-      return;
-    }
-    setBluetoothChunkSize(size);
-    setChunkSizeDialogOpen(false);
-    setToast({
-      open: true,
-      message: `Chunk size set to ${size} bytes`,
-      severity: 'success'
     });
   };
 
@@ -686,17 +661,6 @@ export default function ViewOrderPage() {
                 >
                   <MdBluetoothDisabled /> Disconnect
                 </button>
-                <button 
-                  className="button" 
-                  onClick={() => setChunkSizeDialogOpen(true)}
-                  style={{ 
-                    flex: isMobile ? "1 1 45%" : "0 0 auto",
-                    background: isDarkMode ? "rgba(255,183,77,0.15)" : "#FFF3E0",
-                    color: isDarkMode ? "#FFB74D" : "#F57C00",
-                  }}
-                >
-                  <FaCog /> Chunk: {chunkSize}
-                </button>
               </>
             )}
           </>
@@ -777,89 +741,6 @@ export default function ViewOrderPage() {
               disabled={isLoading}
             >
               Delete {isLoading && <CircularProgress size={16} sx={{ color: "#fff", ml: 1 }} />}
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
-
-      {/* Chunk Size Dialog */}
-      <Modal open={chunkSizeDialogOpen} onClose={() => setChunkSizeDialogOpen(false)}>
-        <Box sx={getModalStyle(colors, isDarkMode)}>
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: colors?.textPrimary, mb: 1 }}>
-              Bluetooth Chunk Size
-            </Typography>
-            <Typography sx={{ color: colors?.textSecondary, fontSize: "0.9rem" }}>
-              Adjust the data chunk size for Bluetooth transmission (20-512 bytes)
-            </Typography>
-          </Box>
-          
-          <TextField
-            label="Chunk Size (bytes)"
-            type="number"
-            value={chunkSize}
-            onChange={(e) => setChunkSize(e.target.value)}
-            fullWidth
-            inputProps={{ min: 20, max: 512 }}
-            sx={{
-              mb: 3,
-              "& .MuiOutlinedInput-root": {
-                color: colors?.textPrimary,
-                "& fieldset": {
-                  borderColor: colors?.border,
-                },
-                "&:hover fieldset": {
-                  borderColor: isDarkMode ? colors?.accent : colors?.primary,
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: isDarkMode ? colors?.accent : colors?.primary,
-                },
-              },
-              "& .MuiInputLabel-root": {
-                color: colors?.textSecondary,
-                "&.Mui-focused": {
-                  color: isDarkMode ? colors?.accent : colors?.primary,
-                },
-              },
-            }}
-          />
-          
-          <Typography sx={{ color: colors?.textSecondary, fontSize: "0.85rem", mb: 3 }}>
-            Lower values (20-50) are more reliable but slower. Higher values (100-512) are faster but may fail on some printers.
-          </Typography>
-
-          <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
-            <Button 
-              variant="outlined" 
-              onClick={() => setChunkSizeDialogOpen(false)}
-              sx={{
-                borderColor: colors?.border,
-                color: colors?.textSecondary,
-                "&:hover": {
-                  borderColor: colors?.textSecondary,
-                  backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.02)",
-                },
-              }}
-            >
-              Cancel
-            </Button>
-            <Button 
-              variant="contained" 
-              onClick={handleSaveChunkSize}
-              sx={{
-                background: isDarkMode 
-                  ? "linear-gradient(135deg, #FFB74D 0%, #FFC107 100%)"
-                  : "linear-gradient(135deg, #1E3A5F 0%, #2d5a87 100%)",
-                color: isDarkMode ? "#0a1628" : "#fff",
-                fontWeight: 600,
-                "&:hover": {
-                  background: isDarkMode 
-                    ? "linear-gradient(135deg, #FFA726 0%, #FF9800 100%)"
-                    : "linear-gradient(135deg, #2d5a87 0%, #1E3A5F 100%)",
-                },
-              }}
-            >
-              Save
             </Button>
           </Box>
         </Box>
