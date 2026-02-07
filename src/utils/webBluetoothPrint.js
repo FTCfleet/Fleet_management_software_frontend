@@ -300,25 +300,22 @@ class WebBluetoothPrinter {
         data[i] = escPosCommands.charCodeAt(i) & 0xFF;
       }
 
-      // Use larger chunk size for faster transmission
-      const chunkSize = 512;
-      const totalChunks = Math.ceil(data.length / chunkSize);
-
+      // Use smaller chunk size for better compatibility
+      // Some printers have MTU of 20-23 bytes
+      const chunkSize = 40;
+      
       for (let i = 0; i < data.length; i += chunkSize) {
         const chunk = data.slice(i, i + chunkSize);
-        const chunkNum = Math.floor(i / chunkSize) + 1;
         
         try {
-          // Always use writeValue (with response) for reliability
           await this.characteristic.writeValue(chunk);
         } catch (writeError) {
-          throw new Error(`Failed to send data chunk ${chunkNum}: ${writeError.message}`);
+          console.error('Failed to send data chunk:', writeError);
+          throw new Error(`Failed to send data: ${writeError.message}`);
         }
         
-        // Small delay every 5 chunks to prevent buffer overflow
-        if (chunkNum % 5 === 0) {
-          await new Promise(resolve => setTimeout(resolve, 10));
-        }
+        // Longer delay between chunks for printer to process
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
 
       return { success: true, message: 'Print job sent successfully' };
