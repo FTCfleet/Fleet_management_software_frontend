@@ -12,6 +12,22 @@ class WebBluetoothPrinter {
     this.device = null;
     this.characteristic = null;
     this.isConnected = false;
+    this.chunkSize = parseInt(localStorage.getItem('bluetoothChunkSize')) || 50;
+  }
+
+  /**
+   * Set chunk size for data transmission
+   */
+  setChunkSize(size) {
+    this.chunkSize = size;
+    localStorage.setItem('bluetoothChunkSize', size.toString());
+  }
+
+  /**
+   * Get current chunk size
+   */
+  getChunkSize() {
+    return this.chunkSize;
   }
 
   /**
@@ -300,9 +316,8 @@ class WebBluetoothPrinter {
         data[i] = escPosCommands.charCodeAt(i) & 0xFF;
       }
 
-      // Use smaller chunk size for better compatibility
-      // Some printers have MTU of 20-23 bytes
-      const chunkSize = 40;
+      // Use configurable chunk size
+      const chunkSize = this.chunkSize;
       
       for (let i = 0; i < data.length; i += chunkSize) {
         const chunk = data.slice(i, i + chunkSize);
@@ -375,4 +390,18 @@ export const disconnectBluetoothPrinter = async () => {
  */
 export const isWebBluetoothSupported = () => {
   return webBluetoothPrinter.isSupported();
+};
+
+/**
+ * Set chunk size for Bluetooth transmission
+ */
+export const setBluetoothChunkSize = (size) => {
+  webBluetoothPrinter.setChunkSize(size);
+};
+
+/**
+ * Get current chunk size
+ */
+export const getBluetoothChunkSize = () => {
+  return webBluetoothPrinter.getChunkSize();
 };
