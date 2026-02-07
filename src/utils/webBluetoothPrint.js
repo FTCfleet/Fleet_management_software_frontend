@@ -293,8 +293,6 @@ class WebBluetoothPrinter {
         }
       }
 
-      console.log('Preparing to print, data length:', escPosCommands.length);
-
       // Convert ESC/POS string to Uint8Array properly
       // ESC/POS uses raw bytes, not UTF-8 encoding
       const data = new Uint8Array(escPosCommands.length);
@@ -302,32 +300,41 @@ class WebBluetoothPrinter {
         data[i] = escPosCommands.charCodeAt(i) & 0xFF;
       }
 
-      console.log('Converted to bytes, length:', data.length);
-
-      // Use smaller chunk size for better compatibility
-      // Some printers have MTU of 20-23 bytes
-      const chunkSize = 20;
-      const totalChunks = Math.ceil(data.length / chunkSize);
+      // Determine optimal chunk size based on characteristic properties
+      let chunkSize = 512; // Default to larger chunks
       
-      console.log(`Sending ${totalChunks} chunks of ${chunkSize} bytes...`);
+      // Check if we can use writeWithoutResponse for faster transmission
+      const useWriteWithoutResponse = this.characteristic.properties.writeWithoutResponse;
+      
+      if (useWriteWithoutResponse) {
+        chunkSize = 512; // Can use larger chunks without waiting for response
+      } else {
+        chunkSize = 128; // Smaller chunks when waiting for responses
+      }
+
+      const totalChunks = Math.ceil(data.length / chunkSize);
 
       for (let i = 0; i < data.length; i += chunkSize) {
         const chunk = data.slice(i, i + chunkSize);
         const chunkNum = Math.floor(i / chunkSize) + 1;
         
         try {
-          await this.characteristic.writeValue(chunk);
-          console.log(`Chunk ${chunkNum}/${totalChunks} sent (${chunk.length} bytes)`);
+          if (useWriteWithoutResponse) {
+            // Faster: no response needed
+            await this.characteristic.writeValueWithoutResponse(chunk);
+          } else {
+            // Slower: waits for response
+            await this.characteristic.writeValue(chunk);
+          }
         } catch (writeError) {
-          console.error(`Failed to send chunk ${chunkNum}:`, writeError);
           throw new Error(`Failed to send data chunk ${chunkNum}: ${writeError.message}`);
         }
         
-        // Longer delay between chunks for printer to process
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Minimal delay - only needed for write without response to prevent buffer overflow
+        if (useWriteWithoutResponse && chunkNum % 5 === 0) {
+          await new Promise(resolve => setTimeout(resolve, 10));
+        }
       }
-
-      console.log('✓ All data sent successfully');
 
       return { success: true, message: 'Print job sent successfully' };
 
