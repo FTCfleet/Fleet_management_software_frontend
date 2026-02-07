@@ -31,30 +31,102 @@ class WebBluetoothPrinter {
         throw new Error('Web Bluetooth is not supported on this device/browser');
       }
 
-      // Request device
+      console.log('Requesting Bluetooth device...');
+
+      // Request device with broader filters
+      // Most thermal printers use Serial Port Profile (SPP)
       this.device = await navigator.bluetooth.requestDevice({
-        filters: [
-          { services: [PRINTER_SERVICE_UUID] },
-          { namePrefix: 'RP' }, // Common thermal printer prefix
-          { namePrefix: 'Printer' },
-        ],
-        optionalServices: [PRINTER_SERVICE_UUID]
+        // Accept all devices to see what's available
+        acceptAllDevices: true,
+        optionalServices: [
+          PRINTER_SERVICE_UUID,
+          '0000ff00-0000-1000-8000-00805f9b34fb', // Common SPP service
+          '49535343-fe7d-4ae5-8fa9-9fafd205e455', // Another common service
+          'e7810a71-73ae-499d-8c15-faa9aef0c3f2', // Nordic UART Service
+        ]
       });
+
+      console.log('Device selected:', this.device.name, 'ID:', this.device.id);
 
       // Connect to GATT server
       const server = await this.device.gatt.connect();
+      console.log('Connected to GATT server');
       
-      // Get service
-      const service = await server.getPrimaryService(PRINTER_SERVICE_UUID);
-      
-      // Get characteristic
-      this.characteristic = await service.getCharacteristic(PRINTER_CHARACTERISTIC_UUID);
-      
+      // Try to find a suitable service
+      const services = await server.getPrimaryServices();
+      console.log('Available services:', services.map(s => s.uuid));
+
+      let service = null;
+      let characteristic = null;
+
+      // Try common printer service first
+      try {
+        service = await server.getPrimaryService(PRINTER_SERVICE_UUID);
+        console.log('Found printer service:', PRINTER_SERVICE_UUID);
+      } catch (e) {
+        console.log('Standard printer service not found, trying alternatives...');
+        
+        // Try alternative services
+        const alternativeServices = [
+          '0000ff00-0000-1000-8000-00805f9b34fb',
+          '49535343-fe7d-4ae5-8fa9-9fafd205e455',
+          'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+        ];
+
+        for (const uuid of alternativeServices) {
+          try {
+            service = await server.getPrimaryService(uuid);
+            console.log('Found alternative service:', uuid);
+            break;
+          } catch (err) {
+            continue;
+          }
+        }
+
+        // If no known service, use first available service
+        if (!service && services.length > 0) {
+          service = services[0];
+          console.log('Using first available service:', service.uuid);
+        }
+      }
+
+      if (!service) {
+        throw new Error('No suitable service found on device');
+      }
+
+      // Get characteristics
+      const characteristics = await service.getCharacteristics();
+      console.log('Available characteristics:', characteristics.map(c => c.uuid));
+
+      // Try to find writable characteristic
+      try {
+        characteristic = await service.getCharacteristic(PRINTER_CHARACTERISTIC_UUID);
+        console.log('Found printer characteristic:', PRINTER_CHARACTERISTIC_UUID);
+      } catch (e) {
+        console.log('Standard characteristic not found, looking for writable characteristic...');
+        
+        // Find any writable characteristic
+        for (const char of characteristics) {
+          if (char.properties.write || char.properties.writeWithoutResponse) {
+            characteristic = char;
+            console.log('Found writable characteristic:', char.uuid);
+            break;
+          }
+        }
+      }
+
+      if (!characteristic) {
+        throw new Error('No writable characteristic found on device');
+      }
+
+      this.characteristic = characteristic;
       this.isConnected = true;
 
       // Save device ID for auto-reconnect
       localStorage.setItem('bluetoothPrinterId', this.device.id);
       localStorage.setItem('bluetoothPrinterName', this.device.name);
+      localStorage.setItem('bluetoothPrinterServiceUUID', service.uuid);
+      localStorage.setItem('bluetoothPrinterCharUUID', characteristic.uuid);
 
       // Listen for disconnection
       this.device.addEventListener('gattserverdisconnected', () => {
@@ -65,7 +137,9 @@ class WebBluetoothPrinter {
       return {
         success: true,
         deviceName: this.device.name,
-        deviceId: this.device.id
+        deviceId: this.device.id,
+        serviceUUID: service.uuid,
+        characteristicUUID: characteristic.uuid
       };
 
     } catch (error) {
@@ -87,9 +161,14 @@ class WebBluetoothPrinter {
       }
 
       const savedDeviceId = localStorage.getItem('bluetoothPrinterId');
+      const savedServiceUUID = localStorage.getItem('bluetoothPrinterServiceUUID');
+      const savedCharUUID = localStorage.getItem('bluetoothPrinterCharUUID');
+      
       if (!savedDeviceId) {
         return { success: false, error: 'No saved device found' };
       }
+
+      console.log('Attempting to reconnect to saved device:', savedDeviceId);
 
       // Get previously paired devices
       const devices = await navigator.bluetooth.getDevices();
@@ -103,12 +182,17 @@ class WebBluetoothPrinter {
 
       // Connect to GATT server
       const server = await this.device.gatt.connect();
+      console.log('Reconnected to GATT server');
       
-      // Get service
-      const service = await server.getPrimaryService(PRINTER_SERVICE_UUID);
+      // Get service (use saved UUID if available)
+      const serviceUUID = savedServiceUUID || PRINTER_SERVICE_UUID;
+      const service = await server.getPrimaryService(serviceUUID);
+      console.log('Got service:', serviceUUID);
       
-      // Get characteristic
-      this.characteristic = await service.getCharacteristic(PRINTER_CHARACTERISTIC_UUID);
+      // Get characteristic (use saved UUID if available)
+      const charUUID = savedCharUUID || PRINTER_CHARACTERISTIC_UUID;
+      this.characteristic = await service.getCharacteristic(charUUID);
+      console.log('Got characteristic:', charUUID);
       
       this.isConnected = true;
 
