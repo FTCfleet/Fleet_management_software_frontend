@@ -28,7 +28,7 @@ class WebBluetoothPrinter {
   async connect() {
     try {
       if (!this.isSupported()) {
-        throw new Error('Web Bluetooth is not supported on this device/browser');
+        throw new Error('Web Bluetooth is not supported on this device/browser. Use Chrome or Edge on Android.');
       }
 
       console.log('Requesting Bluetooth device...');
@@ -46,15 +46,25 @@ class WebBluetoothPrinter {
         ]
       });
 
+      if (!this.device) {
+        throw new Error('No device selected');
+      }
+
       console.log('Device selected:', this.device.name, 'ID:', this.device.id);
 
       // Connect to GATT server
+      console.log('Connecting to GATT server...');
       const server = await this.device.gatt.connect();
       console.log('Connected to GATT server');
       
       // Try to find a suitable service
+      console.log('Getting services...');
       const services = await server.getPrimaryServices();
-      console.log('Available services:', services.map(s => s.uuid));
+      console.log('Available services:', services.length, services.map(s => s.uuid));
+
+      if (services.length === 0) {
+        throw new Error('No services found on device. This device may not support Bluetooth printing.');
+      }
 
       let service = null;
       let characteristic = null;
@@ -79,6 +89,7 @@ class WebBluetoothPrinter {
             console.log('Found alternative service:', uuid);
             break;
           } catch (err) {
+            console.log('Service', uuid, 'not found');
             continue;
           }
         }
@@ -91,12 +102,20 @@ class WebBluetoothPrinter {
       }
 
       if (!service) {
-        throw new Error('No suitable service found on device');
+        throw new Error('No suitable service found. Device may not be a printer or not compatible.');
       }
 
       // Get characteristics
+      console.log('Getting characteristics...');
       const characteristics = await service.getCharacteristics();
-      console.log('Available characteristics:', characteristics.map(c => c.uuid));
+      console.log('Available characteristics:', characteristics.length, characteristics.map(c => ({
+        uuid: c.uuid,
+        properties: c.properties
+      })));
+
+      if (characteristics.length === 0) {
+        throw new Error('No characteristics found on service');
+      }
 
       // Try to find writable characteristic
       try {
@@ -109,14 +128,14 @@ class WebBluetoothPrinter {
         for (const char of characteristics) {
           if (char.properties.write || char.properties.writeWithoutResponse) {
             characteristic = char;
-            console.log('Found writable characteristic:', char.uuid);
+            console.log('Found writable characteristic:', char.uuid, 'Properties:', char.properties);
             break;
           }
         }
       }
 
       if (!characteristic) {
-        throw new Error('No writable characteristic found on device');
+        throw new Error('No writable characteristic found. Device may not support data transmission.');
       }
 
       this.characteristic = characteristic;
@@ -127,6 +146,8 @@ class WebBluetoothPrinter {
       localStorage.setItem('bluetoothPrinterName', this.device.name);
       localStorage.setItem('bluetoothPrinterServiceUUID', service.uuid);
       localStorage.setItem('bluetoothPrinterCharUUID', characteristic.uuid);
+
+      console.log('✓ Successfully connected to printer');
 
       // Listen for disconnection
       this.device.addEventListener('gattserverdisconnected', () => {
@@ -144,9 +165,21 @@ class WebBluetoothPrinter {
 
     } catch (error) {
       console.error('Bluetooth connection error:', error);
+      
+      // Provide user-friendly error messages
+      let userMessage = error.message;
+      
+      if (error.message.includes('User cancelled')) {
+        userMessage = 'Connection cancelled. Please try again and select your printer.';
+      } else if (error.message.includes('not found')) {
+        userMessage = 'Device not found or not compatible. Make sure your printer is on and in pairing mode.';
+      } else if (error.message.includes('GATT')) {
+        userMessage = 'Failed to connect to device. Make sure Bluetooth is enabled and printer is nearby.';
+      }
+      
       return {
         success: false,
-        error: error.message
+        error: userMessage
       };
     }
   }
