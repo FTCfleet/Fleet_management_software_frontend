@@ -122,6 +122,7 @@ const InstallAppButton = ({ isDarkMode, colors, fullWidth = false, alwaysShow = 
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           textTransform: 'none',
           border: isInstalled ? '1px solid #22c55e' : 'none',
+          display: { xs: 'flex', '@media (min-width: 1101px)': { display: 'none' } }, // Hide above 1100px
           '&:hover': {
             backgroundColor: isInstalled
               ? (isDarkMode ? 'rgba(34, 197, 94, 0.25)' : 'rgba(34, 197, 94, 0.15)')

@@ -293,18 +293,41 @@ class WebBluetoothPrinter {
         }
       }
 
-      // Convert ESC/POS string to Uint8Array
-      const encoder = new TextEncoder();
-      const data = encoder.encode(escPosCommands);
+      console.log('Preparing to print, data length:', escPosCommands.length);
 
-      // Split into chunks (Bluetooth has MTU limit, typically 20-512 bytes)
-      const chunkSize = 512;
+      // Convert ESC/POS string to Uint8Array properly
+      // ESC/POS uses raw bytes, not UTF-8 encoding
+      const data = new Uint8Array(escPosCommands.length);
+      for (let i = 0; i < escPosCommands.length; i++) {
+        data[i] = escPosCommands.charCodeAt(i) & 0xFF;
+      }
+
+      console.log('Converted to bytes, length:', data.length);
+
+      // Use smaller chunk size for better compatibility
+      // Some printers have MTU of 20-23 bytes
+      const chunkSize = 20;
+      const totalChunks = Math.ceil(data.length / chunkSize);
+      
+      console.log(`Sending ${totalChunks} chunks of ${chunkSize} bytes...`);
+
       for (let i = 0; i < data.length; i += chunkSize) {
         const chunk = data.slice(i, i + chunkSize);
-        await this.characteristic.writeValue(chunk);
-        // Small delay between chunks
-        await new Promise(resolve => setTimeout(resolve, 50));
+        const chunkNum = Math.floor(i / chunkSize) + 1;
+        
+        try {
+          await this.characteristic.writeValue(chunk);
+          console.log(`Chunk ${chunkNum}/${totalChunks} sent (${chunk.length} bytes)`);
+        } catch (writeError) {
+          console.error(`Failed to send chunk ${chunkNum}:`, writeError);
+          throw new Error(`Failed to send data chunk ${chunkNum}: ${writeError.message}`);
+        }
+        
+        // Longer delay between chunks for printer to process
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
+
+      console.log('✓ All data sent successfully');
 
       return { success: true, message: 'Print job sent successfully' };
 
