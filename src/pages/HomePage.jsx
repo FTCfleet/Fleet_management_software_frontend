@@ -162,7 +162,7 @@ const HomePage = () => {
 
             <motion.div variants={fadeIn}>
               <Typography sx={{ color: "rgba(255,255,255,0.9)", mb: 5, fontWeight: 400, fontSize: { xs: "1.1rem", sm: "1.25rem", md: "1.4rem" }, maxWidth: "700px", mx: "auto", lineHeight: 1.7, textShadow: "0 2px 8px rgba(0,0,0,0.5)" }}>
-                Your trusted partner in parcel and goods transportation. Delivering excellence across Telangana for over 28 years.
+                Your trusted partner in parcel and goods transportation. Delivering excellence across Telangana for over 30 years.
               </Typography>
             </motion.div>
 

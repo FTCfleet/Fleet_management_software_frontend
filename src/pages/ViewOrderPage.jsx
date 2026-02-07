@@ -19,18 +19,20 @@ import {
   useTheme,
   useMediaQuery,
   Grid,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { Link, useNavigate, useOutletContext, useParams, useLocation } from "react-router-dom";
-import { FaEdit, FaTrash, FaPrint, FaExclamationTriangle, FaEye } from "react-icons/fa";
+import { FaEdit, FaTrash, FaPrint, FaExclamationTriangle, FaBluetooth, FaBluetoothB } from "react-icons/fa";
+import { MdBluetoothConnected, MdBluetoothDisabled } from "react-icons/md";
 import { dateFormatter } from "../utils/dateFormatter";
 import { fromDbValue, formatCurrency } from "../utils/currencyUtils";
 import { printThermalLRWithAutoCut, getQZTrayErrorMessage } from "../utils/qzTrayUtils";
-import { printThermalLRNetwork, getNetworkPrintErrorMessage, discoverNetworkPrinters } from "../utils/networkPrintUtils";
-import { generateCopiesArray } from "../utils/escPosGenerator";
+import { generateThreeCopies } from "../utils/escPosGenerator";
+import { webBluetoothPrinter, connectBluetoothPrinter, printViaWebBluetooth, isWebBluetoothSupported } from "../utils/webBluetoothPrint";
 import { useAuth } from "../routes/AuthContext";
 import ModernSpinner from "../components/ModernSpinner";
-import ThermalReceiptPreview from "../components/ThermalReceiptPreview";
-import { useThermalPreview } from "../hooks/useThermalPreview";
+import InstallAppButton from "../components/InstallAppButton";
 import "../css/table.css";
 import "../css/main.css";
 
@@ -52,17 +54,14 @@ export default function ViewOrderPage() {
     addedBy: {},
   });
   const [qrCode, setQrCode] = useState(0);
-  const { previewData, isPreviewOpen, showPreview, closePreview } = useThermalPreview();
   const [qrCount, setQrCount] = useState(0);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false);
   const [printerNameDialogOpen, setPrinterNameDialogOpen] = useState(false);
-  const [networkPrinterDialogOpen, setNetworkPrinterDialogOpen] = useState(false);
   const [printerName, setPrinterName] = useState("TVS-E RP 3230");
-  const [printerIP, setPrinterIP] = useState("192.168.1.100");
-  const [printerPort, setPrinterPort] = useState("9100");
-  const [discoveredPrinters, setDiscoveredPrinters] = useState([]);
-  const [isScanning, setIsScanning] = useState(false);
+  const [bluetoothConnected, setBluetoothConnected] = useState(false);
+  const [bluetoothPrinterName, setBluetoothPrinterName] = useState('');
+  const [toast, setToast] = useState({ open: false, message: '', severity: 'info' });
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
@@ -76,11 +75,27 @@ export default function ViewOrderPage() {
   useEffect(() => {
     fetchData();
     
-    // Load saved network printer settings
-    const savedIP = localStorage.getItem('networkPrinterIP');
-    const savedPort = localStorage.getItem('networkPrinterPort');
-    if (savedIP) setPrinterIP(savedIP);
-    if (savedPort) setPrinterPort(savedPort);
+    // Check for saved Bluetooth printer and try to reconnect
+    const checkBluetoothPrinter = async () => {
+      const savedPrinter = webBluetoothPrinter.getSavedPrinter();
+      if (savedPrinter) {
+        setBluetoothPrinterName(savedPrinter.name);
+        // Try to reconnect
+        const result = await webBluetoothPrinter.reconnect();
+        if (result.success) {
+          setBluetoothConnected(true);
+          setToast({
+            open: true,
+            message: `Reconnected to ${result.deviceName}`,
+            severity: 'success'
+          });
+        }
+      }
+    };
+    
+    if (isWebBluetoothSupported()) {
+      checkBluetoothPrinter();
+    }
   }, []);
 
   const fetchData = async () => {
@@ -276,6 +291,86 @@ export default function ViewOrderPage() {
 
   const handleNetworkPrintCancel = () => {
     setNetworkPrinterDialogOpen(false);
+  };
+
+  // Bluetooth Print Handlers
+  const handleConnectBluetooth = async () => {
+    try {
+      setIsLoading(true);
+      const result = await connectBluetoothPrinter();
+      
+      if (result.success) {
+        setBluetoothConnected(true);
+        setBluetoothPrinterName(result.deviceName);
+        setToast({
+          open: true,
+          message: `Connected to ${result.deviceName}`,
+          severity: 'success'
+        });
+      } else {
+        setToast({
+          open: true,
+          message: result.error || 'Failed to connect to printer',
+          severity: 'error'
+        });
+      }
+    } catch (error) {
+      setToast({
+        open: true,
+        message: error.message || 'Failed to connect',
+        severity: 'error'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDisconnectBluetooth = async () => {
+    await webBluetoothPrinter.disconnect();
+    setBluetoothConnected(false);
+    setBluetoothPrinterName('');
+    setToast({
+      open: true,
+      message: 'Printer disconnected',
+      severity: 'info'
+    });
+  };
+
+  const handleBluetoothPrint = async () => {
+    try {
+      setIsLoading(true);
+      setIsScreenLoadingText("Printing via Bluetooth...");
+      setIsScreenLoading(true);
+
+      // Generate ESC/POS commands
+      const escPosCommands = generateThreeCopies(order);
+
+      // Print via Bluetooth
+      const result = await printViaWebBluetooth(escPosCommands);
+
+      if (result.success) {
+        setToast({
+          open: true,
+          message: 'Print job sent successfully!',
+          severity: 'success'
+        });
+      } else {
+        setToast({
+          open: true,
+          message: result.error || 'Failed to print',
+          severity: 'error'
+        });
+      }
+    } catch (error) {
+      setToast({
+        open: true,
+        message: error.message || 'Print failed',
+        severity: 'error'
+      });
+    } finally {
+      setIsLoading(false);
+      setIsScreenLoading(false);
+    }
   };
 
   const handleScanNetwork = async () => {
@@ -517,19 +612,63 @@ export default function ViewOrderPage() {
       </Card>
 
       {/* Action Buttons */}
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, justifyContent: { xs: "stretch", sm: "center" } }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, justifyContent: { xs: "stretch", sm: "center" }, alignItems: "center" }}>
         <button className="button" onClick={handleLRPrint} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
           <FaPrint /> Print A4 LR
-        </button>
-        <button className="button" onClick={handleThermalPreview} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
-          <FaEye /> Preview Thermal
         </button>
         <button className="button" onClick={handleLRPrintThermal} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
           <FaPrint /> Print via QZ Tray
         </button>
-        <button className="button" onClick={handleNetworkPrint} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
-          <FaPrint /> Print via Network
-        </button>
+        
+        {/* Web Bluetooth Printing (Mobile/Tablet) */}
+        {isWebBluetoothSupported() && (
+          <>
+            {!bluetoothConnected ? (
+              <button 
+                className="button" 
+                onClick={handleConnectBluetooth}
+                disabled={isLoading}
+                style={{ 
+                  flex: isMobile ? "1 1 100%" : "0 0 auto",
+                  background: isDarkMode ? "linear-gradient(180deg, #42A5F5 0%, #1E88E5 100%)" : "linear-gradient(180deg, #64B5F6 0%, #42A5F5 100%)",
+                }}
+              >
+                {isLoading ? <CircularProgress size={16} sx={{ color: "#fff", mr: 1 }} /> : <FaBluetooth />} 
+                {isLoading ? "Connecting..." : "Connect Bluetooth Printer"}
+              </button>
+            ) : (
+              <>
+                <button 
+                  className="button" 
+                  onClick={handleBluetoothPrint}
+                  disabled={isLoading}
+                  style={{ 
+                    flex: isMobile ? "1 1 100%" : "0 0 auto",
+                    background: isDarkMode ? "linear-gradient(180deg, #66BB6A 0%, #4CAF50 100%)" : "linear-gradient(180deg, #81C784 0%, #66BB6A 100%)",
+                  }}
+                >
+                  {isLoading ? <CircularProgress size={16} sx={{ color: "#fff", mr: 1 }} /> : <MdBluetoothConnected />} 
+                  {isLoading ? "Printing..." : `Print via ${bluetoothPrinterName}`}
+                </button>
+                <button 
+                  className="button" 
+                  onClick={handleDisconnectBluetooth}
+                  style={{ 
+                    flex: isMobile ? "1 1 45%" : "0 0 auto",
+                    background: isDarkMode ? "rgba(255,255,255,0.1)" : "#e5e7eb",
+                    color: isDarkMode ? colors?.textPrimary : "#374151",
+                  }}
+                >
+                  <MdBluetoothDisabled /> Disconnect
+                </button>
+              </>
+            )}
+          </>
+        )}
+        
+        {/* Install App Button */}
+        <InstallAppButton isDarkMode={isDarkMode} colors={colors} />
+        
         {
           /* Show Edit LR button only for:
              1. Admin (can edit any LR regardless of status)
@@ -608,159 +747,28 @@ export default function ViewOrderPage() {
       </Modal>
 
       {/* Network Printer Dialog */}
-      <Modal open={networkPrinterDialogOpen} onClose={handleNetworkPrintCancel}>
-        <Box sx={getModalStyle(colors, isDarkMode)}>
-          <Box sx={{ textAlign: "center", mb: 2 }}>
-            <FaPrint style={{ color: isDarkMode ? colors?.accent : "#1E3A5F", fontSize: "2.5rem" }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, color: colors?.textPrimary || "#1E3A5F", textAlign: "center", mb: 1 }}>
-            Network Printer Setup
-          </Typography>
-          <Typography sx={{ color: colors?.textSecondary || "#64748b", textAlign: "center", mb: 2, fontSize: "0.9rem" }}>
-            Enter your thermal printer's network details
-          </Typography>
-          
-          {/* Scan Network Button */}
-          <Box sx={{ mb: 3, textAlign: "center" }}>
-            <Button
-              variant="outlined"
-              onClick={handleScanNetwork}
-              disabled={isScanning}
-              sx={{
-                borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
-                color: isDarkMode ? colors?.accent : "#1E3A5F",
-                "&:hover": {
-                  borderColor: isDarkMode ? colors?.accentHover : "#2d5a87",
-                  backgroundColor: isDarkMode ? "rgba(255,183,77,0.08)" : "rgba(30,58,95,0.04)",
-                },
-                "&:disabled": {
-                  borderColor: "#ccc",
-                  color: "#999",
-                }
-              }}
-            >
-              {isScanning ? (
-                <>
-                  <CircularProgress size={16} sx={{ mr: 1 }} />
-                  Scanning Network...
-                </>
-              ) : (
-                '🔍 Auto-Detect Printer'
-              )}
-            </Button>
-            {discoveredPrinters.length > 0 && (
-              <Typography sx={{ color: colors?.accent || "#FFB74D", fontSize: "0.75rem", mt: 1 }}>
-                ✓ Found {discoveredPrinters.length} printer(s)
-              </Typography>
-            )}
-          </Box>
-          
-          <TextField
-            fullWidth
-            label="Printer IP Address"
-            value={printerIP}
-            onChange={(e) => setPrinterIP(e.target.value)}
-            placeholder="192.168.1.100"
-            autoFocus
-            sx={{
-              mb: 2,
-              "& .MuiOutlinedInput-root": {
-                backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc",
-                "& fieldset": {
-                  borderColor: isDarkMode ? "rgba(255,255,255,0.1)" : "#e0e5eb",
-                },
-                "&:hover fieldset": {
-                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
-                },
-              },
-              "& .MuiInputLabel-root": {
-                color: colors?.textSecondary,
-              },
-              "& .MuiInputBase-input": {
-                color: colors?.textPrimary,
-              },
-            }}
-            helperText="Example: 192.168.1.100 or 10.0.0.50"
-          />
-          <TextField
-            fullWidth
-            label="Printer Port"
-            value={printerPort}
-            onChange={(e) => setPrinterPort(e.target.value)}
-            placeholder="9100"
-            type="number"
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleNetworkPrintConfirm();
-              }
-            }}
-            sx={{
-              mb: 3,
-              "& .MuiOutlinedInput-root": {
-                backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc",
-                "& fieldset": {
-                  borderColor: isDarkMode ? "rgba(255,255,255,0.1)" : "#e0e5eb",
-                },
-                "&:hover fieldset": {
-                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
-                },
-              },
-              "& .MuiInputLabel-root": {
-                color: colors?.textSecondary,
-              },
-              "& .MuiInputBase-input": {
-                color: colors?.textPrimary,
-              },
-            }}
-            helperText="Default ESC/POS port is 9100"
-          />
-          <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
-            <Button 
-              variant="outlined" 
-              onClick={handleNetworkPrintCancel}
-              sx={{
-                borderColor: isDarkMode ? "rgba(255,255,255,0.2)" : "#d1d5db",
-                color: colors?.textSecondary,
-                "&:hover": {
-                  borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
-                  backgroundColor: isDarkMode ? "rgba(255,183,77,0.08)" : "rgba(30,58,95,0.04)",
-                }
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handleNetworkPrintConfirm}
-              sx={{ 
-                backgroundColor: isDarkMode ? colors?.accent : "#1E3A5F",
-                color: isDarkMode ? "#0a1628" : "#fff",
-                "&:hover": { 
-                  backgroundColor: isDarkMode ? colors?.accentHover : "#2d5a87" 
-                } 
-              }}
-            >
-              Print via Network
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
-
-      {/* Thermal Receipt Preview */}
-      {isPreviewOpen && previewData && (
-        <ThermalReceiptPreview
-          escPosData={previewData}
-          onClose={closePreview}
-          onPrint={handlePrintFromPreview}
-          onReload={handleReloadPreview}
-        />
-      )}
+      {/* Toast Notifications */}
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={4000}
+        onClose={() => setToast({ ...toast, open: false })}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ mt: 8 }}
+      >
+        <Alert
+          onClose={() => setToast({ ...toast, open: false })}
+          severity={toast.severity}
+          variant="filled"
+          sx={{
+            width: '100%',
+            fontSize: '0.95rem',
+            fontWeight: 600,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+          }}
+        >
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

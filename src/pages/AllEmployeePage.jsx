@@ -18,7 +18,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useOutletContext } from "react-router-dom";
-import { Edit, Delete, Close, Loop } from "@mui/icons-material";
+import { Edit, Delete, Close, VpnKey } from "@mui/icons-material";
 import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
 import ModernSpinner from "../components/ModernSpinner";
 import SearchFilterBar, { highlightMatch } from "../components/SearchFilterBar";
@@ -397,19 +397,23 @@ const AllEmployeePage = () => {
                         <IconButton
                           color="primary"
                           onClick={() => handleEdit(employee)}
+                          title="Edit Employee"
                         >
                           <Edit />
                         </IconButton>
                         <IconButton
-                          color="error"
-                          onClick={() => handleDelete(employee.username)}
+                          color="warning"
+                          onClick={() => openResetModal(employee)}
+                          title="Reset Password"
                         >
-                          <Delete />
+                          <VpnKey />
                         </IconButton>
                         <IconButton
-                          onClick={() => openResetModal(employee)}
+                          color="error"
+                          onClick={() => handleDelete(employee.username)}
+                          title="Delete Employee"
                         >
-                          <Loop />
+                          <Delete />
                         </IconButton>
                       </TableCell>
                     </TableRow>
@@ -514,11 +518,31 @@ const AllEmployeePage = () => {
                   background: isDarkMode ? "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)" : "linear-gradient(135deg, #1D3557 0%, #0a1628 100%)",
                   color: isDarkMode ? "#0a1628" : "#fff",
                   boxShadow: "none",
+                  mb: 1.5,
                   "&:hover": { background: isDarkMode ? "linear-gradient(135deg, #FFA726 0%, #F57C00 100%)" : "linear-gradient(135deg, #25445f 0%, #0f2035 100%)", boxShadow: "none" },
                 }}
               >
                 Save Changes
                 {isLoading1 && <CircularProgress size={20} sx={{ color: isDarkMode ? "#0a1628" : "#fff", ml: 1 }} />}
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => {
+                  handleClose();
+                  openResetModal(currentEmployee);
+                }}
+                sx={{
+                  py: 1.5, borderRadius: "12px", fontSize: "1rem", fontWeight: 600, textTransform: "none",
+                  borderColor: isDarkMode ? colors?.accent : colors?.primary,
+                  color: isDarkMode ? colors?.accent : colors?.primary,
+                  "&:hover": { 
+                    borderColor: isDarkMode ? colors?.accentHover : colors?.primaryHover,
+                    backgroundColor: isDarkMode ? "rgba(255,183,77,0.08)" : "rgba(30,58,95,0.04)"
+                  },
+                }}
+              >
+                Reset Password
               </Button>
             </Box>
           )}
@@ -550,9 +574,14 @@ const AllEmployeePage = () => {
             >
               <Close />
             </IconButton>
-            <Typography variant="h5" sx={{ color: colors?.textPrimary, fontWeight: 700, textAlign: "center" }}>
+            <Typography variant="h5" sx={{ color: colors?.textPrimary, fontWeight: 700, textAlign: "center", mb: 1 }}>
               Reset Password
             </Typography>
+            {currentEmployee && (
+              <Typography sx={{ color: colors?.textSecondary, textAlign: "center", fontSize: "0.9rem" }}>
+                for {currentEmployee.name} (@{currentEmployee.username})
+              </Typography>
+            )}
           </Box>
           <Box>
             <TextField

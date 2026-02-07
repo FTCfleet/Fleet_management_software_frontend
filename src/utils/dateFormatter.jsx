@@ -1,28 +1,27 @@
 export const dateFormatter = (dateString) => {
     if (!dateString) return "N/A"; 
     
-    // Parse the date string
+    // Parse the date string (backend sends UTC)
     const date = new Date(dateString);
     
     // Check if date is valid
     if (isNaN(date.getTime())) return "Invalid Date";
     
-    // Subtract IST offset (5.5 hours) to get the actual IST time
-    // This is needed because backend stores IST time as if it were UTC
-    const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
-    const correctedDate = new Date(date.getTime() - istOffset);
+    // Convert UTC to IST (Asia/Kolkata timezone)
+    const options = {
+        timeZone: 'Asia/Kolkata',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    };
     
-    const year = correctedDate.getFullYear();
-    const month = (correctedDate.getMonth() + 1).toString().padStart(2, '0');
-    const day = correctedDate.getDate().toString().padStart(2, '0');
-    const hour24 = correctedDate.getHours();
-    const minute = correctedDate.getMinutes().toString().padStart(2, '0');
-
-    let ampm = hour24 >= 12 ? 'PM' : 'AM';
-    let hour12 = (hour24 % 12 || 12).toString().padStart(2,'0'); 
-
-    const formattedDate = `${day}/${month}/${year}, ${hour12}:${minute} ${ampm}`;
-    return (formattedDate); 
+    const formattedDate = date.toLocaleString('en-IN', options);
+    
+    // Format: "07/02/2026, 07:49 PM" (DD/MM/YYYY, HH:MM AM/PM)
+    return formattedDate;
 };
 
 

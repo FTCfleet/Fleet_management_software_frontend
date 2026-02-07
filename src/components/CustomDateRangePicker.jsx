@@ -104,9 +104,29 @@ export default function CustomDateRangePicker({ startDate, endDate, onStartChang
   const accentColor = isDarkMode ? "#FFB74D" : "#1D3557";
   
   return (
-    <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, alignItems: "center", gap: { xs: 2, sm: 3 } }}>
+    <Box sx={{
+      display: "flex",
+      flexDirection: { xs: "column", sm: "row" },
+      alignItems: "center",
+      gap: { xs: 2, sm: 3 },
+      backgroundColor: isDarkMode ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+      borderRadius: "16px",
+      padding: "16px 20px",
+      border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e5e7eb",
+    }}>
       <DatePickerBox value={startDate} onChange={onStartChange} label="Start Date" disabled={disabled} isDarkMode={isDarkMode} colors={colors} maxDate={endDate} />
-      <ArrowForward sx={{ color: accentColor, fontSize: 20, display: { xs: "none", sm: "block" } }} />
+      <Box sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: isDarkMode ? "rgba(255,183,77,0.15)" : "rgba(29,53,87,0.1)",
+        borderRadius: "50%",
+        width: "36px",
+        height: "36px",
+        mt: { xs: 0, sm: 2.5 }
+      }}>
+        <ArrowForward sx={{ color: accentColor, fontSize: 20 }} />
+      </Box>
       <DatePickerBox value={endDate} onChange={onEndChange} label="End Date" disabled={disabled} isDarkMode={isDarkMode} colors={colors} maxDate={dayjs().format("YYYY-MM-DD")} />
     </Box>
   );

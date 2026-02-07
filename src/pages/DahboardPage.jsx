@@ -39,6 +39,7 @@ import Loading from "../components/Loading";
 import ModernSpinner from "../components/ModernSpinner";
 import CustomDialog from "../components/CustomDialog";
 import { useDialog } from "../hooks/useDialog";
+import InstallAppButton from "../components/InstallAppButton";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -428,6 +429,11 @@ const DashboardPage = () => {
                       isDarkMode={isDarkMode}
                       variant="danger"
                     />
+                    
+                    {/* Install App Button */}
+                    <Box sx={{ mt: 1 }}>
+                      <InstallAppButton isDarkMode={isDarkMode} colors={colors} fullWidth={true} alwaysShow={true} />
+                    </Box>
                   </Box>
                 </CardContent>
               </Card>

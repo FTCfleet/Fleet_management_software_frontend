@@ -24,6 +24,7 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import CustomDialog from "./CustomDialog";
 import { useDialog } from "../hooks/useDialog";
 import NotificationsIcon from "@mui/icons-material/Notifications";
+import InstallAppButton from "./InstallAppButton";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -521,21 +522,26 @@ const Header = () => {
               )}
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 {isDashboardPage && (
-                  <IconButton 
-                    onClick={toggleDarkMode}
-                    sx={{ 
-                      p: 1, 
-                      background: "rgba(255, 255, 255, 0.05)", 
-                      border: "1px solid rgba(255, 255, 255, 0.1)",
-                      borderRadius: "10px", 
-                      transition: "all 0.3s ease",
-                      "&:hover": { background: "rgba(255, 255, 255, 0.1)" },
-                      "&:focus": { outline: "none" },
-                      "&:focus-visible": { outline: "none" }
-                    }}
-                  >
-                    {darkMode ? <DarkModeIcon sx={{ fontSize: "1.2rem", color: "#FFB74D" }} /> : <LightModeIcon sx={{ fontSize: "1.2rem", color: "rgba(255,255,255,0.7)" }} />}
-                  </IconButton>
+                  <>
+                    <Box sx={{ display: { xs: "none", sm: "block" } }}>
+                      <InstallAppButton isDarkMode={darkMode} colors={{ accent: "#FFB74D", primary: "#1E3A5F", textPrimary: darkMode ? "#f1f5f9" : "#1E3A5F" }} />
+                    </Box>
+                    <IconButton 
+                      onClick={toggleDarkMode}
+                      sx={{ 
+                        p: 1, 
+                        background: "rgba(255, 255, 255, 0.05)", 
+                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                        borderRadius: "10px", 
+                        transition: "all 0.3s ease",
+                        "&:hover": { background: "rgba(255, 255, 255, 0.1)" },
+                        "&:focus": { outline: "none" },
+                        "&:focus-visible": { outline: "none" }
+                      }}
+                    >
+                      {darkMode ? <DarkModeIcon sx={{ fontSize: "1.2rem", color: "#FFB74D" }} /> : <LightModeIcon sx={{ fontSize: "1.2rem", color: "rgba(255,255,255,0.7)" }} />}
+                    </IconButton>
+                  </>
                 )}
                 <IconButton 
                   onClick={() => setDrawerOpen(true)} 

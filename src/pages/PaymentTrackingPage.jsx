@@ -15,6 +15,8 @@ import {
   CardContent,
   Chip,
   Button,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import { useNavigate, useOutletContext, Link } from "react-router-dom";
 import { IoArrowForwardCircleOutline } from "react-icons/io5";
@@ -28,6 +30,7 @@ import "../css/table.css";
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const PaymentTrackingPage = () => {
+  const [activeTab, setActiveTab] = useState(0); // 0 = Memo-wise, 1 = Receiver-wise
   const [memos, setMemos] = useState([]);
   const [selectedDate, setSelectedDate] = useState(getDate());
   const [idFilter, setIdFilter] = useState("");
@@ -153,6 +156,36 @@ const PaymentTrackingPage = () => {
       <Typography variant="h5" sx={{ mb: 2, color: colors?.textPrimary || "#1E3A5F", fontWeight: 700 }}>
         Payment Tracking
       </Typography>
+
+      {/* Tabs */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs 
+          value={activeTab} 
+          onChange={(e, newValue) => {
+            setActiveTab(newValue);
+            if (newValue === 1) {
+              navigate("/user/payment-tracking/receiver-wise");
+            }
+          }}
+          sx={{
+            "& .MuiTab-root": {
+              color: colors?.textSecondary,
+              fontWeight: 600,
+              fontSize: "0.95rem",
+              textTransform: "none",
+              "&.Mui-selected": {
+                color: isDarkMode ? colors?.accent : colors?.primary,
+              }
+            },
+            "& .MuiTabs-indicator": {
+              backgroundColor: isDarkMode ? colors?.accent : colors?.primary,
+            }
+          }}
+        >
+          <Tab label="Memo-wise View" />
+          <Tab label="Receiver-wise View" />
+        </Tabs>
+      </Box>
 
       {/* Summary Cards */}
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" }, gap: 2, mb: 2.5 }}>
