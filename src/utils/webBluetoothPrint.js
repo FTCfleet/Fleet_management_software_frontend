@@ -300,18 +300,8 @@ class WebBluetoothPrinter {
         data[i] = escPosCommands.charCodeAt(i) & 0xFF;
       }
 
-      // Determine optimal chunk size based on characteristic properties
-      let chunkSize = 512; // Default to larger chunks
-      
-      // Check if we can use writeWithoutResponse for faster transmission
-      const useWriteWithoutResponse = this.characteristic.properties.writeWithoutResponse;
-      
-      if (useWriteWithoutResponse) {
-        chunkSize = 512; // Can use larger chunks without waiting for response
-      } else {
-        chunkSize = 128; // Smaller chunks when waiting for responses
-      }
-
+      // Use larger chunk size for faster transmission
+      const chunkSize = 512;
       const totalChunks = Math.ceil(data.length / chunkSize);
 
       for (let i = 0; i < data.length; i += chunkSize) {
@@ -319,19 +309,14 @@ class WebBluetoothPrinter {
         const chunkNum = Math.floor(i / chunkSize) + 1;
         
         try {
-          if (useWriteWithoutResponse) {
-            // Faster: no response needed
-            await this.characteristic.writeValueWithoutResponse(chunk);
-          } else {
-            // Slower: waits for response
-            await this.characteristic.writeValue(chunk);
-          }
+          // Always use writeValue (with response) for reliability
+          await this.characteristic.writeValue(chunk);
         } catch (writeError) {
           throw new Error(`Failed to send data chunk ${chunkNum}: ${writeError.message}`);
         }
         
-        // Minimal delay - only needed for write without response to prevent buffer overflow
-        if (useWriteWithoutResponse && chunkNum % 5 === 0) {
+        // Small delay every 5 chunks to prevent buffer overflow
+        if (chunkNum % 5 === 0) {
           await new Promise(resolve => setTimeout(resolve, 10));
         }
       }
