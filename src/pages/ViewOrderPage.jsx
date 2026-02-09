@@ -612,15 +612,15 @@ export default function ViewOrderPage() {
       </Card>
 
       {/* Action Buttons */}
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, justifyContent: { xs: "stretch", sm: "center" }, alignItems: "center" }}>
-        <button className="button" onClick={handleLRPrint} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, justifyContent: "center", alignItems: "center" }}>
+        <button className="button" onClick={handleLRPrint} style={{ minWidth: "160px" }}>
           <FaPrint /> Print A4 LR
         </button>
-        <button className="button" onClick={handleLRPrintThermal} style={{ flex: isMobile ? "1 1 100%" : "0 0 auto" }}>
+        <button className="button" onClick={handleLRPrintThermal} style={{ minWidth: "180px" }}>
           <FaPrint /> Print via QZ Tray
         </button>
         
-        {/* Web Bluetooth Printing (Mobile/Tablet) */}
+        {/* Web Bluetooth Printing (All Screens) */}
         {isWebBluetoothSupported() && (
           <>
             {!bluetoothConnected ? (
@@ -629,12 +629,12 @@ export default function ViewOrderPage() {
                 onClick={handleConnectBluetooth}
                 disabled={isLoading}
                 style={{ 
-                  flex: isMobile ? "1 1 100%" : "0 0 auto",
+                  minWidth: "220px",
                   background: isDarkMode ? "linear-gradient(180deg, #42A5F5 0%, #1E88E5 100%)" : "linear-gradient(180deg, #64B5F6 0%, #42A5F5 100%)",
                 }}
               >
                 {isLoading ? <CircularProgress size={16} sx={{ color: "#fff", mr: 1 }} /> : <FaBluetooth />} 
-                {isLoading ? "Connecting..." : "Connect Bluetooth Printer"}
+                {isLoading ? "Connecting..." : "Connect Bluetooth"}
               </button>
             ) : (
               <>
@@ -643,18 +643,18 @@ export default function ViewOrderPage() {
                   onClick={handleBluetoothPrint}
                   disabled={isLoading}
                   style={{ 
-                    flex: isMobile ? "1 1 100%" : "0 0 auto",
+                    minWidth: "200px",
                     background: isDarkMode ? "linear-gradient(180deg, #66BB6A 0%, #4CAF50 100%)" : "linear-gradient(180deg, #81C784 0%, #66BB6A 100%)",
                   }}
                 >
                   {isLoading ? <CircularProgress size={16} sx={{ color: "#fff", mr: 1 }} /> : <MdBluetoothConnected />} 
-                  {isLoading ? "Printing..." : `Print via ${bluetoothPrinterName}`}
+                  {isLoading ? "Printing..." : `Print via BT`}
                 </button>
                 <button 
                   className="button" 
                   onClick={handleDisconnectBluetooth}
                   style={{ 
-                    flex: isMobile ? "1 1 45%" : "0 0 auto",
+                    minWidth: "140px",
                     background: isDarkMode ? "rgba(255,255,255,0.1)" : "#e5e7eb",
                     color: isDarkMode ? colors?.textPrimary : "#374151",
                   }}
@@ -675,11 +675,11 @@ export default function ViewOrderPage() {
              2. Source warehouse staff (can edit LRs from their warehouse ONLY when status is "arrived")
              NOT for destination warehouse staff */
           (isAdmin || (isSource && order.sourceWarehouse?.warehouseID === stationCode && order.status === "arrived")) &&
-          <Link to={`/user/edit/order/${id}`} style={{ textDecoration: "none", flex: isMobile ? "1 1 45%" : "0 0 auto" }}>
+          <Link to={`/user/edit/order/${id}`} style={{ textDecoration: "none" }}>
           <button 
             className="button" 
             style={{ 
-              width: "100%",
+              minWidth: "120px",
               background: isDarkMode ? colors?.accent : "linear-gradient(180deg, #FFB74D 0%, #FFA726 100%)",
               color: isDarkMode ? "#0a1628" : "#1E3A5F",
               boxShadow: isDarkMode 
@@ -696,7 +696,7 @@ export default function ViewOrderPage() {
             className="button"
             onClick={() => setDeleteModalOpen(true)}
             style={{ 
-              flex: isMobile ? "1 1 45%" : "0 0 auto", 
+              minWidth: "120px",
               background: "linear-gradient(180deg, #dc2626 0%, #b91c1c 100%)",
               color: "#ffffff",
               boxShadow: "0 4px 15px rgba(220, 38, 38, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.2)"
