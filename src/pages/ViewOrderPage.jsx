@@ -620,49 +620,50 @@ export default function ViewOrderPage() {
           <FaPrint /> Print via QZ Tray
         </button>
         
-        {/* Web Bluetooth Printing (All Screens) */}
-        {isWebBluetoothSupported() && (
+        {/* Web Bluetooth Printing (All Screens) - Always show if browser supports it */}
+        {!bluetoothConnected ? (
+          <button 
+            className="button" 
+            onClick={handleConnectBluetooth}
+            disabled={isLoading || !isWebBluetoothSupported()}
+            style={{ 
+              minWidth: "220px",
+              background: !isWebBluetoothSupported() 
+                ? (isDarkMode ? "rgba(255,255,255,0.1)" : "#e5e7eb")
+                : (isDarkMode ? "linear-gradient(180deg, #42A5F5 0%, #1E88E5 100%)" : "linear-gradient(180deg, #64B5F6 0%, #42A5F5 100%)"),
+              opacity: !isWebBluetoothSupported() ? 0.5 : 1,
+              cursor: !isWebBluetoothSupported() ? "not-allowed" : "pointer",
+            }}
+            title={!isWebBluetoothSupported() ? "Web Bluetooth not supported in this browser. Use Chrome/Edge on Android." : "Connect to Bluetooth printer"}
+          >
+            {isLoading ? <CircularProgress size={16} sx={{ color: "#fff", mr: 1 }} /> : <FaBluetooth />} 
+            {isLoading ? "Connecting..." : "Connect Bluetooth"}
+          </button>
+        ) : (
           <>
-            {!bluetoothConnected ? (
-              <button 
-                className="button" 
-                onClick={handleConnectBluetooth}
-                disabled={isLoading}
-                style={{ 
-                  minWidth: "220px",
-                  background: isDarkMode ? "linear-gradient(180deg, #42A5F5 0%, #1E88E5 100%)" : "linear-gradient(180deg, #64B5F6 0%, #42A5F5 100%)",
-                }}
-              >
-                {isLoading ? <CircularProgress size={16} sx={{ color: "#fff", mr: 1 }} /> : <FaBluetooth />} 
-                {isLoading ? "Connecting..." : "Connect Bluetooth"}
-              </button>
-            ) : (
-              <>
-                <button 
-                  className="button" 
-                  onClick={handleBluetoothPrint}
-                  disabled={isLoading}
-                  style={{ 
-                    minWidth: "200px",
-                    background: isDarkMode ? "linear-gradient(180deg, #66BB6A 0%, #4CAF50 100%)" : "linear-gradient(180deg, #81C784 0%, #66BB6A 100%)",
-                  }}
-                >
-                  {isLoading ? <CircularProgress size={16} sx={{ color: "#fff", mr: 1 }} /> : <MdBluetoothConnected />} 
-                  {isLoading ? "Printing..." : `Print via BT`}
-                </button>
-                <button 
-                  className="button" 
-                  onClick={handleDisconnectBluetooth}
-                  style={{ 
-                    minWidth: "140px",
-                    background: isDarkMode ? "rgba(255,255,255,0.1)" : "#e5e7eb",
-                    color: isDarkMode ? colors?.textPrimary : "#374151",
-                  }}
-                >
-                  <MdBluetoothDisabled /> Disconnect
-                </button>
-              </>
-            )}
+            <button 
+              className="button" 
+              onClick={handleBluetoothPrint}
+              disabled={isLoading}
+              style={{ 
+                minWidth: "200px",
+                background: isDarkMode ? "linear-gradient(180deg, #66BB6A 0%, #4CAF50 100%)" : "linear-gradient(180deg, #81C784 0%, #66BB6A 100%)",
+              }}
+            >
+              {isLoading ? <CircularProgress size={16} sx={{ color: "#fff", mr: 1 }} /> : <MdBluetoothConnected />} 
+              {isLoading ? "Printing..." : `Print via BT`}
+            </button>
+            <button 
+              className="button" 
+              onClick={handleDisconnectBluetooth}
+              style={{ 
+                minWidth: "140px",
+                background: isDarkMode ? "rgba(255,255,255,0.1)" : "#e5e7eb",
+                color: isDarkMode ? colors?.textPrimary : "#374151",
+              }}
+            >
+              <MdBluetoothDisabled /> Disconnect
+            </button>
           </>
         )}
         
