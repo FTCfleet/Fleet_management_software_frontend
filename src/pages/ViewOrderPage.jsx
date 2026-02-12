@@ -53,14 +53,11 @@ export default function ViewOrderPage() {
     isPaid: false,
     addedBy: {},
   });
-  const [qrCode, setQrCode] = useState(0);
-  const [qrCount, setQrCount] = useState(0);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false);
-  const [printerNameDialogOpen, setPrinterNameDialogOpen] = useState(false);
-  const [printerName, setPrinterName] = useState("TVS-E RP 3230");
-  const [bluetoothConnected, setBluetoothConnected] = useState(false);
-  const [bluetoothPrinterName, setBluetoothPrinterName] = useState('');
+  const savedPrinter = webBluetoothPrinter.getSavedPrinter();
+  const [bluetoothConnected, setBluetoothConnected] = useState(webBluetoothPrinter.isConnected);
+  const [bluetoothPrinterName, setBluetoothPrinterName] = useState(savedPrinter?.name || '');
+  const [hasSavedPrinter, setHasSavedPrinter] = useState(!!savedPrinter);
   const [toast, setToast] = useState({ open: false, message: '', severity: 'info' });
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -116,7 +113,6 @@ export default function ViewOrderPage() {
     }
     const data = await response.json();
     setOrder(data.body);
-    setQrCode(data.qrCode);
     setIsLoading1(false);
     if (location.state?.print && !hasTriggered.current) {
       navigate(location.pathname, { replace: true, state: null });
@@ -197,102 +193,6 @@ export default function ViewOrderPage() {
     }
   };
 
-  const handleThermalPreview = async () => {
-    try {
-      setIsScreenLoadingText("Generating Preview...");
-      setIsScreenLoading(true);
-      
-      // Fetch parcel data
-      const response = await fetch(`${BASE_URL}/api/parcel/track/${id}`);
-      
-      if (!response.ok) {
-        throw new Error("Failed to fetch parcel data");
-      }
-      
-      const data = await response.json();
-      
-      if (!data.flag) {
-        throw new Error(data.message || "Failed to fetch parcel data");
-      }
-
-      // Generate ESC/POS commands for first copy (preview)
-      const escPosReceipts = generateCopiesArray(data.body);
-      
-      // Show preview of first copy
-      showPreview(escPosReceipts[0]);
-      
-    } catch (error) {
-      console.error("Preview error:", error);
-      alert(`Failed to generate preview: ${error.message}`);
-    } finally {
-      setIsScreenLoadingText("");
-      setIsScreenLoading(false);
-    }
-  };
-
-  const handleReloadPreview = async () => {
-    closePreview();
-    await handleThermalPreview();
-  };
-
-  const handlePrintFromPreview = async () => {
-    closePreview();
-    handleLRPrintThermal();
-  };
-
-  const handleNetworkPrint = () => {
-    // Open network printer dialog
-    setNetworkPrinterDialogOpen(true);
-  };
-
-  const handleNetworkPrintConfirm = async () => {
-    // Close dialog
-    setNetworkPrinterDialogOpen(false);
-    
-    // Validate inputs
-    if (!printerIP || printerIP.trim() === "") {
-      alert("Please enter printer IP address");
-      return;
-    }
-    
-    const port = parseInt(printerPort);
-    if (isNaN(port) || port < 1 || port > 65535) {
-      alert("Please enter a valid port number (1-65535)");
-      return;
-    }
-    
-    try {
-      setIsScreenLoadingText("Printing via Network...");
-      setIsScreenLoading(true);
-      
-      // Save printer settings to localStorage
-      localStorage.setItem('networkPrinterIP', printerIP.trim());
-      localStorage.setItem('networkPrinterPort', port.toString());
-      
-      // Print via network
-      const result = await printThermalLRNetwork(id, BASE_URL, printerIP.trim(), port);
-      
-      if (result.success) {
-        alert(`✅ ${result.message}\n\nTracking ID: ${id}\nPrinter: ${printerIP}:${port}`);
-      } else {
-        const errorMessage = getNetworkPrintErrorMessage(result.error);
-        alert(errorMessage);
-      }
-      
-    } catch (error) {
-      console.error("Network print error:", error);
-      const errorMessage = getNetworkPrintErrorMessage(error);
-      alert(errorMessage);
-    } finally {
-      setIsScreenLoadingText("");
-      setIsScreenLoading(false);
-    }
-  };
-
-  const handleNetworkPrintCancel = () => {
-    setNetworkPrinterDialogOpen(false);
-  };
-
   // Bluetooth Print Handlers
   const handleConnectBluetooth = async () => {
     try {
@@ -302,6 +202,7 @@ export default function ViewOrderPage() {
       if (result.success) {
         setBluetoothConnected(true);
         setBluetoothPrinterName(result.deviceName);
+        setHasSavedPrinter(true);
         setToast({
           open: true,
           message: `Connected to ${result.deviceName}`,
@@ -325,13 +226,14 @@ export default function ViewOrderPage() {
     }
   };
 
-  const handleDisconnectBluetooth = async () => {
-    await webBluetoothPrinter.disconnect();
+  const handleForgetBluetooth = async () => {
+    webBluetoothPrinter.forgetDevice();
     setBluetoothConnected(false);
     setBluetoothPrinterName('');
+    setHasSavedPrinter(false);
     setToast({
       open: true,
-      message: 'Printer disconnected',
+      message: 'Printer forgotten. You can pair a new one.',
       severity: 'info'
     });
   };
@@ -341,6 +243,39 @@ export default function ViewOrderPage() {
       setIsLoading(true);
       setIsScreenLoadingText("Printing via Bluetooth...");
       setIsScreenLoading(true);
+
+      // Auto-reconnect if not currently connected but we have a saved printer
+      if (!webBluetoothPrinter.isConnected) {
+        setIsScreenLoadingText("Reconnecting to printer...");
+        const reconnectResult = await webBluetoothPrinter.reconnect();
+        if (reconnectResult.success) {
+          setBluetoothConnected(true);
+          setBluetoothPrinterName(reconnectResult.deviceName);
+        } else {
+          // Reconnect failed — prompt user to scan for a new device
+          setIsScreenLoading(false);
+          setToast({
+            open: true,
+            message: `Could not reconnect to ${bluetoothPrinterName || 'saved printer'}. Please pair again.`,
+            severity: 'warning'
+          });
+          // Attempt fresh connect (opens Bluetooth scan dialog)
+          const connectResult = await connectBluetoothPrinter();
+          if (!connectResult.success) {
+            setToast({
+              open: true,
+              message: connectResult.error || 'Failed to connect to printer',
+              severity: 'error'
+            });
+            return;
+          }
+          setBluetoothConnected(true);
+          setBluetoothPrinterName(connectResult.deviceName);
+          setHasSavedPrinter(true);
+          setIsScreenLoadingText("Printing via Bluetooth...");
+          setIsScreenLoading(true);
+        }
+      }
 
       // Generate ESC/POS commands
       const escPosCommands = generateThreeCopies(order);
@@ -369,69 +304,6 @@ export default function ViewOrderPage() {
       });
     } finally {
       setIsLoading(false);
-      setIsScreenLoading(false);
-    }
-  };
-
-  const handleScanNetwork = async () => {
-    setIsScanning(true);
-    
-    try {
-      const result = await discoverNetworkPrinters(BASE_URL);
-      
-      if (result.success && result.printers.length > 0) {
-        setDiscoveredPrinters(result.printers);
-        // Auto-select first printer
-        setPrinterIP(result.printers[0].ip);
-        setPrinterPort(result.printers[0].port.toString());
-        alert(`✅ Found ${result.printers.length} printer(s)!\n\nFirst printer selected: ${result.printers[0].ip}:${result.printers[0].port}`);
-      } else if (result.success && result.printers.length === 0) {
-        alert('⚠️ No printers found on network\n\nMake sure:\n• Printer is powered on\n• Printer is connected to WiFi\n• Printer and server are on same network');
-      } else {
-        alert(`❌ Scan failed\n\n${result.message}`);
-      }
-    } catch (error) {
-      console.error('Scan error:', error);
-      alert('❌ Failed to scan network\n\nPlease enter printer IP manually');
-    } finally {
-      setIsScanning(false);
-    }
-  };
-
-  const handlePreviewThermalLR = async () => {
-    try {
-      setIsScreenLoadingText("Generating Thermal LR Preview...");
-      setIsScreenLoading(true);
-      
-      // Fetch thermal LR preview (PDF with print menu)
-      const response = await fetch(
-        `${BASE_URL}/api/parcel/preview-lr-thermal/${id}`
-      );
-      
-      if (!response.ok) {
-        throw new Error("Failed to generate thermal LR preview");
-      }
-      
-      const blob = await response.blob();
-      const pdfURL = URL.createObjectURL(blob);
-
-      // Create iframe to show print menu
-      const iframe = document.createElement("iframe");
-      iframe.style.display = "none";
-      iframe.src = pdfURL;
-
-      document.body.appendChild(iframe);
-
-      iframe.onload = () => {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-      };
-      
-    } catch (error) {
-      console.error("Preview error:", error);
-      alert("Failed to generate thermal LR preview. Please try again.");
-    } finally {
-      setIsScreenLoadingText("");
       setIsScreenLoading(false);
     }
   };
@@ -621,7 +493,7 @@ export default function ViewOrderPage() {
         </button>
         
         {/* Web Bluetooth Printing (All Screens) - Always show if browser supports it */}
-        {!bluetoothConnected ? (
+        {!hasSavedPrinter ? (
           <button 
             className="button" 
             onClick={handleConnectBluetooth}
@@ -649,20 +521,22 @@ export default function ViewOrderPage() {
                 minWidth: "200px",
                 background: isDarkMode ? "linear-gradient(180deg, #66BB6A 0%, #4CAF50 100%)" : "linear-gradient(180deg, #81C784 0%, #66BB6A 100%)",
               }}
+              title={bluetoothConnected ? `Connected: ${bluetoothPrinterName}` : `Saved: ${bluetoothPrinterName} (will auto-reconnect)`}
             >
-              {isLoading ? <CircularProgress size={16} sx={{ color: "#fff", mr: 1 }} /> : <MdBluetoothConnected />} 
+              {isLoading ? <CircularProgress size={16} sx={{ color: "#fff", mr: 1 }} /> : (bluetoothConnected ? <MdBluetoothConnected /> : <FaBluetooth />)} 
               {isLoading ? "Printing..." : `Print via BT`}
             </button>
             <button 
               className="button" 
-              onClick={handleDisconnectBluetooth}
+              onClick={handleForgetBluetooth}
               style={{ 
                 minWidth: "140px",
                 background: isDarkMode ? "rgba(255,255,255,0.1)" : "#e5e7eb",
                 color: isDarkMode ? colors?.textPrimary : "#374151",
               }}
+              title="Forget this printer and pair a new one"
             >
-              <MdBluetoothDisabled /> Disconnect
+              <MdBluetoothDisabled /> Forget Printer
             </button>
           </>
         )}
