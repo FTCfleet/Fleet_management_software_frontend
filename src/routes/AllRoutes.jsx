@@ -35,6 +35,7 @@ import EnquiriesPage from "../pages/EnquiriesPage";
 import PaymentTrackingPage from "../pages/PaymentTrackingPage";
 import ReceiverWisePaymentPage from "../pages/ReceiverWisePaymentPage";
 import MemoPaymentDetailsPage from "../pages/MemoPaymentDetailsPage";
+import PaidLRsPage from "../pages/PaidLRsPage";
 
 
 function AllRoutes() {
@@ -81,7 +82,8 @@ function AllRoutes() {
         <Route exact path="enquiries" element={<EnquiriesPage />} />
         <Route exact path="payment-tracking" element={<PaymentTrackingPage />} />
         <Route exact path="payment-tracking/receiver-wise" element={<ReceiverWisePaymentPage />} />
-        <Route exact path="payment-tracking/:memoId" element={<MemoPaymentDetailsPage />} /> 
+        <Route exact path="payment-tracking/:memoId" element={<MemoPaymentDetailsPage />} />
+        <Route exact path="paid-lrs" element={<PaidLRsPage />} /> 
         <Route exact path="edit/*">
           <Route exact path="order/:id" element={<EditOrderPage />} />
         </Route>

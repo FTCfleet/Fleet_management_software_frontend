@@ -107,6 +107,7 @@ const UserTemplate = () => {
       headingIcon: <FaMoneyCheckAlt />,
       items: [
         { text: "Payment Tracking", path: "/user/payment-tracking", icon: <FaMoneyCheckAlt /> },
+        { text: "Paid LRs", path: "/user/paid-lrs", icon: <FaMoneyCheckAlt /> },
       ],
     }] : []),
     ...(isAdmin

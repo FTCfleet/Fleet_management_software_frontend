@@ -316,6 +316,8 @@ const ReceiverWisePaymentPage = () => {
               navigate("/user/payment-tracking");
             }
           }}
+          variant="scrollable"
+          scrollButtons="auto"
           sx={{
             "& .MuiTabs-indicator": {
               height: 3,
@@ -326,10 +328,11 @@ const ReceiverWisePaymentPage = () => {
             "& .MuiTab-root": {
               color: colors?.textSecondary,
               fontWeight: 600,
-              fontSize: "0.95rem",
+              fontSize: { xs: "0.85rem", sm: "0.95rem" },
               textTransform: "none",
               minHeight: 48,
-              px: 3,
+              minWidth: { xs: "auto", sm: 120 },
+              px: { xs: 2, sm: 3 },
               transition: "all 0.2s ease",
               "&:hover": {
                 color: isDarkMode ? colors?.accent : colors?.primary,
@@ -342,8 +345,8 @@ const ReceiverWisePaymentPage = () => {
             }
           }}
         >
-          <Tab label="Memo-wise View" />
-          <Tab label="Receiver-wise View" />
+          <Tab label="Memo-wise" />
+          <Tab label="Receiver-wise" />
         </Tabs>
       </Box>
 

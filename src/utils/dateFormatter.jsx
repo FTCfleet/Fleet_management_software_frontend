@@ -1,51 +1,67 @@
 export const dateFormatter = (dateString) => {
     if (!dateString) return "N/A"; 
     
-    // Parse the date string
-    // NOTE: Backend stores IST time but sends it as if it's UTC
-    // So we should NOT convert - just format it directly
     const date = new Date(dateString);
     
     // Check if date is valid
     if (isNaN(date.getTime())) return "Invalid Date";
     
-    // Format directly without timezone conversion
-    // The date is already in IST from backend
-    const day = date.getUTCDate().toString().padStart(2, '0');
-    const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-    const year = date.getUTCFullYear();
+    // Convert UTC to IST (Asia/Kolkata timezone)
+    const options = {
+        timeZone: 'Asia/Kolkata',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    };
     
-    let hours = date.getUTCHours();
-    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-    const ampm = hours >= 12 ? 'pm' : 'am';
-    hours = hours % 12 || 12;
+    const formatter = new Intl.DateTimeFormat('en-IN', options);
+    const parts = formatter.formatToParts(date);
     
-    return `${day}/${month}/${year}, ${hours.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+    // Extract parts
+    const day = parts.find(p => p.type === 'day').value;
+    const month = parts.find(p => p.type === 'month').value;
+    const year = parts.find(p => p.type === 'year').value;
+    const hour = parts.find(p => p.type === 'hour').value;
+    const minute = parts.find(p => p.type === 'minute').value;
+    const dayPeriod = parts.find(p => p.type === 'dayPeriod').value.toLowerCase();
+    
+    return `${day}/${month}/${year}, ${hour}:${minute} ${dayPeriod}`;
 };
 
 export const dateFormatterForThermal = (dateString) => {
     if (!dateString) return "N/A"; 
     
-    // Parse the date string
-    // NOTE: Backend stores IST time but sends it as if it's UTC
-    // So we should NOT convert - just format it directly
     const date = new Date(dateString);
     
     // Check if date is valid
     if (isNaN(date.getTime())) return "Invalid Date";
     
-    // Format directly without timezone conversion
-    // The date is already in IST from backend
-    const day = date.getUTCDate().toString().padStart(2, '0');
-    const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-    const year = date.getUTCFullYear();
+    // Convert UTC to IST (Asia/Kolkata timezone)
+    const options = {
+        timeZone: 'Asia/Kolkata',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    };
     
-    let hours = date.getUTCHours();
-    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-    const ampm = hours >= 12 ? 'pm' : 'am';
-    hours = hours % 12 || 12;
+    const formatter = new Intl.DateTimeFormat('en-IN', options);
+    const parts = formatter.formatToParts(date);
     
-    return `${day}/${month}/${year}, ${hours.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+    // Extract parts
+    const day = parts.find(p => p.type === 'day').value;
+    const month = parts.find(p => p.type === 'month').value;
+    const year = parts.find(p => p.type === 'year').value;
+    const hour = parts.find(p => p.type === 'hour').value;
+    const minute = parts.find(p => p.type === 'minute').value;
+    const dayPeriod = parts.find(p => p.type === 'dayPeriod').value.toLowerCase();
+    
+    return `${day}/${month}/${year}, ${hour}:${minute} ${dayPeriod}`;
 };
 
 

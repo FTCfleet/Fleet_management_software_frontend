@@ -167,12 +167,16 @@ const PaymentTrackingPage = () => {
               navigate("/user/payment-tracking/receiver-wise");
             }
           }}
+          variant="scrollable"
+          scrollButtons="auto"
           sx={{
             "& .MuiTab-root": {
               color: colors?.textSecondary,
               fontWeight: 600,
-              fontSize: "0.95rem",
+              fontSize: { xs: "0.85rem", sm: "0.95rem" },
               textTransform: "none",
+              minWidth: { xs: "auto", sm: 120 },
+              px: { xs: 2, sm: 3 },
               "&.Mui-selected": {
                 color: isDarkMode ? colors?.accent : colors?.primary,
               }
@@ -182,8 +186,8 @@ const PaymentTrackingPage = () => {
             }
           }}
         >
-          <Tab label="Memo-wise View" />
-          <Tab label="Receiver-wise View" />
+          <Tab label="Memo-wise" />
+          <Tab label="Receiver-wise" />
         </Tabs>
       </Box>
 
