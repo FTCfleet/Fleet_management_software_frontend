@@ -90,16 +90,18 @@ const AllEmployeePage = () => {
   };
 
   // Filters
-  const applyFilter = () => {
+  const applyFilter = ({searchValue} = {}) => {
     if (!employees || employees.length === 0) {
       setFilteredEmployees([]);
       return;
     }
-    const searchTerm = nameFilter.toLowerCase().trim();
+    const val = searchValue ?? nameFilter;
+    setNameFilter(val);
+    const searchTerm = val.toLowerCase().trim();
     const filtered = employees.filter((emp) => {
       const matchesSearch = !searchTerm || 
-        (emp.name && emp.name.toLowerCase().includes(searchTerm)) ||
-        (emp.phoneNo && emp.phoneNo.includes(searchTerm));
+        (emp.name && emp.name.toLowerCase().startsWith(searchTerm)) ||
+        (emp.phoneNo && emp.phoneNo.startsWith(searchTerm));
       const matchesWarehouse = !warehouseFilter || 
         emp.warehouseCode?.warehouseID === warehouseFilter;
       return matchesSearch && matchesWarehouse;

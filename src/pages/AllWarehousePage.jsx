@@ -66,15 +66,17 @@ export default function AllWarehousePage() {
     setIsLoading(false);
   };
 
-  const applyFilter = () => {
-    const searchTerm = searchFilter.toLowerCase().trim();
+  const applyFilter = ({searchValue} = {}) => {
+    const val = searchValue ?? searchFilter;
+    setSearchFilter(val);
+    const searchTerm = val.toLowerCase().trim();
     if (!searchTerm) {
       setFilteredWarehouses(warehouses);
     } else {
       const filtered = warehouses.filter((warehouse) =>
-        warehouse.name.toLowerCase().includes(searchTerm) ||
-        warehouse.warehouseID.toLowerCase().includes(searchTerm) ||
-        warehouse.address.toLowerCase().includes(searchTerm)
+        warehouse.name.toLowerCase().startsWith(searchTerm) ||
+        warehouse.warehouseID.toLowerCase().startsWith(searchTerm) ||
+        warehouse.address.toLowerCase().startsWith(searchTerm)
       );
       setFilteredWarehouses(filtered);
     }

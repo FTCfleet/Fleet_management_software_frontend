@@ -96,12 +96,14 @@ const AllLedgerPage = () => {
     filterLedgersByTypeAndDate(type);
   };
 
-  const applyFilter = () => {
+  const applyFilter = ({searchValue} = {}) => {
+    const val = searchValue ?? nameFilter;
+    setNameFilter(val);
     let filtered = ledgerEntries.filter(
       (order) => order.status === type || type === "all"
     );
 
-    const searchTerm = nameFilter.toLowerCase().trim();
+    const searchTerm = val.toLowerCase().trim();
     if (searchTerm) {
       filtered = filtered.filter((order) =>
         order.vehicleNo.toLowerCase().replaceAll(" ","").includes(searchTerm) || 

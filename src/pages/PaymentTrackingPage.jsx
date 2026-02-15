@@ -84,13 +84,14 @@ const PaymentTrackingPage = () => {
   const filteredMemos = useMemo(() => {
     return memos.filter(memo => {
       // Filter by memo ID
-      const matchesMemoId = !idFilter || memo.ledgerId?.toLowerCase().includes(idFilter.toLowerCase());
+      const matchesMemoId = !idFilter || memo.ledgerId?.toLowerCase().startsWith(idFilter.toLowerCase());
       return matchesMemoId;
     });
   }, [memos, idFilter]);
 
-  const applyFilter = () => {
-    // Filters are applied in real-time via useMemo
+  const applyFilter = ({searchValue} = {}) => {
+    const val = searchValue ?? idFilter;
+    setIdFilter(val);
   };
 
   const clearFilter = () => {

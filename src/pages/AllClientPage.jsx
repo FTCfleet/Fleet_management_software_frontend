@@ -116,10 +116,14 @@ export default function AllClientPage() {
     fetchClients({ page: 1 });
   }, [fetchClients]);
 
-  const applyFilter = () => {
-    const trimmedName = nameFilter.trim();
+  const applyFilter = ({searchValue} = {}) => {
+    if (!clients || clients.length === 0) {
+      return;
+    }
+    const val = searchValue ?? nameFilter;
+    setNameFilter(val);
     setCurrentPage(1);
-    fetchClients({ page: 1, name: trimmedName, type: clientType });
+    fetchClients({ page: 1, name: val, type: clientType });
   };
 
   const clearFilter = () => {

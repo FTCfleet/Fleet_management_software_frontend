@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Box, TextField, Button, Select, MenuItem, InputAdornment } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import CustomDatePicker from "./CustomDatePicker";
@@ -32,6 +32,14 @@ const SearchFilterBar = ({
   extraButtons,
   showSearch = true,
 }) => {
+  // Local state for search inputs to avoid parent re-renders on every keystroke
+  const [localSearch, setLocalSearch] = useState(searchValue);
+  const [localSearch2, setLocalSearch2] = useState(searchValue2);
+
+  // Sync local state when parent resets values (e.g. external clear)
+  useEffect(() => { setLocalSearch(searchValue); }, [searchValue]);
+  useEffect(() => { setLocalSearch2(searchValue2); }, [searchValue2]);
+
   const inputStyle = {
     "& .MuiOutlinedInput-root": {
       borderRadius: "10px",
@@ -263,10 +271,11 @@ const SearchFilterBar = ({
         {showSearch && (
           <TextField
             placeholder={searchPlaceholder}
-            value={searchValue}
-            onChange={(e) => onSearchChange(e.target.value)}
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
             variant="outlined"
             size="small"
+            disabled={localSearch2.length > 0}
             sx={{
               ...inputStyle,
               flex: { xs: "none", sm: 1 },
@@ -287,10 +296,11 @@ const SearchFilterBar = ({
         {showSearch2 && onSearchChange2 && (
           <TextField
             placeholder={searchPlaceholder2}
-            value={searchValue2}
-            onChange={(e) => onSearchChange2(e.target.value)}
+            value={localSearch2}
+            onChange={(e) => setLocalSearch2(e.target.value)}
             variant="outlined"
             size="small"
+            disabled={localSearch.length > 0}
             sx={{
               ...inputStyle,
               flex: { xs: "none", sm: 1 },
@@ -317,7 +327,9 @@ const SearchFilterBar = ({
             {onApply && (
               <Button
                 variant="contained"
-                onClick={onApply}
+                onClick={() => {
+                  onApply({searchValue: localSearch, searchValue2: localSearch2});
+                }}
                 disabled={isLoading}
                 sx={{
                   ...applyButtonStyle,
@@ -332,7 +344,11 @@ const SearchFilterBar = ({
             {onClear && (
               <Button
                 variant="outlined"
-                onClick={onClear}
+                onClick={() => {
+                  setLocalSearch("");
+                  setLocalSearch2("");
+                  if (onClear) onClear();
+                }}
                 disabled={isLoading}
                 sx={{
                   ...clearButtonStyle,
@@ -413,7 +429,7 @@ export const highlightMatch = (text, searchTerm, isDarkMode) => {
   const lowerText = String(text).toLowerCase();
   const lowerSearch = searchTerm.toLowerCase().trim();
   
-  if (!lowerSearch || !lowerText.includes(lowerSearch)) return text;
+  if (!lowerSearch || !lowerText.startsWith(lowerSearch)) return text;
   
   const index = lowerText.indexOf(lowerSearch);
   const before = String(text).slice(0, index);

@@ -119,16 +119,16 @@ const EnquiriesPage = () => {
   const searchMatchesLocation = (enquiry, searchTerm) => {
     if (!searchTerm) return false;
     const lowerSearch = searchTerm.toLowerCase();
-    return enquiry.pickupLocation?.toLowerCase().includes(lowerSearch) ||
-           enquiry.deliveryLocation?.toLowerCase().includes(lowerSearch);
+    return enquiry.pickupLocation?.toLowerCase().startsWith(lowerSearch) ||
+           enquiry.deliveryLocation?.toLowerCase().startsWith(lowerSearch);
   };
 
   const filteredEnquiries = enquiries.filter((enquiry) => {
     const matchesSearch = !searchValue || 
-      enquiry.name?.toLowerCase().includes(searchValue.toLowerCase()) ||
-      enquiry.phone?.includes(searchValue) ||
-      enquiry.pickupLocation?.toLowerCase().includes(searchValue.toLowerCase()) ||
-      enquiry.deliveryLocation?.toLowerCase().includes(searchValue.toLowerCase());
+      enquiry.name?.toLowerCase().startsWith(searchValue.toLowerCase()) ||
+      enquiry.phone?.startsWith(searchValue) ||
+      enquiry.pickupLocation?.toLowerCase().startsWith(searchValue.toLowerCase()) ||
+      enquiry.deliveryLocation?.toLowerCase().startsWith(searchValue.toLowerCase());
     const matchesService = !serviceFilter || enquiry.serviceType === serviceFilter;
     return matchesSearch && matchesService;
   });

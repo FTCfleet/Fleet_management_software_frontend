@@ -139,10 +139,11 @@ export default function AllItemPage() {
     fetchItemTypes();
   }, [fetchItemTypes]);
 
-  const applyFilter = () => {
-    const trimmedName = nameFilter.trim();
+  const applyFilter = ({searchValue} = {}) => {
+    const name = searchValue ?? nameFilter;
+    setNameFilter(name);
     setCurrentPage(1);
-    fetchItems({ page: 1, name: trimmedName });
+    fetchItems({ page: 1, name: name.trim() });
   };
 
   const clearFilter = () => {

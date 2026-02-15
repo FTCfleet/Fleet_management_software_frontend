@@ -68,13 +68,15 @@ export default function AllTruckPage() {
   };
 
   // Filters
-  const applyFilter = () => {
-    const searchTerm = nameFilter.toLowerCase();
+  const applyFilter = ({searchValue} = {}) => {
+    const val = searchValue ?? nameFilter;
+    setNameFilter(val);
+    const searchTerm = val.toLowerCase();
     const filtered = trucks.filter((truck) => {
       if (!searchTerm) return true;
       return (
-        truck.name.toLowerCase().includes(searchTerm) ||
-        truck.vehicleNo.toLowerCase().includes(searchTerm)
+        truck.name.toLowerCase().startsWith(searchTerm) ||
+        truck.vehicleNo.toLowerCase().startsWith(searchTerm)
       );
     });
     setFilteredTrucks(filtered);

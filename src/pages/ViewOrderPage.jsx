@@ -94,7 +94,7 @@ export default function ViewOrderPage() {
       checkBluetoothPrinter();
     }
   }, []);
-
+  // console.log(isMobile);
   const fetchData = async () => {
     setIsLoading1(true);
     const token = localStorage.getItem("token");
@@ -117,7 +117,12 @@ export default function ViewOrderPage() {
     if (location.state?.print && !hasTriggered.current) {
       navigate(location.pathname, { replace: true, state: null });
       hasTriggered.current = true;
-      handleLRPrintThermal();
+      if (location.state?.isThermal){
+        if (!isMobile){
+          handleLRPrintThermal();
+        }
+      }
+      else handleLRPrint();
     }
   };
 
@@ -488,12 +493,14 @@ export default function ViewOrderPage() {
         <button className="button" onClick={handleLRPrint} style={{ minWidth: "160px" }}>
           <FaPrint /> Print A4 LR
         </button>
+        {!isMobile && (
         <button className="button" onClick={handleLRPrintThermal} style={{ minWidth: "180px" }}>
           <FaPrint /> Print via QZ Tray
         </button>
+        )}
         
         {/* Web Bluetooth Printing (All Screens) - Always show if browser supports it */}
-        {!hasSavedPrinter ? (
+        {isMobile && (!hasSavedPrinter ? (
           <button 
             className="button" 
             onClick={handleConnectBluetooth}
@@ -539,7 +546,7 @@ export default function ViewOrderPage() {
               <MdBluetoothDisabled /> Forget Printer
             </button>
           </>
-        )}
+        ))}
         
         {/* Install App Button */}
         <InstallAppButton isDarkMode={isDarkMode} colors={colors} />

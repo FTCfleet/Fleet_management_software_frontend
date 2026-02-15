@@ -99,10 +99,10 @@ const PaidLRsPage = () => {
     if (appliedSearchQuery.trim()) {
       const query = appliedSearchQuery.toLowerCase();
       filtered = filtered.filter(order => 
-        order.trackingId?.toLowerCase().includes(query) ||
-        order.sender?.name?.toLowerCase().includes(query) ||
-        order.receiver?.name?.toLowerCase().includes(query) ||
-        order.memoId?.toLowerCase().includes(query)
+        order.trackingId?.toLowerCase().startsWith(query) ||
+        order.sender?.name?.toLowerCase().startsWith(query) ||
+        order.receiver?.name?.toLowerCase().startsWith(query) ||
+        order.memoId?.toLowerCase().startsWith(query)
       );
     }
     
@@ -116,8 +116,10 @@ const PaidLRsPage = () => {
     return filtered;
   }, [orders, appliedSearchQuery]);
 
-  const handleApplySearch = () => {
-    setAppliedSearchQuery(searchQuery);
+  const handleApplySearch = ({searchValue} = {}) => {
+    const val = searchValue ?? searchQuery;
+    setSearchQuery(val);
+    setAppliedSearchQuery(val);
   };
 
   const handleClearSearch = () => {

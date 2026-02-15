@@ -85,11 +85,6 @@ export default function AddOrderPage({}) {
 
   useEffect(() => { fetchClients(); fetchWarehouse(); fetchItems(); fetchItemTypes(); }, []);
 
-  const fetchRegClientItems = async (clientId) => {
-    const token = localStorage.getItem("token");
-    await fetch(`${BASE_URL}/api/admin/regular-client-items/${clientId}`, { method: "GET", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` } });
-  };
-
   const fetchClients = async () => {
     const token = localStorage.getItem("token");
     const res = await fetch(`${BASE_URL}/api/admin/regular-clients`, { method: "GET", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` } });
@@ -223,7 +218,7 @@ export default function AddOrderPage({}) {
     return details;
   };
 
-  const handleAddOrder = async () => {
+  const handleAddOrder = async (isThermal) => {
     if (!validateOrder()) { setError(true); return; }
     setIsLoading(true);
     try {
@@ -255,7 +250,7 @@ export default function AddOrderPage({}) {
         showError("Failed to create LR. Please try again.", "Error"); 
       } else { 
         // Navigate directly to view page with print flag (no success dialog)
-        navigate(`/user/view/order/${data.body}`, { state: {print: true} }); 
+        navigate(`/user/view/order/${data.body}`, { state: {print: true, isThermal} }); 
       }
     } catch (error) { showError("Network error occurred. Please check your connection.", "Network Error"); }
     finally { setIsLoading(false); }
@@ -278,7 +273,6 @@ export default function AddOrderPage({}) {
     selectedOption = selectedOption.toUpperCase();
     let client = regClients.find((client) => client.name === selectedOption && !client.isSender);
     if (!client) { setReceiverDetails({ ...receiverDetails, name: selectedOption }); return; }
-    fetchRegClientItems(client._id);
     setReceiverDetails({ ...receiverDetails, name: client.name, phoneNo: client.phoneNo, address: client.address, gst: client.gst });
   };
 
@@ -413,9 +407,12 @@ export default function AddOrderPage({}) {
         </Box>
       </SectionCard>
 
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 3, mb: 2 }}>
-        <button className="button button-large" onClick={handleAddOrder} disabled={isLoading} style={{ minWidth: "260px", padding: "14px 32px", fontSize: "1rem", borderRadius: "10px" }}>
-          {isLoading ? (<>Creating...<CircularProgress size={20} sx={{ color: "#fff", ml: 1 }} /></>) : "Save & Print"}
+      <Box sx={{ display: "flex", justifyContent: "center", margin: "20px 0", gap: "20px", flexDirection: { xs: "column", sm: "row" }, maxWidth: "260px", justifySelf: "center" }}>
+        <button className="button button-large" onClick={() => handleAddOrder(false)} disabled={isLoading} style={{ minWidth: "260px", padding: "14px 32px", fontSize: "1rem", borderRadius: "10px" }}>
+          {isLoading ? (<>Creating...<CircularProgress size={20} sx={{ color: "#fff", ml: 1 }} /></>) : "Save & Print A4"}
+        </button>
+        <button className="button button-large" onClick={() => handleAddOrder(true)} disabled={isLoading} style={{ minWidth: "260px", padding: "14px 32px", fontSize: "1rem", borderRadius: "10px" }}>
+          {isLoading ? (<>Creating...<CircularProgress size={20} sx={{ color: "#fff", ml: 1 }} /></>) : "Save & Print Thermal"}
         </button>
       </Box>
 

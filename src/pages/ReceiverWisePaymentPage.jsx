@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -31,6 +31,7 @@ import { fromDbValue } from "../utils/currencyUtils";
 import ModernSpinner from "../components/ModernSpinner";
 import SearchFilterBar, { highlightMatch } from "../components/SearchFilterBar";
 import CustomDateRangePicker from "../components/CustomDateRangePicker";
+import Pagination from "../components/Pagination";
 import "../css/table.css";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -42,9 +43,16 @@ const ReceiverWisePaymentPage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedOrders, setSelectedOrders] = useState(new Set());
-  const [searchQuery, setSearchQuery] = useState("");
-  const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
+  const [idFilter, setIdFilter] = useState("");
+  const [nameFilter, setNameFilter] = useState("");
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalParcels, setTotalParcels] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [totalAmountReceived, setTotalAmountReceived] = useState(0);
   
   const getDefaultDateRange = () => {
     const endDate = new Date();
@@ -74,16 +82,24 @@ const ReceiverWisePaymentPage = () => {
     return null;
   }
 
-  useEffect(() => {
-    fetchReceiverWiseData();
-  }, [dateRange]);
-
-  const fetchReceiverWiseData = async () => {
+  const fetchReceiverWiseData = useCallback(async ({page, idFilterValue, nameFilterValue}) => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
+
+      const params = new URLSearchParams();
+      params.append("startDate", dateRange.startDate);
+      params.append("endDate", dateRange.endDate);
+      params.append("page", page.toString());
+      if (idFilterValue.trim()) {
+        params.append("trackingId", idFilterValue.trim());
+      }
+      if (nameFilterValue.trim()) {
+        params.append("receiverName", nameFilterValue.trim());
+      }
+
       const response = await fetch(
-        `${BASE_URL}/api/payment-tracking/receiver-wise?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`,
+        `${BASE_URL}/api/payment-tracking/receiver-wise?${params.toString()}`,
         {
           method: "GET",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -94,9 +110,21 @@ const ReceiverWisePaymentPage = () => {
       const data = await response.json();
       
       if (data.flag) {
-        setOrders(data.body || []);
+        const body = data.body || {};
+        const result = body.result || [];
+        setOrders(result);
+        setTotalPages(body.totalPages || 0);
+        setTotalParcels(body.totalParcels || 0);
+        const totalAmount = fromDbValue(body.totalAmount || 0, true);
+        setTotalAmount(totalAmount);
+        const totalAmountReceived = fromDbValue(body.totalAmountReceived || 0, true);
+        if (totalAmount !== '-' && totalAmountReceived === '-')
+          setTotalAmountReceived(0);
+        else
+          setTotalAmountReceived(totalAmountReceived);
+
         const initialSelected = new Set();
-        (data.body || []).forEach(order => {
+        result.forEach(order => {
           if (order.paymentTracking?.paymentStatus === "Payment Received") {
             initialSelected.add(order.trackingId);
           }
@@ -107,7 +135,11 @@ const ReceiverWisePaymentPage = () => {
       console.error("Error fetching receiver-wise payment data:", error);
     }
     setIsLoading(false);
-  };
+  }, [dateRange]);
+
+  useEffect(() => {
+    fetchReceiverWiseData({page: currentPage, idFilterValue: idFilter, nameFilterValue: nameFilter});
+  }, [dateRange, currentPage]);
 
   const handleOrderToggle = (orderId) => {
     if (!isEditMode) return;
@@ -217,30 +249,15 @@ const ReceiverWisePaymentPage = () => {
     return fromDbValue(freight + hamali * 2 + doorDelivery, true);
   };
 
-  const filteredOrders = useMemo(() => {
-    let filtered = orders;
-    
-    if (appliedSearchQuery.trim()) {
-      const query = appliedSearchQuery.toLowerCase();
-      filtered = filtered.filter(order => 
-        order.trackingId?.toLowerCase().includes(query) ||
-        order.receiver?.name?.toLowerCase().includes(query) ||
-        order.memoId?.toLowerCase().includes(query)
-      );
-    }
-    
-    filtered.sort((a, b) => {
+  const groupedByReceiver = useMemo(() => {
+    const sorted = [...orders].sort((a, b) => {
       const nameA = (a.receiver?.name || "").toLowerCase();
       const nameB = (b.receiver?.name || "").toLowerCase();
       return nameA.localeCompare(nameB);
     });
-    
-    return filtered;
-  }, [orders, appliedSearchQuery]);
 
-  const groupedByReceiver = useMemo(() => {
     const groups = {};
-    filteredOrders.forEach(order => {
+    sorted.forEach(order => {
       const receiverName = order.receiver?.name || "Unknown";
       if (!groups[receiverName]) {
         groups[receiverName] = [];
@@ -249,15 +266,36 @@ const ReceiverWisePaymentPage = () => {
     });
     
     return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
-  }, [filteredOrders]);
+  }, [orders]);
 
-  const handleApplySearch = () => {
-    setAppliedSearchQuery(searchQuery);
+  const handleApplySearch = ({searchValue: id, searchValue2: name} = {}) => {
+    const idVal = id ?? idFilter;
+    const nameVal = name ?? nameFilter;
+    setIdFilter(idVal);
+    setNameFilter(nameVal);
+    setCurrentPage(1);
+    fetchReceiverWiseData({page: 1, idFilterValue: idVal, nameFilterValue: nameVal});
   };
 
   const handleClearSearch = () => {
-    setSearchQuery("");
-    setAppliedSearchQuery("");
+    setIdFilter("");
+    setNameFilter("");
+    setCurrentPage(1);
+    fetchReceiverWiseData({page: 1, idFilterValue: "", nameFilterValue: ""});
+  };
+
+  const pendingAmount = isNaN(totalAmount - totalAmountReceived) ? "-" : (totalAmount - totalAmountReceived).toFixed(2);
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
   };
 
   const calculateReceiverTotal = (orders) => {
@@ -275,24 +313,6 @@ const ReceiverWisePaymentPage = () => {
         return sum + (isNaN(total) ? 0 : total);
       }, 0);
   };
-
-  const totalAmount = useMemo(() => {
-    return orders.reduce((sum, order) => {
-      const total = parseFloat(calculateTotal(order));
-      return sum + (isNaN(total) ? 0 : total);
-    }, 0);
-  }, [orders]);
-
-  const receivedAmount = useMemo(() => {
-    return orders
-      .filter(order => order.paymentTracking?.paymentStatus === "Payment Received")
-      .reduce((sum, order) => {
-        const total = parseFloat(calculateTotal(order));
-        return sum + (isNaN(total) ? 0 : total);
-      }, 0);
-  }, [orders]);
-
-  const pendingAmount = totalAmount - receivedAmount;
 
   const cellStyle = { color: colors?.textPrimary || "#1E3A5F", fontWeight: 600, fontSize: "0.85rem" };
   const rowCellStyle = { color: colors?.textSecondary || "#25344E", fontSize: "0.9rem" };
@@ -375,7 +395,7 @@ const ReceiverWisePaymentPage = () => {
             <CardContent sx={{ p: 2 }}>
               <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.8rem", mb: 0.5 }}>Total Amount</Typography>
               <Typography sx={{ color: colors?.textPrimary || "#1E3A5F", fontWeight: 700, fontSize: "1.5rem" }}>
-                ₹{totalAmount.toFixed(2)}
+                ₹{totalAmount}
               </Typography>
             </CardContent>
           </Card>
@@ -388,7 +408,7 @@ const ReceiverWisePaymentPage = () => {
             <CardContent sx={{ p: 2 }}>
               <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.8rem", mb: 0.5 }}>Received</Typography>
               <Typography sx={{ color: "#16a34a", fontWeight: 700, fontSize: "1.5rem" }}>
-                ₹{receivedAmount.toFixed(2)}
+                ₹{totalAmountReceived}
               </Typography>
             </CardContent>
           </Card>
@@ -401,7 +421,7 @@ const ReceiverWisePaymentPage = () => {
             <CardContent sx={{ p: 2 }}>
               <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.8rem", mb: 0.5 }}>Pending</Typography>
               <Typography sx={{ color: "#dc2626", fontWeight: 700, fontSize: "1.5rem" }}>
-                ₹{pendingAmount.toFixed(2)}
+                ₹{pendingAmount}
               </Typography>
             </CardContent>
           </Card>
@@ -411,8 +431,8 @@ const ReceiverWisePaymentPage = () => {
           <CustomDateRangePicker
             startDate={dateRange.startDate}
             endDate={dateRange.endDate}
-            onStartChange={(newStartDate) => setDateRange(prev => ({ ...prev, startDate: newStartDate }))}
-            onEndChange={(newEndDate) => setDateRange(prev => ({ ...prev, endDate: newEndDate }))}
+            onStartChange={(newStartDate) => { setCurrentPage(1); setDateRange(prev => ({ ...prev, startDate: newStartDate })); }}
+            onEndChange={(newEndDate) => { setCurrentPage(1); setDateRange(prev => ({ ...prev, endDate: newEndDate })); }}
             isDarkMode={isDarkMode}
             colors={colors}
           />
@@ -444,12 +464,31 @@ const ReceiverWisePaymentPage = () => {
         <SearchFilterBar
           isDarkMode={isDarkMode}
           colors={colors}
-          searchValue={searchQuery}
-          onSearchChange={setSearchQuery}
-          searchPlaceholder="Search by Receiver Name, LR ID, or Memo ID..."
+          searchValue={idFilter}
+          onSearchChange={setIdFilter}
+          searchPlaceholder="Search by LR ID"
+          searchValue2={nameFilter}
+          onSearchChange2={setNameFilter}
+          searchPlaceholder2="Search by Receiver Name"
+          showSearch2={true}
           onApply={handleApplySearch}
           onClear={handleClearSearch}
           isLoading={isLoading}
+        />
+
+        {/* Pagination Controls */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPrevious={handlePreviousPage}
+          onNext={handleNextPage}
+          isLoading={isLoading}
+          showInfo={true}
+          infoText={orders.length > 0
+            ? `Showing ${orders.length} of ${totalParcels} orders (Page ${totalPages === 0 ? 0 : currentPage} of ${totalPages})`
+            : `Showing 0 of ${totalParcels} orders`}
+          isDarkMode={isDarkMode}
+          colors={colors}
         />
 
         <Box sx={{ 
@@ -469,7 +508,7 @@ const ReceiverWisePaymentPage = () => {
               Orders by Receiver
             </Typography>
             <Chip 
-              label={`${filteredOrders.length} orders`}
+              label={`${totalParcels} orders`}
               size="small"
               sx={{
                 backgroundColor: isDarkMode ? "rgba(255,183,77,0.2)" : "rgba(30,58,95,0.1)",
@@ -615,7 +654,7 @@ const ReceiverWisePaymentPage = () => {
                   }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                       <Typography sx={{ fontWeight: 700, fontSize: "1.2rem", color: isDarkMode ? colors?.accent : colors?.primary }}>
-                        {highlightMatch(receiverName, appliedSearchQuery, isDarkMode)}
+                        {highlightMatch(receiverName, nameFilter, isDarkMode)}
                       </Typography>
                       <Chip 
                         label={`${receiverOrders.length} ${receiverOrders.length === 1 ? "order" : "orders"}`}
@@ -694,7 +733,7 @@ const ReceiverWisePaymentPage = () => {
                               </TableCell>
                               <TableCell sx={{ ...rowCellStyle, p: { xs: 0.5, sm: 2 } }}>
                                 <Chip
-                                  label={highlightMatch(order.memoId, appliedSearchQuery, isDarkMode)}
+                                  label={highlightMatch(order.memoId, nameFilter, isDarkMode)}
                                   size="small"
                                   sx={{
                                     backgroundColor: isDarkMode ? "rgba(255,255,255,0.05)" : "#f1f5f9",
@@ -706,7 +745,7 @@ const ReceiverWisePaymentPage = () => {
                                 />
                               </TableCell>
                               <TableCell sx={{ ...rowCellStyle, fontWeight: 600, fontSize: { xs: "0.7rem", sm: "0.9rem" } }}>
-                                {highlightMatch(order.trackingId, appliedSearchQuery, isDarkMode)}
+                                {highlightMatch(order.trackingId, nameFilter, isDarkMode)}
                               </TableCell>
                               <TableCell align="right" sx={{ ...rowCellStyle, fontWeight: 700, color: colors?.textPrimary, fontSize: { xs: "0.75rem", sm: "0.9rem" } }}>
                                 ₹{calculateTotal(order)}

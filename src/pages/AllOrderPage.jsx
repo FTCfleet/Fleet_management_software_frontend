@@ -166,9 +166,13 @@ const AllOrderPage = () => {
     };
   }, [memoizedOrders]);
 
-  const applyFilter = () => {
+  const applyFilter = ({searchValue: id, searchValue2: name} = {}) => {
+    const idVal = id ?? idFilter;
+    const nameVal = name ?? nameFilter;
+    setIdFilter(idVal);
+    setNameFilter(nameVal);
     setCurrentPage(1);
-    fetchData({page: 1, idFilterValue: idFilter, nameFilterValue: nameFilter, warehouseFilterValue: warehouseFilter});
+    fetchData({page: 1, idFilterValue: idVal, nameFilterValue: nameVal, warehouseFilterValue: warehouseFilter});
   };
 
   const clearFilter = () => {
@@ -209,7 +213,6 @@ const AllOrderPage = () => {
   // Mobile Card View - Memoized for performance
   const MobileOrderCard = React.memo(({ order, idx }) => {
     const statusColor = getStatusColor(order.status);
-    const searchTerm = idFilter || nameFilter;
     
     return (
       <Card sx={{ 
