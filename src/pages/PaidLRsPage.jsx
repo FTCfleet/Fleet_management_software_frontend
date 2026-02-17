@@ -44,19 +44,7 @@ const PaidLRsPage = () => {
   
   const [dateRange, setDateRange] = useState(getDefaultDateRange());
   
-  const navigate = useNavigate();
   const { isDarkMode, colors } = useOutletContext() || {};
-  const { isAdmin, isSource } = useAuth();
-
-  useEffect(() => {
-    if (isSource && !isAdmin) {
-      navigate("/user/dashboard");
-    }
-  }, [isSource, isAdmin, navigate]);
-
-  if (isSource && !isAdmin) {
-    return null;
-  }
 
   useEffect(() => {
     fetchPaidLRs();
