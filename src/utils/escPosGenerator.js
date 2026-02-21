@@ -91,14 +91,14 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
 
   receipt += ALIGN_L;
 
-  /* ---------- From / To (tall + bold) ---------- */
-  receipt += SIZE_H2 ;
+  /* ---------- From / To (tall + wide) ---------- */
+  receipt += SIZE_2X;
   receipt += `From: ${parcel.sourceWarehouse.name}${LF}`;
   receipt += `To: ${parcel.destinationWarehouse.name}${LF}`;
   receipt += SIZE_1X + LF;
 
-  /* ---------- Consignor / Consignee (tall + bold) ---------- */
-  receipt += SIZE_H2;
+  /* ---------- Consignor / Consignee (tall + wide) ---------- */
+  receipt += SIZE_2X;
   if(parcel.sender.name=="NA" && parcel.sender.phoneNo=="NA"){
     receipt += 'Consignor: NA   Ph: NA' + LF + LF;
   }else{
