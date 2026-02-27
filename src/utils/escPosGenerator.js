@@ -102,10 +102,10 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
     receipt += SIZE_H2 + 'Consignor: ' + SIZE_1X + 'NA   Ph: NA' + LF + LF;
   }else{
     receipt += SIZE_H2 + 'Consignor: ' + SIZE_2X + `${parcel.sender.name}${LF}`;
-    receipt += SIZE_H2 + 'Ph: ' + SIZE_2X + `${parcel.sender.phoneNo || "NA"}${LF}${LF}`;
+    receipt += SIZE_H2 + 'Ph: ' + SIZE_H2 + `${parcel.sender.phoneNo || "NA"}${LF}${LF}`;
   }
   receipt += SIZE_H2 + 'Consignee: ' + SIZE_2X + `${parcel.receiver.name}${LF}`;
-  receipt += SIZE_H2 + 'Ph: ' + SIZE_2X + `${parcel.receiver.phoneNo || "NA"}${LF}`;
+  receipt += SIZE_H2 + 'Ph: ' + SIZE_H2 + `${parcel.receiver.phoneNo || "NA"}${LF}`;
   receipt += SIZE_1X + LF;
 
   /* ---------- Table header ---------- */

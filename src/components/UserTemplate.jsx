@@ -91,6 +91,7 @@ const UserTemplate = () => {
         { text: `${isSource || isAdmin ? "Arrived" : "Incoming"} LRs`, path: "/user/order/arrived", icon: <FaRegFileAlt /> },
         { text: "Dispatched LRs", path: "/user/order/dispatched", icon: <FaRegFileAlt /> },
         { text: "Delivered LRs", path: "/user/order/delivered", icon: <FaRegFileAlt /> },
+        { text: "Paid LRs", path: "/user/paid-lrs", icon: <FaMoneyCheckAlt /> },
       ],
     },
     {
@@ -102,14 +103,16 @@ const UserTemplate = () => {
         { text: "Completed Memo", path: "/user/ledgers/completed", icon: <FaTruckMoving /> },
       ],
     },
-    {
-      heading: "Payments",
-      headingIcon: <FaMoneyCheckAlt />,
-      items: [
-        { text: "Payment Tracking", path: "/user/payment-tracking", icon: <FaMoneyCheckAlt /> },
-        { text: "Paid LRs", path: "/user/paid-lrs", icon: <FaMoneyCheckAlt /> },
-      ],
-    },
+    // Only show Payments section for Admin and Destination warehouse users (not Source)
+    ...(!isSource ? [
+      {
+        heading: "Payments",
+        headingIcon: <FaMoneyCheckAlt />,
+        items: [
+          { text: "Payment Tracking", path: "/user/payment-tracking", icon: <FaMoneyCheckAlt /> },
+        ],
+      },
+    ] : []),
     ...(isAdmin
       ? [
           {
