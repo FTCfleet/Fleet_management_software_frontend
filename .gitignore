@@ -8,9 +8,19 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# QZ Tray Certificate Files (NEVER commit these!)
 private-key.pem
 digital-certificate.pem
 digital-certificate.crt
+certificate.csr
+*.pem
+*.crt
+*.csr
+
+# Certificate Generation Scripts (not needed in repo)
+generate-qz-certificate.sh
+generate-qz-certificate.bat
+setup-qz-certificate.js
 
 node_modules
 dist
