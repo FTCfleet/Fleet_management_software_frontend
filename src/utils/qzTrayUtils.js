@@ -90,26 +90,42 @@ const configureQZSecurity = () => {
   if (!USE_CERTIFICATE || !window.qz) return;
   
   try {
-    // Set certificate and private key for signing
+    // Set certificate promise
     qz.security.setCertificatePromise((resolve) => {
       resolve(QZ_CERTIFICATE);
     });
     
+    // Set signature promise
     qz.security.setSignaturePromise((toSign) => {
       return (resolve, reject) => {
         try {
-          // Use jsrsasign library (included in QZ Tray) to sign
+          // Check if jsrsasign is available (loaded by QZ Tray)
+          if (typeof KEYUTIL === 'undefined' || typeof KJUR === 'undefined') {
+            console.warn('jsrsasign library not loaded. Certificate signing disabled.');
+            reject('jsrsasign library not available');
+            return;
+          }
+          
+          // Parse the private key
           const privateKey = KEYUTIL.getKey(QZ_PRIVATE_KEY);
+          
+          // Create signature
           const signature = new KJUR.crypto.Signature({ alg: "SHA512withRSA" });
           signature.init(privateKey);
           signature.updateString(toSign);
           const signedData = signature.sign();
-          resolve(stob64(signedData));
+          
+          // Convert to base64
+          const base64Signature = stob64(signedData);
+          resolve(base64Signature);
         } catch (err) {
+          console.error('Certificate signing error:', err);
           reject(err);
         }
       };
     });
+    
+    console.log('✅ QZ Tray certificate signing configured');
   } catch (error) {
     console.error("Failed to configure QZ Tray security:", error);
   }
@@ -139,8 +155,8 @@ export const connectQZTray = async () => {
     throw new Error("QZ Tray is not installed");
   }
   
-  // Configure security before connecting
-  configureQZSecurity();
+  // Don't configure security - let QZ Tray handle it via Site Manager
+  // Users should add digital-certificate.pem to QZ Tray's Site Manager
   
   if (!qz.websocket.isActive()) {
     await qz.websocket.connect();
