@@ -8,6 +8,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+private-key.pem
+digital-certificate.pem
+digital-certificate.crt
+
 node_modules
 dist
 dist-ssr
