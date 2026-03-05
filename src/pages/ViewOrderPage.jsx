@@ -120,7 +120,7 @@ export default function ViewOrderPage() {
       hasTriggered.current = true;
       if (location.state?.isThermal){
         if (isMobile || isChromebook){
-          handleBluetoothPrint();
+          handleBluetoothPrint(data.body);
         }
         else{
           handleLRPrintThermal();
@@ -247,7 +247,7 @@ export default function ViewOrderPage() {
     });
   };
 
-  const handleBluetoothPrint = async () => {
+  const handleBluetoothPrint = async (order_details) => {
     try {
       setIsLoading(true);
       setIsScreenLoadingText("Printing via Bluetooth...");
@@ -285,9 +285,14 @@ export default function ViewOrderPage() {
           setIsScreenLoading(true);
         }
       }
-
-      // Generate ESC/POS commands
-      const escPosCommands = generateThreeCopies(order);
+      let escPosCommands = '';
+      if (order_details) {
+        // Generate ESC/POS commands
+        escPosCommands = generateThreeCopies(order_details);
+      } else {
+        // Generate ESC/POS commands
+        escPosCommands = generateThreeCopies(order);
+      }
 
       // Print via Bluetooth
       const result = await printViaWebBluetooth(escPosCommands);
