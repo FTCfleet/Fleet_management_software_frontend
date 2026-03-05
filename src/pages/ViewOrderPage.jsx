@@ -285,14 +285,8 @@ export default function ViewOrderPage() {
           setIsScreenLoading(true);
         }
       }
-      let escPosCommands = '';
-      if (order_details) {
-        // Generate ESC/POS commands
-        escPosCommands = generateThreeCopies(order_details);
-      } else {
-        // Generate ESC/POS commands
-        escPosCommands = generateThreeCopies(order);
-      }
+      // Generate ESC/POS commands
+      const escPosCommands = generateThreeCopies(order_details);
 
       // Print via Bluetooth
       const result = await printViaWebBluetooth(escPosCommands);
@@ -509,7 +503,7 @@ export default function ViewOrderPage() {
         )}
         
         {/* Web Bluetooth Printing (All Screens) - Always show if browser supports it */}
-        {(isMobile || isChromebook) ? !hasSavedPrinter ? (
+        {(isMobile || isChromebook || true) ? !hasSavedPrinter ? (
           <button 
             className="button" 
             onClick={handleConnectBluetooth}
@@ -531,7 +525,7 @@ export default function ViewOrderPage() {
           <>
             <button 
               className="button" 
-              onClick={handleBluetoothPrint}
+              onClick={() => handleBluetoothPrint(order)}
               disabled={isLoading}
               style={{ 
                 minWidth: "200px",
