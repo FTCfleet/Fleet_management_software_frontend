@@ -239,7 +239,7 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
 
   /* shift Payment 5 chars right */
   receipt += ' '.repeat(5) +
-    BOLD_ON + `Payment: ${parcel.payment.toUpperCase()}` + BOLD_OFF + LF + LF;
+    BOLD_ON + `Payment: ${parcel.payment?.toUpperCase()}` + BOLD_OFF + LF + LF;
 
   /* ---------- Footer center ---------- */
   receipt += ALIGN_C;
