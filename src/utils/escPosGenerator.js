@@ -109,7 +109,7 @@ export const generateESCPOSReceipt = (parcel, auto = 0) => {
   const receiverName = parcel.receiver.name;
   // Label is SIZE_H2 (normal width), name is SIZE_2X (double width)
   // Check if they fit on one line (44 char paper width)
-  if (consigneeLabel.length + receiverName.length * 2 > 44) {
+  if (consigneeLabel.length + (receiverName?.length || 0) * 2 > 44) {
     receipt += SIZE_H2 + consigneeLabel + LF;
     receipt += SIZE_2X + receiverName + LF;
   } else {
