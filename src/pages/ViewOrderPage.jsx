@@ -68,6 +68,7 @@ export default function ViewOrderPage() {
   const hasTriggered = useRef(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isChromebook = navigator.userAgent.includes("CrOS");
 
   useEffect(() => {
     fetchData();
@@ -118,7 +119,10 @@ export default function ViewOrderPage() {
       navigate(location.pathname, { replace: true, state: null });
       hasTriggered.current = true;
       if (location.state?.isThermal){
-        if (!isMobile){
+        if (isMobile || isChromebook){
+          handleBluetoothPrint();
+        }
+        else{
           handleLRPrintThermal();
         }
       }
@@ -500,7 +504,7 @@ export default function ViewOrderPage() {
         )}
         
         {/* Web Bluetooth Printing (All Screens) - Always show if browser supports it */}
-        {isMobile && (!hasSavedPrinter ? (
+        {(isMobile || isChromebook) ? !hasSavedPrinter ? (
           <button 
             className="button" 
             onClick={handleConnectBluetooth}
@@ -546,7 +550,7 @@ export default function ViewOrderPage() {
               <MdBluetoothDisabled /> Forget Printer
             </button>
           </>
-        ))}
+        ) : null}
         
         {/* Install App Button */}
         <InstallAppButton isDarkMode={isDarkMode} colors={colors} />
