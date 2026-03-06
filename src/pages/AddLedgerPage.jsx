@@ -69,15 +69,6 @@ export default function AddLedgerPage({}) {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
-      
-      // Build source warehouse parameter
-      let sourceParam = {};
-      if (!sourceWarehouse.includes('all')) {
-        // Send comma-separated warehouse IDs if not "all"
-        sourceParam = { sourceWarehouse: sourceWarehouse.join(',') };
-      }
-      // If "all" is selected, don't send sourceWarehouse parameter
-      
       const response = await fetch(`${BASE_URL}/api/ledger/new`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -88,7 +79,6 @@ export default function AddLedgerPage({}) {
           vehicleNo: truckNo.toUpperCase(), 
           driverName: driverName, 
           driverPhone: driverPhone, 
-          ...sourceParam
         }),
       });
       const data = await response.json();
