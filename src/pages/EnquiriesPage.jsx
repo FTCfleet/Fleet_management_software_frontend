@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import ModernSpinner from "../components/ModernSpinner";
 import SearchFilterBar, { highlightMatch } from "../components/SearchFilterBar";
 import CustomDialog from "../components/CustomDialog";
+import { FaWhatsapp } from "react-icons/fa";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -343,6 +344,25 @@ const EnquiriesPage = () => {
                             <Box component="span" sx={{ color: "#1D3557", fontSize: "0.85rem", fontWeight: 700 }}>Call Now</Box>
                           </Box>
                         </a>
+                        <button
+                          onClick={() => window.open(`https://wa.me/+91${enquiry.phone}`, "_blank")}
+                          style = {{
+                            width: "35px",
+                            height: "35px",
+                            border: "none",
+                            borderRadius: "50%",
+                            background: "#25d366",
+                            color: "white",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            fontSize: "24px",
+                            padding: "0"
+                          }}
+                        >
+                          <FaWhatsapp size={18}/>
+                        </button>
                       </Box>
                       {/* Delete Button */}
                       <IconButton 
