@@ -173,7 +173,7 @@ const TrackShipmentPage = () => {
                 <Box sx={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "rgba(100,200,255,0.6)", zIndex: 1 }}><FaSearch /></Box>
                 <TextField
                   variant="outlined"
-                  placeholder="Enter Tracking ID (e.g., LR-1234)"
+                  placeholder="Enter Tracking ID (e.g., HYD01-12345)"
                   value={shipmentIdInput}
                   onChange={(e) => setShipmentIdInput(e.target.value)}
                   onKeyPress={handleKeyPress}

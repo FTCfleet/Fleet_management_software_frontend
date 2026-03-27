@@ -3,8 +3,8 @@ import { Typography, Box, Button, Container, useTheme, useMediaQuery } from "@mu
 import { Link } from "react-router-dom";
 import { motion, animate } from "framer-motion";
 import { FaShippingFast, FaWarehouse, FaCheckCircle, FaPhoneAlt, FaEnvelope, FaArrowRight, FaClock, FaShieldAlt, FaHandshake } from "react-icons/fa";
-import trucksImg from "../assets/trucks.webp";
 import founderImg from "../assets/founder.webp";
+import logoImg from "../assets/logo.webp";
 import "../css/glassmorphism.css";
 
 
@@ -61,7 +61,7 @@ const HomePage = () => {
     { label: "Happy Clients", value: 10000 },
     { label: "Branches", value: 12 },
     { label: "Staff", value: 50 },
-    { label: "Years of Trust", value: 28 },
+    { label: "Years of Trust", value: 30 },
   ];
 
   const services = [
@@ -73,7 +73,7 @@ const HomePage = () => {
   const features = [
     { icon: <FaShieldAlt />, title: "Secure Handling", desc: "Your goods are insured and handled with care" },
     { icon: <FaClock />, title: "On-Time Delivery", desc: "We value your time with punctual deliveries" },
-    { icon: <FaHandshake />, title: "Trusted Partner", desc: "28+ years of reliable service" },
+    { icon: <FaHandshake />, title: "Trusted Partner", desc: "30+ years of reliable service" },
   ];
 
   return (
@@ -231,7 +231,7 @@ const HomePage = () => {
           ))}
         </Box>
 
-        <Container maxWidth="xl" sx={{ position: "relative", zIndex: 2, px: { xs: 2, md: 4 }, py: { xs: 4, md: 6 } }}>
+        <Container maxWidth="xl" sx={{ position: "relative", zIndex: 2, px: { xs: 2, md: 4 }, py: { xs: 4} }}>
           <motion.div initial="hidden" animate="visible" variants={staggerContainer}>
             {/* Title */}
             <motion.div variants={fadeIn}>
@@ -264,13 +264,14 @@ const HomePage = () => {
                 }}>
                   <Box 
                     component="img" 
-                    src="/handshake.webp" 
+                    src={logoImg} 
                     alt="Handshake" 
                     sx={{ 
                       width: { xs: "100px", md: "130px" },
                       height: "auto",
-                      opacity: 0.9,
-                      filter: "drop-shadow(0 4px 12px rgba(255, 171, 45, 0.55))"
+                      // background: "rgba(255, 255, 255, 0.1)",
+                      // opacity: 0.9,
+                      // filter: "drop-shadow(0 4px 12px rgba(255, 171, 45, 0.55))"
                     }} 
                   />
                 </Box>
@@ -287,13 +288,13 @@ const HomePage = () => {
                 alignItems: "center",
                 maxWidth: "1400px",
                 mx: "auto",
-                py: { xs: 3, md: 4 }
+                marginTop: -5
               }}>
                 
                 {/* 1970s - Left Side */}
                 <Box sx={{ 
                   position: "relative",
-                  order: { xs: 1, md: 1 }
+                  order: { xs: 1, md: 1 },
                 }}>
                   <Box sx={{
                     position: "relative",
@@ -913,7 +914,7 @@ const HomePage = () => {
                 The legacy of Mr. Ameer Ali lives on through his sons and grandsons, who drive the company&apos;s growth with the same passion and integrity that built this trusted name.
               </Typography>
               <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3 }}>
-                {[{ value: "28+", label: "Years of Service", color: "#FFB74D" }, { value: "100%", label: "Customer Satisfaction", color: "#64C8FF" }].map((item, i) => (
+                {[{ value: "30+", label: "Years of Service", color: "#FFB74D" }, { value: "100%", label: "Customer Satisfaction", color: "#64C8FF" }].map((item, i) => (
                   <GlassCard key={i} sx={{ p: 2.5 }}>
                     <Typography sx={{ fontSize: { xs: "1.75rem", md: "2.25rem" }, fontWeight: 800, color: item.color, lineHeight: 1, mb: 0.5 }}>{item.value}</Typography>
                     <Typography sx={{ color: "rgba(255,255,255,0.8)", fontSize: "0.85rem" }}>{item.label}</Typography>

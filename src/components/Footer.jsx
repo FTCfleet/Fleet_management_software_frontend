@@ -14,6 +14,7 @@ const Footer = () => {
 
   const contactInfo = [
     { icon: <FaPhone size={14} />, text: "040-24614381", isPhone: true },
+    { icon: <FaPhone size={14} />, text: "+91-7075124426", isPhone: true },
     { icon: <FaEnvelope size={14} />, text: "ftchydindia@gmail.com", isEmail: true },
     { icon: <FaMapMarkerAlt size={14} />, text: "Hyderabad, India" },
   ];
@@ -76,7 +77,7 @@ const Footer = () => {
                   color: "#ffffff",
                 }}
               >
-                Friends Transport
+                Friends Transport Co.
               </Typography>
             </Box>
             <Typography

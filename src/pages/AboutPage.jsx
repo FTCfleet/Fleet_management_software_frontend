@@ -19,25 +19,25 @@ const AboutPage = () => {
   const staggerContainer = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } };
 
   const bookingOffices = [
-    { name: "Old Feelkhana (HYD-01)", phone: "040-24614381", mapUrl: "https://maps.app.goo.gl/Ep8ncVerzcffE34e7" },
-    { name: "Goshamahal Road, Feelkhana (HYD-02)", phone: "040-24604381", mapUrl: "https://maps.app.goo.gl/Ep8ncVerzcffE34e7" },
-    { name: "Bahadurpura (BDPURA)", phone: "9515409041", mapUrl: "https://maps.app.goo.gl/Ep8ncVerzcffE34e7" },
-    { name: "Secunderabad (SECBAD)", phone: "040-29331533", mapUrl: "https://maps.app.goo.gl/6ytQH88X91XkjBda9" },
+    { name: "Old Feelkhana (HYD-01)", phone: "040-24614381", mapUrl: "https://maps.app.goo.gl/gtTf3cu4dfDgRJL16?g_st=aw" },
+    { name: "Goshamahal Road, Feelkhana (HYD-02)", phone: "040-24604381", mapUrl: "https://maps.app.goo.gl/9xGxvgyxzHXxASq29" },
+    { name: "Bahadurpura (BDPURA)", phone: "9515409041", mapUrl: "https://maps.app.goo.gl/auxyAkJLFrkrGikZ9?g_st=aw" },
+    { name: "Secunderabad (SECBAD)", phone: "040-29331533", mapUrl: "https://maps.app.goo.gl/CmwMjbafZeMJZiXz8?g_st=aw" },
   ];
 
   const deliveryOffices = [
-    { name: "Karimnagar (KNR)", phone: "9908690827", mapUrl: "https://maps.app.goo.gl/1VBYHHEqUBg6dAyM7" },
-    { name: "Sultanabad (SBD)", phone: "9849701721", mapUrl: "https://maps.app.goo.gl/naRZdKJMTn9CUpNt6" },
-    { name: "Peddapally (PDPL)", phone: "9030478492", mapUrl: "https://maps.app.goo.gl/ouFkftr4WGVQjnQo8" },
-    { name: "Ramagundam NTPC (NTPC)", phone: "9866239010", mapUrl: "https://maps.app.goo.gl/13o1fVkFemGnsUdX6" },
-    { name: "Godavarikhani (GDK)", phone: "9949121267", mapUrl: "https://maps.app.goo.gl/2XebAQNTnD5KxehDA" },
-    { name: "Mancherial (MNCL)", phone: "8977185376", mapUrl: "https://maps.app.goo.gl/GJyr48PkKHUjd1yS8" },
+    { name: "Karimnagar (KNR)", phone: "9908690827", mapUrl: "https://maps.app.goo.gl/hvLQ4sweDfUqjVTG9?g_st=iw" },
+    { name: "Sultanabad (SBD)", phone: "9849701721", mapUrl: "https://maps.app.goo.gl/WrqfuAtsLyZU5q8u5?g_st=iw" },
+    { name: "Peddapally (PDPL)", phone: "9030478492", mapUrl: "https://www.google.com/maps?q=18.61289405822754,79.37779235839844&z=17&hl=en" },
+    { name: "Ramagundam NTPC (NTPC)", phone: "9866239010", mapUrl: "https://maps.app.goo.gl/9xqQvY6h1ch97uW99?g_st=iw" },
+    { name: "Godavarikhani (GDK)", phone: "9949121267", mapUrl: "https://maps.google.com/maps?q=18.742761611938477%2C79.50328063964844&z=17&hl=en" },
+    { name: "Mancherial (MNCL)", phone: "8977185376", mapUrl: " https://maps.app.goo.gl/UA2uZjVWGygV97yk6?g_st=iw" },
   ];
 
   const stats = [
     { icon: <FaUsers />, value: "10,000+", label: "Happy Clients" },
     { icon: <FaTruck />, value: "12", label: "Branches" },
-    { icon: <FaAward />, value: "28+", label: "Years" },
+    { icon: <FaAward />, value: "30+", label: "Years" },
     { icon: <FaHandshake />, value: "100%", label: "Satisfaction" },
   ];
 
@@ -120,7 +120,7 @@ const AboutPage = () => {
               Friends Transport <Box component="span" sx={{ background: "linear-gradient(135deg, #FFB74D 0%, #fff 50%, #FFB74D 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Company</Box>
             </Typography>
             <Typography sx={{ color: "rgba(255,255,255,0.85)", fontSize: { xs: "1.1rem", md: "1.25rem" }, maxWidth: "600px", mx: "auto" }}>
-              Delivering Trust Since 1996 — Your Reliable Partner in Parcel & Goods Transportation
+              Delivering Trust Since 1970 — Your Reliable Partner in Parcel & Goods Transportation
             </Typography>
           </motion.div>
         </Container>

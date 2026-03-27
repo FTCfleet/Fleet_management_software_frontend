@@ -15,19 +15,19 @@ const LocationsPage = () => {
   const staggerContainer = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 
   const bookingOffices = [
-    { badge: "FTC-1", name: "Head Office", location: "Old Feelkhana, Hyderabad", phone: "040-24614381", note: "Drop off point for Karimnagar, Sultanabad, Pedapally", mapUrl: "https://maps.app.goo.gl/gtTf3cu4dfDgRJL16" },
-    { badge: "FTC-2", name: "Goshamahal Road", location: "Feelkhana, Hyderabad", phone: "040-24604381", mapUrl: "https://maps.app.goo.gl/Ep8ncVerzcffE34e7" },
-    { badge: "FTC-3", name: "Bahadurpura", location: "Hyderabad", phone: "9515409041", mapUrl: "https://maps.app.goo.gl/auxyAkJLFrkrGikZ9" },
-    { badge: "FTC-4", name: "Secunderabad", location: "Secunderabad", phone: "040-29331533", mapUrl: "https://maps.app.goo.gl/CmwMjbafZeMJZiXz8" },
+    { badge: "FTC-1", name: "Head Office", location: "Old Feelkhana, Hyderabad", phone: "040-24614381", note: "Drop off point for Karimnagar, Sultanabad, Pedapally", mapUrl: "https://maps.app.goo.gl/gtTf3cu4dfDgRJL16?g_st=aw" },
+    { badge: "FTC-2", name: "Goshamahal Road", location: "Feelkhana, Hyderabad", phone: "040-24604381", mapUrl: "https://maps.app.goo.gl/9xGxvgyxzHXxASq29" },
+    { badge: "FTC-3", name: "Bahadurpura", location: "Hyderabad", phone: "9515409041", mapUrl: "https://maps.app.goo.gl/auxyAkJLFrkrGikZ9?g_st=aw" },
+    { badge: "FTC-4", name: "Secunderabad", location: "Secunderabad", phone: "040-29331533", mapUrl: "https://maps.app.goo.gl/CmwMjbafZeMJZiXz8?g_st=aw" },
   ];
 
   const deliveryOffices = [
-    { name: "Karimnagar", code: "KNR", phone: "9908690827", mapUrl: "https://maps.app.goo.gl/1VBYHHEqUBg6dAyM7" },
-    { name: "Sultanabad", code: "SBD", phone: "9849701721", mapUrl: "https://maps.app.goo.gl/naRZdKJMTn9CUpNt6" },
-    { name: "Peddapally", code: "PDPL", phone: "9030478492", mapUrl: "https://maps.app.goo.gl/ouFkftr4WGVQjnQo8" },
-    { name: "Ramagundam NTPC", code: "NTPC", phone: "9866239010", mapUrl: "https://maps.app.goo.gl/13o1fVkFemGnsUdX6" },
-    { name: "Godavarikhani", code: "GDK", phone: "9949121267", mapUrl: "https://maps.app.goo.gl/2XebAQNTnD5KxehDA" },
-    { name: "Mancherial", code: "MNCL", phone: "8977185376", mapUrl: "https://maps.app.goo.gl/GJyr48PkKHUjd1yS8" },
+    { name: "Karimnagar", code: "KNR", phone: "9908690827", mapUrl: "https://maps.app.goo.gl/hvLQ4sweDfUqjVTG9?g_st=iw" },
+    { name: "Sultanabad", code: "SBD", phone: "9849701721", mapUrl: "https://maps.app.goo.gl/WrqfuAtsLyZU5q8u5?g_st=iw" },
+    { name: "Peddapally", code: "PDPL", phone: "9030478492", mapUrl: "https://www.google.com/maps?q=18.61289405822754,79.37779235839844&z=17&hl=en" },
+    { name: "Ramagundam NTPC", code: "NTPC", phone: "9866239010", mapUrl: "https://maps.app.goo.gl/9xqQvY6h1ch97uW99?g_st=iw" },
+    { name: "Godavarikhani", code: "GDK", phone: "9949121267", mapUrl: "https://maps.google.com/maps?q=18.742761611938477%2C79.50328063964844&z=17&hl=en" },
+    { name: "Mancherial", code: "MNCL", phone: "8977185376", mapUrl: "https://maps.app.goo.gl/UA2uZjVWGygV97yk6?g_st=iw" },
   ];
 
   return (
