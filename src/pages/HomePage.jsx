@@ -234,29 +234,9 @@ const HomePage = () => {
         <Container maxWidth="xl" sx={{ position: "relative", zIndex: 2, px: { xs: 2, md: 4 }, py: { xs: 4} }}>
           <motion.div initial="hidden" animate="visible" variants={staggerContainer}>
             {/* Title */}
-            <motion.div variants={fadeIn}>
-              <Box sx={{ textAlign: "center", mb: { xs: 4, md: 6 } }}>
-                <Typography variant="h1" sx={{ 
-                  color: "#ffffff", 
-                  fontSize: { xs: "2rem", sm: "3rem", md: "4rem" }, 
-                  fontWeight: 800, 
-                  lineHeight: 1.1, 
-                  mb: 1,
-                  textShadow: "0 4px 30px rgba(0,0,0,0.5)" 
-                }}>
-                  FRIENDS TRANSPORT CO.
-                </Typography>
-                <Typography sx={{ 
-                  color: "#FFB74D", 
-                  fontSize: { xs: "1rem", sm: "1.5rem", md: "2rem" }, 
-                  fontWeight: 600,
-                  letterSpacing: "2px",
-                  textShadow: "0 2px 20px rgba(255,183,77,0.5)" 
-                }}>
-                   1970 to 2026 & accelerating
-                </Typography>
-                
-                {/* Handshake Logo */}
+            <motion.div variants={fadeIn} >
+              <Box sx={{ textAlign: "center", mb: { xs: 4, md: 6 } , display: "flex", alignItems: "center", gap: 2, justifyContent: "center",
+               paddingBottom: {md: "10px", xs: "20px"}, marginTop: "10px" }}>
                 <Box sx={{ 
                   display: "flex", 
                   justifyContent: "center", 
@@ -267,7 +247,7 @@ const HomePage = () => {
                     src={logoImg} 
                     alt="Handshake" 
                     sx={{ 
-                      width: { xs: "100px", md: "130px" },
+                      width: { xs: "100px", md: "120px", marginTop: "-30px" },
                       height: "auto",
                       // background: "rgba(255, 255, 255, 0.1)",
                       // opacity: 0.9,
@@ -275,6 +255,30 @@ const HomePage = () => {
                     }} 
                   />
                 </Box>
+                <Box>
+                <Typography variant="h1" sx={{ 
+                  color: "#ffffff", 
+                  fontSize: { xs: "1.5rem", sm: "2rem", md: "2.5rem" }, 
+                  fontWeight: 800, 
+                  lineHeight: 1.1, 
+                  mb: 1,
+                  textShadow: "0 4px 30px rgba(0,0,0,0.5)" 
+                }}>
+                  FRIENDS TRANSPORT CO.
+                </Typography>
+                <Typography sx={{ 
+                  color: "#FFB74D", 
+                  fontSize: { xs: "1rem", sm: "1.5rem", md: "1.5rem" }, 
+                  fontWeight: 600,
+                  letterSpacing: "2px",
+                  textShadow: "0 2px 20px rgba(255,183,77,0.5)" 
+                }}>
+                   1970 to 2026 & accelerating
+                </Typography>
+                </Box>
+                
+                {/* Handshake Logo */}
+                
               </Box>
             </motion.div>
 
@@ -315,7 +319,7 @@ const HomePage = () => {
                       alt="1970 Fleet" 
                       sx={{ 
                         width: "100%", 
-                        height: { xs: "250px", md: "350px" },
+                        height: { xs: "250px", md: "300px" },
                         objectFit: "cover",
                         filter: "grayscale(100%) contrast(1.15) sepia(0.3) brightness(0.95)",
                         display: "block"
@@ -336,7 +340,7 @@ const HomePage = () => {
                       left: 16,
                       background: "linear-gradient(135deg, #8B4513 0%, #654321 100%)",
                       px: 3,
-                      py: 1.5,
+                      py: 1,
                       borderRadius: "12px",
                       border: "2px solid rgba(255,248,220,0.4)",
                       boxShadow: "0 4px 20px rgba(0,0,0,0.5)"
@@ -344,7 +348,7 @@ const HomePage = () => {
                       <Typography sx={{ 
                         color: "#FFF8DC", 
                         fontWeight: 800, 
-                        fontSize: { xs: "1.5rem", md: "2rem" },
+                        fontSize: { xs: "1.5rem", md: "1.5rem" },
                         textShadow: "0 2px 4px rgba(0,0,0,0.5)"
                       }}>
                         1970
@@ -523,8 +527,8 @@ const HomePage = () => {
                   <Box sx={{
                     mt: 6,
                     background: "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)",
-                    px: 5,
-                    py: 2.5,
+                    px: 4,
+                    py: 2,
                     borderRadius: "60px",
                     border: "4px solid rgba(255,255,255,0.25)",
                     boxShadow: "0 10px 40px rgba(255,183,77,0.6), inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -2px 0 rgba(0,0,0,0.2)",
@@ -543,7 +547,7 @@ const HomePage = () => {
                     <Typography sx={{
                       color: "#1D3557",
                       fontWeight: 900,
-                      fontSize: "2.25rem",
+                      fontSize: "1.8rem",
                       textAlign: "center",
                       lineHeight: 1,
                       textShadow: "0 2px 4px rgba(0,0,0,0.15)",
@@ -589,7 +593,7 @@ const HomePage = () => {
                       alt="2026 Modern Fleet" 
                       sx={{ 
                         width: "100%", 
-                        height: { xs: "250px", md: "350px" },
+                        height: { xs: "250px", md: "300px" },
                         objectFit: "cover",
                         display: "block"
                       }} 
@@ -601,7 +605,7 @@ const HomePage = () => {
                       right: 16,
                       background: "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)",
                       px: 3,
-                      py: 1.5,
+                      py: 1,
                       borderRadius: "12px",
                       border: "2px solid rgba(255,255,255,0.4)",
                       boxShadow: "0 4px 20px rgba(255,183,77,0.6)"
@@ -609,7 +613,7 @@ const HomePage = () => {
                       <Typography sx={{ 
                         color: "#1D3557", 
                         fontWeight: 800, 
-                        fontSize: { xs: "1.5rem", md: "2rem" },
+                        fontSize: { xs: "1.5rem", md: "1.5rem" },
                         textShadow: "0 2px 4px rgba(0,0,0,0.2)"
                       }}>
                         2026
@@ -783,7 +787,7 @@ const HomePage = () => {
               <Box sx={{ textAlign: "center", mt: { xs: 4, md: 6 } }}>
                 <Typography sx={{ 
                   color: "#ffffff", 
-                  fontSize: { xs: "1.25rem", sm: "1.75rem", md: "2.25rem" }, 
+                  fontSize: { xs: "1.25rem", sm: "1.75rem", md: "1.8rem" }, 
                   fontWeight: 700,
                   mb: 2,
                   textShadow: "0 2px 20px rgba(0,0,0,0.5)"
