@@ -163,7 +163,7 @@ const AboutPage = () => {
                     <Typography sx={{ color: "#1D3557", fontWeight: 700, fontSize: "0.75rem", letterSpacing: "1px" }}>FOUNDER</Typography>
                   </Box>
                   <Typography sx={{ color: "#ffffff", fontWeight: 700, fontSize: { xs: "1.1rem", md: "1.25rem" }, textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>Mr. Mohammed Ameer Ali</Typography>
-                  <Typography sx={{ color: "rgba(255,255,255,0.9)", fontSize: "0.85rem", textShadow: "0 2px 6px rgba(0,0,0,0.8)" }}>Established 1996</Typography>
+                  <Typography sx={{ color: "rgba(255,255,255,0.9)", fontSize: "0.85rem", textShadow: "0 2px 6px rgba(0,0,0,0.8)" }}>FTC Established in 1970 & Parcel Service in 1996</Typography>
                 </Box>
               </Box>
             </Box>
