@@ -27,7 +27,7 @@ const LocationsPage = () => {
     { name: "Peddapally", code: "PDPL", phone: "9030478492", mapUrl: "https://www.google.com/maps?q=18.61289405822754,79.37779235839844&z=17&hl=en" },
     { name: "Ramagundam NTPC", code: "NTPC", phone: "9866239010", mapUrl: "https://maps.app.goo.gl/9xqQvY6h1ch97uW99?g_st=iw" },
     { name: "Godavarikhani", code: "GDK", phone: "9949121267", mapUrl: "https://maps.google.com/maps?q=18.742761611938477%2C79.50328063964844&z=17&hl=en" },
-    { name: "Mancherial", code: "MNCL", phone: "8977185376", mapUrl: "https://maps.app.goo.gl/UA2uZjVWGygV97yk6?g_st=iw" },
+    { name: "Mancherial", code: "MNCL", phone: "8977185376", mapUrl: "https://www.google.com/maps?q=18.872785568237305,79.44837951660156&z=17&hl=en" },
   ];
 
   return (
