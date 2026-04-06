@@ -2,6 +2,7 @@ import React from "react";
 import { Typography, Box, Container, useTheme, useMediaQuery } from "@mui/material";
 import { motion } from "framer-motion";
 import { FaMapMarkerAlt, FaPhoneAlt, FaBuilding, FaUsers, FaTruck, FaAward, FaHandshake } from "react-icons/fa";
+import { Helmet } from "react-helmet-async";
 import founderImg from "../assets/founder.webp";
 import office1 from "../assets/office1.webp";
 import office2 from "../assets/office2.webp";
@@ -42,6 +43,20 @@ const AboutPage = () => {
   ];
 
   return (
+    <>
+      <Helmet>
+        <title>About Friends Transport Company | 50+ Years of Trusted Logistics in Hyderabad</title>
+        <meta
+          name="description"
+          content="Learn about Friends Transport Company, founded in 1970 by Mr. Mohammed Ameer Ali. With 50+ years of excellence, 10,000+ happy clients, 12 branches and 500+ daily orders, we are Hyderabad's most trusted parcel and goods transport service."
+        />
+        <meta name="keywords" content="Friends Transport Company, about FTC, transport company Hyderabad, logistics company Telangana, parcel delivery Hyderabad, Mohammed Ameer Ali, trusted transport since 1970" />
+        <link rel="canonical" href="https://friendstransport.in/about" />
+        <meta property="og:title" content="About Friends Transport Company | Trusted Since 1970" />
+        <meta property="og:description" content="50+ years of trusted parcel and goods transport services from Hyderabad. 10,000+ clients, 12 branches across Telangana, 500+ orders daily." />
+        <meta property="og:url" content="https://friendstransport.in/about" />
+        <meta property="og:type" content="website" />
+      </Helmet>
     <Box sx={{ minHeight: "100vh", background: "linear-gradient(180deg, #0a1628 0%, #1D3557 30%, #1E3A5F 60%, #1D3557 100%)", position: "relative", overflow: "hidden" }}>
       {/* Background Elements */}
       <Box sx={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 20% 20%, rgba(255, 183, 77, 0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(30, 58, 95, 0.3) 0%, transparent 50%)" }} />
@@ -413,6 +428,7 @@ const AboutPage = () => {
         </Container>
       </Box>
     </Box>
+    </>
   );
 };
 

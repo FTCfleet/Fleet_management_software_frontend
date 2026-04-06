@@ -2,6 +2,7 @@ import "react";
 import { Typography, Box, Container, useTheme, useMediaQuery } from "@mui/material";
 import { motion } from "framer-motion";
 import { FaMapMarkerAlt, FaPhoneAlt, FaBuilding } from "react-icons/fa";
+import { Helmet } from "react-helmet-async";
 import "../css/glassmorphism.css";
 
 const GlassCard = ({ children, sx = {}, hover = true, ...props }) => (
@@ -31,6 +32,20 @@ const LocationsPage = () => {
   ];
 
   return (
+    <>
+      <Helmet>
+        <title>Our Locations & Stations | Friends Transport Company Hyderabad</title>
+        <meta
+          name="description"
+          content="Find Friends Transport Company offices and parcel delivery stations across Telangana. Booking offices in Old Feelkhana, Goshamahal, Bahadurpura & Secunderabad. Delivery to Karimnagar, Sultanabad, Peddapally, Ramagundam NTPC, Godavarikhani & Mancherial."
+        />
+        <meta name="keywords" content="Friends Transport locations, parcel booking office Hyderabad, transport station Karimnagar, delivery office Sultanabad, Peddapally transport, Ramagundam NTPC delivery, Godavarikhani parcel, Mancherial goods transport, FTC branches" />
+        <link rel="canonical" href="https://friendstransport.in/locations" />
+        <meta property="og:title" content="Our Locations | Friends Transport Company" />
+        <meta property="og:description" content="10 strategically located offices across Telangana — 4 booking offices in Hyderabad and 6 delivery stations serving Karimnagar, Sultanabad, Peddapally, Ramagundam, Godavarikhani & Mancherial." />
+        <meta property="og:url" content="https://friendstransport.in/locations" />
+        <meta property="og:type" content="website" />
+      </Helmet>
     <Box sx={{ minHeight: "100vh", background: "linear-gradient(180deg, #0a1628 0%, #1D3557 30%, #1E3A5F 60%, #1D3557 100%)", position: "relative", overflow: "hidden" }}>
       {/* Background Elements */}
       <Box sx={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 20% 20%, rgba(255, 183, 77, 0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(30, 58, 95, 0.3) 0%, transparent 50%)" }} />
@@ -272,6 +287,7 @@ const LocationsPage = () => {
         </Container>
       </Box>
     </Box>
+    </>
   );
 };
 

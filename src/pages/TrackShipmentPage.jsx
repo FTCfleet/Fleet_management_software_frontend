@@ -5,6 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { motion } from "framer-motion";
 import { FaSearch, FaBox, FaTruck, FaCheckCircle, FaMapMarkerAlt, FaUser, FaCubes } from "react-icons/fa";
 import { MdLocalShipping } from "react-icons/md";
+import { Helmet } from "react-helmet-async";
 import backImg from "../assets/back2.webp";
 import "../css/glassmorphism.css";
 
@@ -82,6 +83,19 @@ const TrackShipmentPage = () => {
 
   return (
     <Box sx={{ minHeight: "100vh", background: "linear-gradient(135deg, #0a1628 0%, #1D3557 50%, #1E3A5F 100%)", position: "relative", overflow: "hidden" }}>
+      <Helmet>
+        <title>Track Your Shipment | Friends Transport Company Hyderabad</title>
+        <meta
+          name="description"
+          content="Track your parcel and shipment status in real-time with Friends Transport Company. Enter your LR tracking ID to get live updates on your goods delivery across Karimnagar, Sultanabad, Peddapally, Ramagundam, Godavarikhani & Mancherial."
+        />
+        <meta name="keywords" content="track shipment, parcel tracking, Friends Transport tracking, LR tracking Hyderabad, goods transport tracking Telangana, shipment status Karimnagar, delivery tracking Peddapally" />
+        <link rel="canonical" href="https://friendstransport.in/track" />
+        <meta property="og:title" content="Track Your Shipment | Friends Transport Company" />
+        <meta property="og:description" content="Real-time parcel and shipment tracking for Friends Transport Company. Get instant updates on your delivery status across Telangana." />
+        <meta property="og:url" content="https://friendstransport.in/track" />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <ToastContainer />
       
       {/* Background Elements */}

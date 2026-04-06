@@ -48,32 +48,6 @@ function AllRoutes() {
       <Route exact path="/services" element={<ServicesPage />} />
       <Route path="/auth/*" element={<AuthTemplate />}>
         <Route exact path="login" element={<LoginPage />} />
-        {/*
-        <Route exact path="register" element={<RegisterPage />} />
-        <Route exact path="forget" element={<ForgetPasswordPage />} />
-        <Route
-          exact
-          path="otp"
-          element={
-            <PrivateRoute
-              element={<OtpPage />}
-              requiredStep="otp"
-              redirectTo="/auth/forget"
-            />
-          }
-        />
-        <Route
-          exact
-          path="reset"
-          element={
-            <PrivateRoute
-              element={<ResetPasswordPage />}
-              requiredStep="reset"
-              redirectTo="/auth/otp"
-            />
-          }
-        />
-        */}
         <Route path="*" element={<ErrorPage />} />
       </Route>
       <Route path="/user/*" element={<UserTemplate />}>

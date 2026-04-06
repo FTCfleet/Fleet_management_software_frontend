@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Typography, Box, Container, useTheme, useMediaQuery, TextField, MenuItem, Select, FormControl, CircularProgress } from "@mui/material";
 import { motion } from "framer-motion";
 import { FaBox, FaTruck, FaMapMarkerAlt, FaFileAlt, FaMoneyBillWave, FaHome, FaTruckMoving, FaCalendarAlt, FaRoute, FaBuilding, FaStore, FaIndustry, FaUser, FaPhone, FaEnvelope, FaClipboardList, FaShieldAlt, FaArrowRight, FaCheckCircle } from "react-icons/fa";
+import { Helmet } from "react-helmet-async";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import trucksImg from "../assets/trucks.webp";
@@ -134,6 +135,20 @@ const ServicesPage = () => {
     : [{ left: "2%", size: 3, duration: 28, top: "15%" }, { left: "8%", size: 5, duration: 35, top: "62%" }, { left: "14%", size: 2, duration: 22, top: "38%" }, { left: "20%", size: 7, duration: 45, top: "85%" }, { left: "26%", size: 3, duration: 30, top: "8%" }, { left: "32%", size: 4, duration: 26, top: "52%" }, { left: "38%", size: 8, duration: 50, top: "72%" }, { left: "44%", size: 3, duration: 24, top: "45%" }, { left: "50%", size: 6, duration: 42, top: "35%" }, { left: "56%", size: 2, duration: 27, top: "92%" }, { left: "62%", size: 5, duration: 33, top: "22%" }, { left: "68%", size: 3, duration: 38, top: "78%" }, { left: "74%", size: 7, duration: 46, top: "58%" }, { left: "80%", size: 4, duration: 30, top: "25%" }, { left: "86%", size: 2, duration: 26, top: "38%" }, { left: "92%", size: 5, duration: 39, top: "10%" }, { left: "98%", size: 6, duration: 44, top: "50%" }];
 
   return (
+    <>
+      <Helmet>
+        <title>Parcel Delivery & Truck Transport Services | Friends Transport Hyderabad</title>
+        <meta
+          name="description"
+          content="Friends Transport Company offers daily parcel delivery and full truck load (FTL) transport services from Hyderabad to Karimnagar, Sultanabad, Peddapally, Ramagundam, Godavarikhani & Mancherial. 500+ orders handled daily with door pickup & delivery options."
+        />
+        <meta name="keywords" content="parcel delivery Hyderabad, truck transport Telangana, FTL transport Hyderabad, daily parcel service, goods transport Karimnagar, freight services Hyderabad, truck booking Hyderabad, logistics services Telangana, door delivery parcel" />
+        <link rel="canonical" href="https://friendstransport.in/services" />
+        <meta property="og:title" content="Services | Friends Transport Company Hyderabad" />
+        <meta property="og:description" content="Daily parcel delivery & full truck load transport across Telangana. 500+ orders daily, door pickup & delivery, LR documentation. Request a quote today!" />
+        <meta property="og:url" content="https://friendstransport.in/services" />
+        <meta property="og:type" content="website" />
+      </Helmet>
     <Box sx={{ minHeight: "100vh", background: "linear-gradient(180deg, #0a1628 0%, #1D3557 30%, #1E3A5F 60%, #1D3557 100%)", position: "relative", overflow: "hidden" }}>
       <ToastContainer 
         position="top-center"
@@ -350,6 +365,7 @@ const ServicesPage = () => {
         </motion.div>
       </Container>
     </Box>
+    </>
   );
 };
 
