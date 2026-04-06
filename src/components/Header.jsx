@@ -518,6 +518,9 @@ const Header = () => {
                   <Link to="/" style={{ display: "flex", alignItems: "center" }}>
                     <img src={logoImg} alt="FTC Logo" className="header-logo" style={{ height: "40px" }} />
                   </Link>
+                  <Typography sx={{fontSize: "1rem", color: "rgba(255,255,255,0.6)", fontWeight: 500 }}>
+                    GST: 36AAFFF2744R1ZX
+                  </Typography>
                 </Box>
               )}
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -587,7 +590,11 @@ const Header = () => {
                       {isAdmin ? `ADMIN • ${stationCode}` : stationCode}
                     </Typography>
                   </Box>
+                  
                 )}
+                    <Typography sx={{fontSize: "1rem", color: "rgba(255,255,255,0.6)", fontWeight: 500 }}>
+                      GST: 36AAFFF2744R1ZX
+                    </Typography>
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 2, sm: 1.5, lg: 2 } }}>
                 {/* Notification Icon - Large screens only (lg+), Admin Only, Only when unseen */}
