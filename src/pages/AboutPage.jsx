@@ -132,7 +132,7 @@ const AboutPage = () => {
               🏢 ABOUT US
             </Typography>
             <Typography variant="h1" sx={{ color: "#ffffff", fontWeight: 800, fontSize: { xs: "2.5rem", sm: "3rem", md: "4rem" }, mb: 2, lineHeight: 1.1 }}>
-              Friends Transport <Box component="span" sx={{ background: "linear-gradient(135deg, #FFB74D 0%, #fff 50%, #FFB74D 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Company</Box>
+              Friends Transport <Box component="span" sx={{ background: "linear-gradient(135deg, #FFB74D 0%, #fff 50%, #FFB74D 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Co.</Box>
             </Typography>
             <Typography sx={{ color: "rgba(255,255,255,0.85)", fontSize: { xs: "1.1rem", md: "1.25rem" }, maxWidth: "600px", mx: "auto" }}>
               Delivering Trust Since 1970 — Your Reliable Partner in Parcel & Goods Transportation

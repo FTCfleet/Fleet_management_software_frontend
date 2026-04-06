@@ -257,7 +257,7 @@ const HomePage = () => {
                       src={logoImg} 
                       alt="Handshake" 
                       sx={{ 
-                        width: { xs: "100px", md: "120px", marginTop: "-30px" },
+                        width: { xs: "100px",sm: "120px", md: "160px", marginTop: "-30px" },
                         height: "auto",
                         // background: "rgba(255, 255, 255, 0.1)",
                         // opacity: 0.9,
@@ -268,7 +268,7 @@ const HomePage = () => {
                   <Box>
                   <Typography variant="h1" sx={{ 
                     color: "#ffffff", 
-                    fontSize: { xs: "1.5rem", sm: "2rem", md: "2.5rem" }, 
+                    fontSize: { xs: "1.5rem", sm: "2.5rem", md: "3.8rem" }, 
                     fontWeight: 800, 
                     lineHeight: 1.1, 
                     mb: 1,
@@ -278,7 +278,7 @@ const HomePage = () => {
                   </Typography>
                   <Typography sx={{ 
                     color: "#FFB74D", 
-                    fontSize: { xs: "1rem", sm: "1.5rem", md: "1.5rem" }, 
+                    fontSize: { xs: "1rem", sm: "1.8rem", md: "2.5rem" }, 
                     fontWeight: 600,
                     letterSpacing: "2px",
                     textShadow: "0 2px 20px rgba(255,183,77,0.5)" 
@@ -908,7 +908,7 @@ const HomePage = () => {
                         <Typography sx={{ color: "#1D3557", fontWeight: 700, fontSize: "0.75rem", letterSpacing: "1px" }}>FOUNDER</Typography>
                       </Box>
                       <Typography sx={{ color: "#ffffff", fontWeight: 700, fontSize: { xs: "1.1rem", md: "1.25rem" }, textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>Mr. Mohammed Ameer Ali</Typography>
-                      <Typography sx={{ color: "rgba(255,255,255,0.9)", fontSize: "0.85rem", textShadow: "0 2px 6px rgba(0,0,0,0.8)" }}>Established 1996</Typography>
+                      <Typography sx={{ color: "rgba(255,255,255,0.9)", fontSize: "0.85rem", textShadow: "0 2px 6px rgba(0,0,0,0.8)" }}>FTC Established in 1970 & Parcel Service in 1996</Typography>
                     </Box>
                   </Box>
                 </Box>

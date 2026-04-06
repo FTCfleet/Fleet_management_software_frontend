@@ -248,7 +248,7 @@ const Footer = () => {
             © {currentYear} Friends Transport Company. All rights reserved.
           </Typography>
           <Typography sx={{ color: "rgba(255,255,255,0.5)", fontSize: "0.85rem" }}>
-            GST: 36AAFFF2744R1ZX
+            GST ID: 36AAFFF2744R1ZX
           </Typography>
         </Box>
       </Container>
