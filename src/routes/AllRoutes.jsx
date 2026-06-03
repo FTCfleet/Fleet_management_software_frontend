@@ -1,4 +1,4 @@
-﻿import { React } from "react";
+import { React } from "react";
 import { Routes, Route } from "react-router-dom";
 
 import HomePage from "../pages/HomePage";
@@ -36,6 +36,8 @@ import PaymentTrackingPage from "../pages/PaymentTrackingPage";
 import ReceiverWisePaymentPage from "../pages/ReceiverWisePaymentPage";
 import MemoPaymentDetailsPage from "../pages/MemoPaymentDetailsPage";
 import PaidLRsPage from "../pages/PaidLRsPage";
+import AllLoadingListPage from "../pages/AllLoadingListPage";
+import ViewLoadingListPage from "../pages/ViewLoadingListPage";
 
 
 function AllRoutes() {
@@ -74,7 +76,9 @@ function AllRoutes() {
         <Route exact path="view/*">
           <Route exact path="order/:id" element={<ViewOrderPage />} />
           <Route exact path="ledger/:id" element={<ViewLedgerPage />} />
+          <Route exact path="loading-list/:id" element={<ViewLoadingListPage />} />
         </Route>
+        <Route exact path="loading-list" element={<AllLoadingListPage />} />
         <Route exact path="gen-report" element={<GenReportPage />} />
         <Route path="*" element={<ErrorPage />} />
       </Route>

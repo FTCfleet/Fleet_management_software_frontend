@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Box, List, ListItem, ListItemIcon, ListItemText, Typography, IconButton } from "@mui/material";
 import { FaRegFileAlt, FaTruckMoving, FaMoneyCheckAlt, FaBoxOpen, FaFileInvoice, FaPlus, FaChartBar, FaEnvelope } from "react-icons/fa";
@@ -101,6 +101,7 @@ const UserTemplate = () => {
         { text: "All Memo", path: "/user/ledgers/all", icon: <FaTruckMoving /> },
         { text: `${isAdmin ? "Dispatched" : isSource ? "Outgoing" : "Incoming"} Memo`, path: "/user/ledgers/dispatched", icon: <FaTruckMoving /> },
         { text: "Completed Memo", path: "/user/ledgers/completed", icon: <FaTruckMoving /> },
+        ...(isSource || isAdmin ? [{ text: "Loading List", path: "/user/loading-list", icon: <FaTruckMoving /> }] : []),
       ],
     },
     // Only show Payments section for Admin and Destination warehouse users (not Source)

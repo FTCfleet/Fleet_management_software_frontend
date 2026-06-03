@@ -21,3 +21,7 @@ export const getDate = () => {
     const year =  new Date().getFullYear();
     return `${year}-${(month+1).toString().padStart(2, '0')}-${day}`;
 };
+
+export const timeFormatter = (dateString) => {
+    return dateFormatter(dateString).split(',')[1];
+}
