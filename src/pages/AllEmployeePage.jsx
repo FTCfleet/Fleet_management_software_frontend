@@ -732,6 +732,7 @@ const AllEmployeePage = () => {
                 "& .MuiSelect-select": { color: colors?.textPrimary },
               }}
             >
+              <MenuItem value="staff">Staff</MenuItem>
               <MenuItem value="supervisor">Supervisor</MenuItem>
               <MenuItem value="admin">Admin</MenuItem>
             </TextField>

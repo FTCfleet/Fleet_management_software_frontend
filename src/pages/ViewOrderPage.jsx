@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import {
   Box,
   Typography,
@@ -23,7 +24,7 @@ import {
   Alert,
 } from "@mui/material";
 import { Link, useNavigate, useOutletContext, useParams, useLocation } from "react-router-dom";
-import { FaEdit, FaTrash, FaPrint, FaExclamationTriangle, FaBluetooth, FaBluetoothB } from "react-icons/fa";
+import { FaEdit, FaTrash, FaPrint, FaExclamationTriangle, FaBluetooth, FaBluetoothB, FaQrcode } from "react-icons/fa";
 import { MdBluetoothConnected, MdBluetoothDisabled } from "react-icons/md";
 import { dateFormatter } from "../utils/dateFormatter";
 import { fromDbValue, formatCurrency } from "../utils/currencyUtils";
@@ -54,6 +55,8 @@ export default function ViewOrderPage() {
     addedBy: {},
   });
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [qrCount, setQrCount] = useState(1);
   const savedPrinter = webBluetoothPrinter.getSavedPrinter();
   const [bluetoothConnected, setBluetoothConnected] = useState(webBluetoothPrinter.isConnected);
   const [bluetoothPrinterName, setBluetoothPrinterName] = useState(savedPrinter?.name || '');
@@ -496,6 +499,18 @@ export default function ViewOrderPage() {
         <button className="button" onClick={handleLRPrint} style={{ minWidth: "160px" }}>
           <FaPrint /> Print A4 LR
         </button>
+        <button
+          className="button"
+          onClick={() => setQrModalOpen(true)}
+          style={{
+            minWidth: "140px",
+            background: isDarkMode
+              ? "linear-gradient(180deg, #42A5F5 0%, #1E88E5 100%)"
+              : "linear-gradient(180deg, #64B5F6 0%, #42A5F5 100%)",
+          }}
+        >
+          <FaQrcode /> Print QR
+        </button>
         {!isMobile && (
         <button className="button" onClick={handleLRPrintThermal} style={{ minWidth: "180px" }}>
           <FaPrint /> Print via QZ Tray
@@ -591,6 +606,171 @@ export default function ViewOrderPage() {
           </button>
         )}
       </Box>
+
+      {/* QR Code Modal */}
+      <Modal open={qrModalOpen} onClose={() => setQrModalOpen(false)}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: { xs: "92%", sm: 420 },
+            maxWidth: 420,
+            bgcolor: colors?.bgCard || "background.paper",
+            borderRadius: 3,
+            boxShadow: 24,
+            p: { xs: 2.5, sm: 3.5 },
+            border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "none",
+            outline: "none",
+          }}
+        >
+          {/* Header */}
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 700,
+              color: colors?.textPrimary || "#1E3A5F",
+              textAlign: "center",
+              mb: 0.5,
+            }}
+          >
+            QR Code
+          </Typography>
+          <Typography
+            sx={{
+              color: colors?.textSecondary || "#64748b",
+              textAlign: "center",
+              fontSize: "0.85rem",
+              mb: 2.5,
+            }}
+          >
+            Parcel ID: <strong>{id}</strong>
+          </Typography>
+
+          {/* QR Code */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              p: { xs: 2, sm: 3 },
+              mb: 2.5,
+              backgroundColor: "#ffffff",
+              borderRadius: 2.5,
+              border: isDarkMode
+                ? "1px solid rgba(255,255,255,0.1)"
+                : "1px solid #e8ecf0",
+            }}
+          >
+            <QRCodeSVG
+              value={id || ""}
+              size={isMobile ? 180 : 220}
+              level="H"
+              includeMargin
+              bgColor="#ffffff"
+              fgColor="#1a1a2e"
+            />
+          </Box>
+
+          {/* Count Input */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              mb: 2.5,
+              flexDirection: { xs: "column", sm: "row" },
+            }}
+          >
+            <TextField
+              label="Count"
+              type="number"
+              size="small"
+              value={qrCount}
+              onChange={(e) =>
+                setQrCount(Math.max(1, parseInt(e.target.value) || 1))
+              }
+              inputProps={{ min: 1 }}
+              sx={{
+                width: { xs: "100%", sm: 100 },
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                  color: colors?.textPrimary,
+                  "& fieldset": {
+                    borderColor: isDarkMode
+                      ? "rgba(255,255,255,0.15)"
+                      : "#d1d5db",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: isDarkMode
+                      ? "rgba(255,255,255,0.3)"
+                      : "#9ca3af",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
+                  },
+                },
+                "& .MuiInputLabel-root": {
+                  color: colors?.textSecondary,
+                },
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: isDarkMode ? colors?.accent : "#1E3A5F",
+                },
+              }}
+            />
+            <Button
+              variant="contained"
+              fullWidth={isMobile}
+              startIcon={<FaPrint />}
+              onClick={() => {
+                // Print functionality placeholder
+              }}
+              sx={{
+                flex: { sm: 1 },
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 600,
+                py: 1,
+                background: "linear-gradient(180deg, #1D3557 0%, #0a1628 100%)",
+                boxShadow:
+                  "0 4px 15px rgba(10, 22, 40, 0.4), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.2)",
+                "&:hover": {
+                  background: "linear-gradient(180deg, #25445f 0%, #0f2035 100%)",
+                },
+              }}
+            >
+              Print QR Codes
+            </Button>
+          </Box>
+
+          {/* Close Button */}
+          <Box sx={{ display: "flex", justifyContent: "center" }}>
+            <Button
+              variant="outlined"
+              onClick={() => setQrModalOpen(false)}
+              sx={{
+                borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
+                color: isDarkMode ? colors?.accent : "#1E3A5F",
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 600,
+                px: 4,
+                "&:hover": {
+                  borderColor: isDarkMode
+                    ? colors?.accentHover
+                    : "#1E3A5F",
+                  backgroundColor: isDarkMode
+                    ? "rgba(255,183,77,0.08)"
+                    : "rgba(30,58,95,0.04)",
+                },
+              }}
+            >
+              Close
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
 
       {/* Delete Modal */}
       <Modal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)}>

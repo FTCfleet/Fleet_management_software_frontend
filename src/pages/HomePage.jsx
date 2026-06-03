@@ -252,7 +252,7 @@ const HomePage = () => {
                     justifyContent: "center", 
                     // mt: 2 
                   }}>
-                    <Box 
+                    {/* <Box 
                       component="img" 
                       src={logoImg} 
                       alt="Handshake" 
@@ -264,7 +264,8 @@ const HomePage = () => {
                         // filter: "drop-shadow(0 4px 12px rgba(255, 171, 45, 0.55))"
                       }} 
                     />
-                  </Box>
+                    */}
+                  </Box> 
                   <Box>
                   <Typography variant="h1" sx={{ 
                     color: "#ffffff", 
@@ -478,12 +479,24 @@ const HomePage = () => {
                     {/* Static Hyderabad Pin (No Animation) */}
                     <Box sx={{
                       position: "relative",
-                      width: "80px",
-                      height: "90px",
-                      filter: "drop-shadow(0 8px 16px rgba(255,183,77,0.4))"
+                      // width: "80px",
+                      // height: "90px",
+                      // filter: "drop-shadow(0 8px 16px rgba(255,183,77,0.4))"
                     }}>
+                      <Box 
+                      component="img" 
+                      src={logoImg} 
+                      alt="Handshake" 
+                      sx={{ 
+                        width: { xs: "100px",sm: "120px", md: "180px", marginY: "-30px" },
+                        height: "auto",
+                        // background: "rgba(255, 255, 255, 0.1)",
+                        // opacity: 0.9,
+                        // filter: "drop-shadow(0 4px 12px rgba(255, 171, 45, 0.55))"
+                      }} 
+                    />
                       {/* Modern Pin Design */}
-                      <svg width="80" height="90" viewBox="0 0 80 90">
+                      {/* <svg width="80" height="90" viewBox="0 0 80 90">
                         <defs>
                           <linearGradient id="pinGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style={{ stopColor: "#FFB74D", stopOpacity: 1 }} />
@@ -500,25 +513,25 @@ const HomePage = () => {
                               <feMergeNode in="SourceGraphic"/>
                             </feMerge>
                           </filter>
-                        </defs>
+                        </defs> */}
                         {/* Pin Shape */}
-                        <path 
+                        {/* <path 
                           d="M40 5 C25 5 13 17 13 32 C13 50 40 85 40 85 C40 85 67 50 67 32 C67 17 55 5 40 5 Z" 
                           fill="url(#pinGradient)"
                           stroke="#FF9800"
                           strokeWidth="2.5"
                           filter="url(#pinShadow)"
-                        />
+                        /> */}
                         {/* Inner Circle */}
-                        <circle cx="40" cy="32" r="14" fill="#1D3557" stroke="#0a1628" strokeWidth="2"/>
+                        {/* <circle cx="40" cy="32" r="14" fill="#1D3557" stroke="#0a1628" strokeWidth="2"/>
                         {/* Highlight */}
-                        <ellipse cx="35" cy="28" rx="6" ry="8" fill="rgba(255,255,255,0.3)"/>
-                      </svg>
+                        {/* <ellipse cx="35" cy="28" rx="6" ry="8" fill="rgba(255,255,255,0.3)"/> */} 
+                      {/* </svg> */}
                       
                       {/* Hyderabad Label with Better Styling */}
                       <Typography sx={{
                         position: "absolute",
-                        top: "100%",
+                        top: "80%",
                         left: "50%",
                         transform: "translateX(-50%)",
                         color: "#FFB74D",
@@ -535,7 +548,7 @@ const HomePage = () => {
 
                     {/* Stylish Years Badge */}
                     <Box sx={{
-                      mt: 6,
+                      mt: 3,
                       background: "linear-gradient(135deg, #FFB74D 0%, #FF9800 100%)",
                       px: 4,
                       py: 2,
