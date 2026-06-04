@@ -38,6 +38,8 @@ import MemoPaymentDetailsPage from "../pages/MemoPaymentDetailsPage";
 import PaidLRsPage from "../pages/PaidLRsPage";
 import AllLoadingListPage from "../pages/AllLoadingListPage";
 import ViewLoadingListPage from "../pages/ViewLoadingListPage";
+import AllUnloadingListPage from "../pages/AllUnloadingListPage";
+import ViewUnloadingListPage from "../pages/ViewUnloadingListPage";
 
 
 function AllRoutes() {
@@ -77,8 +79,10 @@ function AllRoutes() {
           <Route exact path="order/:id" element={<ViewOrderPage />} />
           <Route exact path="ledger/:id" element={<ViewLedgerPage />} />
           <Route exact path="loading-list/:id" element={<ViewLoadingListPage />} />
+          <Route exact path="unloading-list/:id" element={<ViewUnloadingListPage />} />
         </Route>
         <Route exact path="loading-list" element={<AllLoadingListPage />} />
+        <Route exact path="unloading-list" element={<AllUnloadingListPage />} />
         <Route exact path="gen-report" element={<GenReportPage />} />
         <Route path="*" element={<ErrorPage />} />
       </Route>

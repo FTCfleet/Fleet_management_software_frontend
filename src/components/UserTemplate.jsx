@@ -102,6 +102,7 @@ const UserTemplate = () => {
         { text: `${isAdmin ? "Dispatched" : isSource ? "Outgoing" : "Incoming"} Memo`, path: "/user/ledgers/dispatched", icon: <FaTruckMoving /> },
         { text: "Completed Memo", path: "/user/ledgers/completed", icon: <FaTruckMoving /> },
         ...(isSource || isAdmin ? [{ text: "Loading List", path: "/user/loading-list", icon: <FaTruckMoving /> }] : []),
+        ...(!isSource || isAdmin ? [{ text: "Unloading List", path: "/user/unloading-list", icon: <FaTruckMoving /> }] : []),
       ],
     },
     // Only show Payments section for Admin and Destination warehouse users (not Source)
