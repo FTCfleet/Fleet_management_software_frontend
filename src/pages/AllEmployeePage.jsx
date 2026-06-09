@@ -238,6 +238,7 @@ const AllEmployeePage = () => {
       } else {
         setUsernameError("");
       }
+      value = value.replace(/\s/g, ""); // Remove spaces from username
     }
     setNewEmployee((prev) => ({
       ...prev,

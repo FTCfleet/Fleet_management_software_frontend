@@ -4,6 +4,8 @@ import {
   Typography,
   Table,
   TableBody,
+  TextField,
+  Button,
   TableCell,
   TableContainer,
   TableHead,
@@ -22,6 +24,7 @@ import { useDialog } from "../hooks/useDialog";
 import {
   useParams,
   useOutletContext,
+  useNavigate
 } from "react-router-dom";
 
 import {
@@ -43,9 +46,13 @@ export default function ViewLoadingListPage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { dialogState, hideDialog, showError } = useDialog();
+  const [lorryFreight, setLorryFreight] = useState(0);
 
   const headerStyle = { color: colors?.textPrimary || "#1E3A5F", fontWeight: "bold" };
   const rowStyle = { color: colors?.textSecondary || "#25344E" };
+  const accentColor = isDarkMode ? "#FFB74D" : "#1D3557";
+  const textFieldSx = { "& .MuiOutlinedInput-root": { borderRadius: "8px", backgroundColor: isDarkMode ? colors?.bgPrimary : "#f9fafb", "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: accentColor }, "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: accentColor, borderWidth: "2px" } }, "& .MuiInputLabel-root.Mui-focused": { color: accentColor } };
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchData();
@@ -69,6 +76,32 @@ export default function ViewLoadingListPage() {
       }
       setListData(data.body);
       setParcels(data.body.parcels || []);
+    } catch (err) {
+      showError("Failed to fetch loading list details", "Error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleCreateMemo = async () => {
+    setIsLoading(true);
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(`${BASE_URL}/api/ledger/new-ll`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify({ loadingListId: id, lorryFreight }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.flag) {
+        showError(data.message || "Error occurred while fetching loading list", "Error");
+        setIsLoading(false);
+        return;
+      }
+      navigate(`/user/view/ledger/${data.body}`);
     } catch (err) {
       showError("Failed to fetch loading list details", "Error");
     } finally {
@@ -318,16 +351,23 @@ export default function ViewLoadingListPage() {
             </Box>
 
             {/* Scanned By */}
-            {listData.scannedBy && (
-              <Box sx={{ mt: 2, pt: 2, borderTop: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e2e8f0" }}>
+            <Box sx={{ mt: 2, pt: 2, borderTop: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e2e8f0" }} />
+            <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1 }}>
+              {listData.scannedBy && (
                 <Typography sx={{ color: colors?.textSecondary, fontSize: "0.75rem", fontWeight: 500 }}>
                   Scanned By: <span style={{ color: colors?.textPrimary, fontWeight: 600 }}>{listData.scannedBy?.name || "N/A"}</span>
                   {listData.scannedBy?.phoneNo && (
                     <span style={{ color: colors?.textSecondary, fontWeight: 400 }}> ({listData.scannedBy.phoneNo})</span>
                   )}
                 </Typography>
+              )}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <TextField label="Lorry Freight"  value={lorryFreight} onChange={(e) => setLorryFreight(e.target.value || 0)} sx={textFieldSx} size="small" inputProps={{ tabIndex: 2 }} />
+                <button className="button button-medium" sx={{ color: colors?.textSecondary, fontSize: "0.75rem", fontWeight: 500 }} onClick={handleCreateMemo}>
+                  Create Memo
+                </button>
               </Box>
-            )}
+            </Box>
           </Box>
         )}
       </Box>
