@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-// import { QRCodeSVG } from "qrcode.react";
+import { QRCodeSVG } from "qrcode.react";
 import Barcode from "react-barcode";
 import {
   Box,
@@ -523,7 +523,7 @@ export default function ViewOrderPage() {
               : "linear-gradient(180deg, #64B5F6 0%, #42A5F5 100%)",
           }}
         >
-          <AiOutlineBarcode  /> Print Bar Code
+          <AiOutlineBarcode  /> Print Code
         </button>
         {!isMobile && (
         <button className="button" onClick={handleLRPrintThermal} style={{ minWidth: "180px" }}>
@@ -677,23 +677,16 @@ export default function ViewOrderPage() {
                 : "1px solid #e8ecf0",
             }}
           >
-            <QRCodeSVG
-              value={id || ""}
-              size={isMobile ? 180 : 220}
-              level="H"
-              includeMargin
-              bgColor="#ffffff"
-              fgColor="#1a1a2e"
-            />
           </Box> */}
 
           {/* Barcode */}
           <Box
             sx={{
               display: "flex",
+              flexDirection: "column",
               justifyContent: "center",
               alignItems: "center",
-              p: { xs: 1.5, sm: 2.5 },
+              // p: { xs: 1.5, sm: 2.5 },
               mb: 2.5,
               backgroundColor: "#ffffff",
               borderRadius: 2.5,
@@ -703,12 +696,20 @@ export default function ViewOrderPage() {
               overflowX: "auto",
             }}
           >
+            <QRCodeSVG
+              value={id || ""}
+              size={isMobile ? 150 : 180}
+              level="H"
+              includeMargin
+              bgColor="#ffffff"
+              fgColor="#1a1a2e"
+            />            
             <Barcode
               value={id || "0"}
               format="CODE128"
               width={isMobile ? 1.5 : 2}
-              height={isMobile ? 60 : 80}
-              displayValue
+              height={isMobile ? 40 : 60}
+              displayValue={false}
               background="#ffffff"
               lineColor="#1a1a2e"
               fontSize={12}
