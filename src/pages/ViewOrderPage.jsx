@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
-import { QRCodeSVG } from "qrcode.react";
+// import { QRCodeSVG } from "qrcode.react";
+import Barcode from "react-barcode";
 import {
   Box,
   Typography,
@@ -24,7 +25,8 @@ import {
   Alert,
 } from "@mui/material";
 import { Link, useNavigate, useOutletContext, useParams, useLocation } from "react-router-dom";
-import { FaEdit, FaTrash, FaPrint, FaExclamationTriangle, FaBluetooth, FaBluetoothB, FaQrcode } from "react-icons/fa";
+import { FaEdit, FaTrash, FaPrint, FaExclamationTriangle, FaBluetooth, FaBluetoothB } from "react-icons/fa";
+import { AiOutlineBarcode } from "react-icons/ai";
 import { MdBluetoothConnected, MdBluetoothDisabled } from "react-icons/md";
 import { dateFormatter } from "../utils/dateFormatter";
 import { fromDbValue, formatCurrency } from "../utils/currencyUtils";
@@ -343,11 +345,23 @@ export default function ViewOrderPage() {
       }}>
         <CardContent sx={{ p: { xs: 2, md: 3 } }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2, flexWrap: "wrap", gap: 1 }}>
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 700, color: colors?.textPrimary || "#1E3A5F" }}>
-                LR Details
-              </Typography>
-              <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.9rem" }}>#{id}</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: colors?.textPrimary || "#1E3A5F" }}>
+                  LR Details
+                </Typography>
+                <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.9rem" }}>#{id}</Typography>
+              </Box>
+              <Barcode
+                value={id || "0"}
+                format="CODE128"
+                width={isMobile ? 1.3 : 2}
+                height={isMobile ? 40 : 50}
+                displayValue={false}
+                background="#ffffff"
+                lineColor="#1a1a2e"
+                fontSize={12}
+              />
             </Box>
             <Chip
               label={order.status?.charAt(0).toUpperCase() + order.status?.slice(1)}
@@ -509,7 +523,7 @@ export default function ViewOrderPage() {
               : "linear-gradient(180deg, #64B5F6 0%, #42A5F5 100%)",
           }}
         >
-          <FaQrcode /> Print QR
+          <AiOutlineBarcode  /> Print Bar Code
         </button>
         {!isMobile && (
         <button className="button" onClick={handleLRPrintThermal} style={{ minWidth: "180px" }}>
@@ -635,7 +649,7 @@ export default function ViewOrderPage() {
               mb: 0.5,
             }}
           >
-            QR Code
+            Barcode
           </Typography>
           <Typography
             sx={{
@@ -649,7 +663,7 @@ export default function ViewOrderPage() {
           </Typography>
 
           {/* QR Code */}
-          <Box
+          {/* <Box
             sx={{
               display: "flex",
               justifyContent: "center",
@@ -670,6 +684,34 @@ export default function ViewOrderPage() {
               includeMargin
               bgColor="#ffffff"
               fgColor="#1a1a2e"
+            />
+          </Box> */}
+
+          {/* Barcode */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              p: { xs: 1.5, sm: 2.5 },
+              mb: 2.5,
+              backgroundColor: "#ffffff",
+              borderRadius: 2.5,
+              border: isDarkMode
+                ? "1px solid rgba(255,255,255,0.1)"
+                : "1px solid #e8ecf0",
+              overflowX: "auto",
+            }}
+          >
+            <Barcode
+              value={id || "0"}
+              format="CODE128"
+              width={isMobile ? 1.5 : 2}
+              height={isMobile ? 60 : 80}
+              displayValue
+              background="#ffffff"
+              lineColor="#1a1a2e"
+              fontSize={12}
             />
           </Box>
 
@@ -740,7 +782,7 @@ export default function ViewOrderPage() {
                 },
               }}
             >
-              Print QR Codes
+              Print Barcodes
             </Button>
           </Box>
 
