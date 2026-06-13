@@ -15,12 +15,14 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 const remoteLog = async (level, message, data = {}) => {
   try {
     const token = localStorage.getItem('token');
-    await fetch(`${BASE_URL}/api/client-log`, {
+    await fetch(`${BASE_URL}/api/logs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ level, message, data, timestamp: new Date().toISOString() })
     });
-  } catch (e) {}
+  } catch (e) {
+    console.log("Failed to send remote log", { level, message, data, error: e });
+  }
 };
 
 // QZ Tray Certificate Configuration
