@@ -30,7 +30,7 @@ import { AiOutlineBarcode } from "react-icons/ai";
 import { MdBluetoothConnected, MdBluetoothDisabled } from "react-icons/md";
 import { dateFormatter } from "../utils/dateFormatter";
 import { fromDbValue, formatCurrency } from "../utils/currencyUtils";
-import { printThermalLRWithAutoCut, printBarcodeLabels, getQZTrayErrorMessage, isQZTrayAvailable, DEFAULT_BARCODE_PRINTER } from "../utils/qzTrayUtils";
+import { printThermalLRWithAutoCut, printBarcodeLabels, getQZTrayErrorMessage, isQZTrayAvailable, DEFAULT_BARCODE_PRINTER, getAvailablePrinters } from "../utils/qzTrayUtils";
 import { generateThreeCopies, generateBarcodeESCPOS } from "../utils/escPosGenerator";
 import { webBluetoothPrinter, connectBluetoothPrinter, printViaWebBluetooth, isWebBluetoothSupported } from "../utils/webBluetoothPrint";
 import { useAuth } from "../routes/AuthContext";
@@ -326,6 +326,7 @@ export default function ViewOrderPage() {
   const handleQRPrint = async () => {
     try {
       setIsBarcodeLoading('qz');
+      await getAvailablePrinters();
       const printerName = localStorage.getItem('barcodePrinterName') || DEFAULT_BARCODE_PRINTER;
       const result = await printBarcodeLabels(id, qrCount, printerName);
       setToast({ open: true, message: result.message, severity: 'success' });
@@ -581,7 +582,7 @@ export default function ViewOrderPage() {
               : "linear-gradient(180deg, #64B5F6 0%, #42A5F5 100%)",
           }}
         >
-          <AiOutlineBarcode  /> Print Code
+          <AiOutlineBarcode  /> Print BarCode
         </button>
         {!isMobile && (
         <button className="button" onClick={handleLRPrintThermal} style={{ minWidth: "180px" }}>

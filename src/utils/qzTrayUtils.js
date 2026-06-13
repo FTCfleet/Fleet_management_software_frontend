@@ -210,6 +210,7 @@ export const getAvailablePrinters = async () => {
 
   try {
     const printers = await qz.printers.find();
+    console.log("Available printers:", printers);
     await remoteLog('info', 'Available printers listed', { printers });
     return printers;
   } finally {
