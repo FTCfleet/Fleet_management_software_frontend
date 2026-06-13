@@ -64,7 +64,7 @@ export default function ViewOrderPage() {
   const [bluetoothPrinterName, setBluetoothPrinterName] = useState(savedPrinter?.name || '');
   const [hasSavedPrinter, setHasSavedPrinter] = useState(!!savedPrinter);
   const [toast, setToast] = useState({ open: false, message: '', severity: 'info' });
-  // 'qz' | 'bt' | null
+  // 'qz' | 'bt' | 'test-tspl' | 'test-bplz' | null
   const [isBarcodeLoading, setIsBarcodeLoading] = useState(null);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -582,7 +582,7 @@ export default function ViewOrderPage() {
               : "linear-gradient(180deg, #64B5F6 0%, #42A5F5 100%)",
           }}
         >
-          <AiOutlineBarcode  /> Print  Code
+          <AiOutlineBarcode  /> Print Bar Code
         </button>
         {!isMobile && (
         <button className="button" onClick={handleLRPrintThermal} style={{ minWidth: "180px" }}>
@@ -850,34 +850,43 @@ export default function ViewOrderPage() {
             </Button>
           </Box>
 
-          {/* Test printer link */}
+          {/* Test printer buttons — try both languages to find which works */}
           {isQZTrayAvailable() && (
-            <Box sx={{ textAlign: "center", mb: 2 }}>
-              <Button
-                size="small"
-                disabled={!!isBarcodeLoading}
-                onClick={async () => {
-                  try {
-                    setIsBarcodeLoading('qz');
-                    const printerName = localStorage.getItem('barcodePrinterName') || DEFAULT_BARCODE_PRINTER;
-                    const result = await testBarcodePrinter(printerName);
-                    setToast({ open: true, message: result.message, severity: 'info' });
-                  } catch (err) {
-                    setToast({ open: true, message: getQZTrayErrorMessage(err), severity: 'error' });
-                  } finally {
-                    setIsBarcodeLoading(null);
-                  }
-                }}
-                sx={{
-                  textTransform: "none",
-                  fontSize: "0.78rem",
-                  color: isDarkMode ? colors?.textSecondary : "#64748b",
-                  textDecoration: "underline",
-                  "&:hover": { color: isDarkMode ? colors?.textPrimary : "#1E3A5F", background: "none" },
-                }}
-              >
-                {isBarcodeLoading === 'qz' ? "Sending test..." : "Send test label to printer"}
-              </Button>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1, mb: 2 }}>
+              <Typography sx={{ fontSize: "0.75rem", color: colors?.textSecondary }}>Test:</Typography>
+              {['bplz', 'tspl'].map((lang) => (
+                <Button
+                  key={lang}
+                  size="small"
+                  disabled={!!isBarcodeLoading}
+                  onClick={async () => {
+                    try {
+                      setIsBarcodeLoading(`test-${lang}`);
+                      const printerName = localStorage.getItem('barcodePrinterName') || DEFAULT_BARCODE_PRINTER;
+                      const result = await testBarcodePrinter(printerName, lang);
+                      // Save whichever language the user confirms works
+                      setToast({ open: true, message: `${result.message} — if it printed, run: localStorage.setItem('barcodePrinterLanguage','${lang}')`, severity: 'info' });
+                    } catch (err) {
+                      setToast({ open: true, message: getQZTrayErrorMessage(err), severity: 'error' });
+                    } finally {
+                      setIsBarcodeLoading(null);
+                    }
+                  }}
+                  sx={{
+                    textTransform: "none",
+                    fontSize: "0.78rem",
+                    fontWeight: 600,
+                    px: 1.5,
+                    py: 0.5,
+                    border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.15)" : "#d1d5db"}`,
+                    borderRadius: 1.5,
+                    color: isDarkMode ? colors?.textSecondary : "#374151",
+                    "&:hover": { borderColor: isDarkMode ? colors?.accent : "#1E3A5F", background: "none" },
+                  }}
+                >
+                  {isBarcodeLoading === `test-${lang}` ? "Sending…" : lang.toUpperCase()}
+                </Button>
+              ))}
             </Box>
           )}
 

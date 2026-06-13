@@ -260,40 +260,81 @@ export const getQZTrayErrorMessage = (error) => {
 };
 
 /* ------------------------------------------------------------------ */
-/* TSPL Barcode Label Generator for TVS LP 46 DLITE                   */
+/* Label Generators — TSPL and BPLZ (ZPL-compatible, SNBC printers)  */
 /* ------------------------------------------------------------------ */
 
-/**
- * Generate TSPL commands for a barcode label.
- * Label size: 100mm x 25mm — adjust SIZE/GAP if using different stock.
- * @param {string} trackingId
- * @param {number} count - Number of label copies
- * @returns {string} TSPL command string
- */
+// Language stored in localStorage as 'barcodePrinterLanguage': 'tspl' | 'bplz'
+// SNBC printers (e.g. SNBC TVSE LP46 Dlite) typically use BPLZ.
+// TSC printers typically use TSPL.
+
 const generateTSPLBarcode = (trackingId, count) => {
   const lines = [
-    'SIZE 100 mm,25 mm',   // adjust to match your label stock
-    'GAP 2 mm,0 mm',
+    'SIZE 100 mm,50 mm',
+    'GAP 3 mm,0 mm',
     'DENSITY 8',
     'DIRECTION 0',
     'CLS',
-    'TEXT 20,15,"3",0,1,1,"Friends Transport Co."',
-    `BARCODE 20,50,"CODE128",100,1,0,2,2,"${trackingId}"`,
+    'TEXT 20,10,"3",0,1,1,"Friends Transport Co."',
+    `BARCODE 20,45,"CODE128",100,1,0,2,2,"${trackingId}"`,
     `PRINT ${count},1`,
     'END',
   ];
   return lines.join('\r\n') + '\r\n';
 };
 
+// BPLZ is SNBC's ZPL-compatible dialect. Units are in dots (203 DPI → 8 dots/mm).
+// ^XA / ^XZ wrap each label. ^FO = field origin. ^A0N = scalable font.
+// ^BCN = Code128. ^FD = field data. ^FS = field separator.
+const generateBPLZBarcode = (trackingId, count) => {
+  let cmd = '';
+  for (let i = 0; i < count; i++) {
+    cmd += '^XA\r\n';
+    cmd += '^FO30,20^A0N,30,30^FDFriends Transport Co.^FS\r\n';
+    cmd += `^FO30,65^BCN,100,Y,N,N^FD${trackingId}^FS\r\n`;
+    cmd += '^XZ\r\n';
+  }
+  return cmd;
+};
+
+const buildLabelData = (trackingId, count, language) =>
+  language === 'bplz'
+    ? generateBPLZBarcode(trackingId, count)
+    : generateTSPLBarcode(trackingId, count);
+
+const buildTestData = (language) => {
+  const ts = new Date().toLocaleString();
+  if (language === 'bplz') {
+    return [
+      '^XA',
+      '^FO30,20^A0N,40,40^FDFTC TEST PRINT^FS',
+      '^FO30,80^A0N,25,25^FDPrinter is receiving data!^FS',
+      `^FO30,120^A0N,20,20^FD${ts}^FS`,
+      '^XZ',
+    ].join('\r\n') + '\r\n';
+  }
+  return [
+    'SIZE 100 mm,50 mm',
+    'GAP 3 mm,0 mm',
+    'DENSITY 10',
+    'DIRECTION 0',
+    'CLS',
+    'TEXT 10,10,"3",0,2,2,"FTC TEST PRINT"',
+    'TEXT 10,70,"3",0,1,1,"Printer is receiving data!"',
+    `TEXT 10,95,"3",0,1,1,"${ts}"`,
+    'PRINT 1,1',
+    'END',
+  ].join('\r\n') + '\r\n';
+};
+
+/* ------------------------------------------------------------------ */
+
 /**
- * Print barcode labels via QZ Tray to TVS LP 46 DLITE.
- * @param {string} trackingId - Parcel tracking ID
- * @param {number} count - Number of label copies to print
- * @param {string} printerName - Printer name (must match Windows printer name exactly)
- * @returns {Promise<{success: boolean, message: string}>}
+ * Print barcode labels via QZ Tray.
+ * Language is read from localStorage key 'barcodePrinterLanguage': 'tspl' | 'bplz' (default 'bplz').
  */
 export const printBarcodeLabels = async (trackingId, count = 1, printerName = DEFAULT_BARCODE_PRINTER) => {
-  await remoteLog('info', 'printBarcodeLabels called', { trackingId, count, printerName });
+  const language = localStorage.getItem('barcodePrinterLanguage') || 'bplz';
+  await remoteLog('info', 'printBarcodeLabels called', { trackingId, count, printerName, language });
 
   if (!isQZTrayAvailable()) {
     await remoteLog('error', 'QZ Tray not available for barcode print', { trackingId });
@@ -304,24 +345,20 @@ export const printBarcodeLabels = async (trackingId, count = 1, printerName = DE
 
   try {
     const config = qz.configs.create(printerName);
-    const tsplData = generateTSPLBarcode(trackingId, count);
+    const labelData = buildLabelData(trackingId, count, language);
 
-    await remoteLog('info', 'Sending TSPL to barcode printer', { trackingId, printerName, count });
-    await qz.print(config, [{ type: 'raw', format: 'plain', data: tsplData }]);
-    await remoteLog('info', 'Barcode label print successful', { trackingId, printerName, count });
+    await remoteLog('info', 'Sending label to barcode printer', { trackingId, printerName, count, language, labelData });
+    await qz.print(config, [{ type: 'raw', format: 'plain', data: labelData }]);
+    await remoteLog('info', 'Barcode label print successful', { trackingId, printerName, count, language });
 
-    return {
-      success: true,
-      message: `Successfully printed ${count} barcode label(s)`,
-    };
+    return { success: true, message: `Successfully printed ${count} barcode label(s)` };
 
   } catch (err) {
-    // Only enumerate printers on failure to avoid extra security round-trips
     try {
       const availablePrinters = await qz.printers.find();
-      await remoteLog('error', 'Barcode label print failed', { trackingId, printerName, count, error: err.message, availablePrinters });
+      await remoteLog('error', 'Barcode label print failed', { trackingId, printerName, count, language, error: err.message, availablePrinters });
     } catch (_) {
-      await remoteLog('error', 'Barcode label print failed', { trackingId, printerName, count, error: err.message });
+      await remoteLog('error', 'Barcode label print failed', { trackingId, printerName, count, language, error: err.message });
     }
     throw err;
   } finally {
@@ -330,14 +367,12 @@ export const printBarcodeLabels = async (trackingId, count = 1, printerName = DE
 };
 
 /**
- * Send a simple test label to the barcode printer.
- * Use this to verify the printer is receiving and interpreting TSPL commands.
- * If this prints, the printer connection is good; if not, check label size / TSPL support.
+ * Send a test label to the barcode printer using the specified language.
  * @param {string} printerName
- * @returns {Promise<{success: boolean, message: string}>}
+ * @param {'tspl'|'bplz'} language
  */
-export const testBarcodePrinter = async (printerName = DEFAULT_BARCODE_PRINTER) => {
-  await remoteLog('info', 'testBarcodePrinter called', { printerName });
+export const testBarcodePrinter = async (printerName = DEFAULT_BARCODE_PRINTER, language = 'bplz') => {
+  await remoteLog('info', 'testBarcodePrinter called', { printerName, language });
 
   if (!isQZTrayAvailable()) {
     throw new Error("QZ Tray is not installed.");
@@ -347,33 +382,20 @@ export const testBarcodePrinter = async (printerName = DEFAULT_BARCODE_PRINTER) 
 
   try {
     const config = qz.configs.create(printerName);
+    const testData = buildTestData(language);
 
-    // Minimal TSPL test label — if nothing prints, try adjusting SIZE height (50 → 80 → 40)
-    const testTSPL = [
-      'SIZE 100 mm,50 mm',
-      'GAP 3 mm,0 mm',
-      'DENSITY 10',
-      'DIRECTION 0',
-      'CLS',
-      'TEXT 10,10,"3",0,2,2,"FTC TEST PRINT"',
-      'TEXT 10,70,"3",0,1,1,"Printer is receiving data!"',
-      `TEXT 10,95,"3",0,1,1,"${new Date().toLocaleString()}"`,
-      'PRINT 1,1',
-      'END',
-    ].join('\r\n') + '\r\n';
+    await remoteLog('info', `Sending ${language.toUpperCase()} test label`, { printerName, testData });
+    await qz.print(config, [{ type: 'raw', format: 'plain', data: testData }]);
+    await remoteLog('info', `${language.toUpperCase()} test label accepted by QZ Tray spooler`, { printerName });
 
-    await remoteLog('info', 'Sending test TSPL', { printerName, testTSPL });
-    await qz.print(config, [{ type: 'raw', format: 'plain', data: testTSPL }]);
-    await remoteLog('info', 'Test label accepted by QZ Tray spooler', { printerName });
-
-    return { success: true, message: 'Test label sent — check if printer produced output' };
+    return { success: true, message: `${language.toUpperCase()} test label sent — check if printer produced output` };
 
   } catch (err) {
     try {
       const availablePrinters = await qz.printers.find();
-      await remoteLog('error', 'Test print failed', { printerName, error: err.message, availablePrinters });
+      await remoteLog('error', `${language.toUpperCase()} test print failed`, { printerName, error: err.message, availablePrinters });
     } catch (_) {
-      await remoteLog('error', 'Test print failed', { printerName, error: err.message });
+      await remoteLog('error', `${language.toUpperCase()} test print failed`, { printerName, error: err.message });
     }
     throw err;
   } finally {
