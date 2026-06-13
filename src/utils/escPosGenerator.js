@@ -270,3 +270,41 @@ export const generateCopiesArray = (parcel) => [
   generateESCPOSReceipt(parcel, 0),
   generateESCPOSReceipt(parcel, 1),
 ];
+
+/* -------------------------------------------------- */
+/* BARCODE LABEL (for Bluetooth / ESC/POS printers)   */
+/* -------------------------------------------------- */
+
+/**
+ * Generate ESC/POS barcode label for a tracking ID.
+ * Prints `count` copies, each with company name + CODE128 barcode + auto-cut.
+ * Intended for TVS-E RP 3230 (80mm) via Bluetooth or QZ Tray.
+ * @param {string} trackingId
+ * @param {number} count
+ * @returns {string} ESC/POS command string
+ */
+export const generateBarcodeESCPOS = (trackingId, count = 1) => {
+  let data = '';
+
+  for (let i = 0; i < count; i++) {
+    data += INIT + ALIGN_C + SIZE_1X;
+    data += LF;
+    data += BOLD_ON + 'Friends Transport Co.' + BOLD_OFF + LF;
+    data += LF;
+
+    // Barcode settings
+    data += GS + '\x68' + String.fromCharCode(150); // GS h - height 150 dots (~19mm)
+    data += GS + '\x77' + '\x03';                   // GS w - module width 3
+    data += GS + '\x48' + '\x02';                   // GS H - HRI below barcode
+    data += GS + '\x66' + '\x00';                   // GS f - HRI font A
+
+    // CODE128 barcode (new format: GS k 0x49 len data)
+    const barcodeContent = '{B' + trackingId; // {B = Code B subset
+    data += GS + '\x6B' + '\x49' + String.fromCharCode(barcodeContent.length) + barcodeContent;
+
+    data += LF + LF;
+    data += CUT;
+  }
+
+  return data;
+};

@@ -1,17 +1,27 @@
 /**
  * QZ Tray Utility Functions
  * For thermal printer integration with auto-cut support
+ * Supports:
+ *   - TVS-E RP 3230 (80mm thermal receipt printer)
+ *   - TVS LP 46 DLITE (label/barcode printer, TSPL)
  */
 
-// Default printer name for TVS-E RP 3230
-// IMPORTANT: This must match the EXACT printer name in Windows/System settings
-// To find your printer name:
-// - Windows: Settings → Devices → Printers & scanners
-// - macOS: System Preferences → Printers & Scanners
-// - Linux: System Settings → Printers
-// Or run listPrinters() in browser console to see all available printers
+// Printer names must match EXACTLY what appears in Windows Settings → Printers & scanners
 export const DEFAULT_THERMAL_PRINTER = "TVS-E RP 3230";
+export const DEFAULT_BARCODE_PRINTER = "TVS LP 46 DLITE";
+
 const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+const remoteLog = async (level, message, data = {}) => {
+  try {
+    const token = localStorage.getItem('token');
+    await fetch(`${BASE_URL}/api/client-log`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ level, message, data, timestamp: new Date().toISOString() })
+    });
+  } catch (e) {}
+};
 
 // QZ Tray Certificate Configuration
 // To stop the "unverified certificate" warnings, you need to sign your requests
@@ -101,12 +111,14 @@ export const isQZTrayAvailable = () => {
  */
 export const connectQZTray = async () => {
   if (!isQZTrayAvailable()) {
+    await remoteLog('error', 'QZ Tray not available');
     throw new Error("QZ Tray is not installed");
   }
 
   await configureQZSecurity();
 
   if (!qz.websocket.isActive()) {
+    await remoteLog('info', 'Connecting to QZ Tray websocket');
     await qz.websocket.connect();
   }
 };
@@ -129,56 +141,56 @@ export const disconnectQZTray = async () => {
  * @returns {Promise<void>}
  */
 export const printThermalLRWithAutoCut = async (trackingId, baseUrl, printerName = DEFAULT_THERMAL_PRINTER) => {
-  // Check QZ Tray availability
+  await remoteLog('info', 'printThermalLRWithAutoCut called', { trackingId, printerName });
+
   if (!isQZTrayAvailable()) {
+    await remoteLog('error', 'QZ Tray not installed', { trackingId });
     throw new Error("QZ Tray is not installed. Please install QZ Tray for thermal printing.\n\nDownload from: https://qz.io/download/");
   }
 
-  // Fetch parcel data from backend using track endpoint
   const response = await fetch(`${baseUrl}/api/parcel/track/${trackingId}`);
-  
+
   if (!response.ok) {
+    await remoteLog('error', 'Failed to fetch parcel data', { trackingId, status: response.status });
     throw new Error("Failed to fetch parcel data from server");
   }
-  
+
   const data = await response.json();
-  
+
   if (!data.flag) {
+    await remoteLog('error', 'Parcel data fetch returned error', { trackingId, message: data.message });
     throw new Error(data.message || "Failed to fetch parcel data");
   }
 
-  // Import ESC/POS generator dynamically
+  await remoteLog('info', 'Parcel data fetched, generating ESC/POS', { trackingId });
+
   const { generateCopiesArray } = await import('./escPosGenerator.js');
-  
-  // Generate ESC/POS commands for 3 copies
-  // Backend returns data in 'body' field
   const escPosReceipts = generateCopiesArray(data.body);
 
-  // Connect to QZ Tray
   await connectQZTray();
 
   try {
-    // Configure printer
     const config = qz.configs.create(printerName);
 
-    // Build print data - send raw ESC/POS commands
     const printData = escPosReceipts.map(receiptCommands => ({
       type: 'raw',
       format: 'plain',
       data: receiptCommands
     }));
 
-    // Send to printer
     await qz.print(config, printData);
-    
+    await remoteLog('info', 'Thermal LR print successful', { trackingId, printerName, copies: escPosReceipts.length });
+
     return {
       success: true,
       message: `Successfully printed ${escPosReceipts.length} copies with auto-cut`,
       copies: escPosReceipts.length
     };
-    
+
+  } catch (err) {
+    await remoteLog('error', 'Thermal LR print failed', { trackingId, printerName, error: err.message });
+    throw err;
   } finally {
-    // Always disconnect, even if printing fails
     await disconnectQZTray();
   }
 };
@@ -191,12 +203,12 @@ export const getAvailablePrinters = async () => {
   if (!isQZTrayAvailable()) {
     throw new Error("QZ Tray is not installed");
   }
-  
+
   await connectQZTray();
-  
+
   try {
     const printers = await qz.printers.find();
-    console.log("Available printers:", printers); // Log for debugging
+    await remoteLog('info', 'Available printers listed', { printers });
     return printers;
   } finally {
     await disconnectQZTray();
@@ -224,22 +236,88 @@ export const findPrinterByPartialName = async (partialName) => {
  */
 export const getQZTrayErrorMessage = (error) => {
   const errorMsg = error.message || "";
-  
+
   if (errorMsg.includes("Unable to establish connection") || errorMsg.includes("not running")) {
     return "QZ Tray is not running. Please start QZ Tray and try again.\n\nDownload from: https://qz.io/download/";
   }
-  
+
   if (errorMsg.includes("Printer not found") || errorMsg.includes("No printers found")) {
-    return "Printer not found. Please check:\n1. Printer is connected and turned on\n2. Printer name matches 'RP3230ABW-5BE6'\n3. Printer drivers are installed\n\nTip: Check exact printer name in system settings";
+    return "Printer not found. Please check:\n1. Printer is connected and turned on\n2. Printer name in system settings matches the configured name\n3. Printer drivers are installed\n\nTip: Check exact printer name in Windows Settings → Printers & scanners";
   }
-  
+
   if (errorMsg.includes("not installed")) {
     return "QZ Tray is not installed. Please install QZ Tray for thermal printing.\n\nDownload from: https://qz.io/download/";
   }
-  
+
   if (errorMsg.includes("Failed to fetch")) {
     return "Failed to connect to server. Please check your internet connection.";
   }
-  
+
   return errorMsg || "An unknown error occurred while printing";
+};
+
+/* ------------------------------------------------------------------ */
+/* TSPL Barcode Label Generator for TVS LP 46 DLITE                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Generate TSPL commands for a barcode label.
+ * Label size: 100mm x 25mm — adjust SIZE/GAP if using different stock.
+ * @param {string} trackingId
+ * @param {number} count - Number of label copies
+ * @returns {string} TSPL command string
+ */
+const generateTSPLBarcode = (trackingId, count) => {
+  const lines = [
+    'SIZE 100 mm,25 mm',   // adjust to match your label stock
+    'GAP 2 mm,0 mm',
+    'DENSITY 8',
+    'DIRECTION 0',
+    'CLS',
+    'TEXT 20,15,"3",0,1,1,"Friends Transport Co."',
+    `BARCODE 20,50,"CODE128",100,1,0,2,2,"${trackingId}"`,
+    `PRINT ${count},1`,
+    'END',
+  ];
+  return lines.join('\r\n') + '\r\n';
+};
+
+/**
+ * Print barcode labels via QZ Tray to TVS LP 46 DLITE.
+ * @param {string} trackingId - Parcel tracking ID
+ * @param {number} count - Number of label copies to print
+ * @param {string} printerName - Printer name (must match Windows printer name exactly)
+ * @returns {Promise<{success: boolean, message: string}>}
+ */
+export const printBarcodeLabels = async (trackingId, count = 1, printerName = DEFAULT_BARCODE_PRINTER) => {
+  await remoteLog('info', 'printBarcodeLabels called', { trackingId, count, printerName });
+
+  if (!isQZTrayAvailable()) {
+    await remoteLog('error', 'QZ Tray not available for barcode print', { trackingId });
+    throw new Error("QZ Tray is not installed. Please install QZ Tray for barcode printing.\n\nDownload from: https://qz.io/download/");
+  }
+
+  await connectQZTray();
+
+  try {
+    const config = qz.configs.create(printerName);
+    const tsplData = generateTSPLBarcode(trackingId, count);
+
+    await remoteLog('info', 'Sending TSPL to barcode printer', { trackingId, printerName, count, tsplData });
+
+    await qz.print(config, [{ type: 'raw', format: 'plain', data: tsplData }]);
+
+    await remoteLog('info', 'Barcode label print successful', { trackingId, printerName, count });
+
+    return {
+      success: true,
+      message: `Successfully printed ${count} barcode label(s)`,
+    };
+
+  } catch (err) {
+    await remoteLog('error', 'Barcode label print failed', { trackingId, printerName, count, error: err.message });
+    throw err;
+  } finally {
+    await disconnectQZTray();
+  }
 };

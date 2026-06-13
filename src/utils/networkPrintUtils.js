@@ -3,6 +3,19 @@
  * Direct printing to network thermal printers via backend API
  */
 
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+const remoteLog = async (level, message, data = {}) => {
+  try {
+    const token = localStorage.getItem('token');
+    await fetch(`${BASE_URL}/api/logs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ level, message, data, timestamp: new Date().toISOString() })
+    });
+  } catch (e) {}
+};
+
 /**
  * Print ESC/POS commands to network printer via backend
  * @param {string} escPosCommands - Raw ESC/POS command string
@@ -12,9 +25,10 @@
  * @returns {Promise<Object>} Response with success status
  */
 export const printToNetworkPrinter = async (escPosCommands, printerIP, printerPort = 9100, baseUrl) => {
+  await remoteLog('info', 'printToNetworkPrinter called', { printerIP, printerPort });
   try {
     const token = localStorage.getItem('token');
-    
+
     const response = await fetch(`${baseUrl}/api/parcel/print/thermal-network`, {
       method: 'POST',
       headers: {
@@ -27,21 +41,24 @@ export const printToNetworkPrinter = async (escPosCommands, printerIP, printerPo
         printerPort: printerPort
       })
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
-      throw new Error(data.error || data.message || 'Network printing failed');
+      const err = new Error(data.error || data.message || 'Network printing failed');
+      await remoteLog('error', 'Network printer API error', { printerIP, printerPort, status: response.status, message: err.message });
+      throw err;
     }
-    
+
+    await remoteLog('info', 'Network print successful', { printerIP, printerPort });
     return {
       success: true,
       message: data.message || 'Print job sent successfully',
       data: data
     };
-    
+
   } catch (error) {
-    console.error('Network print error:', error);
+    await remoteLog('error', 'printToNetworkPrinter exception', { printerIP, printerPort, error: error.message });
     return {
       success: false,
       message: error.message || 'Failed to connect to printer',
@@ -59,38 +76,37 @@ export const printToNetworkPrinter = async (escPosCommands, printerIP, printerPo
  * @returns {Promise<Object>} Response with success status
  */
 export const printThermalLRNetwork = async (trackingId, baseUrl, printerIP, printerPort = 9100) => {
+  await remoteLog('info', 'printThermalLRNetwork called', { trackingId, printerIP, printerPort });
   try {
     const token = localStorage.getItem('token');
-    
-    // Fetch parcel data
+
     const parcelResponse = await fetch(`${baseUrl}/api/parcel/track/${trackingId}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
-    
+
     if (!parcelResponse.ok) {
+      await remoteLog('error', 'Failed to fetch parcel data for network print', { trackingId, status: parcelResponse.status });
       throw new Error('Failed to fetch parcel data');
     }
-    
+
     const parcelData = await parcelResponse.json();
-    
+
     if (!parcelData.flag) {
+      await remoteLog('error', 'Parcel data error for network print', { trackingId, message: parcelData.message });
       throw new Error(parcelData.message || 'Failed to fetch parcel data');
     }
-    
-    // Generate ESC/POS commands (import dynamically to avoid circular deps)
+
     const { generateThreeCopies } = await import('./escPosGenerator.js');
     const escPosCommands = generateThreeCopies(parcelData.body);
-    
-    // Send to network printer via backend
+
     const printResult = await printToNetworkPrinter(escPosCommands, printerIP, printerPort, baseUrl);
-    
     return printResult;
-    
+
   } catch (error) {
-    console.error('Network print error:', error);
+    await remoteLog('error', 'printThermalLRNetwork exception', { trackingId, error: error.message });
     return {
       success: false,
       message: error.message || 'Failed to print via network',
@@ -130,9 +146,10 @@ export const getNetworkPrintErrorMessage = (error) => {
  * @returns {Promise<Object>} List of discovered printers
  */
 export const discoverNetworkPrinters = async (baseUrl) => {
+  await remoteLog('info', 'discoverNetworkPrinters called');
   try {
     const token = localStorage.getItem('token');
-    
+
     const response = await fetch(`${baseUrl}/api/parcel/print/discover-printers`, {
       method: 'GET',
       headers: {
@@ -140,21 +157,24 @@ export const discoverNetworkPrinters = async (baseUrl) => {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
-      throw new Error(data.error || data.message || 'Failed to discover printers');
+      const err = new Error(data.error || data.message || 'Failed to discover printers');
+      await remoteLog('error', 'Printer discovery API error', { message: err.message });
+      throw err;
     }
-    
+
+    await remoteLog('info', 'Printer discovery complete', { count: (data.printers || []).length });
     return {
       success: true,
       printers: data.printers || [],
       message: data.message || 'Scan complete'
     };
-    
+
   } catch (error) {
-    console.error('Printer discovery error:', error);
+    await remoteLog('error', 'discoverNetworkPrinters exception', { error: error.message });
     return {
       success: false,
       printers: [],

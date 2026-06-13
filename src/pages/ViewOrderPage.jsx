@@ -30,8 +30,8 @@ import { AiOutlineBarcode } from "react-icons/ai";
 import { MdBluetoothConnected, MdBluetoothDisabled } from "react-icons/md";
 import { dateFormatter } from "../utils/dateFormatter";
 import { fromDbValue, formatCurrency } from "../utils/currencyUtils";
-import { printThermalLRWithAutoCut, getQZTrayErrorMessage } from "../utils/qzTrayUtils";
-import { generateThreeCopies } from "../utils/escPosGenerator";
+import { printThermalLRWithAutoCut, printBarcodeLabels, getQZTrayErrorMessage, isQZTrayAvailable, DEFAULT_BARCODE_PRINTER } from "../utils/qzTrayUtils";
+import { generateThreeCopies, generateBarcodeESCPOS } from "../utils/escPosGenerator";
 import { webBluetoothPrinter, connectBluetoothPrinter, printViaWebBluetooth, isWebBluetoothSupported } from "../utils/webBluetoothPrint";
 import { useAuth } from "../routes/AuthContext";
 import ModernSpinner from "../components/ModernSpinner";
@@ -64,6 +64,8 @@ export default function ViewOrderPage() {
   const [bluetoothPrinterName, setBluetoothPrinterName] = useState(savedPrinter?.name || '');
   const [hasSavedPrinter, setHasSavedPrinter] = useState(!!savedPrinter);
   const [toast, setToast] = useState({ open: false, message: '', severity: 'info' });
+  // 'qz' | 'bt' | null
+  const [isBarcodeLoading, setIsBarcodeLoading] = useState(null);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
@@ -318,6 +320,62 @@ export default function ViewOrderPage() {
     } finally {
       setIsLoading(false);
       setIsScreenLoading(false);
+    }
+  };
+
+  const handleQRPrint = async () => {
+    try {
+      setIsBarcodeLoading('qz');
+      const printerName = localStorage.getItem('barcodePrinterName') || DEFAULT_BARCODE_PRINTER;
+      const result = await printBarcodeLabels(id, qrCount, printerName);
+      setToast({ open: true, message: result.message, severity: 'success' });
+    } catch (error) {
+      setToast({ open: true, message: getQZTrayErrorMessage(error), severity: 'error' });
+    } finally {
+      setIsBarcodeLoading(null);
+    }
+  };
+
+  const handleBluetoothBarcodePrint = async () => {
+    try {
+      setIsBarcodeLoading('bt');
+
+      if (!webBluetoothPrinter.isConnected) {
+        setIsScreenLoadingText("Reconnecting to printer...");
+        setIsScreenLoading(true);
+        const reconnectResult = await webBluetoothPrinter.reconnect();
+        if (reconnectResult.success) {
+          setBluetoothConnected(true);
+          setBluetoothPrinterName(reconnectResult.deviceName);
+        } else {
+          setIsScreenLoading(false);
+          const connectResult = await connectBluetoothPrinter();
+          if (!connectResult.success) {
+            setToast({ open: true, message: connectResult.error || 'Failed to connect to printer', severity: 'error' });
+            return;
+          }
+          setBluetoothConnected(true);
+          setBluetoothPrinterName(connectResult.deviceName);
+          setHasSavedPrinter(true);
+          setIsScreenLoading(true);
+        }
+        setIsScreenLoadingText("Printing barcodes via Bluetooth...");
+      }
+
+      const escPosCommands = generateBarcodeESCPOS(id, qrCount);
+      const result = await printViaWebBluetooth(escPosCommands);
+
+      if (result.success) {
+        setToast({ open: true, message: `Printed ${qrCount} barcode(s) via Bluetooth`, severity: 'success' });
+      } else {
+        setToast({ open: true, message: result.error || 'Failed to print', severity: 'error' });
+      }
+    } catch (error) {
+      setToast({ open: true, message: error.message || 'Print failed', severity: 'error' });
+    } finally {
+      setIsBarcodeLoading(null);
+      setIsScreenLoading(false);
+      setIsScreenLoadingText('');
     }
   };
 
@@ -717,73 +775,77 @@ export default function ViewOrderPage() {
           </Box>
 
           {/* Count Input */}
-          <Box
+          <TextField
+            label="Count"
+            type="number"
+            size="small"
+            value={qrCount}
+            onChange={(e) => setQrCount(Math.max(1, parseInt(e.target.value) || 1))}
+            inputProps={{ min: 1 }}
             sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5,
-              mb: 2.5,
-              flexDirection: { xs: "column", sm: "row" },
+              width: "100%",
+              mb: 2,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+                color: colors?.textPrimary,
+                "& fieldset": { borderColor: isDarkMode ? "rgba(255,255,255,0.15)" : "#d1d5db" },
+                "&:hover fieldset": { borderColor: isDarkMode ? "rgba(255,255,255,0.3)" : "#9ca3af" },
+                "&.Mui-focused fieldset": { borderColor: isDarkMode ? colors?.accent : "#1E3A5F" },
+              },
+              "& .MuiInputLabel-root": { color: colors?.textSecondary },
+              "& .MuiInputLabel-root.Mui-focused": { color: isDarkMode ? colors?.accent : "#1E3A5F" },
             }}
-          >
-            <TextField
-              label="Count"
-              type="number"
-              size="small"
-              value={qrCount}
-              onChange={(e) =>
-                setQrCount(Math.max(1, parseInt(e.target.value) || 1))
-              }
-              inputProps={{ min: 1 }}
-              sx={{
-                width: { xs: "100%", sm: 100 },
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  color: colors?.textPrimary,
-                  "& fieldset": {
-                    borderColor: isDarkMode
-                      ? "rgba(255,255,255,0.15)"
-                      : "#d1d5db",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: isDarkMode
-                      ? "rgba(255,255,255,0.3)"
-                      : "#9ca3af",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: isDarkMode ? colors?.accent : "#1E3A5F",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  color: colors?.textSecondary,
-                },
-                "& .MuiInputLabel-root.Mui-focused": {
-                  color: isDarkMode ? colors?.accent : "#1E3A5F",
-                },
-              }}
-            />
+          />
+
+          {/* Print buttons */}
+          <Box sx={{ display: "flex", gap: 1.5, mb: 2.5, flexDirection: { xs: "column", sm: "row" } }}>
+            {/* QZ Tray → TVS LP 46 DLITE (label printer, desktop only) */}
             <Button
               variant="contained"
-              fullWidth={isMobile}
-              startIcon={<FaPrint />}
-              onClick={() => {
-                // Print functionality placeholder
-              }}
+              fullWidth
+              startIcon={isBarcodeLoading === 'qz' ? <CircularProgress size={16} sx={{ color: "#fff" }} /> : <FaPrint />}
+              onClick={handleQRPrint}
+              disabled={!!isBarcodeLoading || !isQZTrayAvailable()}
+              title={!isQZTrayAvailable() ? "QZ Tray is not running. Start QZ Tray on this PC." : `Print to ${localStorage.getItem('barcodePrinterName') || DEFAULT_BARCODE_PRINTER}`}
               sx={{
-                flex: { sm: 1 },
                 borderRadius: 2,
                 textTransform: "none",
                 fontWeight: 600,
                 py: 1,
-                background: "linear-gradient(180deg, #1D3557 0%, #0a1628 100%)",
-                boxShadow:
-                  "0 4px 15px rgba(10, 22, 40, 0.4), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.2)",
-                "&:hover": {
-                  background: "linear-gradient(180deg, #25445f 0%, #0f2035 100%)",
-                },
+                background: isQZTrayAvailable()
+                  ? "linear-gradient(180deg, #1D3557 0%, #0a1628 100%)"
+                  : (isDarkMode ? "rgba(255,255,255,0.1)" : "#e5e7eb"),
+                color: isQZTrayAvailable() ? "#fff" : (isDarkMode ? colors?.textSecondary : "#9ca3af"),
+                boxShadow: isQZTrayAvailable()
+                  ? "0 4px 15px rgba(10,22,40,0.4), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.2)"
+                  : "none",
+                "&:hover": { background: isQZTrayAvailable() ? "linear-gradient(180deg, #25445f 0%, #0f2035 100%)" : undefined },
               }}
             >
-              Print Barcodes
+              {isBarcodeLoading === 'qz' ? "Printing..." : "QZ Tray"}
+            </Button>
+
+            {/* Bluetooth → thermal printer (mobile & desktop) */}
+            <Button
+              variant="contained"
+              fullWidth
+              startIcon={isBarcodeLoading === 'bt' ? <CircularProgress size={16} sx={{ color: "#fff" }} /> : <FaBluetooth />}
+              onClick={handleBluetoothBarcodePrint}
+              disabled={!!isBarcodeLoading || !isWebBluetoothSupported()}
+              title={!isWebBluetoothSupported() ? "Web Bluetooth not supported. Use Chrome/Edge on Android." : "Print barcode via Bluetooth printer"}
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 600,
+                py: 1,
+                background: isWebBluetoothSupported()
+                  ? (isDarkMode ? "linear-gradient(180deg, #42A5F5 0%, #1E88E5 100%)" : "linear-gradient(180deg, #64B5F6 0%, #42A5F5 100%)")
+                  : (isDarkMode ? "rgba(255,255,255,0.1)" : "#e5e7eb"),
+                color: isWebBluetoothSupported() ? "#fff" : (isDarkMode ? colors?.textSecondary : "#9ca3af"),
+                "&:hover": { background: isWebBluetoothSupported() ? (isDarkMode ? "linear-gradient(180deg, #64B5F6 0%, #42A5F5 100%)" : "linear-gradient(180deg, #42A5F5 0%, #1E88E5 100%)") : undefined },
+              }}
+            >
+              {isBarcodeLoading === 'bt' ? "Printing..." : "Bluetooth"}
             </Button>
           </Box>
 
