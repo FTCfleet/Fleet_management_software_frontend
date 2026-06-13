@@ -582,7 +582,7 @@ export default function ViewOrderPage() {
               : "linear-gradient(180deg, #64B5F6 0%, #42A5F5 100%)",
           }}
         >
-          <AiOutlineBarcode  /> Print BarCode
+          <AiOutlineBarcode  /> Print Code
         </button>
         {!isMobile && (
         <button className="button" onClick={handleLRPrintThermal} style={{ minWidth: "180px" }}>

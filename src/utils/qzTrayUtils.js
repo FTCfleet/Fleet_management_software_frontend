@@ -8,7 +8,7 @@
 
 // Printer names must match EXACTLY what appears in Windows Settings → Printers & scanners
 export const DEFAULT_THERMAL_PRINTER = "TVS-E RP 3230";
-export const DEFAULT_BARCODE_PRINTER = "TVS LP 46 DLITE";
+export const DEFAULT_BARCODE_PRINTER = "SNBC TVSE LP46 Dlite BPLE";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
