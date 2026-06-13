@@ -328,3 +328,55 @@ export const printBarcodeLabels = async (trackingId, count = 1, printerName = DE
     await disconnectQZTray();
   }
 };
+
+/**
+ * Send a simple test label to the barcode printer.
+ * Use this to verify the printer is receiving and interpreting TSPL commands.
+ * If this prints, the printer connection is good; if not, check label size / TSPL support.
+ * @param {string} printerName
+ * @returns {Promise<{success: boolean, message: string}>}
+ */
+export const testBarcodePrinter = async (printerName = DEFAULT_BARCODE_PRINTER) => {
+  await remoteLog('info', 'testBarcodePrinter called', { printerName });
+
+  if (!isQZTrayAvailable()) {
+    throw new Error("QZ Tray is not installed.");
+  }
+
+  await connectQZTray();
+
+  try {
+    const config = qz.configs.create(printerName);
+
+    // Minimal TSPL test label — if nothing prints, try adjusting SIZE height (50 → 80 → 40)
+    const testTSPL = [
+      'SIZE 100 mm,50 mm',
+      'GAP 3 mm,0 mm',
+      'DENSITY 10',
+      'DIRECTION 0',
+      'CLS',
+      'TEXT 10,10,"3",0,2,2,"FTC TEST PRINT"',
+      'TEXT 10,70,"3",0,1,1,"Printer is receiving data!"',
+      `TEXT 10,95,"3",0,1,1,"${new Date().toLocaleString()}"`,
+      'PRINT 1,1',
+      'END',
+    ].join('\r\n') + '\r\n';
+
+    await remoteLog('info', 'Sending test TSPL', { printerName, testTSPL });
+    await qz.print(config, [{ type: 'raw', format: 'plain', data: testTSPL }]);
+    await remoteLog('info', 'Test label accepted by QZ Tray spooler', { printerName });
+
+    return { success: true, message: 'Test label sent — check if printer produced output' };
+
+  } catch (err) {
+    try {
+      const availablePrinters = await qz.printers.find();
+      await remoteLog('error', 'Test print failed', { printerName, error: err.message, availablePrinters });
+    } catch (_) {
+      await remoteLog('error', 'Test print failed', { printerName, error: err.message });
+    }
+    throw err;
+  } finally {
+    await disconnectQZTray();
+  }
+};

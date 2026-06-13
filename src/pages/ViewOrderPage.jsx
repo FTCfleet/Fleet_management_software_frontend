@@ -30,7 +30,7 @@ import { AiOutlineBarcode } from "react-icons/ai";
 import { MdBluetoothConnected, MdBluetoothDisabled } from "react-icons/md";
 import { dateFormatter } from "../utils/dateFormatter";
 import { fromDbValue, formatCurrency } from "../utils/currencyUtils";
-import { printThermalLRWithAutoCut, printBarcodeLabels, getQZTrayErrorMessage, isQZTrayAvailable, DEFAULT_BARCODE_PRINTER, getAvailablePrinters } from "../utils/qzTrayUtils";
+import { printThermalLRWithAutoCut, printBarcodeLabels, testBarcodePrinter, getQZTrayErrorMessage, isQZTrayAvailable, DEFAULT_BARCODE_PRINTER } from "../utils/qzTrayUtils";
 import { generateThreeCopies, generateBarcodeESCPOS } from "../utils/escPosGenerator";
 import { webBluetoothPrinter, connectBluetoothPrinter, printViaWebBluetooth, isWebBluetoothSupported } from "../utils/webBluetoothPrint";
 import { useAuth } from "../routes/AuthContext";
@@ -582,7 +582,7 @@ export default function ViewOrderPage() {
               : "linear-gradient(180deg, #64B5F6 0%, #42A5F5 100%)",
           }}
         >
-          <AiOutlineBarcode  /> Print BarCode
+          <AiOutlineBarcode  /> Print  Code
         </button>
         {!isMobile && (
         <button className="button" onClick={handleLRPrintThermal} style={{ minWidth: "180px" }}>
@@ -849,6 +849,37 @@ export default function ViewOrderPage() {
               {isBarcodeLoading === 'bt' ? "Printing..." : "Bluetooth"}
             </Button>
           </Box>
+
+          {/* Test printer link */}
+          {isQZTrayAvailable() && (
+            <Box sx={{ textAlign: "center", mb: 2 }}>
+              <Button
+                size="small"
+                disabled={!!isBarcodeLoading}
+                onClick={async () => {
+                  try {
+                    setIsBarcodeLoading('qz');
+                    const printerName = localStorage.getItem('barcodePrinterName') || DEFAULT_BARCODE_PRINTER;
+                    const result = await testBarcodePrinter(printerName);
+                    setToast({ open: true, message: result.message, severity: 'info' });
+                  } catch (err) {
+                    setToast({ open: true, message: getQZTrayErrorMessage(err), severity: 'error' });
+                  } finally {
+                    setIsBarcodeLoading(null);
+                  }
+                }}
+                sx={{
+                  textTransform: "none",
+                  fontSize: "0.78rem",
+                  color: isDarkMode ? colors?.textSecondary : "#64748b",
+                  textDecoration: "underline",
+                  "&:hover": { color: isDarkMode ? colors?.textPrimary : "#1E3A5F", background: "none" },
+                }}
+              >
+                {isBarcodeLoading === 'qz' ? "Sending test..." : "Send test label to printer"}
+              </Button>
+            </Box>
+          )}
 
           {/* Close Button */}
           <Box sx={{ display: "flex", justifyContent: "center" }}>
