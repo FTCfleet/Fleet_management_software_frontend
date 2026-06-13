@@ -271,13 +271,13 @@ export const getQZTrayErrorMessage = (error) => {
 // the Windows driver and works regardless of the printer's command language.
 
 const generateTSPLBarcode = (trackingId, count) => [
-  'SIZE 100 mm,50 mm',
+  'SIZE 100 mm,25 mm',
   'GAP 3 mm,0 mm',
   'DENSITY 8',
   'DIRECTION 0',
   'CLS',
-  'TEXT 20,10,"3",0,1,1,"Friends Transport Co."',
-  `BARCODE 20,45,"CODE128",100,1,0,2,2,"${trackingId}"`,
+  `BARCODE 10,5,"CODE128",120,0,0,4,4,"${trackingId}"`,
+  `TEXT 10,135,"3",0,1,1,"${trackingId}"`,
   `PRINT ${count},1`,
   'END',
 ].join('\r\n') + '\r\n';
@@ -286,8 +286,11 @@ const generateBPLZBarcode = (trackingId, count) => {
   let cmd = '';
   for (let i = 0; i < count; i++) {
     cmd += '^XA\r\n';
-    cmd += '^FO30,20^A0N,30,30^FDFriends Transport Co.^FS\r\n';
-    cmd += `^FO30,65^BCN,100,Y,N,N^FD${trackingId}^FS\r\n`;
+    cmd += '^PW800\r\n';
+    cmd += '^LL200\r\n';
+    cmd += '^BY4,3,120\r\n';
+    cmd += `^FO10,5^BCN,120,N,N^FD${trackingId}^FS\r\n`;
+    cmd += `^FO0,140^FB800,1,,C^A0N,30,30^FD${trackingId}^FS\r\n`;
     cmd += '^XZ\r\n';
   }
   return cmd;
@@ -296,15 +299,13 @@ const generateBPLZBarcode = (trackingId, count) => {
 // GDI HTML is rendered by the Windows driver — works on any label printer
 // that has a proper Windows driver installed, regardless of command language.
 const generateGDIBarcode = (trackingId, count) => {
-  const labelHTML = `<!DOCTYPE html><html><body style="margin:0;padding:6px;font-family:Arial,sans-serif;text-align:center;">
-<p style="font-size:11px;font-weight:bold;margin:0 0 4px;">Friends Transport Co.</p>
-<svg xmlns="http://www.w3.org/2000/svg" width="220" height="60" viewBox="0 0 220 60">
-  <rect width="220" height="60" fill="white"/>
-  <text x="110" y="55" font-size="10" text-anchor="middle" font-family="monospace">${trackingId}</text>
+  const labelHTML = `<!DOCTYPE html><html><body style="margin:0;padding:1mm 5mm;font-family:Arial,sans-serif;text-align:center;width:90mm;box-sizing:border-box;">
+<svg xmlns="http://www.w3.org/2000/svg" width="90mm" height="14mm" viewBox="0 0 340 53">
+  <rect width="340" height="53" fill="white"/>
+  <text x="170" y="48" font-size="10" text-anchor="middle" font-family="monospace">${trackingId}</text>
 </svg>
-<p style="font-size:9px;margin:2px 0;">${trackingId}</p>
+<p style="font-size:13px;font-weight:bold;margin:1mm 0 0;letter-spacing:1px;">${trackingId}</p>
 </body></html>`;
-  // count is handled via QZ Tray copies config, not by repeating HTML
   return labelHTML;
 };
 
@@ -314,39 +315,11 @@ const buildLabelData = (trackingId, count, language) => {
   return generateTSPLBarcode(trackingId, count);
 };
 
-const buildTestData = (language) => {
-  const ts = new Date().toLocaleString();
-  if (language === 'bplz') return [
-    '^XA',
-    '^FO30,20^A0N,40,40^FDFTC TEST PRINT^FS',
-    '^FO30,80^A0N,25,25^FDPrinter is receiving data!^FS',
-    `^FO30,120^A0N,20,20^FD${ts}^FS`,
-    '^XZ',
-  ].join('\r\n') + '\r\n';
-
-  if (language === 'gdi') return `<!DOCTYPE html><html><body style="margin:0;padding:8px;font-family:Arial;text-align:center;">
-<h2 style="font-size:14px;margin:0 0 6px;">FTC TEST PRINT</h2>
-<p style="font-size:10px;margin:0 0 4px;">Printer is receiving data!</p>
-<p style="font-size:9px;margin:0;">${ts}</p>
-</body></html>`;
-
-  return [
-    'SIZE 100 mm,50 mm',
-    'GAP 3 mm,0 mm',
-    'DENSITY 10',
-    'DIRECTION 0',
-    'CLS',
-    'TEXT 10,10,"3",0,2,2,"FTC TEST PRINT"',
-    'TEXT 10,70,"3",0,1,1,"Printer is receiving data!"',
-    `TEXT 10,95,"3",0,1,1,"${ts}"`,
-    'PRINT 1,1',
-    'END',
-  ].join('\r\n') + '\r\n';
-};
 
 const buildPrintJob = (data, language, count) => {
   if (language === 'gdi') {
-    return [{ type: 'pixel', format: 'html', flavor: 'plain', options: { pageWidth: 4, pageHeight: 2, units: 'in' }, data }];
+    // 100mm × 25mm in inches
+    return [{ type: 'pixel', format: 'html', flavor: 'plain', options: { pageWidth: 3.94, pageHeight: 0.98, units: 'in' }, data }];
   }
   return [{ type: 'raw', format: 'plain', data }];
 };
@@ -393,41 +366,3 @@ export const printBarcodeLabels = async (trackingId, count = 1, printerName = DE
   }
 };
 
-/**
- * Send a test label using the specified language.
- * Try 'bplz', 'tspl', then 'gdi' in order until one produces output.
- * @param {string} printerName
- * @param {'tspl'|'bplz'|'gdi'} language
- */
-export const testBarcodePrinter = async (printerName = DEFAULT_BARCODE_PRINTER, language = 'bplz') => {
-  await remoteLog('info', 'testBarcodePrinter called', { printerName, language });
-
-  if (!isQZTrayAvailable()) {
-    throw new Error("QZ Tray is not installed.");
-  }
-
-  await connectQZTray();
-
-  try {
-    const config = qz.configs.create(printerName, language === 'gdi' ? { copies: 1 } : {});
-    const testData = buildTestData(language);
-    const printJob = buildPrintJob(testData, language, 1);
-
-    await remoteLog('info', `Sending ${language.toUpperCase()} test`, { printerName, byteCount: testData.length, testData });
-    await qz.print(config, printJob);
-    await remoteLog('info', `${language.toUpperCase()} test accepted by spooler`, { printerName });
-
-    return { success: true, message: `${language.toUpperCase()} test sent — check if printer produced output` };
-
-  } catch (err) {
-    try {
-      const availablePrinters = await qz.printers.find();
-      await remoteLog('error', `${language.toUpperCase()} test failed`, { printerName, error: err.message, availablePrinters });
-    } catch (_) {
-      await remoteLog('error', `${language.toUpperCase()} test failed`, { printerName, error: err.message });
-    }
-    throw err;
-  } finally {
-    await disconnectQZTray();
-  }
-};
