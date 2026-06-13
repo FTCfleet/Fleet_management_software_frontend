@@ -303,16 +303,11 @@ export const printBarcodeLabels = async (trackingId, count = 1, printerName = DE
   await connectQZTray();
 
   try {
-    const availablePrinters = await qz.printers.find();
-    await remoteLog('info', 'Available printers on client', { availablePrinters, targetPrinter: printerName });
-
     const config = qz.configs.create(printerName);
     const tsplData = generateTSPLBarcode(trackingId, count);
 
-    await remoteLog('info', 'Sending TSPL to barcode printer', { trackingId, printerName, count, tsplData });
-
+    await remoteLog('info', 'Sending TSPL to barcode printer', { trackingId, printerName, count });
     await qz.print(config, [{ type: 'raw', format: 'plain', data: tsplData }]);
-
     await remoteLog('info', 'Barcode label print successful', { trackingId, printerName, count });
 
     return {
@@ -321,7 +316,13 @@ export const printBarcodeLabels = async (trackingId, count = 1, printerName = DE
     };
 
   } catch (err) {
-    await remoteLog('error', 'Barcode label print failed', { trackingId, printerName, count, error: err.message });
+    // Only enumerate printers on failure to avoid extra security round-trips
+    try {
+      const availablePrinters = await qz.printers.find();
+      await remoteLog('error', 'Barcode label print failed', { trackingId, printerName, count, error: err.message, availablePrinters });
+    } catch (_) {
+      await remoteLog('error', 'Barcode label print failed', { trackingId, printerName, count, error: err.message });
+    }
     throw err;
   } finally {
     await disconnectQZTray();

@@ -326,7 +326,7 @@ export default function ViewOrderPage() {
   const handleQRPrint = async () => {
     try {
       setIsBarcodeLoading('qz');
-      await getAvailablePrinters();
+      // await getAvailablePrinters();
       const printerName = localStorage.getItem('barcodePrinterName') || DEFAULT_BARCODE_PRINTER;
       const result = await printBarcodeLabels(id, qrCount, printerName);
       setToast({ open: true, message: result.message, severity: 'success' });
@@ -582,7 +582,7 @@ export default function ViewOrderPage() {
               : "linear-gradient(180deg, #64B5F6 0%, #42A5F5 100%)",
           }}
         >
-          <AiOutlineBarcode  /> Print Code
+          <AiOutlineBarcode  /> Print BarCode
         </button>
         {!isMobile && (
         <button className="button" onClick={handleLRPrintThermal} style={{ minWidth: "180px" }}>
