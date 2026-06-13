@@ -302,6 +302,9 @@ export const printBarcodeLabels = async (trackingId, count = 1, printerName = DE
   await connectQZTray();
 
   try {
+    const availablePrinters = await qz.printers.find();
+    await remoteLog('info', 'Available printers on client', { availablePrinters, targetPrinter: printerName });
+
     const config = qz.configs.create(printerName);
     const tsplData = generateTSPLBarcode(trackingId, count);
 
