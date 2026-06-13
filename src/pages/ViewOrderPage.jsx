@@ -31,6 +31,7 @@ import { MdBluetoothConnected, MdBluetoothDisabled } from "react-icons/md";
 import { dateFormatter } from "../utils/dateFormatter";
 import { fromDbValue, formatCurrency } from "../utils/currencyUtils";
 import { printThermalLRWithAutoCut, printBarcodeLabels, testBarcodePrinter, getQZTrayErrorMessage, isQZTrayAvailable, DEFAULT_BARCODE_PRINTER } from "../utils/qzTrayUtils";
+import { runMultiPrinterDiagnostics } from "../utils/printerDiagnostics";
 import { generateThreeCopies, generateBarcodeESCPOS } from "../utils/escPosGenerator";
 import { webBluetoothPrinter, connectBluetoothPrinter, printViaWebBluetooth, isWebBluetoothSupported } from "../utils/webBluetoothPrint";
 import { useAuth } from "../routes/AuthContext";
@@ -66,6 +67,8 @@ export default function ViewOrderPage() {
   const [toast, setToast] = useState({ open: false, message: '', severity: 'info' });
   // 'qz' | 'bt' | 'test-tspl' | 'test-bplz' | 'test-gdi' | null
   const [isBarcodeLoading, setIsBarcodeLoading] = useState(null);
+  const [diagRunning, setDiagRunning] = useState(false);
+  const [diagProgress, setDiagProgress] = useState('');
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
@@ -887,6 +890,62 @@ export default function ViewOrderPage() {
                   {isBarcodeLoading === `test-${lang}` ? "Sending…" : lang.toUpperCase()}
                 </Button>
               ))}
+            </Box>
+          )}
+
+          {/* Full diagnostics runner */}
+          {isQZTrayAvailable() && (
+            <Box sx={{ textAlign: "center", mb: 2 }}>
+              {diagRunning ? (
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
+                  <CircularProgress size={14} />
+                  <Typography sx={{ fontSize: "0.78rem", color: colors?.textSecondary }}>
+                    {diagProgress}
+                  </Typography>
+                </Box>
+              ) : (
+                <Button
+                  size="small"
+                  disabled={!!isBarcodeLoading || diagRunning}
+                  onClick={async () => {
+                    const savedPrinter = localStorage.getItem('barcodePrinterName') || DEFAULT_BARCODE_PRINTER;
+                    const printerNames = ['SNBC BP420 BPLE', savedPrinter].filter(
+                      (v, i, arr) => arr.indexOf(v) === i  // deduplicate if same name
+                    );
+                    setDiagRunning(true);
+                    setDiagProgress('Starting…');
+                    try {
+                      const master = await runMultiPrinterDiagnostics(
+                        printerNames,
+                        (pct, msg) => setDiagProgress(`${pct}% — ${msg}`)
+                      );
+                      const totalAccepted = master.reports.reduce(
+                        (sum, r) => sum + r.tests.filter(t => t.status === 'accepted').length, 0
+                      );
+                      const totalTests = master.reports.reduce((sum, r) => sum + r.tests.length, 0);
+                      setToast({
+                        open: true,
+                        message: `Diagnostics done — ${totalAccepted}/${totalTests} jobs accepted across ${printerNames.length} printer(s). Check server logs for which label printed.`,
+                        severity: 'info'
+                      });
+                    } catch (err) {
+                      setToast({ open: true, message: `Diagnostics error: ${err.message}`, severity: 'error' });
+                    } finally {
+                      setDiagRunning(false);
+                      setDiagProgress('');
+                    }
+                  }}
+                  sx={{
+                    textTransform: "none",
+                    fontSize: "0.75rem",
+                    color: isDarkMode ? "rgba(255,255,255,0.4)" : "#9ca3af",
+                    textDecoration: "underline",
+                    "&:hover": { color: isDarkMode ? colors?.textSecondary : "#374151", background: "none" },
+                  }}
+                >
+                  Run full diagnostics (22 labels × 2 printers)
+                </Button>
+              )}
             </Box>
           )}
 
