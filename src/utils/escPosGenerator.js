@@ -287,22 +287,24 @@ export const generateBarcodeESCPOS = (trackingId, count = 1) => {
   let data = '';
 
   for (let i = 0; i < count; i++) {
-    data += INIT + ALIGN_C + SIZE_1X;
-    data += LF;
-    data += BOLD_ON + 'Friends Transport Co.' + BOLD_OFF + LF;
-    data += LF;
+    data += INIT;
+    data += ALIGN_C;
 
     // Barcode settings
-    data += GS + '\x68' + String.fromCharCode(150); // GS h - height 150 dots (~19mm)
-    data += GS + '\x77' + '\x03';                   // GS w - module width 3
-    data += GS + '\x48' + '\x02';                   // GS H - HRI below barcode
-    data += GS + '\x66' + '\x00';                   // GS f - HRI font A
+    data += GS + '\x68' + String.fromCharCode(200); // ~25mm height
+    data += GS + '\x77' + '\x03';                   // module width
+    data += GS + '\x48' + '\x00';                   // no HRI text
 
-    // CODE128 barcode (new format: GS k 0x49 len data)
-    const barcodeContent = '{B' + trackingId; // {B = Code B subset
-    data += GS + '\x6B' + '\x49' + String.fromCharCode(barcodeContent.length) + barcodeContent;
+    // CODE128
+    const barcodeContent = '{B' + trackingId;
+    data +=
+      GS +
+      '\x6B' +
+      '\x49' +
+      String.fromCharCode(barcodeContent.length) +
+      barcodeContent;
 
-    data += LF + LF;
+    data += LF;
     data += CUT;
   }
 
