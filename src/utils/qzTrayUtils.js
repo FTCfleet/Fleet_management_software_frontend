@@ -262,78 +262,34 @@ export const getQZTrayErrorMessage = (error) => {
 /* ------------------------------------------------------------------ */
 /* Label Generators                                                    */
 /* 'tspl' — TSC Printer Script Language                               */
-/* 'bplz' — SNBC ZPL-compatible dialect                               */
-/* 'gdi'  — Windows GDI via pixel/html (bypasses raw languages)       */
+/* 'bplz' — SNBC ZPL-compatible dialect (SNBC TVSE LP46 Dlite BPLE)   */
 /* ------------------------------------------------------------------ */
 
-// Stored in localStorage as 'barcodePrinterLanguage': 'tspl'|'bplz'|'gdi'
-// If raw commands (TSPL/BPLZ) don't print, use 'gdi' — it renders through
-// the Windows driver and works regardless of the printer's command language.
-
-const generateTSPLBarcode = (trackingId, count) => [
-  'SIZE 100 mm,25 mm',
-  'GAP 3 mm,0 mm',
-  'DENSITY 8',
-  'DIRECTION 0',
-  'CLS',
-  `BARCODE 10,5,"CODE128",120,0,0,4,4,"${trackingId}"`,
-  `TEXT 10,135,"3",0,1,1,"${trackingId}"`,
-  `PRINT ${count},1`,
-  'END',
-].join('\r\n') + '\r\n';
-
-const generateBPLZBarcode = (trackingId, count) => {
+export const generateBPLZBarcode = (trackingId, noOfGoods, count) => {
   let cmd = '';
+
   for (let i = 0; i < count; i++) {
     cmd += '^XA\r\n';
     cmd += '^PW800\r\n';
-    cmd += '^LL200\r\n';
+    cmd += '^LL300\r\n';          // Increase label height
     cmd += '^BY4,3,120\r\n';
-    cmd += `^FO10,5^BCN,120,N,N^FD${trackingId}^FS\r\n`;
-    cmd += `^FO0,140^FB800,1,,C^A0N,30,30^FD${trackingId}^FS\r\n`;
+
+    // Push barcode down
+    cmd += `^FO100,60^BCN,120,N,N^FD${trackingId}^FS\r\n`;
+    cmd += `^FO0,200^FB800,1,,C^A0N,30,30^FD${trackingId} (${noOfGoods})^FS\r\n`;
+
+    // Text below barcode
+
     cmd += '^XZ\r\n';
   }
+
   return cmd;
-};
-
-// GDI HTML is rendered by the Windows driver — works on any label printer
-// that has a proper Windows driver installed, regardless of command language.
-const generateGDIBarcode = (trackingId, count) => {
-  const labelHTML = `<!DOCTYPE html><html><body style="margin:0;padding:1mm 5mm;font-family:Arial,sans-serif;text-align:center;width:90mm;box-sizing:border-box;">
-<svg xmlns="http://www.w3.org/2000/svg" width="90mm" height="14mm" viewBox="0 0 340 53">
-  <rect width="340" height="53" fill="white"/>
-  <text x="170" y="48" font-size="10" text-anchor="middle" font-family="monospace">${trackingId}</text>
-</svg>
-<p style="font-size:13px;font-weight:bold;margin:1mm 0 0;letter-spacing:1px;">${trackingId}</p>
-</body></html>`;
-  return labelHTML;
-};
-
-const buildLabelData = (trackingId, count, language) => {
-  if (language === 'bplz') return generateBPLZBarcode(trackingId, count);
-  if (language === 'gdi')  return generateGDIBarcode(trackingId, count);
-  return generateTSPLBarcode(trackingId, count);
-};
-
-
-const buildPrintJob = (data, language, count) => {
-  if (language === 'gdi') {
-    // 100mm × 25mm in inches
-    return [{ type: 'pixel', format: 'html', flavor: 'plain', options: { pageWidth: 3.94, pageHeight: 0.98, units: 'in' }, data }];
-  }
-  return [{ type: 'raw', format: 'plain', data }];
 };
 
 /* ------------------------------------------------------------------ */
 
-/**
- * Print barcode labels via QZ Tray.
- * Set localStorage key 'barcodePrinterLanguage' to 'tspl', 'bplz', or 'gdi'.
- * Default is 'bplz'. Use 'gdi' if raw commands produce no output.
- */
-export const printBarcodeLabels = async (trackingId, count = 1, printerName = DEFAULT_BARCODE_PRINTER) => {
-  const language = localStorage.getItem('barcodePrinterLanguage') || 'bplz';
-  await remoteLog('info', 'printBarcodeLabels called', { trackingId, count, printerName, language });
+export const printBarcodeLabels = async (trackingId, noOfGoods, count = 1, printerName = DEFAULT_BARCODE_PRINTER) => {
+  await remoteLog('info', 'printBarcodeLabels called', { trackingId, noOfGoods, count, printerName });
 
   if (!isQZTrayAvailable()) {
     await remoteLog('error', 'QZ Tray not available for barcode print', { trackingId });
@@ -343,22 +299,22 @@ export const printBarcodeLabels = async (trackingId, count = 1, printerName = DE
   await connectQZTray();
 
   try {
-    const config = qz.configs.create(printerName, language === 'gdi' ? { copies: count } : {});
-    const labelData = buildLabelData(trackingId, count, language);
-    const printJob = buildPrintJob(labelData, language, count);
+    const config = qz.configs.create(printerName);
+    const labelData = generateBPLZBarcode(trackingId, noOfGoods, count);
+    const printJob = [{ type: 'raw', format: 'plain', data: labelData }];
 
-    await remoteLog('info', 'Sending label to barcode printer', { trackingId, printerName, count, language, byteCount: labelData.length });
+    await remoteLog('info', 'Sending label to barcode printer', { trackingId, printerName, count, byteCount: labelData.length });
     await qz.print(config, printJob);
-    await remoteLog('info', 'Barcode label print accepted by spooler', { trackingId, printerName, count, language });
+    await remoteLog('info', 'Barcode label print accepted by spooler', { trackingId, printerName, count });
 
-    return { success: true, message: `Successfully printed ${count} barcode label(s) via ${language.toUpperCase()}` };
+    return { success: true, message: `Successfully printed ${count} barcode label(s)` };
 
   } catch (err) {
     try {
       const availablePrinters = await qz.printers.find();
-      await remoteLog('error', 'Barcode label print failed', { trackingId, printerName, count, language, error: err.message, availablePrinters });
+      await remoteLog('error', 'Barcode label print failed', { trackingId, printerName, count, error: err.message, availablePrinters });
     } catch (_) {
-      await remoteLog('error', 'Barcode label print failed', { trackingId, printerName, count, language, error: err.message });
+      await remoteLog('error', 'Barcode label print failed', { trackingId, printerName, count, error: err.message });
     }
     throw err;
   } finally {

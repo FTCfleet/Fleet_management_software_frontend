@@ -30,7 +30,7 @@ import { AiOutlineBarcode } from "react-icons/ai";
 import { MdBluetoothConnected, MdBluetoothDisabled } from "react-icons/md";
 import { dateFormatter } from "../utils/dateFormatter";
 import { fromDbValue, formatCurrency } from "../utils/currencyUtils";
-import { printThermalLRWithAutoCut, printBarcodeLabels, getQZTrayErrorMessage, isQZTrayAvailable, DEFAULT_BARCODE_PRINTER } from "../utils/qzTrayUtils";
+import { printThermalLRWithAutoCut, printBarcodeLabels, generateBPLZBarcode, getQZTrayErrorMessage, isQZTrayAvailable, DEFAULT_BARCODE_PRINTER } from "../utils/qzTrayUtils";
 import { generateThreeCopies, generateBarcodeESCPOS } from "../utils/escPosGenerator";
 import { webBluetoothPrinter, connectBluetoothPrinter, printViaWebBluetooth, isWebBluetoothSupported } from "../utils/webBluetoothPrint";
 import { useAuth } from "../routes/AuthContext";
@@ -40,6 +40,7 @@ import "../css/table.css";
 import "../css/main.css";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
+const isDebug = import.meta.env.VITE_DEBUG === 'true';
 
 export default function ViewOrderPage() {
   const { id } = useParams();
@@ -326,14 +327,110 @@ export default function ViewOrderPage() {
     try {
       setIsBarcodeLoading('qz');
       // await getAvailablePrinters();
+      let totalItems = order.items?.reduce((prev, item) => prev + item.quantity, 0) | 0;
       const printerName = localStorage.getItem('barcodePrinterName') || DEFAULT_BARCODE_PRINTER;
-      const result = await printBarcodeLabels(id, qrCount, printerName);
+      const result = await printBarcodeLabels(id, totalItems, qrCount, printerName);
       setToast({ open: true, message: result.message, severity: 'success' });
     } catch (error) {
       setToast({ open: true, message: getQZTrayErrorMessage(error), severity: 'error' });
     } finally {
       setIsBarcodeLoading(null);
     }
+  };
+
+  const handlePreview = async () => {
+    // Build exactly the same ZPL that printBarcodeLabels sends to the printer (1 copy for preview)
+    const totalItems = order.items?.reduce((prev, item) => prev + item.quantity, 0) | 0;
+    const zpl = generateBPLZBarcode(id, totalItems, 1);
+
+    const openHtml = (imgSrc, isRender) => {
+      const labelDims = isRender ? 'width:100mm;height:auto;' : 'width:100mm;height:auto;';
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>Label Preview — ${id}</title>
+<style>
+  @page { size: 100mm 32mm; margin: 0; }
+  @media screen {
+    html { background: #e5e7eb; }
+    body { margin: 0; padding: 24px; font-family: Arial, sans-serif; }
+    .actions { text-align: center; margin-bottom: 16px; }
+    .btn { padding: 10px 24px; background: #1D3557; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; }
+    .btn:hover { background: #25445f; }
+    .hint { color: #6b7280; font-size: 12px; margin-top: 8px; }
+    .badge { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 11px; background: ${isRender ? '#dcfce7' : '#fef3c7'}; color: ${isRender ? '#166534' : '#92400e'}; }
+    .label { background: white; display: inline-block; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+    .label img { display: block; ${labelDims} }
+  }
+  @media print {
+    html, body { background: white; margin: 0; padding: 0; }
+    .actions { display: none; }
+    .label { box-shadow: none; }
+    .label img { display: block; width: 100mm; }
+  }
+</style>
+</head><body>
+<div class="actions">
+  <button class="btn" onclick="window.print()">Print / Save as PDF</button>
+  <span class="badge">${isRender ? 'Exact ZPL render via Labelary' : 'Approximate — Labelary unavailable'}</span>
+  <div class="hint">Paper: 100 mm wide | Margins: None</div>
+</div>
+<div class="label"><img src="${imgSrc}" /></div>
+</body></html>`;
+      const blob = new Blob([html], { type: 'text/html' });
+      window.open(URL.createObjectURL(blob), '_blank');
+    };
+
+    // Try Labelary API — renders the exact ZPL bytes the printer will receive
+    try {
+      const form = new FormData();
+      form.append('file', new Blob([zpl], { type: 'application/zpl' }), 'label.zpl');
+      const res = await fetch('https://api.labelary.com/v1/printers/8dpmm/labels/3.94x1.25/0/', {
+        method: 'POST',
+        headers: { 'Accept': 'image/png' },
+        body: form,
+      });
+      if (res.ok) {
+        const imgBlob = await res.blob();
+        const imgSrc = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(imgBlob);
+        });
+        openHtml(imgSrc, true);
+        return;
+      }
+    } catch (_) {}
+
+    // Fallback — approximate visual using JsBarcode (no internet / Labelary down)
+    const fallbackHtml = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>Label Preview — ${id}</title>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3/dist/JsBarcode.all.min.js"></scr` + `ipt>
+<style>
+  @page { size: 100mm 32mm; margin: 0; }
+  @media screen {
+    html { background: #e5e7eb; } body { margin: 0; padding: 24px; font-family: Arial; }
+    .actions { text-align: center; margin-bottom: 16px; }
+    .btn { padding: 10px 24px; background: #1D3557; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; }
+    .label { background: white; width: 100mm; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.15); padding: 2mm 5mm; box-sizing: border-box; text-align: center; font-family: Arial; }
+    p { margin: 1mm 0 0; font-size: 9pt; font-weight: bold; }
+    .warn { color: #92400e; font-size: 11px; margin-top: 8px; }
+  }
+  @media print { .actions, .warn { display: none; } html, body { background: white; margin: 0; padding: 0; } }
+  svg { width: 90mm; }
+</style>
+</head><body>
+<div class="actions">
+  <button class="btn" onclick="window.print()">Print / Save as PDF</button>
+  <div class="warn">Approximate preview — Labelary unreachable. Enable internet for exact ZPL render.</div>
+</div>
+<div class="label">
+  <svg id="bc"></svg>
+  <p>${id} (${totalItems})</p>
+</div>
+<script>JsBarcode("#bc","${id}",{format:"CODE128",width:2.5,height:55,displayValue:false,margin:0});</script>
+</body></html>`;
+    const blob = new Blob([fallbackHtml], { type: 'text/html' });
+    window.open(URL.createObjectURL(blob), '_blank');
   };
 
   const getStatusColor = (status) => {
@@ -530,7 +627,7 @@ export default function ViewOrderPage() {
         </button>
         <button
           className="button"
-          onClick={() => setQrModalOpen(true)}
+          onClick={() => {setQrCount(order.items?.reduce((prev, item) => prev + item.quantity, 0) || 1); setQrModalOpen(true)}}
           style={{
             minWidth: "140px",
             background: isDarkMode
@@ -538,7 +635,7 @@ export default function ViewOrderPage() {
               : "linear-gradient(180deg, #64B5F6 0%, #42A5F5 100%)",
           }}
         >
-          <AiOutlineBarcode  /> Print  Code
+          <AiOutlineBarcode  /> Print Bar Code
         </button>
         {!isMobile && (
         <button className="button" onClick={handleLRPrintThermal} style={{ minWidth: "180px" }}>
@@ -730,56 +827,79 @@ export default function ViewOrderPage() {
               fontSize={12}
             />
           </Box>
-
+          <Box sx={{ display: "flex", gap: 1.5 }}>
           {/* Count Input */}
-          <TextField
-            label="Count"
-            type="number"
-            size="small"
-            value={qrCount}
-            onChange={(e) => setQrCount(Math.max(1, parseInt(e.target.value) || 1))}
-            inputProps={{ min: 1 }}
-            sx={{
-              width: "100%",
-              mb: 2,
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 2,
-                color: colors?.textPrimary,
-                "& fieldset": { borderColor: isDarkMode ? "rgba(255,255,255,0.15)" : "#d1d5db" },
-                "&:hover fieldset": { borderColor: isDarkMode ? "rgba(255,255,255,0.3)" : "#9ca3af" },
-                "&.Mui-focused fieldset": { borderColor: isDarkMode ? colors?.accent : "#1E3A5F" },
-              },
-              "& .MuiInputLabel-root": { color: colors?.textSecondary },
-              "& .MuiInputLabel-root.Mui-focused": { color: isDarkMode ? colors?.accent : "#1E3A5F" },
-            }}
-          />
+            <TextField
+              label="Count"
+              type="number"
+              size="small"
+              value={qrCount}
+              onChange={(e) => setQrCount(Math.max(1, parseInt(e.target.value) || 1))}
+              inputProps={{ min: 1 }}
+              sx={{
+                width: "100%",
+                mb: 2,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                  color: colors?.textPrimary,
+                  "& fieldset": { borderColor: isDarkMode ? "rgba(255,255,255,0.15)" : "#d1d5db" },
+                  "&:hover fieldset": { borderColor: isDarkMode ? "rgba(255,255,255,0.3)" : "#9ca3af" },
+                  "&.Mui-focused fieldset": { borderColor: isDarkMode ? colors?.accent : "#1E3A5F" },
+                },
+                "& .MuiInputLabel-root": { color: colors?.textSecondary },
+                "& .MuiInputLabel-root.Mui-focused": { color: isDarkMode ? colors?.accent : "#1E3A5F" },
+              }}
+            />
 
           {/* Print button */}
-          <Button
-            variant="contained"
-            fullWidth
-            startIcon={isBarcodeLoading === 'qz' ? <CircularProgress size={16} sx={{ color: "#fff" }} /> : <FaPrint />}
-            onClick={handleQRPrint}
-            disabled={!!isBarcodeLoading || !isQZTrayAvailable()}
-            title={!isQZTrayAvailable() ? "QZ Tray is not running. Start QZ Tray on this PC." : `Print to ${localStorage.getItem('barcodePrinterName') || DEFAULT_BARCODE_PRINTER}`}
-            sx={{
-              borderRadius: 2,
-              textTransform: "none",
-              fontWeight: 600,
-              py: 1,
-              mb: 2.5,
-              background: isQZTrayAvailable()
-                ? "linear-gradient(180deg, #1D3557 0%, #0a1628 100%)"
-                : (isDarkMode ? "rgba(255,255,255,0.1)" : "#e5e7eb"),
-              color: isQZTrayAvailable() ? "#fff" : (isDarkMode ? colors?.textSecondary : "#9ca3af"),
-              boxShadow: isQZTrayAvailable()
-                ? "0 4px 15px rgba(10,22,40,0.4), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.2)"
-                : "none",
-              "&:hover": { background: isQZTrayAvailable() ? "linear-gradient(180deg, #25445f 0%, #0f2035 100%)" : undefined },
-            }}
-          >
-            {isBarcodeLoading === 'qz' ? "Printing..." : "Print Barcode"}
-          </Button>
+            <Button
+              variant="contained"
+              fullWidth
+              startIcon={isBarcodeLoading === 'qz' ? <CircularProgress size={16} sx={{ color: "#fff" }} /> : <FaPrint />}
+              onClick={handleQRPrint}
+              disabled={!!isBarcodeLoading || !isQZTrayAvailable()}
+              title={!isQZTrayAvailable() ? "QZ Tray is not running. Start QZ Tray on this PC." : `Print to ${localStorage.getItem('barcodePrinterName') || DEFAULT_BARCODE_PRINTER}`}
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 600,
+                py: 1,
+                mb: 2.5,
+                background: isQZTrayAvailable()
+                  ? "linear-gradient(180deg, #1D3557 0%, #0a1628 100%)"
+                  : (isDarkMode ? "rgba(255,255,255,0.1)" : "#e5e7eb"),
+                color: isQZTrayAvailable() ? "#fff" : (isDarkMode ? colors?.textSecondary : "#9ca3af"),
+                boxShadow: isQZTrayAvailable()
+                  ? "0 4px 15px rgba(10,22,40,0.4), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.2)"
+                  : "none",
+                "&:hover": { background: isQZTrayAvailable() ? "linear-gradient(180deg, #25445f 0%, #0f2035 100%)" : undefined },
+              }}
+            >
+              {isBarcodeLoading === 'qz' ? "Printing..." : "Print Barcode"}
+            </Button>
+          </Box>
+
+
+          {/* Dev-only preview button — shown when VITE_DEBUG=true */}
+          {isDebug && (
+            <Button
+              variant="outlined"
+              fullWidth
+              onClick={handlePreview}
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 600,
+                py: 1,
+                mb: 1.5,
+                borderColor: "#d97706",
+                color: "#d97706",
+                "&:hover": { borderColor: "#b45309", color: "#b45309", backgroundColor: "rgba(217,119,6,0.06)" },
+              }}
+            >
+              Preview (Dev) — Print to PDF
+            </Button>
+          )}
 
           {/* Close Button */}
           <Box sx={{ display: "flex", justifyContent: "center" }}>
