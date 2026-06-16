@@ -116,8 +116,58 @@ export const printThermalLRNetwork = async (trackingId, baseUrl, printerIP, prin
 };
 
 /**
- * Get user-friendly error message for network printing errors
+ * Print barcode labels to network printer (ZPL/BPLZ)
+ * @param {string} trackingId
+ * @param {number} noOfGoods
+ * @param {number} count - number of labels
+ * @param {string} printerIP
+ * @param {number} printerPort
+ * @returns {Promise<Object>}
  */
+export const printBarcodeViaNetwork = async (trackingId, noOfGoods, count = 1, printerIP, printerPort = 9100) => {
+  await remoteLog('info', 'printBarcodeViaNetwork called', { trackingId, noOfGoods, count, printerIP, printerPort });
+  try {
+    const { generateBPLZBarcode } = await import('./qzTrayUtils.js');
+    const zplData = generateBPLZBarcode(trackingId, noOfGoods, count);
+    const token = localStorage.getItem('token');
+
+    const response = await fetch(`${BASE_URL}/api/parcel/print/network-raw`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ rawData: zplData, printerIP, printerPort })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const err = new Error(data.error || data.message || 'Network barcode print failed');
+      await remoteLog('error', 'Network barcode print API error', { printerIP, printerPort, message: err.message });
+      throw err;
+    }
+
+    await remoteLog('info', 'Network barcode print successful', { trackingId, printerIP });
+    return { success: true, message: data.message || `Printed ${count} label(s) successfully` };
+
+  } catch (error) {
+    await remoteLog('error', 'printBarcodeViaNetwork exception', { trackingId, error: error.message });
+    throw error;
+  }
+};
+
+/**
+ * Get/set network barcode printer config from localStorage
+ */
+export const getNetworkBarcodeConfig = () => ({
+  ip: localStorage.getItem('networkBarcodePrinterIP') || '',
+  port: parseInt(localStorage.getItem('networkBarcodePrinterPort') || '9100', 10),
+});
+
+export const saveNetworkBarcodeConfig = (ip, port = 9100) => {
+  localStorage.setItem('networkBarcodePrinterIP', ip.trim());
+  localStorage.setItem('networkBarcodePrinterPort', String(port));
+};
+
+
 export const getNetworkPrintErrorMessage = (error) => {
   const errorMsg = error?.message || error?.toString() || '';
   

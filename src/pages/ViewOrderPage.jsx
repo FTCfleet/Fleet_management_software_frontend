@@ -33,6 +33,7 @@ import { fromDbValue, formatCurrency } from "../utils/currencyUtils";
 import { printThermalLRWithAutoCut, printBarcodeLabels, generateBPLZBarcode, getQZTrayErrorMessage, isQZTrayAvailable, DEFAULT_BARCODE_PRINTER } from "../utils/qzTrayUtils";
 import { generateThreeCopies, generateBarcodeESCPOS } from "../utils/escPosGenerator";
 import { webBluetoothPrinter, connectBluetoothPrinter, printViaWebBluetooth, isWebBluetoothSupported } from "../utils/webBluetoothPrint";
+import { printBarcodeViaNetwork, getNetworkBarcodeConfig, saveNetworkBarcodeConfig, getNetworkPrintErrorMessage } from "../utils/networkPrintUtils";
 import { useAuth } from "../routes/AuthContext";
 import ModernSpinner from "../components/ModernSpinner";
 import InstallAppButton from "../components/InstallAppButton";
@@ -66,6 +67,8 @@ export default function ViewOrderPage() {
   const [hasSavedPrinter, setHasSavedPrinter] = useState(!!savedPrinter);
   const [toast, setToast] = useState({ open: false, message: '', severity: 'info' });
   const [isBarcodeLoading, setIsBarcodeLoading] = useState(null);
+  const [labelPreview, setLabelPreview] = useState({ open: false, imgSrc: null, isExact: false, loading: false });
+  const [networkIPModal, setNetworkIPModal] = useState({ open: false, ip: '', port: '9100', pendingPrint: false });
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
@@ -335,6 +338,41 @@ export default function ViewOrderPage() {
       setToast({ open: true, message: getQZTrayErrorMessage(error), severity: 'error' });
     } finally {
       setIsBarcodeLoading(null);
+    }
+  };
+
+  const handleNetworkPrint = () => {
+    const config = getNetworkBarcodeConfig();
+    if (!config.ip) {
+      // No IP saved — open config modal, which will trigger print after save
+      setNetworkIPModal({ open: true, ip: '', port: '9100', pendingPrint: true });
+    } else {
+      // IP already saved — print directly
+      doNetworkBarcodePrint(config.ip, config.port);
+    }
+  };
+
+  const doNetworkBarcodePrint = async (ip, port) => {
+    try {
+      setIsBarcodeLoading('network');
+      const totalItems = order.items?.reduce((prev, item) => prev + item.quantity, 0) | 0;
+      const result = await printBarcodeViaNetwork(id, totalItems, qrCount, ip, port);
+      setToast({ open: true, message: result.message, severity: 'success' });
+    } catch (error) {
+      setToast({ open: true, message: getNetworkPrintErrorMessage(error), severity: 'error' });
+    } finally {
+      setIsBarcodeLoading(null);
+    }
+  };
+
+  const handleNetworkIPSave = () => {
+    const ip = networkIPModal.ip.trim();
+    if (!ip) return;
+    const port = parseInt(networkIPModal.port, 10) || 9100;
+    saveNetworkBarcodeConfig(ip, port);
+    setNetworkIPModal({ open: false, ip: '', port: '9100', pendingPrint: false });
+    if (networkIPModal.pendingPrint) {
+      doNetworkBarcodePrint(ip, port);
     }
   };
 
@@ -879,6 +917,44 @@ export default function ViewOrderPage() {
             </Button>
           </Box>
 
+          {/* Print via Network IP button */}
+          <Button
+            variant="contained"
+            fullWidth
+            startIcon={isBarcodeLoading === 'network' ? <CircularProgress size={16} sx={{ color: "#fff" }} /> : <AiOutlineBarcode />}
+            onClick={handleNetworkPrint}
+            disabled={!!isBarcodeLoading}
+            title={`Print directly to printer via IP (${getNetworkBarcodeConfig().ip || 'not configured'})`}
+            sx={{
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 600,
+              py: 1,
+              mb: 0.5,
+              background: "linear-gradient(180deg, #059669 0%, #047857 100%)",
+              color: "#fff",
+              boxShadow: "0 4px 15px rgba(5,150,105,0.35)",
+              "&:hover": { background: "linear-gradient(180deg, #10b981 0%, #059669 100%)" },
+              "&:disabled": { background: "#d1d5db", color: "#9ca3af", boxShadow: "none" },
+            }}
+          >
+            {isBarcodeLoading === 'network'
+              ? "Printing..."
+              : `Print via IP ${getNetworkBarcodeConfig().ip ? `(${getNetworkBarcodeConfig().ip})` : '(tap to configure)'}`}
+          </Button>
+          {getNetworkBarcodeConfig().ip && (
+            <Box sx={{ textAlign: "center", mb: 1.5 }}>
+              <Button size="small"
+                onClick={() => {
+                  const c = getNetworkBarcodeConfig();
+                  setNetworkIPModal({ open: true, ip: c.ip, port: String(c.port), pendingPrint: false });
+                }}
+                sx={{ fontSize: "0.72rem", color: colors?.textSecondary || "#64748b", textTransform: "none", p: 0 }}>
+                Change IP / Port
+              </Button>
+            </Box>
+          )}
+
 
           {/* Dev-only preview button — shown when VITE_DEBUG=true */}
           {isDebug && (
@@ -929,7 +1005,83 @@ export default function ViewOrderPage() {
         </Box>
       </Modal>
 
-      {/* Delete Modal */}
+      {/* Network Printer IP Config Modal */}
+      <Modal open={networkIPModal.open} onClose={() => setNetworkIPModal(m => ({ ...m, open: false }))}>
+        <Box sx={{
+          position: "absolute", top: "50%", left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: { xs: "90%", sm: 380 },
+          bgcolor: colors?.bgCard || "#fff",
+          borderRadius: 3, boxShadow: 24, p: 3,
+          border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "none",
+          outline: "none",
+        }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: colors?.textPrimary || "#1E3A5F", mb: 0.5 }}>
+            Network Printer Config
+          </Typography>
+          <Typography sx={{ color: colors?.textSecondary || "#64748b", fontSize: "0.82rem", mb: 2.5 }}>
+            Enter your barcode printer's IP and port. Saved on this device only.
+          </Typography>
+
+          <TextField
+            label="Printer IP Address"
+            placeholder="e.g. 192.168.0.200"
+            fullWidth size="small"
+            value={networkIPModal.ip}
+            onChange={e => setNetworkIPModal(m => ({ ...m, ip: e.target.value }))}
+            sx={{ mb: 2,
+              "& .MuiOutlinedInput-root": { borderRadius: 2, color: colors?.textPrimary,
+                "& fieldset": { borderColor: isDarkMode ? "rgba(255,255,255,0.15)" : "#d1d5db" } },
+              "& .MuiInputLabel-root": { color: colors?.textSecondary },
+            }}
+          />
+          <TextField
+            label="Port"
+            placeholder="9100"
+            fullWidth size="small"
+            value={networkIPModal.port}
+            onChange={e => setNetworkIPModal(m => ({ ...m, port: e.target.value }))}
+            inputProps={{ inputMode: "numeric" }}
+            sx={{ mb: 3,
+              "& .MuiOutlinedInput-root": { borderRadius: 2, color: colors?.textPrimary,
+                "& fieldset": { borderColor: isDarkMode ? "rgba(255,255,255,0.15)" : "#d1d5db" } },
+              "& .MuiInputLabel-root": { color: colors?.textSecondary },
+            }}
+          />
+
+          <Box sx={{ display: "flex", gap: 1.5 }}>
+            <Button fullWidth variant="outlined"
+              onClick={() => setNetworkIPModal(m => ({ ...m, open: false }))}
+              sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600,
+                borderColor: isDarkMode ? "rgba(255,255,255,0.2)" : "#d1d5db",
+                color: colors?.textSecondary || "#64748b" }}>
+              Cancel
+            </Button>
+            <Button fullWidth variant="contained"
+              onClick={handleNetworkIPSave}
+              disabled={!networkIPModal.ip.trim()}
+              sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600,
+                background: "linear-gradient(180deg, #059669 0%, #047857 100%)",
+                "&:hover": { background: "linear-gradient(180deg, #10b981 0%, #059669 100%)" } }}>
+              {networkIPModal.pendingPrint ? "Save & Print" : "Save"}
+            </Button>
+          </Box>
+
+          {/* Show current saved config with option to clear */}
+          {getNetworkBarcodeConfig().ip && (
+            <Box sx={{ mt: 2, pt: 2, borderTop: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e8ecf0" }}>
+              <Typography sx={{ fontSize: "0.78rem", color: colors?.textSecondary || "#64748b" }}>
+                Currently saved: <strong>{getNetworkBarcodeConfig().ip}:{getNetworkBarcodeConfig().port}</strong>
+              </Typography>
+              <Button size="small" onClick={() => { saveNetworkBarcodeConfig(''); setNetworkIPModal(m => ({ ...m, ip: '', port: '9100' })); }}
+                sx={{ mt: 0.5, fontSize: "0.75rem", color: "#dc2626", textTransform: "none", p: 0, minWidth: 0 }}>
+                Clear saved config
+              </Button>
+            </Box>
+          )}
+        </Box>
+      </Modal>
+
       <Modal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)}>
         <Box sx={getModalStyle(colors, isDarkMode)}>
           <Box sx={{ textAlign: "center", mb: 2 }}>
