@@ -411,8 +411,8 @@ export default function AddOrderPage({}) {
         <button className="button button-large" onClick={() => handleAddOrder(false)} disabled={isLoading} style={{ minWidth: "260px", padding: "14px 32px", fontSize: "1rem", borderRadius: "10px" }}>
           {isLoading ? (<>Creating...<CircularProgress size={20} sx={{ color: "#fff", ml: 1 }} /></>) : "Save & Print A4"}
         </button>
-        <button className="button button-large" onClick={() => handleAddOrder(true)} disabled={isLoading} style={{ minWidth: "260px", padding: "14px 32px", fontSize: "1rem", borderRadius: "10px" }}>
-          {isLoading ? (<>Creating...<CircularProgress size={20} sx={{ color: "#fff", ml: 1 }} /></>) : "Save & Print Thermal"}
+        <button className="button button-large" onClick={() => handleAddOrder(true)} disabled={isLoading} style={{ minWidth: "260px", padding: "14px 32px", fontSize: "1rem", borderRadius: "10px", display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+          {isLoading ? (<>Creating...<CircularProgress size={20} sx={{ color: "#fff", ml: 1 }} /></>) : (<><span>Save &amp; Print</span><span style={{ fontSize: "0.72rem", opacity: 0.85, fontWeight: 500 }}>( Thermal + Barcode )</span></>)}
         </button>
       </Box>
 

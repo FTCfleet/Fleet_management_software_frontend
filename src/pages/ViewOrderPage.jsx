@@ -133,7 +133,8 @@ export default function ViewOrderPage() {
           handleBluetoothPrint(data.body);
         }
         else{
-          handleLRPrintThermal();
+          const totalItems = data.body?.items?.reduce((s, i) => s + i.quantity, 0) || 1;
+          handleLRAndBarcodeprint(totalItems);
         }
       }
       else handleLRPrint();
@@ -190,22 +191,54 @@ export default function ViewOrderPage() {
       setIsScreenLoadingText("Printing Thermal LR...");
       setIsScreenLoading(true);
       
-      // Get printer name from localStorage or use default
       const savedPrinterName = localStorage.getItem('thermalPrinterName');
       const printerName = savedPrinterName || 'TVS-E RP 3230';
       
-      // Use the utility function for QZ Tray printing
       const result = await printThermalLRWithAutoCut(id, BASE_URL, printerName);
-      
-      alert(`${result.message}\n\nTracking ID: ${id}\nPrinter: ${printerName}`);
+      setToast({ open: true, message: result.message, severity: 'success' });
       
     } catch (error) {
-      console.error("Print error:", error);
-      
-      // Get user-friendly error message
-      const errorMessage = getQZTrayErrorMessage(error);
-      alert(errorMessage);
-      
+      setToast({ open: true, message: getQZTrayErrorMessage(error), severity: 'error' });
+    } finally {
+      setIsScreenLoadingText("");
+      setIsScreenLoading(false);
+    }
+  };
+
+  // Auto-print: thermal LR + barcode labels fired simultaneously via QZ Tray
+  const handleLRAndBarcodeprint = async (totalItems) => {
+    const thermalPrinterName = localStorage.getItem('thermalPrinterName') || 'TVS-E RP 3230';
+    const barcodePrinterName = localStorage.getItem('barcodePrinterName') || DEFAULT_BARCODE_PRINTER;
+
+    setIsScreenLoadingText("Printing LR + Barcode...");
+    setIsScreenLoading(true);
+
+    try {
+      const [lrResult, barcodeResult] = await Promise.allSettled([
+        printThermalLRWithAutoCut(id, BASE_URL, thermalPrinterName),
+        printBarcodeLabels(id, totalItems, totalItems, barcodePrinterName),
+      ]);
+
+      const lrOk = lrResult.status === 'fulfilled';
+      const bcOk = barcodeResult.status === 'fulfilled';
+
+      if (lrOk && bcOk) {
+        setToast({ open: true, message: 'LR + Barcode printed successfully', severity: 'success' });
+      } else if (!lrOk && !bcOk) {
+        setToast({
+          open: true,
+          message: `Both print jobs failed — LR: ${lrResult.reason?.message || 'unknown'} | Barcode: ${barcodeResult.reason?.message || 'unknown'}`,
+          severity: 'error',
+        });
+      } else if (!lrOk) {
+        // Barcode ok, LR failed — offer retry
+        setToast({ open: true, message: `Barcode printed. LR failed: ${getQZTrayErrorMessage(lrResult.reason)} — click "Print via QZ Tray" to retry LR.`, severity: 'warning' });
+      } else {
+        // LR ok, barcode failed — offer retry via the barcode modal
+        setToast({ open: true, message: `LR printed. Barcode failed: ${getQZTrayErrorMessage(barcodeResult.reason)} — use "Print Bar Code" button to retry.`, severity: 'warning' });
+      }
+    } catch (error) {
+      setToast({ open: true, message: getQZTrayErrorMessage(error), severity: 'error' });
     } finally {
       setIsScreenLoadingText("");
       setIsScreenLoading(false);
