@@ -9,6 +9,8 @@
 // Printer names must match EXACTLY what appears in Windows Settings → Printers & scanners
 export const DEFAULT_THERMAL_PRINTER = "TVS-E RP 3230";
 export const DEFAULT_BARCODE_PRINTER = "SNBC TVSE LP46 Dlite BPLE";
+const { generateCopiesArray } = await import('./escPosGenerator.js');
+
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -166,7 +168,6 @@ export const printThermalLRWithAutoCut = async (trackingId, baseUrl, printerName
 
   await remoteLog('info', 'Parcel data fetched, generating ESC/POS', { trackingId });
 
-  const { generateCopiesArray } = await import('./escPosGenerator.js');
   const escPosReceipts = generateCopiesArray(data.body);
 
   await connectQZTray();
