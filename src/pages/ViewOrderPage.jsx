@@ -133,8 +133,9 @@ export default function ViewOrderPage() {
           handleBluetoothPrint(data.body);
         }
         else{
-          const totalItems = data.body?.items?.reduce((s, i) => s + i.quantity, 0) || 1;
-          handleLRAndBarcodeprint(totalItems);
+          // const totalItems = data.body?.items?.reduce((s, i) => s + i.quantity, 0) || 1;
+          // handleLRAndBarcodeprint(totalItems);
+          handleLRPrintThermal();
         }
       }
       else handleLRPrint();
