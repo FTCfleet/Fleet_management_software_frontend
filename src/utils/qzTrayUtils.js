@@ -6,11 +6,9 @@
  *   - TVS LP 46 DLITE (label/barcode printer, TSPL)
  */
 
-// Printer names must match EXACTLY what appears in Windows Settings → Printers & scanners
+import { generateCopiesArray, generateThreeCopies } from './escPosGenerator.js';
 export const DEFAULT_THERMAL_PRINTER = "TVS-E RP 3230";
 export const DEFAULT_BARCODE_PRINTER = "SNBC TVSE LP46 Dlite BPLE";
-const { generateCopiesArray } = await import('./escPosGenerator.js');
-
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
