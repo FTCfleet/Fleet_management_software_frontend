@@ -271,16 +271,18 @@ export const generateBPLZBarcode = (trackingId, noOfGoods, count) => {
 
   for (let i = 0; i < count; i++) {
     cmd += '^XA\r\n';
-    cmd += '^PW800\r\n';
-    cmd += '^LL300\r\n';          // Increase label height
-    cmd += '^BY4,3,120\r\n';
+    cmd += '^PW800\r\n';          // 800 dots = 100mm @ 8dpmm
+    cmd += '^LL240\r\n';          // 240 dots = 30mm label height — use full label
 
-    // Push barcode down
-    cmd += `^FO100,60^BCN,120,N,N^FD${trackingId}^FS\r\n`;
-    cmd += `^FO0,200^FB800,1,,C^A0N,30,30^FD${trackingId} (${noOfGoods})^FS\r\n`;
+    // Bar width=3, barcode ~480 dots wide for a 10-char ID
+    // Center: (800 - 480) / 2 = 160  →  ^FO160,10
+    cmd += '^BY3,3.0,150\r\n';
+    cmd += `^FO160,10^BCN,150,N,N,N^FD${trackingId}^FS\r\n`;
 
-    // Text below barcode
+    // Centred text: LR no + qty
+    cmd += `^FO0,170^FB800,1,,C^A0N,30,30^FD${trackingId}   Qty: ${noOfGoods}^FS\r\n`;
 
+    cmd += `^PQ1\r\n`;
     cmd += '^XZ\r\n';
   }
 
