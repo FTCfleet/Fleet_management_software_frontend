@@ -3,6 +3,9 @@
  * Direct printing to network thermal printers via backend API
  */
 
+import { generateThreeCopies } from './escPosGenerator.js';
+import { generateBPLZBarcode } from './qzTrayUtils.js';
+
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const remoteLog = async (level, message, data = {}) => {
@@ -99,7 +102,6 @@ export const printThermalLRNetwork = async (trackingId, baseUrl, printerIP, prin
       throw new Error(parcelData.message || 'Failed to fetch parcel data');
     }
 
-    const { generateThreeCopies } = await import('./escPosGenerator.js');
     const escPosCommands = generateThreeCopies(parcelData.body);
 
     const printResult = await printToNetworkPrinter(escPosCommands, printerIP, printerPort, baseUrl);
@@ -127,7 +129,6 @@ export const printThermalLRNetwork = async (trackingId, baseUrl, printerIP, prin
 export const printBarcodeViaNetwork = async (trackingId, noOfGoods, count = 1, printerIP, printerPort = 9100) => {
   await remoteLog('info', 'printBarcodeViaNetwork called', { trackingId, noOfGoods, count, printerIP, printerPort });
   try {
-    const { generateBPLZBarcode } = await import('./qzTrayUtils.js');
     const zplData = generateBPLZBarcode(trackingId, noOfGoods, count);
     const token = localStorage.getItem('token');
 
