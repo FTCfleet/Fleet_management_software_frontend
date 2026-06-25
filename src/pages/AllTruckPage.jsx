@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -21,70 +21,137 @@ import { FaExclamationTriangle, FaTrash } from "react-icons/fa";
 import "../css/main.css";
 import ModernSpinner from "../components/ModernSpinner";
 import SearchFilterBar, { highlightMatch } from "../components/SearchFilterBar";
+import Pagination from "../components/Pagination";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export default function AllTruckPage() {
   const [trucks, setTrucks] = useState([]);
-  const [filteredTrucks, setFilteredTrucks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentTruck, setCurrentTruck] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [nameFilter, setNameFilter] = useState("");
-  const [truckNoFilter, setTruckNoFilter] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [truckToDelete, setTruckToDelete] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading1, setIsLoading1] = useState(false);
   const [isLoading2, setIsLoading2] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalDrivers, setTotalDrivers] = useState(0);
+  const filtersRef = useRef({ name: "" });
   const { isDarkMode, colors } = useOutletContext() || {};
   
   const headerStyle = { color: colors?.textPrimary || "#1E3A5F", fontWeight: "bold" };
   const rowStyle = { color: colors?.textSecondary || "#25344E" };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const fetchData = useCallback(
+    async ({ page = 1, name } = {}) => {
+      setIsLoading(true);
+      const searchName =
+        typeof name === "string" ? name.trim() : filtersRef.current.name;
+
+      filtersRef.current = { name: searchName };
+
+      const token = localStorage.getItem("token");
+
+      try {
+        const params = new URLSearchParams({
+          page: String(page),
+          name: searchName,
+        });
+
+        const res = await fetch(
+          `${BASE_URL}/api/admin/get-all-drivers?${params.toString()}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch drivers");
+        }
+
+        const data = await res.json();
+        const {
+          drivers = [],
+          page: serverPage = page,
+          pageSize: serverPageSize = drivers.length,
+          totalPages: serverTotalPages = 0,
+          totalDrivers: serverTotalDrivers = drivers.length,
+        } = data.body || {};
+
+        setTrucks(drivers);
+        setCurrentPage(serverPage);
+        setPageSize(serverPageSize);
+        setTotalPages(serverTotalPages);
+        setTotalDrivers(serverTotalDrivers);
+      } catch (error) {
+        console.error("Failed to fetch drivers", error);
+        setTrucks([]);
+        setPageSize(0);
+        setTotalPages(0);
+        setTotalDrivers(0);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
-    setFilteredTrucks(trucks);
-  }, [trucks]);
-
-  const fetchData = async () => {
-    setIsLoading(true);
-    const token = localStorage.getItem("token");
-    const res = await fetch(`${BASE_URL}/api/admin/get-all-drivers`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const data = await res.json();
-    let lst = data.body;
-    lst.sort((a, b) => a.name.localeCompare(b.name));
-    setTrucks(lst);
-    setIsLoading(false);
-  };
+    fetchData({ page: 1 });
+  }, [fetchData]);
 
   // Filters
   const applyFilter = ({searchValue} = {}) => {
+    if (!trucks || trucks.length === 0) {
+      return;
+    }
     const val = searchValue ?? nameFilter;
     setNameFilter(val);
-    const searchTerm = val.toLowerCase();
-    const filtered = trucks.filter((truck) => {
-      if (!searchTerm) return true;
-      return (
-        truck.name.toLowerCase().startsWith(searchTerm) ||
-        truck.vehicleNo.toLowerCase().startsWith(searchTerm)
-      );
-    });
-    setFilteredTrucks(filtered);
+    setCurrentPage(1);
+    fetchData({ page: 1, name: val });
   };
 
   const clearFilter = () => {
     setNameFilter("");
-    setFilteredTrucks(trucks);
+    setCurrentPage(1);
+    fetchData({ page: 1, name: "" });
+  };
+
+  const goToPage = (pageNumber) => {
+    if (pageNumber < 1) {
+      return;
+    }
+    const computedTotalPages =
+      totalPages || (totalDrivers && pageSize ? Math.ceil(totalDrivers / pageSize) : 0);
+    if (computedTotalPages && pageNumber > computedTotalPages) {
+      return;
+    }
+    setCurrentPage(pageNumber);
+    fetchData({ page: pageNumber });
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage <= 1) {
+      return;
+    }
+    goToPage(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    const computedTotalPages =
+      totalPages || (totalDrivers && pageSize ? Math.ceil(totalDrivers / pageSize) : 0);
+    if (computedTotalPages && currentPage >= computedTotalPages) {
+      return;
+    }
+    goToPage(currentPage + 1);
   };
 
   const handleEdit = (truck) => {
@@ -112,8 +179,8 @@ export default function AllTruckPage() {
       }),
     });
 
-    const data = await res.json();
-    fetchData();
+    await res.json();
+    await fetchData({ page: currentPage });
     setIsLoading2(false);
     setDeleteModalOpen(false);
     setTruckToDelete(null);
@@ -168,7 +235,7 @@ export default function AllTruckPage() {
     }
 
     const data = await res.json();
-    fetchData();
+    await fetchData({ page: currentPage });
     setIsLoading1(false);
     setIsModalOpen(false);
   };
@@ -179,8 +246,40 @@ export default function AllTruckPage() {
   };
 
   const handleFieldChange = (field, value) => {
+    if (field === "vehicleNo") {
+      value = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    }
     setCurrentTruck({ ...currentTruck, [field]: value });
   };
+
+  const memoizedTrucks = useMemo(() => {
+    const perPage = pageSize || trucks.length || 0;
+    const offset = perPage ? (currentPage - 1) * perPage : 0;
+    return trucks.map((truck, index) => ({
+      ...truck,
+      serial: offset + index + 1,
+    }));
+  }, [trucks, currentPage, pageSize]);
+
+  const resolvedTotalPages = useMemo(() => {
+    if (totalPages) {
+      return totalPages;
+    }
+    if (totalDrivers && pageSize) {
+      return Math.ceil(totalDrivers / pageSize);
+    }
+    return totalDrivers > 0 ? 1 : 0;
+  }, [totalPages, totalDrivers, pageSize]);
+
+  const visibleRange = useMemo(() => {
+    if (!memoizedTrucks.length) {
+      return { start: 0, end: 0 };
+    }
+    return {
+      start: memoizedTrucks[0].serial,
+      end: memoizedTrucks[memoizedTrucks.length - 1].serial,
+    };
+  }, [memoizedTrucks]);
 
   return (
     <Box sx={{ padding: "20px" }}>
@@ -217,6 +316,18 @@ export default function AllTruckPage() {
           </Button>
         }
       />
+      <Pagination
+        currentPage={currentPage}
+        totalPages={resolvedTotalPages}
+        onPrevious={handlePreviousPage}
+        onNext={handleNextPage}
+        isLoading={isLoading}
+        infoText={memoizedTrucks.length > 0
+          ? `Showing ${visibleRange.start} - ${visibleRange.end} of ${totalDrivers} trucks`
+          : `Showing 0 of ${totalDrivers} trucks`}
+        isDarkMode={isDarkMode}
+        colors={colors}
+      />
 
       {/* Truck Table */}
       <TableContainer component={Paper} sx={{ 
@@ -242,10 +353,10 @@ export default function AllTruckPage() {
                   <ModernSpinner size={28} />
                 </TableCell>
               </TableRow>
-            ) : filteredTrucks.length > 0 ? (
-              filteredTrucks.map((truck, idx) => (
+            ) : memoizedTrucks.length > 0 ? (
+              memoizedTrucks.map((truck) => (
                 <TableRow key={truck.vehicleNo}>
-                  <TableCell sx={rowStyle}>{idx+1}.</TableCell>
+                  <TableCell sx={rowStyle}>{truck.serial}.</TableCell>
                   <TableCell sx={rowStyle}>{highlightMatch(truck.name, nameFilter, isDarkMode)}</TableCell>
                   <TableCell sx={rowStyle}>{truck.phoneNo}</TableCell>
                   <TableCell sx={rowStyle}>{highlightMatch(truck.vehicleNo, nameFilter, isDarkMode)}</TableCell>
@@ -358,7 +469,7 @@ export default function AllTruckPage() {
                 label="Truck Number"
                 value={currentTruck.vehicleNo}
                 onChange={(e) =>
-                  handleFieldChange("vehicleNo", e.target.value.toUpperCase())
+                  handleFieldChange("vehicleNo", e.target.value)
                 }
                 disabled={!isAdding}
                 sx={{ 
