@@ -46,6 +46,7 @@ export default function EditOrderPage() {
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [allWarehouse, setAllWarehouse] = useState([]);
+  const [whatsappNo, setWhatsappNo] = useState("");
   // Store doorDeliveryCharge as DB value (integer * 100)
   const [doorDeliveryCharge, setDoorDeliveryCharge] = useState(0);
   const [error, setError] = useState(false);
@@ -186,6 +187,7 @@ export default function EditOrderPage() {
         destinationWarehouse, 
         isDoorDelivery, 
         payment, 
+        whatsappNo,
         doorDeliveryCharge: parseFloat(fromDbValue(doorDeliveryCharge)) || 0, // Convert back to display value for backend
         ...(isAdmin ? { status } : {}) 
       }) 
@@ -239,6 +241,7 @@ export default function EditOrderPage() {
           <FormControl size="small" sx={textFieldSx}><InputLabel>Payment Type</InputLabel><Select label="Payment Type" value={payment} onChange={(e) => setPayemnt(e.target.value)} inputProps={{ tabIndex: isAdmin ? 12 : 10 }}><MenuItem value="To Pay">To Pay</MenuItem><MenuItem value="Paid">Paid</MenuItem></Select></FormControl>
           <FormControlLabel control={<Checkbox checked={isDoorDelivery} onChange={(e) => setIsDoorDelivery(e.target.checked)} sx={{ color: isDarkMode ? "#FFB74D" : "#1D3557", "&.Mui-checked": { color: isDarkMode ? "#FFB74D" : "#1D3557" } }} />} label="Door Delivery" />
           {isDoorDelivery && <TextField label="Delivery Charge" value={fromDbValue(doorDeliveryCharge)} onChange={(e) => setDoorDeliveryCharge(toDbValue(e.target.value))} type="text" sx={textFieldSx} size="small" />}
+          <TextField label="Whatsapp No." value={whatsappNo} onChange={(e) => setWhatsappNo(e.target.value)} sx={textFieldSx} size="small" inputProps={{ tabIndex: 8 }} />
         </Box>
       </SectionCard>
 
