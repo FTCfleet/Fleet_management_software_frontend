@@ -566,21 +566,20 @@ export default function ViewOrderPage() {
                 <Box 
                   sx={{ 
                     display: "grid",
-                    gridTemplateColumns: { xs: "repeat(2, 1fr)", sm: "repeat(4, 1fr)" },
+                    gridTemplateColumns: { xs: "repeat(3, 1fr)", sm: "repeat(5, 1fr)" },
                     gap: 2.5,
-                    pt: 2.5, 
-                    mt: 1,
                     borderTop: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e8ecf0",
                     backgroundColor: isDarkMode ? "rgba(255,255,255,0.03)" : "#fafbfc",
-                    p: 2.5,
+                    p: 1.5,
                     borderRadius: 2.5,
                     border: isDarkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid #e8ecf0",
                   }}
                 >
                   <MetaItem label="Added by" value={order.addedBy?.name} colors={colors} isDarkMode={isDarkMode} />
-                  <MetaItem label="Created" value={dateFormatter(order.placedAt)} colors={colors} isDarkMode={isDarkMode} />
+                  <MetaItem label="Created on" value={dateFormatter(order.placedAt)} colors={colors} isDarkMode={isDarkMode} />
                   <MetaItem label="Modified by" value={order.lastModifiedBy?.name} colors={colors} isDarkMode={isDarkMode} />
-                  <MetaItem label="Modified" value={dateFormatter(order.lastModifiedAt)} colors={colors} isDarkMode={isDarkMode} />
+                  <MetaItem label="Modified on" value={dateFormatter(order.lastModifiedAt)} colors={colors} isDarkMode={isDarkMode} />
+                  <MetaItem label="Whatsapp No." value={order.whatsappNo} colors={colors} isDarkMode={isDarkMode} />
                 </Box>
               </Grid>
             </Grid>

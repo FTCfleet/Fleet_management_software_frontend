@@ -75,6 +75,7 @@ export default function EditOrderPage() {
     const data = (await response.json()).body;
     setSenderDetails(data.sender); setReceiverDetails(data.receiver); setSourceWarehouse(data.sourceWarehouse.warehouseID); setDestinationWarehouse(data.destinationWarehouse.warehouseID);
     setIsDoorDelivery(data.isDoorDelivery); setDoorDeliveryCharge(data.doorDeliveryCharge || 0); setPayemnt(data.payment); setOldItems(data.items); setStatus(data.status); setIsPageLoading(false);
+    setWhatsappNo(data.whatsappNo || "");
   };
   const fetchItemTypes = async () => { const token = localStorage.getItem("token"); const res = await fetch(`${BASE_URL}/api/admin/manage/item-type`, { headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` } }); const data = await res.json(); setItemTypes(data.body); };
 

@@ -60,7 +60,7 @@ export default function AddOrderPage({}) {
   const [destinationWarehouse, setDestinationWarehouse] = useState("");
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [payment, setPayemnt] = useState("To Pay");
-  const [whatsAppNo, setWhatsAppNo] = useState("");
+  const [whatsappNo, setWhatsappNo] = useState("");
   const [isDoorDelivery, setIsDoorDelivery] = useState(false);
   // Store doorDeliveryCharge as display value (decimal string)
   const [doorDeliveryCharge, setDoorDeliveryCharge] = useState("");
@@ -243,7 +243,7 @@ export default function AddOrderPage({}) {
           payment, 
           isDoorDelivery, 
           doorDeliveryCharge: parseFloat(doorDeliveryCharge) || 0, 
-          whatsAppNo,
+          whatsappNo,
           ...(isAdmin ? { sourceWarehouse } : {}) 
         }),
       });
@@ -332,7 +332,7 @@ export default function AddOrderPage({}) {
               <MenuItem value="Paid">Paid</MenuItem>
             </Select>
           </FormControl>
-          <TextField label="Whatsapp No." value={whatsAppNo} onChange={(e) => setWhatsAppNo(e.target.value)} sx={textFieldSx} size="small" inputProps={{ tabIndex: 8 }} />
+          <TextField label="Whatsapp No." value={whatsappNo} onChange={(e) => setWhatsappNo(e.target.value)} sx={textFieldSx} size="small" inputProps={{ tabIndex: 8 }} />
           <FormControlLabel control={<Checkbox checked={isDoorDelivery} onChange={(e) => setIsDoorDelivery(e.target.checked)} sx={{ color: isDarkMode ? "#FFB74D" : "#1D3557", "&.Mui-checked": { color: isDarkMode ? "#FFB74D" : "#1D3557" } }} inputProps={{ tabIndex: isAdmin ? 12 : 11 }} />} label="Door Delivery" sx={{ "& .MuiFormControlLabel-label": { fontSize: "0.9rem" } }} />
           {isDoorDelivery && <TextField label="Delivery Charge" value={doorDeliveryCharge} onChange={(e) => setDoorDeliveryCharge(e.target.value)} type="text" sx={textFieldSx} size="small" inputProps={{ tabIndex: isAdmin ? 13 : 12 }} />}
         </Box>
